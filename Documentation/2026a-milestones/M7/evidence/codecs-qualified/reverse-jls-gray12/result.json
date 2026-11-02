@@ -1,0 +1,70 @@
+{
+  "name": "reverse-jls-gray12",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/dcmcjpls",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray12.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign.dcm"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/dcmdjpls",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign-decoded.dcm"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 1,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    }
+  ],
+  "independent_foreign_exact": true,
+  "independent_sample_count": 3072,
+  "foreign_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 16,
+    "bitsStored": 12,
+    "highBit": 11,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.4.80"
+  },
+  "foreign_header": {
+    "marker": 247,
+    "precision": 16,
+    "rows": 48,
+    "columns": 64,
+    "components": 1
+  },
+  "precision_policy_case_verified": true,
+  "status": "interoperability_limit",
+  "error": "Process failed: ['/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/foreign.dcm', '--output', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jls-gray12/decoded.dcm', '--transfer-syntax', 'ExplicitVRLittleEndian']; \u274c Conversion failed\nCannot convert JPEG-LS Lossless Image Compression [1.2.840.10008.1.2.4.80] to Explicit VR Little Endian [1.2.840.10008.1.2.1].\nReason: The DICOM data could not be parsed.\nDetails: Parsing failed: JPEG-LS precision mismatch is outside the selected recovery policy\n",
+  "limitVerified": {
+    "positiveNonzeroExit": 1,
+    "outputAbsent": true,
+    "independentDecodeExact": true,
+    "countsAsCodecPass": false,
+    "scope": "Actual independently encoded and decoded unsigned monochrome16precision/12stored stream; current strict descriptor policy refuses it. No determination that this peer is nonconformant."
+  },
+  "elapsed_seconds": 0.048223249963484704
+}

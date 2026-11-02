@@ -1,0 +1,3 @@
+if exists absent.dcm
+dicom-not-a-tool input.dcm
+endif

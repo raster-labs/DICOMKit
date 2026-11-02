@@ -1,0 +1,177 @@
+{
+  "aborted": 0,
+  "errors": [],
+  "released": 4,
+  "requests": [
+    {
+      "keys": {
+        "00080020": {
+          "value": "",
+          "vr": "DA"
+        },
+        "00080030": {
+          "value": "",
+          "vr": "TM"
+        },
+        "00080050": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "00080061": {
+          "value": "",
+          "vr": "CS"
+        },
+        "00080090": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00081030": {
+          "value": "",
+          "vr": "LO"
+        },
+        "00100010": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00100020": {
+          "value": "M4ZERO",
+          "vr": "LO"
+        },
+        "00100030": {
+          "value": "",
+          "vr": "DA"
+        },
+        "0020000D": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00200010": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00201206": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00201208": {
+          "value": "",
+          "vr": "IS"
+        }
+      },
+      "operation": 32,
+      "partial_results": 0,
+      "terminal_status": "FE00",
+      "transfer_syntax": "1.2.840.10008.1.2.1"
+    },
+    {
+      "keys": {
+        "00080020": {
+          "value": "",
+          "vr": "DA"
+        },
+        "00080030": {
+          "value": "",
+          "vr": "TM"
+        },
+        "00080050": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "00080061": {
+          "value": "",
+          "vr": "CS"
+        },
+        "00080090": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00081030": {
+          "value": "",
+          "vr": "LO"
+        },
+        "00100010": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00100020": {
+          "value": "M4PARTIAL",
+          "vr": "LO"
+        },
+        "00100030": {
+          "value": "",
+          "vr": "DA"
+        },
+        "0020000D": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00200010": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00201206": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00201208": {
+          "value": "",
+          "vr": "IS"
+        }
+      },
+      "operation": 32,
+      "partial_results": 1,
+      "terminal_status": "FE00",
+      "transfer_syntax": "1.2.840.10008.1.2.1"
+    },
+    {
+      "counts": [
+        2,
+        1,
+        1,
+        1
+      ],
+      "keys": {
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "0020000D": {
+          "value": "2.25.404",
+          "vr": "UI"
+        }
+      },
+      "operation": 33,
+      "terminal_status": "FE00",
+      "transfer_syntax": "1.2.840.10008.1.2.1"
+    },
+    {
+      "counts": [
+        2,
+        0,
+        1,
+        0
+      ],
+      "keys": {
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "0020000D": {
+          "value": "2.25.404",
+          "vr": "UI"
+        }
+      },
+      "operation": 16,
+      "terminal_status": "FE00",
+      "transfer_syntax": "1.2.840.10008.1.2.1"
+    }
+  ]
+}

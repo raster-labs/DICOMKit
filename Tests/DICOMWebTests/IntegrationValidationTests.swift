@@ -17,6 +17,61 @@ import Foundation
 /// requiring actual network connections.
 @Suite("Milestone 8.8 Integration Validation")
 struct IntegrationValidationTests {
+
+    @Test("JSON import writes consistent UTF-8 Part-10 declarations and bytes through nested source charsets")
+    func testJSONImportNormalizesSourceCharacterSetsForPart10() throws {
+        let json = """
+        {
+            "00080005": {"vr": "CS", "Value": ["ISO_IR 100"]},
+            "00080016": {"vr": "UI", "Value": ["1.2.840.10008.5.1.4.1.1.7"]},
+            "00080018": {"vr": "UI", "Value": ["1.2.826.0.1.3680043.10.511.99.192"]},
+            "00100010": {"vr": "PN", "Value": [{"Alphabetic": "Müller^Jörg"}]},
+            "00100020": {"vr": "LO", "Value": ["Café"]},
+            "0040A730": {"vr": "SQ", "Value": [
+                {"0040A160": {"vr": "UT", "Value": ["Résultat"]}},
+                {
+                    "00080005": {"vr": "CS", "Value": ["ISO_IR 192"]},
+                    "00100010": {"vr": "PN", "Value": [{"Ideographic": "山田^太郎"}]},
+                    "0040A730": {"vr": "SQ", "Value": [{
+                        "00080005": {"vr": "CS", "Value": ["ISO_IR 100"]},
+                        "00100010": {"vr": "PN", "Value": [{"Alphabetic": "André^Émile"}]}
+                    }]}
+                }
+            ]}
+        }
+        """
+        let (part10, _) = try DataExchangeWorkflow.decode(
+            textData: Data(json.utf8), format: .json, options: .init(reverse: true))
+        let parsed = try DICOMFile.read(from: part10)
+        let contentSequence = Tag(group: 0x0040, element: 0xA730)
+        let textValue = Tag(group: 0x0040, element: 0xA160)
+        #expect(parsed.dataSet.string(for: .specificCharacterSet) == "ISO_IR 192")
+
+        let items = try #require(parsed.dataSet.sequence(for: contentSequence))
+        try #require(items.count == 2)
+        #expect(items[0][.specificCharacterSet] == nil)
+        #expect(items[1][.specificCharacterSet]?.stringValue == "ISO_IR 192")
+        let nested = try #require(items[1][contentSequence]?.sequenceItems?.first)
+        #expect(nested[.specificCharacterSet]?.stringValue == "ISO_IR 192")
+
+        let textElements: [(DataElement?, String)] = [
+            (parsed.dataSet[.patientName], "Müller^Jörg"),
+            (parsed.dataSet[.patientID], "Café"),
+            (items[0][textValue], "Résultat"),
+            (items[1][.patientName], "=山田^太郎"),
+            (nested[.patientName], "André^Émile")
+        ]
+        for (candidate, expectedText) in textElements {
+            let element = try #require(candidate)
+            #expect(element.specificCharacterSet == "ISO_IR 192")
+            #expect(element.stringValue == expectedText)
+            var expectedBytes = Data(expectedText.utf8)
+            if expectedBytes.count % 2 != 0 { expectedBytes.append(0x20) }
+            #expect(element.valueData == expectedBytes)
+            #expect(element.length == UInt32(expectedBytes.count))
+        }
+        #expect(part10.range(of: Data("ISO_IR 100".utf8)) == nil)
+    }
     
     // MARK: - OAuth2 with Major Providers
     
@@ -207,7 +262,9 @@ struct IntegrationValidationTests {
         #expect(capabilities.services.stowRS == true)
         #expect(capabilities.services.upsRS == true)
         #expect(capabilities.services.delete == true)
-        #expect(capabilities.services.bulkdata == true)
+        #expect(capabilities.services.bulkdata == false)
+        #expect(capabilities.services.rendered == false)
+        #expect(capabilities.services.thumbnails == false)
         
         // Verify server identification
         #expect(capabilities.serverName == "DICOMKit")
@@ -219,18 +276,19 @@ struct IntegrationValidationTests {
     func testCapabilityDiscoveryMediaTypes() async throws {
         let capabilities = DICOMwebCapabilities.dicomKitServer
         
-        // Verify retrieve media types
-        #expect(capabilities.mediaTypes.retrieve.contains("application/dicom"))
-        #expect(capabilities.mediaTypes.retrieve.contains("application/dicom+json"))
-        #expect(capabilities.mediaTypes.retrieve.contains("multipart/related"))
+        // The M4 server contract advertises qualified DICOM multipart and only
+        // implemented representations, excluding bare multipart and image types.
+        #expect(Set(capabilities.mediaTypes.retrieve) == Set([
+            "multipart/related; type=\"application/dicom\"",
+            "application/dicom", "application/dicom+json"
+        ]))
         
         // Verify store media types
-        #expect(capabilities.mediaTypes.store.contains("application/dicom"))
-        #expect(capabilities.mediaTypes.store.contains("multipart/related"))
+        #expect(Set(capabilities.mediaTypes.store) == Set([
+            "multipart/related; type=\"application/dicom\"", "application/dicom"
+        ]))
         
-        // Verify rendered image formats
-        #expect(capabilities.mediaTypes.rendered.contains("image/jpeg"))
-        #expect(capabilities.mediaTypes.rendered.contains("image/png"))
+        #expect(capabilities.mediaTypes.rendered.isEmpty)
     }
     
     @Test("Capability discovery provides accurate transfer syntax support")
@@ -274,10 +332,8 @@ struct IntegrationValidationTests {
     func testCapabilityDiscoveryAuthMethods() async throws {
         let capabilities = DICOMwebCapabilities.dicomKitServer
         
-        #expect(capabilities.authenticationMethods.contains(.none))
-        #expect(capabilities.authenticationMethods.contains(.basic))
-        #expect(capabilities.authenticationMethods.contains(.bearer))
-        #expect(capabilities.authenticationMethods.contains(.apiKey))
+        // Client authentication helpers do not establish server authentication support.
+        #expect(capabilities.authenticationMethods == [.none])
     }
     
     @Test("Capability discovery JSON serialization is accurate")
@@ -295,6 +351,9 @@ struct IntegrationValidationTests {
         #expect(services?["qido-rs"] == true)
         #expect(services?["stow-rs"] == true)
         #expect(services?["ups-rs"] == true)
+        #expect(services?["bulkdata"] == false)
+        #expect(services?["rendered"] == false)
+        #expect(services?["thumbnails"] == false)
     }
     
     @Test("Minimal capabilities configuration is valid")

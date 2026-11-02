@@ -1,0 +1,23 @@
+{
+  "recorded_utc": "2026-10-26T09:25:21.007198+00:00",
+  "CUA_observations": [
+    "Quit previous DICOMStudio using super+q",
+    "Subsequent cua.listApps returned no DICOMStudio entry",
+    "Relaunched exact signed app path via cua.getApp",
+    "Executed create, get and malformed create in CLI Tools Workshop"
+  ],
+  "process": "72477 Mon Oct 26 14:51:43 2026     /Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio",
+  "application_file_hashes_equal_frozen_manifest": true,
+  "application_file_count": 14,
+  "native_marker_names": [
+    "ups-identity-create",
+    "ups-identity-get",
+    "ups-identity-invalid"
+  ],
+  "native_results": [
+    "SUCCESS",
+    "SUCCESS",
+    "ERROR (expected invalid UID refusal)"
+  ],
+  "peer_audit": "strict-ups-final-verification.json"
+}

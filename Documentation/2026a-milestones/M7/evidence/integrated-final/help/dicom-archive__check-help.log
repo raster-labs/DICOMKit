@@ -1,0 +1,11 @@
+OVERVIEW: Check archive integrity
+
+USAGE: dicom-archive check --archive <archive> [--verify-files] [--verbose]
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  --verify-files          Verify DICOM file readability
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

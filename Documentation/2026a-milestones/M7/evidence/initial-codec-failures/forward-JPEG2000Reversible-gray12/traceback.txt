@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 191, in case
+    try:body(d,run,record);record['status']='passed'
+        ^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 233, in <lambda>
+    case('forward-'+t[0]+'-'+inp,lambda d,run,rec,t=t,inp=inp:forward(d,run,rec,t,inp))
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 227, in forward
+    back=d/'self-decoded.dcm';run([binary,output,'--output',back,'--transfer-syntax','ExplicitVRLittleEndian']);decoded=pydicom.dcmread(back);record['decoded_metadata']=pixel_metadata(decoded,inp,native=True,transfer_syntax=BASE+'.1');actual=samples(decoded)
+                                                                                                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 86, in pixel_metadata
+    require(ds['PixelData'].VR in (['OW'] if stored>8 else ['OB','OW']),'Wrong native PixelData VR')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 51, in require
+    if not b: raise AssertionError(m)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Wrong native PixelData VR

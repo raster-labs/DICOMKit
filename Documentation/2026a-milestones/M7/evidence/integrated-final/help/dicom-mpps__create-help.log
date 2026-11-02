@@ -1,0 +1,73 @@
+OVERVIEW: Create MPPS instance (N-CREATE)
+
+USAGE: dicom-mpps create [<options>] <host> --aet <aet> --study-uid <study-uid>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --study-uid <study-uid> Study Instance UID for the procedure
+  --patient-name <patient-name>
+                          Patient's Name (0010,0010) in DICOM format e.g.
+                          DOE^JOHN
+  --patient-id <patient-id>
+                          Patient ID (0010,0020)
+  --status <status>       Initial status — must be IN PROGRESS; N-CREATE always
+                          starts the step (default: IN PROGRESS) (default: IN
+                          PROGRESS)
+  --sps-id <sps-id>       Scheduled Procedure Step ID from the MWL item — links
+                          this MPPS to the worklist entry so the server can
+                          transition its status (0040,0009)
+  --accession-number <accession-number>
+                          Accession Number linking the procedure to the imaging
+                          order (0008,0050)
+  --modality <modality>   Modality value (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --patient-birth-date <patient-birth-date>
+                          Patient's Birth Date (0010,0030) as YYYYMMDD (VR DA,
+                          PS3.5 Table 6.2-1)
+  --patient-sex <patient-sex>
+                          Patient's Sex (0010,0040) Enumerated Values M, F or O
+                          (PS3.3 Table C.2-3)
+  --study-id <study-id>   Study ID (0020,0010)
+  --station-name <station-name>
+                          Performed Station Name (0040,0242)
+  --performed-location <performed-location>
+                          Performed Location (0040,0243)
+  --procedure-step-id <procedure-step-id>
+                          Performed Procedure Step ID (0040,0253) (default: 1)
+  --procedure-step-description <procedure-step-description>
+                          Performed Procedure Step Description (0040,0254)
+  --performing-physician <performing-physician>
+                          Performing Physician's Name (0008,1050), DICOM PN
+                          format
+  --requested-procedure-id <requested-procedure-id>
+                          Requested Procedure ID (0040,1001) from the MWL item
+  --requested-procedure-description <requested-procedure-description>
+                          Requested Procedure Description (0032,1060) from the
+                          MWL item
+  --sps-description <sps-description>
+                          Scheduled Procedure Step Description (0040,0007) from
+                          the MWL item
+  --referenced-study-uid <referenced-study-uid>
+                          Referenced Study SOP Instance UID (0008,1155) from
+                          the MWL item's Referenced Study Sequence
+  --specific-character-set <specific-character-set>
+                          Force the Specific Character Set (0008,0005), e.g.
+                          ISO_IR 100 or ISO_IR 192. By default the narrowest
+                          set that represents every text value is chosen
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

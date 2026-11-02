@@ -1,0 +1,1 @@
+Error: Invalid configuration: TLS is not implemented by dicom-server; --tls and enableTLS=true are refused before storage or listener startup. No plaintext fallback is permitted. Use a separately configured, qualified secure endpoint; omit --tls only when an explicitly unsecured listener is intended.

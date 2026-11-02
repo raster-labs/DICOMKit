@@ -1,0 +1,32 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "serve",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/PY-R03/empty-config.json",
+    "--port",
+    "56909",
+    "--ae-title",
+    "DCMKIT_M6",
+    "--output",
+    "png",
+    "--output-dir",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/PY-R03/films",
+    "--dpi",
+    "36",
+    "--max-pixels",
+    "1024",
+    "--duration",
+    "90",
+    "--format",
+    "json",
+    "--verbose",
+    "--accept-color",
+    "--push-job-events"
+  ],
+  "pid": 27191,
+  "exit_code": -15,
+  "elapsed_seconds": 0.2898069999999997,
+  "timed_out": false,
+  "stopped_by_harness": true
+}

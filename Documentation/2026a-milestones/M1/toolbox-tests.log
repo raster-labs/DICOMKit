@@ -1,0 +1,1175 @@
+Building for debugging...
+[Planning deferred tasks]
+[15 / 39]
+[16 / 39]
+[17 / 40] DICOMToolbox
+[27 / 51] DICOMToolbox
+[28 / 51] DICOMToolbox
+[36 / 51] DICOMToolbox
+[41 / 52] DICOMToolboxTests-product
+[52 / 63] DICOMToolboxTests-product
+[57 / 63] DICOMToolboxTests-product
+[59 / 63] DICOMToolboxTests-product
+Build complete! (10.69 sec)
+Test Suite 'All tests' started at 2026-10-24 15:33:28.625.
+Test Suite 'All tests' passed at 2026-10-24 15:33:28.631.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.006) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "URL Auto-Construction Tests" started.
+◇ Suite "DicomImage Command Generation Tests" started.
+◇ Suite "DicomTags Command Generation Tests" started.
+◇ Suite "Missing Parameter Label Tests" started.
+◇ Suite "Validation Level Description Tests" started.
+◇ Suite "Network Integration Tests" started.
+◇ Suite "Network Config Override Tests" started.
+◇ Suite "ProtocolType Tests" started.
+◇ Suite "CommandBuilder Tests" started.
+◇ Suite "ValidationRule Tests" started.
+◇ Suite "DicomJson Output Model Tests" started.
+◇ Suite "ToolDefinition Tests" started.
+◇ Suite "DicomAnon Profile Tests" started.
+◇ Suite "Multi-file Drop Zone Tests" started.
+◇ Suite "ServerProfile Tests" started.
+◇ Suite "DicomUID Command Generation Tests" started.
+◇ Suite "Toolbox literal argument safety" started.
+◇ Suite "Phase 4 Help Content Tests" started.
+◇ Suite "DicomEcho Command Generation Tests" started.
+◇ Suite "DicomDiff Command Generation Tests" started.
+◇ Suite "DicomReport ToolRegistry Tests" started.
+◇ Suite "DicomValidate Command Generation Tests" started.
+◇ Suite "ToolCategory Tests" started.
+◇ Suite "DicomPixedit Command Generation Tests" started.
+◇ Suite "DicomRetrieve Command Generation Tests" started.
+◇ Suite "DicomMPPS Command Generation Tests" started.
+◇ Suite "DicomExport Command Generation Tests" started.
+◇ Suite "Phase 3 Missing Parameter Label Tests" started.
+◇ Suite "GlossaryTerm Model Tests" started.
+◇ Suite "End-to-End Workflow Tests" started.
+◇ Suite "Command History Tests" started.
+◇ Suite "Network Parameter Validation Tests" started.
+◇ Suite "AppSettings Tests" started.
+◇ Suite "DicomConvert Command Generation Tests" started.
+◇ Suite "Network Tool Registry Tests" started.
+◇ Suite "DicomQR Command Generation Tests" started.
+◇ Suite "DicomPdf Command Generation Tests" started.
+◇ Suite "DicomCompress Command Generation Tests" started.
+◇ Suite "DicomSplit Frame Range Tests" started.
+◇ Suite "DicomMerge Command Generation Tests" started.
+◇ Suite "DicomMWL Command Generation Tests" started.
+◇ Suite "DicomCompress Subcommand Switching Tests" started.
+◇ Suite "DicomXml Command Generation Tests" started.
+◇ Suite "File Organization Tool Routing Tests" started.
+◇ Suite "DicomAnon Command Generation Tests" started.
+◇ Suite "ExamplePreset Model Tests" started.
+◇ Suite "Network Tool Required Parameter Tests" started.
+◇ Suite "All 29 Tools Generate Valid Syntax" started.
+◇ Suite "DicomWado Command Generation Tests" started.
+◇ Suite "DicomPixedit Region Format Tests" started.
+◇ Suite "DicomDump Command Generation Tests" started.
+◇ Suite "NetworkConfig Tests" started.
+◇ Suite "ToolRegistry Automation Category Tests" started.
+◇ Suite "Help Content and Parameter Definition Tests" started.
+◇ Suite "Example Presets Tests" started.
+◇ Suite "DICOM Glossary Tests" started.
+◇ Suite "Phase 3 Help Content Tests" started.
+◇ Suite "Transfer Syntax Picker Tests" started.
+◇ Suite "DicomInfo Command Generation Tests" started.
+◇ Suite "Network Config Inheritance Tests" started.
+◇ Suite "File Processing Tool Routing Tests" started.
+◇ Suite "Command Execution Tests" started.
+◇ Suite "DicomJson Command Generation Tests" started.
+◇ Suite "DicomDcmdir Subcommand Tests" started.
+◇ Suite "ToolRegistry Tests" started.
+◇ Suite "DicomScript Command Tests" started.
+◇ Suite "DicomStudy Subcommand Form Tests" started.
+◇ Suite "Data Export Tool Routing Tests" started.
+◇ Suite "DicomImage Metadata Tests" started.
+◇ Suite "Performance Benchmark Tests" started.
+◇ Suite "Phase 4 Required Parameter Validation Tests" started.
+◇ Suite "DicomSplit Command Generation Tests" started.
+◇ Suite "File Drag-and-Drop Integration Tests" started.
+◇ Suite "ParameterDefinition Tests" started.
+◇ Suite "Required Parameter Validation Tests" started.
+◇ Suite "FileDropZone Model Tests" started.
+◇ Suite "Phase 3 Required Parameter Validation Tests" started.
+◇ Suite "DicomQuery Command Generation Tests" started.
+◇ Suite "File Inspection Tool Routing Tests" started.
+◇ Suite "DicomDcmdir Command Generation Tests" started.
+◇ Suite "DicomSend Command Generation Tests" started.
+◇ Test "DICOMweb protocol URL uses https:// scheme" started.
+◇ Test "URL with custom port constructs correctly" started.
+◇ Suite "Toolbox process safety" started.
+◇ Test "DICOM protocol URL uses pacs:// scheme" started.
+◇ Test "Basic dicom-image command" started.
+◇ Test "Each validation level has a description" started.
+◇ Test "Validation levels have correct values" started.
+◇ Test "dicom-diff missing both files shows both labels" started.
+◇ Test "dicom-image with EXIF toggle" started.
+◇ Test "dicom-image with EXIF disabled not in command" started.
+◇ Test "dicom-tags with copy-from source" started.
+◇ Test "dicom-tags no missing when file provided" started.
+◇ Test "dicom-tags with delete tags" started.
+◇ Test "dicom-validate has 4 validation levels" started.
+◇ Test "dicom-diff missing second file shows label" started.
+◇ Test "Override timeout replaces config timeout" started.
+◇ Test "Default validation level is 1" started.
+◇ Test "Override URL replaces config URL" started.
+◇ Test "Timeout propagates from config to network tool commands" started.
+◇ Test "dicom-info missing file shows label" started.
+◇ Test "Protocol types have correct raw values" started.
+◇ Test "Override Called AET replaces config Called AET" started.
+◇ Test "dicom-tags with output file" started.
+◇ Test "Switching between server profiles produces different commands" started.
+◇ Test "Validation - empty required param" started.
+◇ Test "Basic command string for dicom-info" started.
+◇ Test "DICOM protocol URL construction integrates with echo tool" started.
+◇ Test "dicom-tags with delete-private and dry-run" started.
+◇ Test "Override AET replaces config AET" started.
+◇ Test "Command for tool with two required files (dicom-diff)" started.
+◇ Test "Missing required parameters returns labels" started.
+◇ Test "dicom-tags with set tags" started.
+◇ Test "Empty values are not included in command" started.
+◇ Test "No missing params when all provided" started.
+◇ Test "Boolean flag excluded when false" started.
+◇ Test "DICOMweb protocol URL construction integrates with WADO tool" started.
+◇ Test "Validation - missing required param" started.
+◇ Test "Basic dicom-tags command" started.
+◇ Test "ASCII-only validation" started.
+◇ Test "Validation - all required params present" started.
+◇ Test "Command with subcommand" started.
+◇ Test "Min/max value validation" started.
+◇ Test "Command with network config" started.
+◇ Test "Parameter validation for unknown param returns true" started.
+◇ Test "Network config from ServerProfile propagates to command builder" started.
+◇ Test "Command with repeatable option" started.
+◇ Test "Max length validation" started.
+◇ Test "All protocol types are enumerated" started.
+◇ Test "Empty string passes length and ASCII checks" started.
+◇ Test "Parameter validation with rule" started.
+◇ Test "Command with format option" started.
+◇ Test "legacy format input cannot reintroduce an unsupported CLI flag" started.
+◇ Test "Validation - with subcommand required params" started.
+◇ Test "Command with boolean flag" started.
+◇ Test "Profile options include basic, clinical-trial, research" started.
+◇ Test "Tool with subcommands" started.
+◇ Test "Network config overridden by local values" started.
+◇ Test "Command with multiple parameters" started.
+◇ Test "Profile with defaults creates valid config" started.
+◇ Test "Subcommand has own parameters" started.
+◇ Test "dicom-json does not expose the removed no-op format option" started.
+◇ Test "dicom-merge builds command with comma-separated inputs" started.
+◇ Test "dicom-anon has 3 profiles" started.
+◇ Test "dicom-json with pretty print and metadata-only" started.
+◇ Test "dicom-split input parameter is file type" started.
+◇ Test "Default profile is basic" started.
+◇ Test "Combined validation rules" started.
+◇ Test "Execute button disabled when invalid" started.
+◇ Test "dicom-archive input parameter is file type" started.
+◇ Test "Tool without subcommands has nil" started.
+◇ Test "dicom-uid regenerate with input and output" started.
+◇ Test "Profile is Codable" started.
+◇ Test "dicom-merge inputs parameter supports multi-file" started.
+◇ Test "dicom-uid generate with root OID" started.
+◇ Test "Profile creates valid NetworkConfig" started.
+◇ Test "Pattern validation" started.
+◇ Test "Legacy history remains readable but raw text cannot become executable replay/export/copy" started.
+◇ Test "dicom-uid generate with JSON output" started.
+◇ Test "dicom-uid validate requires UID" started.
+◇ Test "dicom-uid generate with count" started.
+◇ Test "Non-numeric value fails min/max validation" started.
+◇ Test "Default network values use the same literal option encoding" started.
+◇ Test "dicom-uid lookup command generation" started.
+◇ Test "All data export tools have parameters with help text" started.
+◇ Test "A different executable in history is not replayable" started.
+◇ Test "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test "Profile IDs are unique" started.
+◇ Test "All file organization tools have SF Symbol icons" started.
+◇ Test "dicom-diff with format option" started.
+◇ Test "dicom-diff with comparison options" started.
+◇ Test "Leading hyphen range is attached to its option" started.
+◇ Test "dicom-diff with ignore tags" started.
+◇ Test "All data export tools have SF Symbol icons" started.
+◇ Test "dicom-echo with diagnose flag" started.
+◇ Test "All file organization tools have parameters with help text" started.
+◇ Test "dicom-report command builder works" started.
+◇ Test "History replay uses persisted argv and its matching preview" started.
+◇ Test "Basic dicom-echo command with network config" started.
+◇ Test "dicom-diff with all parameters" started.
+◇ Test "dicom-echo with count parameter" started.
+◇ Test "dicom-report does not require network" started.
+◇ Test "Basic dicom-diff command with two files" started.
+◇ Test "dicom-report template parameter has 4 options" started.
+◇ Test "dicom-report example presets exist" started.
+◇ Test "dicom-echo with stats flag" started.
+◇ Test "dicom-report command with branding options" started.
+◇ Test "Category raw values are correct" started.
+◇ Test "dicom-validate with validation level" started.
+◇ Test "dicom-report tool is registered" started.
+◇ Test "dicom-report has image embedding parameters" started.
+◇ Test "dicom-diff with summary format" started.
+◇ Test "dicom-report language parameter has 4 options" started.
+◇ Test "dicom-report requires output" started.
+◇ Test "Basic dicom-validate command" started.
+◇ Test "All 6 categories are defined" started.
+◇ Test "dicom-validate with all boolean flags" started.
+◇ Test "dicom-validate with all parameters" started.
+◇ Test "dicom-validate with output file" started.
+◇ Test "dicom-retrieve with parallel operations" started.
+◇ Test "dicom-pixedit with invalid format still generates command" started.
+◇ Test "dicom-report validation requires input and output" started.
+◇ Test "dicom-report has branding parameters" started.
+◇ Test "dicom-pixedit with mask region" started.
+◇ Test "dicom-report has correct parameters" started.
+◇ Test "Basic dicom-pixedit command" started.
+◇ Test "dicom-retrieve with study UID" started.
+◇ Test "dicom-report has no subcommands" started.
+◇ Test "Category identifiers are unique" started.
+◇ Test "dicom-retrieve with C-MOVE method" started.
+◇ Test "dicom-mpps update with status" started.
+◇ Test "dicom-anon no missing when file provided" started.
+◇ Test "dicom-report is in Data Export category" started.
+◇ Test "dicom-export single with format" started.
+◇ Test "Category icon names are SF Symbols" started.
+◇ Test "dicom-validate with output format" started.
+◇ Test "dicom-export single requires input and output" started.
+◇ Test "dicom-report format parameter has 5 options" started.
+◇ Test "dicom-convert missing files shows labels" started.
+◇ Test "dicom-validate missing file shows label" started.
+◇ Test "GlossaryTerm has default empty related terms" started.
+◇ Test "GlossaryTerm uses custom ID when provided" started.
+◇ Test "dicom-retrieve with C-GET method" started.
+◇ Test "dicom-retrieve with HTJ2K transfer syntax" started.
+◇ Test "GlossaryTerm auto-generates ID from term" started.
+◇ Test "dicom-mpps has 2 subcommands" started.
+◇ Test "Automation workflow: study organize with pattern" started.
+◇ Test "dicom-export single subcommand basic" started.
+◇ Test "dicom-export bulk has 2 format options" started.
+◇ Test "dicom-export bulk subcommand" started.
+◇ Test "File processing workflow: convert with transfer syntax" started.
+◇ Test "dicom-mpps create with study UID" started.
+◇ Test "File inspection workflow: select tool → set params → generate command" started.
+◇ Test "dicom-export subcommands are in correct order" started.
+◇ Test "dicom-export has 2 subcommands" started.
+◇ Test "dicom-export single has 3 format options" started.
+◇ Test "WADO subcommand workflow: retrieve study" started.
+◇ Test "dicom-send retry validation accepts valid range" started.
+◇ Test "CommandHistory adds entries in reverse chronological order" started.
+◇ Test "CommandHistoryEntry withExitCode creates updated copy" started.
+◇ Test "CommandHistory exports shell script format" started.
+◇ Test "Command history workflow: generate, record, export" started.
+◇ Test "dicom-retrieve parallel validation rejects out of range" started.
+◇ Test "dicom-send retry validation rejects out of range" started.
+◇ Test "CommandHistory limits to 50 entries" started.
+◇ Test "Failed command entry reports isSuccess false" started.
+◇ Test "dicom-echo count validation accepts valid range" started.
+◇ Test "Network tool workflow: echo with config" started.
+◇ Test "dicom-retrieve parallel validation accepts valid range" started.
+◇ Test "Data export workflow: JSON conversion" started.
+◇ Test "Subcommand workflow: compress with codec selection" started.
+◇ Test "dicom-retrieve tool has method enum with 2 options" started.
+◇ Test "Server profile CRUD delete works" started.
+◇ Test "File organization workflow: archive creation" started.
+◇ Test "Server profile CRUD add works" started.
+◇ Test "Console font size bounds are valid" started.
+◇ Test "Anonymization workflow with clinical trial profile" started.
+◇ Test "dicom-convert empty optional values excluded" started.
+◇ Test "dicom-convert with transfer syntax" started.
+◇ Test "Default beginner mode is false" started.
+◇ Test "dicom-echo count validation rejects out of range" started.
+◇ Test "Network operations category has 8 tools" started.
+◇ Test "dicom-convert with implicit VR transfer syntax" started.
+◇ Test "dicom-echo tool exists in registry" started.
+◇ Test "CommandHistoryEntry stores all fields correctly" started.
+◇ Test "dicom-send tool requires files parameter" started.
+◇ Test "dicom-qr with method and move destination" started.
+◇ Test "All network tools have requiresNetwork set to true" started.
+◇ Test "Basic dicom-convert command with required parameters" started.
+◇ Test "Default console font size is 13" started.
+◇ Test "dicom-convert with windowing parameters" started.
+◇ Test "dicom-qr with output directory" started.
+◇ Test "Server profile delete with wrong ID does nothing" started.
+◇ Test "dicom-convert with JPEG quality" started.
+◇ Test "Multiple profiles can be managed" started.
+◇ Test "dicom-pdf extract disabled not in command" started.
+◇ Test "dicom-qr with interactive mode" started.
+◇ Test "dicom-convert with all parameters" started.
+◇ Test "dicom-query tool has modality enum parameter" started.
+◇ Test "dicom-compress compress has 4 codec options" started.
+◇ Test "dicom-convert with output format" started.
+◇ Test "dicom-qr with auto retrieve" started.
+◇ Test "dicom-compress decompress subcommand" started.
+◇ Test "dicom-convert with boolean flags" started.
+◇ Test "Server profile CRUD update works" started.
+◇ Test "dicom-split with recursive flag" started.
+◇ Test "dicom-pdf with show-metadata" started.
+◇ Test "dicom-compress batch subcommand" started.
+◇ Test "dicom-split format has 3 options" started.
+◇ Test "dicom-compress compress subcommand basic" started.
+◇ Test "dicom-compress compress with codec and quality" started.
+◇ Test "dicom-split format includes DICOM, PNG, JPEG" started.
+◇ Test "dicom-compress info subcommand" started.
+◇ Test "Batch subcommand has recursive option" started.
+◇ Test "dicom-merge with recursive flag" started.
+◇ Test "dicom-pdf extract mode" started.
+◇ Test "dicom-compress batch has 2 codec options" started.
+◇ Test "dicom-mwl with JSON output" started.
+◇ Test "Basic dicom-merge command" started.
+◇ Test "dicom-pdf encapsulate mode" started.
+◇ Test "Basic dicom-xml command" started.
+◇ Test "dicom-mwl with patient filter" started.
+◇ Test "dicom-compress has 4 subcommands" started.
+◇ Test "dicom-compress compress with output" started.
+◇ Test "dicom-convert with frame number" started.
+◇ Test "Compress subcommand has required input" started.
+◇ Test "dicom-merge with sort option" started.
+◇ Test "dicom-merge with validate flag" started.
+◇ Test "dicom-merge with all parameters" started.
+◇ Test "dicom-xml with pretty print" started.
+◇ Test "dicom-anon with all boolean flags" started.
+◇ Test "dicom-split with complex frame range" started.
+◇ Test "Only dicom-dcmdir has subcommands in File Organization" started.
+◇ Test "Subcommands are in correct order" started.
+◇ Test "Info subcommand has only input parameter" started.
+◇ Test "dicom-xml with no-keywords and metadata-only" started.
+◇ Test "File Organization tools are in correct order" started.
+◇ Test "dicom-anon with audit log" started.
+◇ Test "dicom-anon with date shift" started.
+◇ Test "dicom-anon with output path" started.
+◇ Test "File Organization category has exactly 4 tools" started.
+◇ Test "dicom-convert generates valid command syntax" started.
+◇ Test "dicom-mwl with date filter" started.
+◇ Test "ExamplePreset uses custom ID when provided" started.
+◇ Test "dicom-wado retrieve is invalid without required study UID" started.
+◇ Test "ExamplePreset auto-generates ID from name" started.
+◇ Test "dicom-send is valid with required files" started.
+◇ Test "dicom-anon with profile" started.
+◇ Test "dicom-anon with custom tag actions" started.
+◇ Test "dicom-anon with regenerate UIDs" started.
+◇ Test "dicom-mpps create is valid with required study UID" started.
+◇ Test "dicom-xml with reverse and output" started.
+◇ Test "dicom-wado retrieve is valid with required study UID" started.
+◇ Test "Basic dicom-anon command" started.
+◇ Test "File Organization tools do not require network" started.
+◇ Test "dicom-send is invalid without required files" started.
+◇ Test "dicom-anon with all parameters" started.
+◇ Test "dicom-pixedit generates valid command syntax" started.
+◇ Test "dicom-mpps create is invalid without required study UID" started.
+◇ Test "dicom-image generates valid command syntax" started.
+◇ Test "dicom-mwl generates valid command syntax" started.
+◇ Test "dicom-script generates valid command syntax" started.
+◇ Test "dicom-info generates valid command syntax" started.
+◇ Test "dicom-tags generates valid command syntax" started.
+◇ Test "dicom-retrieve is valid with required output" started.
+◇ Test "dicom-export generates valid command syntax" started.
+◇ Test "dicom-retrieve is invalid without required output" started.
+◇ Test "ExamplePreset subcommand defaults to nil" started.
+◇ Test "dicom-dcmdir generates valid command syntax" started.
+◇ Test "dicom-archive generates valid command syntax" started.
+◇ Test "dicom-pdf generates valid command syntax" started.
+◇ Test "dicom-dump generates valid command syntax" started.
+◇ Test "dicom-compress generates valid command syntax" started.
+◇ Test "dicom-retrieve generates valid command syntax" started.
+◇ Test "dicom-wado generates valid command syntax" started.
+◇ Test "dicom-uid generates valid command syntax" started.
+◇ Test "dicom-merge generates valid command syntax" started.
+◇ Test "dicom-diff generates valid command syntax" started.
+◇ Test "dicom-study generates valid command syntax" started.
+◇ Test "dicom-xml generates valid command syntax" started.
+◇ Test "dicom-split generates valid command syntax" started.
+◇ Test "dicom-echo generates valid command syntax" started.
+◇ Test "dicom-anon generates valid command syntax" started.
+◇ Test "dicom-send generates valid command syntax" started.
+◇ Test "dicom-qr generates valid command syntax" started.
+◇ Test "dicom-wado retrieve subcommand has study parameter as required" started.
+◇ Test "dicom-json generates valid command syntax" started.
+◇ Test "dicom-wado has 3 subcommands" started.
+◇ Test "dicom-wado store with input files" started.
+◇ Test "dicom-mpps generates valid command syntax" started.
+◇ Test "dicom-wado retrieve with metadata only" started.
+◇ Test "dicom-wado query with level" started.
+◇ Test "dicom-pixedit with crop region" started.
+◇ Test "dicom-wado retrieve with study UID" started.
+◇ Test "dicom-dump with bytes per line" started.
+◇ Test "dicom-pixedit with all parameters" started.
+◇ Test "dicom-dump with tag filter" started.
+◇ Test "dicom-validate generates valid command syntax" started.
+◇ Test "Basic dicom-dump command" started.
+◇ Test "dicom-dump with all parameters" started.
+◇ Test "dicom-dump with offset and length" started.
+◇ Test "dicom-pixedit with invert flag" started.
+◇ Test "AE Title validation - valid cases" started.
+◇ Test "Automation category has 3 tools" started.
+◇ Test "AE Title validation - empty is invalid" started.
+◇ Test "Timeout validation - out of range" started.
+◇ Test "dicom-script has 3 subcommands" started.
+◇ Test "Server URL construction - DICOMweb protocol" started.
+◇ Test "dicom-dump with annotate and no-color" started.
+◇ Test "AE Title validation - non-ASCII is invalid" started.
+◇ Test "Server URL construction - DICOM protocol" started.
+◇ Test "dicom-query generates valid command syntax" started.
+◇ Test "All file inspection tools have parameters with help text" started.
+◇ Test "Default configuration is valid" started.
+◇ Test "dicom-dump has discussion text" started.
+◇ Test "Port validation - out of range" started.
+◇ Test "Config with empty host is invalid" started.
+◇ Test "AE Title validation - too long is invalid" started.
+◇ Test "dicom-tags has discussion text" started.
+◇ Test "dicom-uid has 4 subcommands" started.
+◇ Test "dicom-info has discussion text" started.
+◇ Test "dicom-validate presets exist" started.
+◇ Test "dicom-study has 5 subcommands" started.
+◇ Test "Config with invalid port is invalid" started.
+◇ Test "dicom-info format parameter has enum values with descriptions" started.
+◇ Test "Timeout validation - valid range" started.
+◇ Test "Port validation - valid range" started.
+◇ Test "dicom-convert has discussion text" started.
+◇ Test "dicom-compress has discussion text" started.
+◇ Test "Glossary search finds terms by definition content" started.
+◇ Test "dicom-validate has discussion text" started.
+◇ Test "Unknown tool returns empty presets" started.
+◇ Test "dicom-diff format parameter has 3 options" started.
+◇ Test "All file processing tools have SF Symbol icons" started.
+◇ Test "Config with invalid timeout is invalid" started.
+◇ Test "Example presets contain parameter values" started.
+◇ Test "All file processing tools have parameters with help text" started.
+◇ Test "dicom-echo presets exist" started.
+◇ Test "Glossary terms with standard references are formatted correctly" started.
+◇ Test "Glossary search finds terms by name" started.
+◇ Test "Transfer syntax options include all standard syntaxes" started.
+◇ Test "Glossary term lookup by name works" started.
+◇ Test "Glossary terms have unique IDs" started.
+◇ Test "Example presets have unique IDs" started.
+◇ Test "Network config provides default server URL for DICOM protocol" started.
+◇ Test "Glossary contains expected number of terms" started.
+◇ Test "dicom-info with all boolean flags" started.
+◇ Test "All file inspection tools have SF Symbol icons" started.
+◇ Test "Glossary term lookup returns nil for unknown term" started.
+◇ Test "Output format has 4 options" started.
+◇ Test "Glossary search is case-insensitive" started.
+◇ Test "Glossary search finds terms by related terms" started.
+◇ Test "dicom-diff has discussion text" started.
+◇ Test "dicom-info has example presets" started.
+◇ Test "Network tools use AET from config" started.
+◇ Test "dicom-info with all parameters" started.
+◇ Test "Transfer syntax options have descriptions" started.
+◇ Test "dicom-json reverse mode disabled not in command" started.
+◇ Test "Network config provides default server URL for DICOMweb protocol" started.
+◇ Test "dicom-anon has discussion text" started.
+◇ Test "dicom-info with format option" started.
+◇ Test "Network tools auto-populate URL from config when not overridden" started.
+◇ Test "File Processing tools are in correct order" started.
+◇ Test "Basic dicom-info command with only required file" started.
+◇ Test "CommandExecutor streams multiline output" started.
+◇ Test "Glossary term lookup is case-insensitive" started.
+◇ Test "dicom-info with single tag filter" started.
+◇ Test "dicom-convert has 4 transfer syntax options" started.
+◇ Test "dicom-info with CSV format" started.
+◇ Test "dicom-info empty optional values excluded" started.
+◇ Test "Network tools use timeout from config" started.
+◇ Test "dicom-json with reverse mode" started.
+◇ Test "Only dicom-compress has subcommands" started.
+◇ Test "CommandExecutor returns non-zero exit code for failing command" started.
+◇ Test "CommandExecutor handles command not found" started.
+◇ Test "File Processing tools do not require network" started.
+◇ Test "dicom-info with tag filter" started.
+◇ Test "Non-network tools do not include network parameters" started.
+◇ Test "Glossary search returns all terms for empty query" started.
+◇ Test "dicom-script run with variables" started.
+◇ Test "CommandExecutor captures stderr output" started.
+◇ Test "Validate subcommand has only input parameter" started.
+◇ Test "CommandExecutor runs simple command and returns exit code 0" started.
+◇ Test "dicom-dcmdir has 3 subcommands" started.
+◇ Test "Tools with subcommands have them defined" started.
+◇ Test "Create subcommand has required input" started.
+◇ Test "dicom-script run with script file" started.
+◇ Test "dicom-study organize with output directory" started.
+◇ Test "dicom-study check with expected series count" started.
+◇ Test "File Processing category has exactly 4 tools" started.
+◇ Test "dicom-study summary with JSON format" started.
+◇ Test "dicom-script template with output" started.
+◇ Test "Subcommands are in correct order" started.
+◇ Test "Network tools have requiresNetwork set" started.
+◇ Test "Network Operations category has 8 tools" started.
+◇ Test "dicom-study compare with two directories" started.
+◇ Test "dicom-script validate requires script file" started.
+◇ Test "Tool lookup returns nil for unknown ID" started.
+◇ Test "dicom-script run with parallel and dry-run" started.
+◇ Test "CommandExecutor cancel terminates process" started.
+◇ Test "Basic dicom-json command" started.
+◇ Test "Data Export tools do not require network" started.
+◇ Test "dicom-study organize with input and pattern" started.
+◇ Test "All tool IDs are unique" started.
+◇ Test "Command generation for all 29 tools completes quickly" started.
+◇ Test "File Inspection category has 4 tools" started.
+◇ Test "Data Export tools are in correct order" started.
+◇ Test "dicom-image with patient metadata" started.
+◇ Test "File Organization category has 4 tools" started.
+◇ Test "File Processing category has 4 tools" started.
+◇ Test "Automation category has 3 tools" started.
+◇ Test "Data Export category has exactly 7 tools" started.
+◇ Test "dicom-image with recursive" started.
+◇ Test "Tool lookup by ID works" started.
+◇ Test "dicom-info has correct parameters" started.
+◇ Test "dicom-split with format" started.
+◇ Test "dicom-json requires input" started.
+◇ Test "dicom-split requires input" started.
+◇ Test "Non-network tools don't require network" started.
+◇ Test "dicom-image with all parameters" started.
+◇ Test "Basic dicom-split command with required parameters" started.
+◇ Test "dicom-pixedit requires input and output" started.
+◇ Test "dicom-merge requires inputs and output" started.
+◇ Test "All 30 tools are registered" started.
+◇ Test "Tool registry lookups are fast" started.
+◇ Test "dicom-pdf requires input and output" started.
+◇ Test "dicom-split with frame range" started.
+◇ Test "Only dicom-export has subcommands in Data Export" started.
+◇ Test "dicom-split with output directory" started.
+◇ Test "dicom-image requires input and output" started.
+◇ Test "Required parameter flag" started.
+◇ Test "History operations with many entries are performant" started.
+◇ Test "Data Export category has 7 tools" started.
+◇ Test "dicom-dcmdir create requires input" started.
+◇ Test "Paths with special characters are preserved" started.
+◇ Test "File path with spaces is handled correctly in command" started.
+◇ Test "dicom-dump requires filePath" started.
+◇ Test "Multiple file paths stored and used in merge command" started.
+◇ Test "dicom-info requires filePath" started.
+◇ Test "dicom-archive requires input and output" started.
+◇ Test "Parameter with enum values" started.
+◇ Test "Multiple file paths stored as comma-separated" started.
+◇ Test "File extension validation patterns for DICOM files" started.
+◇ Test "dicom-export single requires input and output" started.
+◇ Test "File path is stored in parameter values" started.
+◇ Test "dicom-tags requires input file" started.
+◇ Test "dicom-xml requires input" started.
+◇ Test "File path with spaces is preserved" started.
+◇ Test "Directory paths are accepted for recursive tools" started.
+◇ Test "dicom-diff requires both files" started.
+◇ Test "Empty file path is treated as no selection" started.
+◇ Test "File Inspection tools have no subcommands" started.
+◇ Test "dicom-query with multiple search criteria" started.
+◇ Test "dicom-query with query level" started.
+◇ Test "dicom-dcmdir create subcommand" started.
+◇ Test "File Inspection tools are in correct order" started.
+◇ Test "dicom-query with study date filter" started.
+◇ Test "dicom-query with modality filter" started.
+◇ Test "File Inspection tools do not require network" started.
+◇ Test "File Inspection category has exactly 4 tools" started.
+◇ Test "dicom-dcmdir create with output" started.
+◇ Test "Optional parameter flag" started.
+◇ Test "File path can be cleared" started.
+◇ Test "dicom-query with patient name search" started.
+◇ Test "dicom-query with patient ID" started.
+◇ Test "dicom-dcmdir validate subcommand" started.
+◇ Test "dicom-dcmdir dump subcommand" started.
+◇ Test "dicom-query with verbose flag" started.
+◇ Test "dicom-query with output format" started.
+◇ Test "dicom-send with recursive flag" started.
+◇ Test "dicom-send with dry run" started.
+◇ Test "dicom-send with single file" started.
+◇ Test "dicom-send with verify flag" started.
+◇ Test "dicom-send with retry count" started.
+◇ Test "dicom-send with HTJ2K transfer syntax" started.
+◇ Test case passing 1 argument value → "DOE*" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "ORIGINAL\PRIMARY" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "two words" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "O'Neil" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "a"b" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "DOE?" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "line
+break" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "$(touch sentinel)" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "`touch sentinel`" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "a;b" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "$HOME" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "=ls" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "=printf" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test case passing 1 argument value → "=not-a-command" to "Structured values preserve DICOM VM, wildcards and shell characters" started.
+◇ Test "Direct spawn captures literal argv without executing metacharacters" started.
+◇ Test "dicom-convert requires inputPath and output" started.
+◇ Test "dicom-compress batch requires input" started.
+◇ Test "dicom-compress compress requires input" started.
+◇ Test "dicom-validate requires inputPath" started.
+◇ Test "dicom-anon requires inputPath" started.
+✔ Test "DICOMweb protocol URL uses https:// scheme" passed after 0.013 seconds.
+✔ Test "DICOM protocol URL uses pacs:// scheme" passed after 0.013 seconds.
+✔ Test "Each validation level has a description" passed after 0.013 seconds.
+✔ Test "dicom-diff missing both files shows both labels" passed after 0.013 seconds.
+✔ Test "Validation levels have correct values" passed after 0.013 seconds.
+✔ Test "Default validation level is 1" passed after 0.014 seconds.
+✔ Test "dicom-tags no missing when file provided" passed after 0.014 seconds.
+✔ Test "dicom-tags with delete tags" passed after 0.014 seconds.
+✔ Test "dicom-image with EXIF toggle" passed after 0.014 seconds.
+✔ Test "dicom-diff missing second file shows label" passed after 0.014 seconds.
+✔ Test "Protocol types have correct raw values" passed after 0.013 seconds.
+✔ Test "dicom-image with EXIF disabled not in command" passed after 0.014 seconds.
+✔ Test "dicom-info missing file shows label" passed after 0.014 seconds.
+✔ Test "Override URL replaces config URL" passed after 0.014 seconds.
+✔ Test "Override Called AET replaces config Called AET" passed after 0.014 seconds.
+✔ Test "Validation - empty required param" passed after 0.013 seconds.
+✔ Test "Basic command string for dicom-info" passed after 0.013 seconds.
+◇ Test "dicom-compress decompress requires input" started.
+✔ Test "URL with custom port constructs correctly" passed after 0.013 seconds.
+✔ Test "Override timeout replaces config timeout" passed after 0.014 seconds.
+✔ Test "Missing required parameters returns labels" passed after 0.014 seconds.
+✔ Test "dicom-tags with delete-private and dry-run" passed after 0.014 seconds.
+✔ Test "Basic dicom-image command" passed after 0.014 seconds.
+✔ Test "Override AET replaces config AET" passed after 0.014 seconds.
+✔ Test "DICOM protocol URL construction integrates with echo tool" passed after 0.014 seconds.
+✔ Test "Timeout propagates from config to network tool commands" passed after 0.014 seconds.
+✔ Test "Command for tool with two required files (dicom-diff)" passed after 0.014 seconds.
+✔ Test "Boolean flag excluded when false" passed after 0.014 seconds.
+✔ Test "dicom-tags with set tags" passed after 0.014 seconds.
+✔ Test "dicom-tags with copy-from source" passed after 0.014 seconds.
+✔ Test "Validation - all required params present" passed after 0.013 seconds.
+✔ Test "dicom-tags with output file" passed after 0.014 seconds.
+✔ Test "Empty values are not included in command" passed after 0.014 seconds.
+✔ Test "Basic dicom-tags command" passed after 0.014 seconds.
+✔ Test "Min/max value validation" passed after 0.013 seconds.
+✔ Test "Switching between server profiles produces different commands" passed after 0.014 seconds.
+✔ Test "Parameter validation for unknown param returns true" passed after 0.013 seconds.
+✔ Test "Command with subcommand" passed after 0.014 seconds.
+✔ Test "Max length validation" passed after 0.014 seconds.
+✔ Test "No missing params when all provided" passed after 0.014 seconds.
+✔ Test "Empty string passes length and ASCII checks" passed after 0.013 seconds.
+✔ Test "ASCII-only validation" passed after 0.014 seconds.
+✔ Test "Validation - with subcommand required params" passed after 0.013 seconds.
+✔ Test "legacy format input cannot reintroduce an unsupported CLI flag" passed after 0.013 seconds.
+✔ Test "Command with format option" passed after 0.013 seconds.
+✔ Test "Command with repeatable option" passed after 0.014 seconds.
+✔ Test "Command with boolean flag" passed after 0.014 seconds.
+✔ Test "All protocol types are enumerated" passed after 0.014 seconds.
+✔ Test "DICOMweb protocol URL construction integrates with WADO tool" passed after 0.014 seconds.
+✔ Test "Parameter validation with rule" passed after 0.013 seconds.
+✔ Test "Tool with subcommands" passed after 0.013 seconds.
+✔ Test "dicom-json does not expose the removed no-op format option" passed after 0.013 seconds.
+✔ Test "Profile with defaults creates valid config" passed after 0.013 seconds.
+✔ Test "Validation - missing required param" passed after 0.014 seconds.
+✔ Test "Profile options include basic, clinical-trial, research" passed after 0.013 seconds.
+✔ Test "dicom-anon has 3 profiles" passed after 0.013 seconds.
+✔ Test "Command with network config" passed after 0.014 seconds.
+✔ Test "Subcommand has own parameters" passed after 0.014 seconds.
+✔ Test "dicom-split input parameter is file type" passed after 0.013 seconds.
+✔ Test "Command with multiple parameters" passed after 0.013 seconds.
+✔ Test "Network config overridden by local values" passed after 0.014 seconds.
+✔ Test "Default profile is basic" passed after 0.013 seconds.
+✔ Test "Network config from ServerProfile propagates to command builder" passed after 0.014 seconds.
+✔ Test "dicom-merge builds command with comma-separated inputs" passed after 0.013 seconds.
+✔ Test "dicom-merge inputs parameter supports multi-file" passed after 0.014 seconds.
+✔ Test "Tool without subcommands has nil" passed after 0.014 seconds.
+◇ Test "dicom-compress info requires input" started.
+✔ Test "Combined validation rules" passed after 0.014 seconds.
+✔ Test "dicom-archive input parameter is file type" passed after 0.014 seconds.
+✔ Test "dicom-json with pretty print and metadata-only" passed after 0.014 seconds.
+✔ Test "Profile creates valid NetworkConfig" passed after 0.014 seconds.
+✔ Test "dicom-uid regenerate with input and output" passed after 0.014 seconds.
+✔ Test "dicom-uid validate requires UID" passed after 0.014 seconds.
+✔ Test "dicom-uid generate with root OID" passed after 0.014 seconds.
+✔ Test "Non-numeric value fails min/max validation" passed after 0.014 seconds.
+✔ Test "dicom-uid lookup command generation" passed after 0.014 seconds.
+✔ Test "Profile IDs are unique" passed after 0.014 seconds.
+✔ Test "dicom-uid generate with count" passed after 0.014 seconds.
+✔ Test "A different executable in history is not replayable" passed after 0.014 seconds.
+✔ Test "Profile is Codable" passed after 0.014 seconds.
+✔ Test "dicom-validate has 4 validation levels" passed after 0.013 seconds.
+✔ Test "dicom-uid generate with JSON output" passed after 0.014 seconds.
+✔ Test "Execute button disabled when invalid" passed after 0.014 seconds.
+✔ Test "Leading hyphen range is attached to its option" passed after 0.014 seconds.
+✔ Test "All file organization tools have SF Symbol icons" passed after 0.014 seconds.
+✔ Test "Default network values use the same literal option encoding" passed after 0.014 seconds.
+✔ Test "dicom-diff with ignore tags" passed after 0.014 seconds.
+✔ Test "All file organization tools have parameters with help text" passed after 0.014 seconds.
+✔ Test "dicom-echo with diagnose flag" passed after 0.014 seconds.
+✔ Test "dicom-report command builder works" passed after 0.014 seconds.
+✔ Test "Structured values preserve DICOM VM, wildcards and shell characters" with 14 test cases passed after 0.014 seconds.
+✔ Test "dicom-report does not require network" passed after 0.014 seconds.
+✔ Test "Basic dicom-echo command with network config" passed after 0.014 seconds.
+✔ Test "dicom-diff with format option" passed after 0.014 seconds.
+✔ Test "dicom-diff with comparison options" passed after 0.014 seconds.
+✔ Test "All data export tools have SF Symbol icons" passed after 0.014 seconds.
+✔ Test "dicom-diff with all parameters" passed after 0.014 seconds.
+✔ Test "Basic dicom-diff command with two files" passed after 0.014 seconds.
+✔ Test "dicom-report template parameter has 4 options" passed after 0.014 seconds.
+✔ Test "dicom-report example presets exist" passed after 0.014 seconds.
+✔ Test "dicom-echo with count parameter" passed after 0.014 seconds.
+✔ Test "Pattern validation" passed after 0.014 seconds.
+✔ Test "dicom-report tool is registered" passed after 0.014 seconds.
+✔ Test "dicom-echo with stats flag" passed after 0.014 seconds.
+✔ Test "dicom-report has image embedding parameters" passed after 0.014 seconds.
+✔ Test "dicom-report language parameter has 4 options" passed after 0.014 seconds.
+✔ Test "All 6 categories are defined" passed after 0.014 seconds.
+✔ Test "dicom-report command with branding options" passed after 0.014 seconds.
+✔ Test "dicom-diff with summary format" passed after 0.014 seconds.
+✔ Test "dicom-report requires output" passed after 0.014 seconds.
+✔ Test "dicom-validate with validation level" passed after 0.014 seconds.
+✔ Test "dicom-validate with output file" passed after 0.014 seconds.
+✔ Test "All data export tools have parameters with help text" passed after 0.014 seconds.
+✔ Test "dicom-report validation requires input and output" passed after 0.014 seconds.
+✔ Test "dicom-validate with all boolean flags" passed after 0.014 seconds.
+✔ Test "dicom-report has correct parameters" passed after 0.014 seconds.
+✔ Test "Basic dicom-pixedit command" passed after 0.014 seconds.
+✔ Test "dicom-pixedit with invalid format still generates command" passed after 0.014 seconds.
+✔ Test "dicom-report has no subcommands" passed after 0.014 seconds.
+✔ Test "Category identifiers are unique" passed after 0.014 seconds.
+✔ Test "dicom-report has branding parameters" passed after 0.014 seconds.
+✔ Test "dicom-anon no missing when file provided" passed after 0.014 seconds.
+✔ Test "dicom-report is in Data Export category" passed after 0.014 seconds.
+✔ Test "Category raw values are correct" passed after 0.014 seconds.
+✔ Test "Category icon names are SF Symbols" passed after 0.014 seconds.
+✔ Test "dicom-validate with all parameters" passed after 0.014 seconds.
+✔ Test "dicom-report format parameter has 5 options" passed after 0.014 seconds.
+✔ Test "dicom-export single requires input and output" passed after 0.014 seconds.
+✔ Test "dicom-retrieve with parallel operations" passed after 0.014 seconds.
+✔ Test "dicom-export single with format" passed after 0.014 seconds.
+✔ Test "dicom-convert missing files shows labels" passed after 0.014 seconds.
+✔ Test "dicom-validate missing file shows label" passed after 0.014 seconds.
+✔ Test "GlossaryTerm uses custom ID when provided" passed after 0.014 seconds.
+✔ Test "GlossaryTerm has default empty related terms" passed after 0.014 seconds.
+✔ Test "dicom-validate with output format" passed after 0.014 seconds.
+✔ Test "GlossaryTerm auto-generates ID from term" passed after 0.014 seconds.
+✔ Test "dicom-mpps has 2 subcommands" passed after 0.014 seconds.
+✔ Test "dicom-retrieve with study UID" passed after 0.014 seconds.
+✔ Test "dicom-export bulk has 2 format options" passed after 0.014 seconds.
+✔ Test "dicom-mpps update with status" passed after 0.014 seconds.
+✔ Test "dicom-retrieve with C-GET method" passed after 0.014 seconds.
+✔ Test "dicom-retrieve with HTJ2K transfer syntax" passed after 0.014 seconds.
+✔ Test "dicom-export has 2 subcommands" passed after 0.014 seconds.
+✔ Test "dicom-export single subcommand basic" passed after 0.014 seconds.
+✔ Test "Automation workflow: study organize with pattern" passed after 0.014 seconds.
+✔ Test "dicom-export subcommands are in correct order" passed after 0.014 seconds.
+✔ Test "dicom-export single has 3 format options" passed after 0.014 seconds.
+✔ Test "dicom-pixedit with mask region" passed after 0.014 seconds.
+✔ Test "dicom-export bulk subcommand" passed after 0.014 seconds.
+✔ Test "dicom-mpps create with study UID" passed after 0.014 seconds.
+✔ Test "File inspection workflow: select tool → set params → generate command" passed after 0.014 seconds.
+✔ Test "dicom-send retry validation accepts valid range" passed after 0.014 seconds.
+✔ Test "CommandHistoryEntry withExitCode creates updated copy" passed after 0.014 seconds.
+✔ Test "File processing workflow: convert with transfer syntax" passed after 0.014 seconds.
+✔ Test "dicom-send retry validation rejects out of range" passed after 0.014 seconds.
+✔ Test "dicom-echo count validation accepts valid range" passed after 0.014 seconds.
+✔ Test "Failed command entry reports isSuccess false" passed after 0.014 seconds.
+✔ Test "Basic dicom-validate command" passed after 0.014 seconds.
+✔ Test "dicom-retrieve parallel validation rejects out of range" passed after 0.014 seconds.
+✔ Test "CommandHistory adds entries in reverse chronological order" passed after 0.014 seconds.
+✔ Test "dicom-retrieve parallel validation accepts valid range" passed after 0.014 seconds.
+✔ Test "dicom-retrieve tool has method enum with 2 options" passed after 0.014 seconds.
+✔ Test "Data export workflow: JSON conversion" passed after 0.014 seconds.
+✔ Test "WADO subcommand workflow: retrieve study" passed after 0.014 seconds.
+✔ Test "Server profile CRUD add works" passed after 0.014 seconds.
+✔ Test "Server profile CRUD delete works" passed after 0.014 seconds.
+✔ Test "CommandHistory limits to 50 entries" passed after 0.014 seconds.
+✔ Test "Console font size bounds are valid" passed after 0.014 seconds.
+✔ Test "Network tool workflow: echo with config" passed after 0.014 seconds.
+✔ Test "Subcommand workflow: compress with codec selection" passed after 0.014 seconds.
+✔ Test "dicom-echo count validation rejects out of range" passed after 0.014 seconds.
+✔ Test "Network operations category has 8 tools" passed after 0.014 seconds.
+✔ Test "dicom-convert empty optional values excluded" passed after 0.014 seconds.
+✔ Test "dicom-echo tool exists in registry" passed after 0.014 seconds.
+✔ Test "dicom-convert with implicit VR transfer syntax" passed after 0.014 seconds.
+✔ Test "dicom-convert with transfer syntax" passed after 0.014 seconds.
+✔ Test "dicom-send tool requires files parameter" passed after 0.014 seconds.
+✔ Test "CommandHistoryEntry stores all fields correctly" passed after 0.014 seconds.
+✔ Test "All network tools have requiresNetwork set to true" passed after 0.014 seconds.
+✔ Test "Anonymization workflow with clinical trial profile" passed after 0.014 seconds.
+✔ Test "Default console font size is 13" passed after 0.014 seconds.
+✔ Test "History replay uses persisted argv and its matching preview" passed after 0.015 seconds.
+✔ Test "dicom-qr with method and move destination" passed after 0.014 seconds.
+✔ Test "Basic dicom-convert command with required parameters" passed after 0.014 seconds.
+✔ Test "Server profile delete with wrong ID does nothing" passed after 0.013 seconds.
+✔ Test "dicom-convert with JPEG quality" passed after 0.014 seconds.
+✔ Test "dicom-pdf extract disabled not in command" passed after 0.013 seconds.
+✔ Test "dicom-query tool has modality enum parameter" passed after 0.013 seconds.
+✔ Test "dicom-convert with windowing parameters" passed after 0.014 seconds.
+✔ Test "dicom-qr with output directory" passed after 0.014 seconds.
+✔ Test "File organization workflow: archive creation" passed after 0.014 seconds.
+✔ Test "dicom-compress compress has 4 codec options" passed after 0.013 seconds.
+✔ Test "dicom-qr with interactive mode" passed after 0.014 seconds.
+✔ Test "dicom-convert with output format" passed after 0.014 seconds.
+✔ Test "Server profile CRUD update works" passed after 0.014 seconds.
+✔ Test "dicom-split with recursive flag" passed after 0.013 seconds.
+✔ Test "dicom-compress decompress subcommand" passed after 0.014 seconds.
+✔ Test "dicom-convert with all parameters" passed after 0.014 seconds.
+✔ Test "dicom-qr with auto retrieve" passed after 0.013 seconds.
+✔ Test "Multiple profiles can be managed" passed after 0.014 seconds.
+✔ Test "dicom-split format has 3 options" passed after 0.013 seconds.
+✔ Test "dicom-convert with boolean flags" passed after 0.014 seconds.
+✔ Test "dicom-pdf with show-metadata" passed after 0.014 seconds.
+✔ Test "dicom-compress compress subcommand basic" passed after 0.013 seconds.
+✔ Test "dicom-split format includes DICOM, PNG, JPEG" passed after 0.013 seconds.
+✔ Test "Batch subcommand has recursive option" passed after 0.013 seconds.
+✔ Test "dicom-compress batch has 2 codec options" passed after 0.013 seconds.
+✔ Test "dicom-compress batch subcommand" passed after 0.013 seconds.
+✔ Test "Command history workflow: generate, record, export" passed after 0.014 seconds.
+✔ Test "dicom-compress info subcommand" passed after 0.013 seconds.
+✔ Test "dicom-merge with recursive flag" passed after 0.013 seconds.
+✔ Test "dicom-compress compress with codec and quality" passed after 0.013 seconds.
+✔ Test "dicom-compress has 4 subcommands" passed after 0.013 seconds.
+✔ Test "dicom-mwl with JSON output" passed after 0.013 seconds.
+✔ Test "dicom-retrieve with C-MOVE method" passed after 0.014 seconds.
+✔ Test "dicom-pdf extract mode" passed after 0.013 seconds.
+✔ Test "Compress subcommand has required input" passed after 0.013 seconds.
+✔ Test "Basic dicom-xml command" passed after 0.013 seconds.
+✔ Test "dicom-compress compress with output" passed after 0.013 seconds.
+✔ Test "dicom-xml with pretty print" passed after 0.013 seconds.
+✔ Test "dicom-mwl with patient filter" passed after 0.013 seconds.
+✔ Test "dicom-pdf encapsulate mode" passed after 0.013 seconds.
+✔ Test "dicom-merge with validate flag" passed after 0.013 seconds.
+✔ Test "dicom-convert with frame number" passed after 0.014 seconds.
+✔ Test "dicom-merge with sort option" passed after 0.013 seconds.
+✔ Test "Basic dicom-merge command" passed after 0.013 seconds.
+✔ Test "Only dicom-dcmdir has subcommands in File Organization" passed after 0.013 seconds.
+✔ Test "Legacy history remains readable but raw text cannot become executable replay/export/copy" passed after 0.015 seconds.
+✔ Test "Subcommands are in correct order" passed after 0.013 seconds.
+✔ Test "dicom-split with complex frame range" passed after 0.013 seconds.
+✔ Test "Info subcommand has only input parameter" passed after 0.013 seconds.
+✔ Test "File Organization tools are in correct order" passed after 0.013 seconds.
+✔ Test "dicom-anon with all boolean flags" passed after 0.013 seconds.
+✔ Test "dicom-xml with no-keywords and metadata-only" passed after 0.013 seconds.
+✔ Test "dicom-merge with all parameters" passed after 0.013 seconds.
+✔ Test "dicom-anon with date shift" passed after 0.013 seconds.
+✔ Test "ExamplePreset uses custom ID when provided" passed after 0.013 seconds.
+✔ Test "dicom-wado retrieve is invalid without required study UID" passed after 0.013 seconds.
+✔ Test "dicom-anon with output path" passed after 0.013 seconds.
+✔ Test "dicom-convert generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-send is valid with required files" passed after 0.013 seconds.
+✔ Test "File Organization category has exactly 4 tools" passed after 0.013 seconds.
+✔ Test "CommandHistory exports shell script format" passed after 0.014 seconds.
+✔ Test "dicom-mpps create is valid with required study UID" passed after 0.013 seconds.
+✔ Test "dicom-mwl with date filter" passed after 0.013 seconds.
+✔ Test "dicom-anon with audit log" passed after 0.013 seconds.
+✔ Test "dicom-anon with regenerate UIDs" passed after 0.013 seconds.
+✔ Test "File Organization tools do not require network" passed after 0.013 seconds.
+✔ Test "dicom-mpps create is invalid without required study UID" passed after 0.013 seconds.
+✔ Test "dicom-anon with profile" passed after 0.013 seconds.
+✔ Test "dicom-send is invalid without required files" passed after 0.013 seconds.
+✔ Test "Basic dicom-anon command" passed after 0.013 seconds.
+✔ Test "dicom-xml with reverse and output" passed after 0.013 seconds.
+✔ Test "dicom-info generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-tags generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-retrieve is invalid without required output" passed after 0.013 seconds.
+✔ Test "dicom-anon with custom tag actions" passed after 0.013 seconds.
+✔ Test "dicom-script generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-retrieve is valid with required output" passed after 0.013 seconds.
+✔ Test "dicom-mwl generates valid command syntax" passed after 0.013 seconds.
+✔ Test "ExamplePreset subcommand defaults to nil" passed after 0.013 seconds.
+✔ Test "ExamplePreset auto-generates ID from name" passed after 0.013 seconds.
+✔ Test "dicom-export generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-dump generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-archive generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-compress generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-retrieve generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-wado retrieve is valid with required study UID" passed after 0.013 seconds.
+✔ Test "dicom-uid generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-study generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-split generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-xml generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-pixedit generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-dcmdir generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-wado generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-wado retrieve subcommand has study parameter as required" passed after 0.013 seconds.
+✔ Test "dicom-anon generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-image generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-anon with all parameters" passed after 0.013 seconds.
+✔ Test "dicom-diff generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-echo generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-pdf generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-merge generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-wado has 3 subcommands" passed after 0.013 seconds.
+✔ Test "dicom-qr generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-json generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-wado retrieve with metadata only" passed after 0.013 seconds.
+✔ Test "dicom-wado query with level" passed after 0.013 seconds.
+✔ Test "dicom-send generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-dump with bytes per line" passed after 0.013 seconds.
+✔ Test "dicom-mpps generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-validate generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-pixedit with all parameters" passed after 0.013 seconds.
+✔ Test "AE Title validation - valid cases" passed after 0.013 seconds.
+✔ Test "AE Title validation - empty is invalid" passed after 0.013 seconds.
+✔ Test "dicom-wado retrieve with study UID" passed after 0.013 seconds.
+✔ Test "Automation category has 3 tools" passed after 0.013 seconds.
+✔ Test "Basic dicom-dump command" passed after 0.013 seconds.
+✔ Test "dicom-pixedit with invert flag" passed after 0.013 seconds.
+✔ Test "Server URL construction - DICOMweb protocol" passed after 0.013 seconds.
+✔ Test "dicom-wado store with input files" passed after 0.013 seconds.
+✔ Test "Timeout validation - out of range" passed after 0.013 seconds.
+✔ Test "AE Title validation - non-ASCII is invalid" passed after 0.013 seconds.
+✔ Test "dicom-dump with tag filter" passed after 0.013 seconds.
+✔ Test "Default configuration is valid" passed after 0.013 seconds.
+✔ Test "dicom-dump has discussion text" passed after 0.013 seconds.
+✔ Test "dicom-dump with annotate and no-color" passed after 0.013 seconds.
+✔ Test "Config with empty host is invalid" passed after 0.013 seconds.
+✔ Test "All file inspection tools have parameters with help text" passed after 0.013 seconds.
+✔ Test "dicom-dump with offset and length" passed after 0.013 seconds.
+✔ Test "AE Title validation - too long is invalid" passed after 0.013 seconds.
+✔ Test "dicom-script has 3 subcommands" passed after 0.013 seconds.
+✔ Test "dicom-tags has discussion text" passed after 0.013 seconds.
+✔ Test "Port validation - out of range" passed after 0.013 seconds.
+✔ Test "dicom-dump with all parameters" passed after 0.013 seconds.
+✔ Test "dicom-uid has 4 subcommands" passed after 0.013 seconds.
+✔ Test "Config with invalid port is invalid" passed after 0.013 seconds.
+✔ Test "Timeout validation - valid range" passed after 0.013 seconds.
+✔ Test "dicom-info has discussion text" passed after 0.013 seconds.
+✔ Test "Port validation - valid range" passed after 0.013 seconds.
+✔ Test "dicom-query generates valid command syntax" passed after 0.013 seconds.
+✔ Test "dicom-pixedit with crop region" passed after 0.013 seconds.
+✔ Test "dicom-info format parameter has enum values with descriptions" passed after 0.013 seconds.
+✔ Test "dicom-convert has discussion text" passed after 0.013 seconds.
+✔ Test "dicom-compress has discussion text" passed after 0.013 seconds.
+✔ Test "Unknown tool returns empty presets" passed after 0.013 seconds.
+✔ Test "Config with invalid timeout is invalid" passed after 0.013 seconds.
+✔ Test "dicom-validate presets exist" passed after 0.013 seconds.
+✔ Test "dicom-diff format parameter has 3 options" passed after 0.013 seconds.
+✔ Test "Server URL construction - DICOM protocol" passed after 0.013 seconds.
+✔ Test "Example presets contain parameter values" passed after 0.013 seconds.
+✔ Test "All file processing tools have SF Symbol icons" passed after 0.013 seconds.
+✔ Test "All file processing tools have parameters with help text" passed after 0.013 seconds.
+✔ Test "Network config provides default server URL for DICOM protocol" passed after 0.013 seconds.
+✔ Test "Transfer syntax options include all standard syntaxes" passed after 0.013 seconds.
+✔ Test "Glossary contains expected number of terms" passed after 0.013 seconds.
+✔ Test "Glossary terms have unique IDs" passed after 0.013 seconds.
+✔ Test "Output format has 4 options" passed after 0.013 seconds.
+✔ Test "Glossary term lookup by name works" passed after 0.013 seconds.
+✔ Test "All file inspection tools have SF Symbol icons" passed after 0.013 seconds.
+✔ Test "Glossary term lookup returns nil for unknown term" passed after 0.013 seconds.
+✔ Test "Glossary terms with standard references are formatted correctly" passed after 0.013 seconds.
+✔ Test "dicom-diff has discussion text" passed after 0.013 seconds.
+✔ Test "dicom-info has example presets" passed after 0.013 seconds.
+✔ Test "dicom-info with all boolean flags" passed after 0.013 seconds.
+✔ Test "Glossary search finds terms by definition content" passed after 0.013 seconds.
+✔ Test "Network config provides default server URL for DICOMweb protocol" passed after 0.013 seconds.
+✔ Test "dicom-study has 5 subcommands" passed after 0.013 seconds.
+✔ Test "Transfer syntax options have descriptions" passed after 0.013 seconds.
+✔ Test "dicom-validate has discussion text" passed after 0.013 seconds.
+✔ Test "dicom-anon has discussion text" passed after 0.013 seconds.
+✔ Test "File Processing tools are in correct order" passed after 0.013 seconds.
+✔ Test "dicom-json reverse mode disabled not in command" passed after 0.013 seconds.
+✔ Test "Network tools use AET from config" passed after 0.013 seconds.
+✔ Test "Example presets have unique IDs" passed after 0.013 seconds.
+✔ Test "Glossary search finds terms by name" passed after 0.013 seconds.
+✔ Test "dicom-info with format option" passed after 0.013 seconds.
+✔ Test "dicom-info with all parameters" passed after 0.013 seconds.
+✔ Test "dicom-echo presets exist" passed after 0.013 seconds.
+✔ Test "Glossary term lookup is case-insensitive" passed after 0.013 seconds.
+✔ Test "Glossary search finds terms by related terms" passed after 0.013 seconds.
+✔ Test "dicom-info with single tag filter" passed after 0.013 seconds.
+✔ Test "Network tools auto-populate URL from config when not overridden" passed after 0.013 seconds.
+✔ Test "Basic dicom-info command with only required file" passed after 0.013 seconds.
+✔ Test "dicom-info with CSV format" passed after 0.013 seconds.
+✔ Test "Only dicom-compress has subcommands" passed after 0.013 seconds.
+✔ Test "Network tools use timeout from config" passed after 0.013 seconds.
+✔ Test "dicom-info empty optional values excluded" passed after 0.013 seconds.
+✔ Test "dicom-convert has 4 transfer syntax options" passed after 0.013 seconds.
+✔ Test "Glossary search returns all terms for empty query" passed after 0.013 seconds.
+✔ Test "dicom-json with reverse mode" passed after 0.013 seconds.
+✔ Test "Non-network tools do not include network parameters" passed after 0.013 seconds.
+✔ Test "Glossary search is case-insensitive" passed after 0.013 seconds.
+✔ Test "dicom-dcmdir has 3 subcommands" passed after 0.013 seconds.
+✔ Test "dicom-info with tag filter" passed after 0.013 seconds.
+✔ Test "Tools with subcommands have them defined" passed after 0.013 seconds.
+✔ Test "Create subcommand has required input" passed after 0.013 seconds.
+✔ Test "Validate subcommand has only input parameter" passed after 0.013 seconds.
+✔ Test "dicom-script run with variables" passed after 0.013 seconds.
+✔ Test "dicom-script run with script file" passed after 0.013 seconds.
+✔ Test "File Processing tools do not require network" passed after 0.013 seconds.
+✔ Test "dicom-study organize with output directory" passed after 0.013 seconds.
+✔ Test "File Processing category has exactly 4 tools" passed after 0.013 seconds.
+✔ Test "Subcommands are in correct order" passed after 0.013 seconds.
+✔ Test "dicom-study check with expected series count" passed after 0.013 seconds.
+✔ Test "dicom-script template with output" passed after 0.013 seconds.
+✔ Test "dicom-study summary with JSON format" passed after 0.013 seconds.
+✔ Test "Network tools have requiresNetwork set" passed after 0.013 seconds.
+✔ Test "Network Operations category has 8 tools" passed after 0.013 seconds.
+✔ Test "CommandExecutor handles command not found" passed after 0.013 seconds.
+✔ Test "dicom-study organize with input and pattern" passed after 0.013 seconds.
+✔ Test "File Inspection category has 4 tools" passed after 0.013 seconds.
+✔ Test "All tool IDs are unique" passed after 0.013 seconds.
+✔ Test "File Organization category has 4 tools" passed after 0.013 seconds.
+✔ Test "Data Export tools are in correct order" passed after 0.013 seconds.
+✔ Test "dicom-study compare with two directories" passed after 0.013 seconds.
+✔ Test "Automation category has 3 tools" passed after 0.013 seconds.
+✔ Test "Tool lookup returns nil for unknown ID" passed after 0.013 seconds.
+✔ Test "Data Export tools do not require network" passed after 0.013 seconds.
+✔ Test "File Processing category has 4 tools" passed after 0.013 seconds.
+✔ Test "Data Export category has exactly 7 tools" passed after 0.013 seconds.
+✔ Test "Tool lookup by ID works" passed after 0.013 seconds.
+✔ Test "dicom-image with recursive" passed after 0.013 seconds.
+✔ Test "dicom-json requires input" passed after 0.013 seconds.
+✔ Test "dicom-image with patient metadata" passed after 0.013 seconds.
+✔ Test "Non-network tools don't require network" passed after 0.013 seconds.
+✔ Test "dicom-split with format" passed after 0.013 seconds.
+✔ Test "dicom-image with all parameters" passed after 0.013 seconds.
+✔ Test "dicom-split requires input" passed after 0.013 seconds.
+✔ Test "Basic dicom-split command with required parameters" passed after 0.013 seconds.
+✔ Test "dicom-pixedit requires input and output" passed after 0.013 seconds.
+✔ Test "dicom-merge requires inputs and output" passed after 0.013 seconds.
+✔ Test "All 30 tools are registered" passed after 0.013 seconds.
+✔ Test "dicom-pdf requires input and output" passed after 0.013 seconds.
+✔ Test "Basic dicom-json command" passed after 0.013 seconds.
+✔ Test "Only dicom-export has subcommands in Data Export" passed after 0.013 seconds.
+✔ Test "dicom-image requires input and output" passed after 0.013 seconds.
+✔ Test "dicom-split with output directory" passed after 0.013 seconds.
+✔ Test "Required parameter flag" passed after 0.013 seconds.
+✔ Test "Data Export category has 7 tools" passed after 0.013 seconds.
+✔ Test "File path with spaces is handled correctly in command" passed after 0.013 seconds.
+✔ Test "Paths with special characters are preserved" passed after 0.012 seconds.
+✔ Test "dicom-dump requires filePath" passed after 0.012 seconds.
+✔ Test "dicom-archive requires input and output" passed after 0.012 seconds.
+✔ Test "dicom-info requires filePath" passed after 0.012 seconds.
+✔ Test "Multiple file paths stored and used in merge command" passed after 0.013 seconds.
+✔ Test "Multiple file paths stored as comma-separated" passed after 0.012 seconds.
+✔ Test "dicom-export single requires input and output" passed after 0.013 seconds.
+✔ Test "Parameter with enum values" passed after 0.013 seconds.
+✔ Test "Default beginner mode is false" passed after 0.016 seconds.
+✔ Test "File path is stored in parameter values" passed after 0.012 seconds.
+✔ Test "File extension validation patterns for DICOM files" passed after 0.013 seconds.
+✔ Test "dicom-tags requires input file" passed after 0.013 seconds.
+✔ Test "dicom-script run with parallel and dry-run" passed after 0.013 seconds.
+✔ Test "dicom-script validate requires script file" passed after 0.013 seconds.
+✔ Test "dicom-xml requires input" passed after 0.013 seconds.
+✔ Test "dicom-diff requires both files" passed after 0.013 seconds.
+✔ Test "Directory paths are accepted for recursive tools" passed after 0.013 seconds.
+✔ Test "Empty file path is treated as no selection" passed after 0.013 seconds.
+✔ Test "Command generation for all 29 tools completes quickly" passed after 0.013 seconds.
+✔ Test "File Inspection tools have no subcommands" passed after 0.013 seconds.
+✔ Test "dicom-query with multiple search criteria" passed after 0.013 seconds.
+✔ Test "dicom-query with query level" passed after 0.013 seconds.
+✔ Test "dicom-query with modality filter" passed after 0.012 seconds.
+✔ Test "dicom-dcmdir create subcommand" passed after 0.012 seconds.
+✔ Test "File Inspection tools do not require network" passed after 0.012 seconds.
+✔ Test "dicom-query with study date filter" passed after 0.013 seconds.
+✔ Test "File path can be cleared" passed after 0.012 seconds.
+✔ Test "File Inspection category has exactly 4 tools" passed after 0.012 seconds.
+✔ Test "Optional parameter flag" passed after 0.013 seconds.
+✔ Test "File Inspection tools are in correct order" passed after 0.012 seconds.
+✔ Test "dicom-dcmdir create with output" passed after 0.012 seconds.
+✔ Test "dicom-dcmdir create requires input" passed after 0.013 seconds.
+✔ Test "dicom-dcmdir dump subcommand" passed after 0.012 seconds.
+✔ Test "dicom-query with patient ID" passed after 0.012 seconds.
+✔ Test "dicom-query with verbose flag" passed after 0.012 seconds.
+✔ Test "dicom-info has correct parameters" passed after 0.013 seconds.
+✔ Test "dicom-split with frame range" passed after 0.013 seconds.
+✔ Test "dicom-dcmdir validate subcommand" passed after 0.012 seconds.
+✔ Test "dicom-query with patient name search" passed after 0.013 seconds.
+✔ Test "dicom-send with recursive flag" passed after 0.012 seconds.
+✔ Test "File path with spaces is preserved" passed after 0.013 seconds.
+✔ Test "dicom-send with retry count" passed after 0.012 seconds.
+✔ Test "dicom-send with verify flag" passed after 0.012 seconds.
+✔ Test "dicom-send with HTJ2K transfer syntax" passed after 0.012 seconds.
+✔ Test "dicom-send with dry run" passed after 0.012 seconds.
+✔ Test "dicom-query with output format" passed after 0.012 seconds.
+✔ Test "dicom-send with single file" passed after 0.012 seconds.
+✔ Test "dicom-validate requires inputPath" passed after 0.005 seconds.
+✔ Test "dicom-compress batch requires input" passed after 0.005 seconds.
+✔ Test "dicom-convert requires inputPath and output" passed after 0.005 seconds.
+✔ Suite "URL Auto-Construction Tests" passed after 0.019 seconds.
+✔ Suite "Validation Level Description Tests" passed after 0.019 seconds.
+✔ Suite "Missing Parameter Label Tests" passed after 0.019 seconds.
+✔ Suite "DicomTags Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "ProtocolType Tests" passed after 0.019 seconds.
+✔ Test "dicom-anon requires inputPath" passed after 0.005 seconds.
+✔ Suite "CommandBuilder Tests" passed after 0.019 seconds.
+✔ Suite "Network Config Override Tests" passed after 0.019 seconds.
+✔ Suite "ValidationRule Tests" passed after 0.019 seconds.
+✔ Suite "Network Integration Tests" passed after 0.020 seconds.
+✔ Test "dicom-compress decompress requires input" passed after 0.004 seconds.
+✔ Suite "DicomJson Output Model Tests" passed after 0.019 seconds.
+✔ Suite "ToolDefinition Tests" passed after 0.019 seconds.
+✔ Suite "ServerProfile Tests" passed after 0.019 seconds.
+✔ Suite "DicomAnon Profile Tests" passed after 0.019 seconds.
+✔ Suite "DicomUID Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "Multi-file Drop Zone Tests" passed after 0.019 seconds.
+✔ Suite "Toolbox literal argument safety" passed after 0.019 seconds.
+✔ Test "dicom-compress compress requires input" passed after 0.005 seconds.
+✔ Suite "Phase 4 Help Content Tests" passed after 0.019 seconds.
+✔ Suite "DicomDiff Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomEcho Command Generation Tests" passed after 0.019 seconds.
+✔ Test "dicom-compress info requires input" passed after 0.004 seconds.
+✔ Suite "ToolCategory Tests" passed after 0.019 seconds.
+✔ Suite "DicomReport ToolRegistry Tests" passed after 0.019 seconds.
+✔ Suite "DicomValidate Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "Phase 3 Missing Parameter Label Tests" passed after 0.019 seconds.
+✔ Suite "DicomExport Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomPixedit Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomMPPS Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomRetrieve Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "GlossaryTerm Model Tests" passed after 0.019 seconds.
+✔ Suite "End-to-End Workflow Tests" passed after 0.019 seconds.
+✔ Suite "Command History Tests" passed after 0.019 seconds.
+✔ Suite "Network Parameter Validation Tests" passed after 0.019 seconds.
+✔ Suite "Network Tool Registry Tests" passed after 0.019 seconds.
+✔ Suite "DicomQR Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomImage Command Generation Tests" passed after 0.020 seconds.
+✔ Suite "AppSettings Tests" passed after 0.019 seconds.
+✔ Suite "DicomPdf Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomSplit Frame Range Tests" passed after 0.019 seconds.
+✔ Suite "DicomCompress Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomMWL Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomMerge Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomCompress Subcommand Switching Tests" passed after 0.019 seconds.
+✔ Suite "File Organization Tool Routing Tests" passed after 0.019 seconds.
+✔ Suite "DicomXml Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "ExamplePreset Model Tests" passed after 0.019 seconds.
+✔ Suite "DicomConvert Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "Network Tool Required Parameter Tests" passed after 0.019 seconds.
+✔ Suite "DicomWado Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomDump Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "ToolRegistry Automation Category Tests" passed after 0.019 seconds.
+✔ Suite "NetworkConfig Tests" passed after 0.019 seconds.
+✔ Suite "Example Presets Tests" passed after 0.019 seconds.
+✔ Suite "All 29 Tools Generate Valid Syntax" passed after 0.019 seconds.
+✔ Suite "DicomAnon Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "Help Content and Parameter Definition Tests" passed after 0.019 seconds.
+✔ Suite "Phase 3 Help Content Tests" passed after 0.019 seconds.
+✔ Suite "Transfer Syntax Picker Tests" passed after 0.019 seconds.
+✔ Suite "DicomInfo Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DICOM Glossary Tests" passed after 0.019 seconds.
+✔ Suite "DicomPixedit Region Format Tests" passed after 0.019 seconds.
+✔ Suite "DicomJson Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "File Processing Tool Routing Tests" passed after 0.019 seconds.
+✔ Suite "DicomDcmdir Subcommand Tests" passed after 0.020 seconds.
+✔ Suite "DicomScript Command Tests" passed after 0.019 seconds.
+✔ Suite "DicomStudy Subcommand Form Tests" passed after 0.019 seconds.
+✔ Suite "Data Export Tool Routing Tests" passed after 0.019 seconds.
+✔ Suite "DicomImage Metadata Tests" passed after 0.019 seconds.
+✔ Suite "ParameterDefinition Tests" passed after 0.019 seconds.
+✔ Suite "DicomSplit Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "ToolRegistry Tests" passed after 0.019 seconds.
+✔ Suite "FileDropZone Model Tests" passed after 0.019 seconds.
+✔ Suite "File Drag-and-Drop Integration Tests" passed after 0.019 seconds.
+✔ Suite "Phase 4 Required Parameter Validation Tests" passed after 0.019 seconds.
+✔ Suite "Required Parameter Validation Tests" passed after 0.019 seconds.
+✔ Suite "File Inspection Tool Routing Tests" passed after 0.019 seconds.
+✔ Suite "DicomQuery Command Generation Tests" passed after 0.019 seconds.
+✔ Suite "DicomDcmdir Command Generation Tests" passed after 0.020 seconds.
+✔ Suite "DicomSend Command Generation Tests" passed after 0.020 seconds.
+✔ Suite "Phase 3 Required Parameter Validation Tests" passed after 0.019 seconds.
+✔ Suite "Network Config Inheritance Tests" passed after 0.019 seconds.
+✔ Test "CommandExecutor streams multiline output" passed after 0.015 seconds.
+✔ Test "CommandExecutor runs simple command and returns exit code 0" passed after 0.015 seconds.
+✔ Test "History operations with many entries are performant" passed after 0.018 seconds.
+✔ Test "CommandExecutor returns non-zero exit code for failing command" passed after 0.029 seconds.
+✔ Test "CommandExecutor captures stderr output" passed after 0.037 seconds.
+✔ Test "Direct spawn captures literal argv without executing metacharacters" passed after 0.031 seconds.
+◇ Test "Copied commands round-trip through sh and zsh without expansion" started.
+✔ Test "Tool registry lookups are fast" passed after 0.067 seconds.
+✔ Suite "Performance Benchmark Tests" passed after 0.072 seconds.
+✔ Test "Copied commands round-trip through sh and zsh without expansion" passed after 0.059 seconds.
+◇ Test "Both streams arrive before completion, preserve split UTF8, and drain final output" started.
+✔ Test "Both streams arrive before completion, preserve split UTF8, and drain final output" passed after 0.384 seconds.
+◇ Test "Immediate exit and large stdout/stderr do not lose completion or deadlock" started.
+✔ Test "Immediate exit and large stdout/stderr do not lose completion or deadlock" passed after 0.056 seconds.
+◇ Test "Cancellation terminates an uncooperative group and rejects overlap until cleanup" started.
+✔ Test "CommandExecutor cancel terminates process" passed after 1.186 seconds.
+✔ Suite "Command Execution Tests" passed after 1.191 seconds.
+✔ Test "Cancellation terminates an uncooperative group and rejects overlap until cleanup" passed after 1.091 seconds.
+◇ Test "Task cancellation reaches the owned process" started.
+✔ Test "Task cancellation reaches the owned process" passed after 1.091 seconds.
+◇ Test "Cancellation reaches descendants holding inherited pipes after their parent exits" started.
+✔ Test "Cancellation reaches descendants holding inherited pipes after their parent exits" passed after 1.104 seconds.
+◇ Test "Launch failure and invalid NUL leave executor reusable" started.
+✔ Test "Launch failure and invalid NUL leave executor reusable" passed after 0.002 seconds.
+✔ Suite "Toolbox process safety" passed after 3.835 seconds.
+✔ Test run with 488 tests in 82 suites passed after 3.836 seconds.

@@ -1,0 +1,52 @@
+OVERVIEW: Local DICOM file archive manager
+
+Manage a local archive of DICOM files with a JSON-based metadata index.
+Files are stored as data/<Patient ID>/<Study Instance UID>/<Series Instance
+UID>/
+<SOP Instance UID>.dcm and deduplicated by SOP Instance UID (0008,0018).
+
+Query keys match like a DICOM C-FIND (PS3.4 C.2.2.2): * and ? wild cards
+(C.2.2.2.4) are case-sensitive except for Patient's Name; Study Date takes a
+single date or a range (YYYYMMDD-YYYYMMDD, -YYYYMMDD, YYYYMMDD-; C.2.2.2.5.1);
+UID keys take one UID or a backslash-separated list (C.2.2.2.2). Patients are
+keyed on Patient ID together with Issuer of Patient ID (0010,0021).
+
+Examples:
+  # Initialize a new archive
+  dicom-archive init --path /data/archive
+
+  # Import DICOM files
+  dicom-archive import file1.dcm file2.dcm --archive /data/archive
+
+  # Query archive metadata
+  dicom-archive query --archive /data/archive --patient-name "DOE*"
+
+  # List archive contents
+  dicom-archive list --archive /data/archive
+
+  # Export files from archive
+  dicom-archive export --archive /data/archive --study-uid 1.2.3 --output
+/tmp/out
+
+  # Check archive integrity
+  dicom-archive check --archive /data/archive
+
+  # Show archive statistics
+  dicom-archive stats --archive /data/archive
+
+USAGE: dicom-archive <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  init                    Initialize a new DICOM archive
+  import                  Import DICOM files into the archive
+  query                   Query archive metadata
+  list                    List archive contents
+  export                  Export files from the archive
+  check                   Check archive integrity
+  stats                   Show archive statistics
+
+  See 'dicom-archive help <subcommand>' for detailed help.

@@ -1,0 +1,7 @@
+{
+  "native_dataset_files": {
+    "request-001.dcmdata": "a05e5776c9bcef564b31c252630ed54060afae167c9ba0714304b07197104976",
+    "request-002.dcmdata": "9b4f2eaae32ea91143989237a5c60186906bad37f03d15cda653da01042354fa",
+    "request-003.dcmdata": "8df450bdf768afa9f8de58f15d83bf87a41ed77f8706ea837183f9d3ba2d6e11"
+  }
+}

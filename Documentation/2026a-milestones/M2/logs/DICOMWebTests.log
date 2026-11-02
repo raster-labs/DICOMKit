@@ -1,0 +1,412 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[4 / 25] DICOMWeb
+[6 / 26] DICOMWeb
+[10 / 21] DICOMWebTests-product
+macro expansion #expect:1:58: warning: 'htj2kContainer' is deprecated: PS3.18 9.1.2.2.1: image/jphc is not a Rendered Media Type; use image/jph [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WADOURIClientTests.swift:30:83: note: expanded code originates here
+ 28 |         #expect(WADOURIClient.ContentType.jpeg2000.rawValue == "image/jp2")
+ 29 |         #expect(WADOURIClient.ContentType.htj2k.rawValue == "image/jph")
+ 30 |         #expect(WADOURIClient.ContentType.htj2kContainer.rawValue == "image/jphc")
+    |         |- note: in expansion of macro 'expect' here
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(WADOURIClient.ContentType.htj2kContainer.rawValue,{ $0 == $1() },"image/jphc",expression: .__fromBinaryOperation(.__fromSyntaxNode("WADOURIClient.ContentType.htj2kContainer.rawValue"),"==",.__fromStringLiteral(#""image/jphc""#, "image/jphc")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                          |- warning: 'htj2kContainer' is deprecated: PS3.18 9.1.2.2.1: image/jphc is not a Rendered Media Type; use image/jph [#DeprecatedDeclaration]
+    |  |                                                          `- note: use 'htj2k' instead
+    +-------------------------------------------------------------------
+ 31 |         #expect(WADOURIClient.ContentType.mpeg.rawValue == "video/mpeg")
+ 32 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WADOURIClientTests.swift:30:43: warning: 'htj2kContainer' is deprecated: PS3.18 9.1.2.2.1: image/jphc is not a Rendered Media Type; use image/jph [#DeprecatedDeclaration]
+ 28 |         #expect(WADOURIClient.ContentType.jpeg2000.rawValue == "image/jp2")
+ 29 |         #expect(WADOURIClient.ContentType.htj2k.rawValue == "image/jph")
+ 30 |         #expect(WADOURIClient.ContentType.htj2kContainer.rawValue == "image/jphc")
+    |                                           |- warning: 'htj2kContainer' is deprecated: PS3.18 9.1.2.2.1: image/jphc is not a Rendered Media Type; use image/jph [#DeprecatedDeclaration]
+    |                                           `- note: use 'htj2k' instead
+ 31 |         #expect(WADOURIClient.ContentType.mpeg.rawValue == "video/mpeg")
+ 32 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WorkitemBuilderTests.swift:57:27: warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+ 55 |         let workitem = try WorkitemBuilder(workitemUID: "1.2.3.4.5")
+ 56 |             .setState(.scheduled)
+ 57 |             .setPriority(.stat)
+    |                           |- warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+    |                           `- note: use 'high' instead
+ 58 |             .setPatientName("Doe^John")
+ 59 |             .setPatientID("PAT001")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WorkitemBuilderTests.swift:83:44: warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+ 81 |         XCTAssertEqual(workitem.workitemUID, "1.2.3.4.5")
+ 82 |         XCTAssertEqual(workitem.state, .scheduled)
+ 83 |         XCTAssertEqual(workitem.priority, .stat)
+    |                                            |- warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+    |                                            `- note: use 'high' instead
+ 84 |         XCTAssertEqual(workitem.patientName, "Doe^John")
+ 85 |         XCTAssertEqual(workitem.patientID, "PAT001")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WorkitemBuilderTests.swift:283:34: warning: 'commentsOnScheduledProcedureStep' is deprecated: renamed to 'commentsOnTheScheduledProcedureStep' [#DeprecatedDeclaration]
+281 |         XCTAssertNil(json[UPSTag.accessionNumber])
+282 |         XCTAssertNil(json[UPSTag.procedureStepLabel])
+283 |         XCTAssertNil(json[UPSTag.commentsOnScheduledProcedureStep])
+    |                                  |- warning: 'commentsOnScheduledProcedureStep' is deprecated: renamed to 'commentsOnTheScheduledProcedureStep' [#DeprecatedDeclaration]
+    |                                  `- note: use 'commentsOnTheScheduledProcedureStep' instead
+284 |         XCTAssertNil(json[UPSTag.transactionUID])
+285 |         XCTAssertNil(json[UPSTag.inputInformationSequence])
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/WorkitemBuilderTests.swift:414:20: warning: 'commentsOnScheduledProcedureStep' is deprecated: renamed to 'commentsOnTheScheduledProcedureStep' [#DeprecatedDeclaration]
+412 |             UPSTag.worklistLabel: ["vr": "LO", "Value": ["Radiology"]],
+413 |             UPSTag.scheduledProcedureStepID: ["vr": "SH", "Value": ["SPS001"]],
+414 |             UPSTag.commentsOnScheduledProcedureStep: ["vr": "LT", "Value": ["Urgent"]]
+    |                    |- warning: 'commentsOnScheduledProcedureStep' is deprecated: renamed to 'commentsOnTheScheduledProcedureStep' [#DeprecatedDeclaration]
+    |                    `- note: use 'commentsOnTheScheduledProcedureStep' instead
+415 |         ]
+416 |         
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[21 / 32] DICOMWebTests-product
+[26 / 32] DICOMWebTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/UPSTests.swift:54:36: warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+ 52 |     
+ 53 |     func testUPSPriorityRawValues() {
+ 54 |         XCTAssertEqual(UPSPriority.stat.rawValue, "STAT")
+    |                                    |- warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+    |                                    `- note: use 'high' instead
+ 55 |         XCTAssertEqual(UPSPriority.high.rawValue, "HIGH")
+ 56 |         XCTAssertEqual(UPSPriority.medium.rawValue, "MEDIUM")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/UPSTests.swift:62:36: warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+ 60 |     func testUPSPriorityNumericValues() {
+ 61 |         // Lower numeric value = higher priority
+ 62 |         XCTAssertEqual(UPSPriority.stat.numericValue, 1)
+    |                                    |- warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+    |                                    `- note: use 'high' instead
+ 63 |         XCTAssertEqual(UPSPriority.high.numericValue, 2)
+ 64 |         XCTAssertEqual(UPSPriority.medium.numericValue, 3)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/UPSTests.swift:68:39: warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+ 66 |         
+ 67 |         // Verify ordering
+ 68 |         XCTAssertLessThan(UPSPriority.stat.numericValue, UPSPriority.high.numericValue)
+    |                                       |- warning: 'stat' is deprecated: PS3.3 C.30.2 defines HIGH, MEDIUM and LOW; HIGH is equivalent to a STAT request [#DeprecatedDeclaration]
+    |                                       `- note: use 'high' instead
+ 69 |         XCTAssertLessThan(UPSPriority.high.numericValue, UPSPriority.medium.numericValue)
+ 70 |         XCTAssertLessThan(UPSPriority.medium.numericValue, UPSPriority.low.numericValue)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/UPSTests.swift:746:13: warning: variable 'workitem' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+744 |         let storage = InMemoryUPSStorageProvider()
+745 |         
+746 |         var workitem = Workitem(workitemUID: "1.2.3.4.5", state: .scheduled)
+    |             `- warning: variable 'workitem' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+747 |         try await storage.createWorkitem(workitem)
+748 |         
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/DICOMwebClientTests.swift:416:13: warning: initialization of immutable value 'data' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+414 |     @Test("Parse single part response as non-multipart")
+415 |     func testSinglePartResponse() throws {
+416 |         let data = Data([0x01, 0x02, 0x03, 0x04])
+    |             `- warning: initialization of immutable value 'data' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+417 |         let contentType = "application/dicom"
+418 |         
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+macro expansion #expect:1:79: warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:148:104: note: expanded code originates here
+146 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.processingFailure.rawValue == 0x0110)
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue,{ $0 == $1() },0x0112,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue"),"==",.__fromSyntaxNode("0x0112")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               `- warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+    +-------------------------------------------------------------------
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:148:64: warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+146 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.processingFailure.rawValue == 0x0110)
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+    |                                                                `- warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+
+macro expansion #expect:1:79: warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:149:109: note: expanded code originates here
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue,{ $0 == $1() },0x0120,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue"),"==",.__fromSyntaxNode("0x0120")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               `- warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+    +-------------------------------------------------------------------
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:149:64: warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+    |                                                                `- warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+
+macro expansion #expect:1:79: warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:151:110: note: expanded code originates here
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+    |         |- note: in expansion of macro 'expect' here
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue,{ $0 == $1() },0x0124,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue"),"==",.__fromSyntaxNode("0x0124")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               |- warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+    |  |                                                                               `- note: use 'referencedTransferSyntaxNotSupported' instead
+    +-------------------------------------------------------------------
+152 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.outOfResources.rawValue == 0xA700)
+153 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:151:64: warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+    |                                                                |- warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+    |                                                                `- note: use 'referencedTransferSyntaxNotSupported' instead
+152 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.outOfResources.rawValue == 0xA700)
+153 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:224:13: warning: initialization of immutable value 'connID' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+222 |         await pool.start()
+223 |         
+224 |         let connID = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'connID' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+225 |         
+226 |         let stats = await pool.statistics()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:259:13: warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+257 |         await pool.start()
+258 |         
+259 |         let conn1 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+260 |         let conn2 = await pool.acquireConnection(for: "example.com")
+261 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:260:13: warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+258 |         
+259 |         let conn1 = await pool.acquireConnection(for: "example.com")
+260 |         let conn2 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+261 |         
+262 |         let stats = await pool.statistics()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:279:13: warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+277 |         await pool.start()
+278 |         
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:280:13: warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+278 |         
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+282 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:281:13: warning: initialization of immutable value 'conn3' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+    |             `- warning: initialization of immutable value 'conn3' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+282 |         
+283 |         let stats = await pool.statistics()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPRequestPipelineTests.swift:140:13: warning: variable 'executorCalled' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+138 |         let request = HTTPClient.Request(url: testURL, method: .get)
+139 |         
+140 |         var executorCalled = false
+    |             `- warning: variable 'executorCalled' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+141 |         let executor: @Sendable (HTTPClient.Request) async throws -> HTTPClient.Response = { req in
+142 |             return HTTPClient.Response(
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[28 / 32] DICOMWebTests-product
+[30 / 32] DICOMWebTests-product
+Build complete! (10.92 sec)
+Test Suite 'Selected tests' started at 2026-10-24 16:17:28.419.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 16:17:28.424.
+Test Suite 'UPSEventSystemTests' started at 2026-10-24 16:17:28.424.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAnyUPSEventWrapper]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAnyUPSEventWrapper]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAssignedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testAssignedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCanceledEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCanceledEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCancelRequestedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCancelRequestedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCompletedEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testCompletedEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventDispatcherIntegration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventDispatcherIntegration]' passed (0.523 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueEnqueueDequeue]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueEnqueueDequeue]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueMaxSize]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testEventQueueMaxSize]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testGlobalSubscription]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testGlobalSubscription]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testLoggingDeliveryService]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testLoggingDeliveryService]' passed (0.011 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventToDICOMJSON]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testProgressReportEventToDICOMJSON]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventToDICOMJSON]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStateReportEventToDICOMJSON]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderEventGeneration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderEventGeneration]' passed (0.507 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderProgressEventGeneration]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testStorageProviderProgressEventGeneration]' passed (0.517 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionCreation]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionCreation]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionEventTypeFilter]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionEventTypeFilter]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionInterest]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionInterest]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerDeleteLock]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerDeleteLock]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptions]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptions]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptionsForEvent]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGetSubscriptionsForEvent]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGlobalSubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerGlobalSubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerResume]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerResume]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSuspend]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerSuspend]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerUnsubscribe]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionManagerUnsubscribe]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionSuspended]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testSubscriptionSuspended]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeCaseIterable]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeCaseIterable]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeRawValues]' started.
+Test Case '-[DICOMWebTests.UPSEventSystemTests testUPSEventTypeRawValues]' passed (0.000 seconds).
+Test Suite 'UPSEventSystemTests' passed at 2026-10-24 16:17:29.989.
+	 Executed 30 tests, with 0 failures (0 unexpected) in 1.563 (1.565) seconds
+Test Suite 'UPSTests' started at 2026-10-24 16:17:29.989.
+Test Case '-[DICOMWebTests.UPSTests testCancellationRequestInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testCancellationRequestInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryEquality]' started.
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryEquality]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testCodedEntryInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testHumanPerformerInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testHumanPerformerInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testProgressInformationInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testProgressInformationInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testReferencedInstanceInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testReferencedInstanceInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToCompleted]' started.
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToCompleted]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToInProgress]' started.
+Test Case '-[DICOMWebTests.UPSTests testStateChangeRequestToInProgress]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityNumericValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityNumericValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityRawValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSPriorityRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateIsFinal]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateIsFinal]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateRawValues]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateRawValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testUPSStateValidTransitions]' started.
+Test Case '-[DICOMWebTests.UPSTests testUPSStateValidTransitions]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemBasicInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemBasicInitialization]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemDescription]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemDescription]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.UPSTests testWorkitemSchedulingInitialization]' started.
+Test Case '-[DICOMWebTests.UPSTests testWorkitemSchedulingInitialization]' passed (0.000 seconds).
+Test Suite 'UPSTests' passed at 2026-10-24 16:17:29.991.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 16:17:29.991.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 1.564 (1.567) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 16:17:29.991.
+	 Executed 46 tests, with 0 failures (0 unexpected) in 1.564 (1.572) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "UPS scheduled DICOM DT round trips" started.
+◇ Suite "DICOMwebClient UPS-RS Tests" started.
+◇ Test "Malformed DT create payloads are rejected without storing a workitem" started.
+◇ Test "Updates preserve legal precision and reject malformed input atomically" started.
+◇ Test "Workitems URL construction" started.
+◇ Test "Create, retrieve and search retain fractions, offset and instant" started.
+◇ Test "UPSQueryResult empty result" started.
+◇ Test "Stored Dates emit compact UTC DT; persisted raw precision survives until the date changes" started.
+◇ Test "UPS query for scheduled workitems" started.
+◇ Test "UPS query with pagination" started.
+◇ Test "Workitem subscription suspend URL construction" started.
+◇ Test "UPS query with priority" started.
+◇ Test "UPSCreateResponse initialization" started.
+◇ Test "Workitem basic initialization" started.
+◇ Test "Workitem full initialization" started.
+◇ Test "UPSCancellationResponse accepted" started.
+◇ Test "UPSStateChangeResponse initialization" started.
+◇ Test "Workitem URL construction" started.
+◇ Test "Workitem cancel request URL construction" started.
+◇ Test "UPS query for in-progress workitems" started.
+◇ Test "Search workitems URL with query parameters" started.
+◇ Test "Workitem state URL construction" started.
+◇ Test "WorkitemResult parsing from JSON" started.
+◇ Test "Global workitem subscription URL construction" started.
+◇ Test "UPSQueryResult parsing from JSON" started.
+◇ Test "Workitem subscription URL construction" started.
+◇ Test "UPSCancellationRequest initialization" started.
+◇ Test "UPSCancellationResponse rejected" started.
+◇ Test "UPS query with default parameters" started.
+◇ Test "UPS query with patient ID" started.
+✔ Test "UPSCreateResponse initialization" passed after 0.002 seconds.
+✔ Test "UPS query with priority" passed after 0.002 seconds.
+✔ Test "UPS query for scheduled workitems" passed after 0.002 seconds.
+✔ Test "UPSCancellationResponse accepted" passed after 0.002 seconds.
+✔ Test "UPSQueryResult empty result" passed after 0.002 seconds.
+✔ Test "UPS query with pagination" passed after 0.002 seconds.
+✔ Test "UPSStateChangeResponse initialization" passed after 0.002 seconds.
+✔ Test "UPS query for in-progress workitems" passed after 0.002 seconds.
+✔ Test "Workitem basic initialization" passed after 0.002 seconds.
+✔ Test "Workitem full initialization" passed after 0.002 seconds.
+✔ Test "Create, retrieve and search retain fractions, offset and instant" passed after 0.002 seconds.
+✔ Test "WorkitemResult parsing from JSON" passed after 0.002 seconds.
+✔ Test "UPSQueryResult parsing from JSON" passed after 0.002 seconds.
+✔ Test "Updates preserve legal precision and reject malformed input atomically" passed after 0.002 seconds.
+✔ Test "Malformed DT create payloads are rejected without storing a workitem" passed after 0.002 seconds.
+✔ Test "UPSCancellationRequest initialization" passed after 0.002 seconds.
+✔ Test "UPSCancellationResponse rejected" passed after 0.002 seconds.
+✔ Test "UPS query with default parameters" passed after 0.002 seconds.
+✔ Test "UPS query with patient ID" passed after 0.002 seconds.
+✔ Test "Stored Dates emit compact UTC DT; persisted raw precision survives until the date changes" passed after 0.002 seconds.
+✔ Suite "UPS scheduled DICOM DT round trips" passed after 0.002 seconds.
+✔ Test "Workitem subscription suspend URL construction" passed after 0.005 seconds.
+✔ Test "Workitem URL construction" passed after 0.005 seconds.
+✔ Test "Global workitem subscription URL construction" passed after 0.005 seconds.
+✔ Test "Workitem cancel request URL construction" passed after 0.005 seconds.
+✔ Test "Workitem state URL construction" passed after 0.005 seconds.
+✔ Test "Workitems URL construction" passed after 0.005 seconds.
+✔ Test "Workitem subscription URL construction" passed after 0.005 seconds.
+✔ Test "Search workitems URL with query parameters" passed after 0.005 seconds.
+✔ Suite "DICOMwebClient UPS-RS Tests" passed after 0.005 seconds.
+✔ Test run with 28 tests in 2 suites passed after 0.005 seconds.

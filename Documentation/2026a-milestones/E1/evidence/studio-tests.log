@@ -1,0 +1,311 @@
+Building for debugging...
+[Computing dependencies]
+[Constructing description]
+[Pre-planning 1 / 919]
+[Planning deferred tasks]
+[1 / 92] ArgumentParserToolInfo
+[3 / 31] DICOMKit_DICOMStudioTests
+[6 / 19] DICOMStudio
+[8 / 21] DICOMStudio
+[12 / 23] DICOMStudio
+[13 / 23] DICOMStudio
+[15 / 20] DICOMStudioTests-product
+[18 / 23] DICOMStudioTests-product
+[23 / 26] DICOMStudioTests-product
+[24 / 28] DICOMStudioTests-product
+[25 / 28] DICOMStudioTests-product
+[26 / 28] DICOMStudioTests-product
+Build complete! (40.77 sec)
+Test Suite 'Selected tests' started at 2026-10-26 17:18:47.916.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 17:18:47.921.
+Test Suite 'E1WorkshopMPPSTests' started at 2026-10-26 17:18:47.921.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testEmptyIntermediateUpdateHasCLIUsageFailure]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testEmptyIntermediateUpdateHasCLIUsageFailure]' passed (0.013 seconds).
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIndependentPeerActions]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIndependentPeerActions]' passed (0.316 seconds).
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediateDiscontinuationReasonRefusesBeforeConnection]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediateDiscontinuationReasonRefusesBeforeConnection]' passed (0.010 seconds).
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediatePreviewAndDescriptionAreOperationScoped]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediatePreviewAndDescriptionAreOperationScoped]' passed (0.010 seconds).
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediateStatusChoicesPreserveTerminalDefault]' started.
+Test Case '-[DICOMStudioTests.E1WorkshopMPPSTests testIntermediateStatusChoicesPreserveTerminalDefault]' passed (0.000 seconds).
+Test Suite 'E1WorkshopMPPSTests' passed at 2026-10-26 17:18:48.270.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.349 (0.350) seconds
+Test Suite 'M5SRTemporalPrecisionTests' started at 2026-10-26 17:18:48.271.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testDateTimeRetainsEveryLegalPartialPrecisionAndExactOffset]' passed (0.001 seconds).
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testDetailedRepresentationsDistinguishFractionsOffsetsAndOmittedSeconds]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testDetailedRepresentationsDistinguishFractionsOffsetsAndOmittedSeconds]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testMalformedDateTimeIsNeverNormalizedIntoAValidDate]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testMalformedDateTimeIsNeverNormalizedIntoAValidDate]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testMalformedTimeIsNeverFilteredTrimmedOrSilentlyRepaired]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testMalformedTimeIsNeverFilteredTrimmedOrSilentlyRepaired]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testPhysicalSRFileNarrativeRetainsPrecisionWithoutChangingBytes]' passed (0.004 seconds).
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testTimePrecisionIncludingLeapSecondAndPartialValues]' started.
+Test Case '-[DICOMStudioTests.M5SRTemporalPrecisionTests testTimePrecisionIncludingLeapSecondAndPartialValues]' passed (0.000 seconds).
+Test Suite 'M5SRTemporalPrecisionTests' passed at 2026-10-26 17:18:48.277.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-26 17:18:48.277.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.355 (0.356) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 17:18:48.277.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.355 (0.361) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "M2 Workshop MPPS reference preflight" started.
+◇ Suite "ClipboardHelper Tests" started.
+◇ Suite "Network tools — Workshop/CLI option parity" started.
+◇ Suite "MetadataTreeNode Tests" started.
+◇ Suite "MetadataViewModel Tests" started.
+◇ Suite "MetadataTreeBuilder Tests" started.
+◇ Test "Formats metadata row as tab-separated" started.
+◇ Test "Missing and malformed image classes refuse before an MPPS network operation" started.
+◇ Suite "DICOMValueParser Tests" started.
+◇ Test "Formats empty nodes list with header only" started.
+◇ Test "Formats tag with empty value" started.
+◇ Test "Formats metadata tree node" started.
+◇ Test "Trims whitespace from value" started.
+◇ Test "Formats nodes with children indented" started.
+◇ Test "Formats multiple nodes with header" started.
+◇ Test "Returns empty string for whitespace-only value" started.
+◇ Test "Formats tag for clipboard" started.
+◇ Suite "Legacy metadata value integrity" started.
+◇ Test "Requested Procedure ID is its own field, not the Performed Step ID" started.
+◇ Test "a flag shared by two parameters is always operation-scoped" started.
+◇ Test "corrected tag numbers appear in the worklist help text" started.
+◇ Test "N-SET exposes the Performed Series attributes the CLI gained" started.
+◇ Test "the discontinuation reason field is hidden for a COMPLETED update" started.
+◇ Test "the discontinuation reason is gated on the DISCONTINUED status" started.
+◇ Test "the two --performing-physician fields never appear together" started.
+◇ Test "the worklist query exposes the Performing Physician matching key" started.
+◇ Test "no network tool has a duplicate parameter id" started.
+◇ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" started.
+◇ Test "Tag string with high group" started.
+◇ Test "the parent-key opt-out is offered at series and instance level" started.
+◇ Test "Length string for large values" started.
+◇ Test "the parent-key toggle is hidden for a study-level query" started.
+◇ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" started.
+◇ Test "the series-level QIDO matching keys are exposed" started.
+◇ Test "Length string for small values" started.
+◇ Test "Character set description" started.
+◇ Test "Sequence node detection" started.
+◇ Test "Private tag detection" started.
+◇ Test "Tag string formatting" started.
+◇ Test "Clear resets all state" started.
+◇ Test "Length string for undefined length" started.
+◇ Test "QIDO series filters are hidden for a study-level search" started.
+◇ Test "Filter by tag string" started.
+◇ Test "Filter removes non-matching branches" started.
+◇ Test "Filtered nodes with search text" started.
+◇ Test "Total node count flat" started.
+◇ Test "Filter by value" started.
+◇ Test "Identifiable conformance" started.
+◇ Test "Basic node creation" started.
+◇ Test "Total node count nested" started.
+◇ Test "Filter by tag name" started.
+◇ Test "Default state" started.
+◇ Test "Filter with no matches returns empty" started.
+◇ Test "Character set description for nil" started.
+◇ Test "Load invalid file sets error" started.
+◇ Test "Filter by VR code" started.
+◇ Test "Empty search returns all nodes" started.
+◇ Test "Transfer syntax description for nil UID" started.
+◇ Test "Filter preserves parent with matching child" started.
+◇ Test "Transfer syntax description for known UID" started.
+◇ Test "Filtered nodes with empty search returns all" started.
+◇ Test "Dependency injection" started.
+✔ Test "Formats metadata row as tab-separated" passed after 0.001 seconds.
+◇ Test "Load non-existent file sets error" started.
+◇ Test "Default character set" started.
+◇ Test "Singular year" started.
+✔ Test "Formats empty nodes list with header only" passed after 0.001 seconds.
+◇ Test "Unknown VR returns trimmed value" started.
+◇ Test "Format DICOM date YYYYMMDD" started.
+◇ Test "Format integer decimal string" started.
+✔ Test "Formats tag with empty value" passed after 0.001 seconds.
+◇ Test "Latin-1 character set" started.
+◇ Test "Chinese GB18030 character set" started.
+◇ Test "AE trims whitespace" started.
+◇ Test "Format full person name" started.
+◇ Test "Whitespace-only value returns (empty)" started.
+◇ Test "Format integer string" started.
+◇ Test "Arabic character set" started.
+◇ Test "Format dispatches to AS parser" started.
+◇ Test "Format UID trims whitespace and null" started.
+◇ Test "Invalid age returns original" started.
+◇ Test "Format dispatches to TM parser" started.
+◇ Test "PN component groups (PS3.5 6.2.1.2) are formatted separately and joined with =" started.
+✔ Test "Formats multiple nodes with header" passed after 0.001 seconds.
+✔ Test "Trims whitespace from value" passed after 0.001 seconds.
+◇ Test "Format age in weeks" started.
+◇ Test "Empty value returns (empty)" started.
+◇ Test "Format floating point decimal string" started.
+✔ Test "Returns empty string for whitespace-only value" passed after 0.001 seconds.
+◇ Test "Hebrew character set" started.
+◇ Test "Format age in days" started.
+◇ Test "Format time HHMM" started.
+✔ Test "Formats tag for clipboard" passed after 0.001 seconds.
+◇ Test "Format integer string with spaces" started.
+◇ Test "UTF-8 character set" started.
+◇ Test "Format multi-value integer string" started.
+◇ Test "Numeric VRs retain signedness, precision, byte order and every value" started.
+◇ Test "Japanese character set" started.
+◇ Test "Format time with fractional seconds" started.
+◇ Test "Unknown character set returns original" started.
+✔ Test "Formats nodes with children indented" passed after 0.001 seconds.
+◇ Test "Format full datetime" started.
+◇ Test "Format multi-value decimal string" started.
+◇ Test "Greek character set" started.
+◇ Test "Short time returns original" started.
+◇ Test "Korean character set" started.
+◇ Test "Format dispatches to PN parser" started.
+◇ Test "Every single-valued Specific Character Set Defined Term of PS3.3 2026a C.12-2/C.12-5 is described" started.
+◇ Test "Format DICOM time HHMMSS" started.
+◇ Test "Format date-only datetime" started.
+◇ Test "Empty name returns original" started.
+◇ Test "Short date returns original" started.
+◇ Test "Format simple person name" started.
+◇ Test "Format age in years" started.
+◇ Test "Code-extension terms of PS3.3 2026a C.12-3/C.12-4 the viewer describes" started.
+◇ Test "CS is uppercased" started.
+◇ Test "Format date with dots" started.
+✔ Test "Formats metadata tree node" passed after 0.001 seconds.
+◇ Test "Thai character set" started.
+◇ Test "Format family-only name" started.
+◇ Test "Cyrillic character set" started.
+✔ Test "Tag string with high group" passed after 0.001 seconds.
+◇ Test "Format dispatches to DA parser" started.
+◇ Test "Format age in months" started.
+✔ Test "Length string for large values" passed after 0.001 seconds.
+✔ Test "Character set description" passed after 0.001 seconds.
+✔ Test "Length string for small values" passed after 0.001 seconds.
+✔ Test "Sequence node detection" passed after 0.001 seconds.
+✔ Test "Private tag detection" passed after 0.001 seconds.
+✔ Test "Tag string formatting" passed after 0.001 seconds.
+✔ Test "Length string for undefined length" passed after 0.001 seconds.
+✔ Test "Filter by tag string" passed after 0.001 seconds.
+✔ Test "Filtered nodes with search text" passed after 0.001 seconds.
+✔ Test "Identifiable conformance" passed after 0.001 seconds.
+✔ Test "Filter by value" passed after 0.001 seconds.
+✔ Test "Clear resets all state" passed after 0.001 seconds.
+✔ Test "Total node count flat" passed after 0.001 seconds.
+✔ Test "Default state" passed after 0.001 seconds.
+✔ Test "Character set description for nil" passed after 0.001 seconds.
+✔ Test "Total node count nested" passed after 0.001 seconds.
+✔ Test "Filter removes non-matching branches" passed after 0.001 seconds.
+✔ Test "Filter by tag name" passed after 0.001 seconds.
+✔ Test "Empty search returns all nodes" passed after 0.001 seconds.
+✔ Test "Basic node creation" passed after 0.001 seconds.
+✔ Test "Filter with no matches returns empty" passed after 0.001 seconds.
+✔ Test "Filter by VR code" passed after 0.001 seconds.
+◇ Test case passing 1 argument order → .littleEndian to "Numeric VRs retain signedness, precision, byte order and every value" started.
+✔ Test "Transfer syntax description for nil UID" passed after 0.001 seconds.
+✔ Test "Filter preserves parent with matching child" passed after 0.001 seconds.
+✔ Test "Transfer syntax description for known UID" passed after 0.001 seconds.
+✔ Test "Filtered nodes with empty search returns all" passed after 0.001 seconds.
+✔ Test "Dependency injection" passed after 0.001 seconds.
+✔ Test "Default character set" passed after 0.001 seconds.
+✔ Test "Format DICOM date YYYYMMDD" passed after 0.001 seconds.
+✔ Test "Latin-1 character set" passed after 0.001 seconds.
+✔ Test "AE trims whitespace" passed after 0.001 seconds.
+✔ Test "Format integer decimal string" passed after 0.001 seconds.
+✔ Test "Chinese GB18030 character set" passed after 0.001 seconds.
+✔ Test "Unknown VR returns trimmed value" passed after 0.001 seconds.
+✔ Test "Whitespace-only value returns (empty)" passed after 0.001 seconds.
+✔ Test "Singular year" passed after 0.001 seconds.
+✔ Test "Arabic character set" passed after 0.001 seconds.
+✔ Test "Format integer string" passed after 0.001 seconds.
+✔ Test "Format dispatches to AS parser" passed after 0.001 seconds.
+✔ Test "Invalid age returns original" passed after 0.001 seconds.
+✔ Test "Format UID trims whitespace and null" passed after 0.001 seconds.
+✔ Test "Format age in weeks" passed after 0.001 seconds.
+✔ Test "Empty value returns (empty)" passed after 0.001 seconds.
+✔ Test "Hebrew character set" passed after 0.001 seconds.
+✔ Test "PN component groups (PS3.5 6.2.1.2) are formatted separately and joined with =" passed after 0.001 seconds.
+✔ Test "Format floating point decimal string" passed after 0.001 seconds.
+✔ Test "Format age in days" passed after 0.001 seconds.
+✔ Test "Format full person name" passed after 0.001 seconds.
+✔ Test "Format integer string with spaces" passed after 0.001 seconds.
+✔ Test "UTF-8 character set" passed after 0.001 seconds.
+✔ Test "Format multi-value integer string" passed after 0.001 seconds.
+✔ Test "Japanese character set" passed after 0.001 seconds.
+✔ Test "Unknown character set returns original" passed after 0.001 seconds.
+✔ Test "Format time HHMM" passed after 0.001 seconds.
+✔ Test "Format multi-value decimal string" passed after 0.001 seconds.
+✔ Test "Greek character set" passed after 0.001 seconds.
+✔ Test "Format time with fractional seconds" passed after 0.001 seconds.
+✔ Test "Format dispatches to PN parser" passed after 0.001 seconds.
+✔ Test "Korean character set" passed after 0.001 seconds.
+✔ Test "Format dispatches to TM parser" passed after 0.001 seconds.
+✔ Test "Format simple person name" passed after 0.001 seconds.
+✔ Test "Format age in years" passed after 0.001 seconds.
+✔ Test "Short date returns original" passed after 0.001 seconds.
+✔ Test "Empty name returns original" passed after 0.001 seconds.
+✔ Test "Format date with dots" passed after 0.001 seconds.
+✔ Test "Every single-valued Specific Character Set Defined Term of PS3.3 2026a C.12-2/C.12-5 is described" passed after 0.001 seconds.
+✔ Test "Thai character set" passed after 0.001 seconds.
+✔ Test "Cyrillic character set" passed after 0.001 seconds.
+✔ Test "CS is uppercased" passed after 0.001 seconds.
+✔ Test "Code-extension terms of PS3.3 2026a C.12-3/C.12-4 the viewer describes" passed after 0.001 seconds.
+✔ Test "Format DICOM time HHMMSS" passed after 0.001 seconds.
+✔ Suite "MetadataTreeNode Tests" passed after 0.002 seconds.
+✔ Test "Format family-only name" passed after 0.001 seconds.
+✔ Suite "ClipboardHelper Tests" passed after 0.002 seconds.
+✔ Test "Short time returns original" passed after 0.001 seconds.
+✔ Test "Format date-only datetime" passed after 0.001 seconds.
+✔ Test "Format dispatches to DA parser" passed after 0.001 seconds.
+✔ Test "Format full datetime" passed after 0.001 seconds.
+✔ Suite "MetadataTreeBuilder Tests" passed after 0.002 seconds.
+✔ Test "Load invalid file sets error" passed after 0.001 seconds.
+✔ Test "Format age in months" passed after 0.001 seconds.
+✔ Suite "DICOMValueParser Tests" passed after 0.002 seconds.
+✔ Test "Load non-existent file sets error" passed after 0.004 seconds.
+✔ Suite "MetadataViewModel Tests" passed after 0.004 seconds.
+✔ Test "Missing and malformed image classes refuse before an MPPS network operation" passed after 0.033 seconds.
+◇ Test "Explicit CT, MR and SC classes survive the Workshop preview and shared preflight" started.
+✔ Test "corrected tag numbers appear in the worklist help text" passed after 0.085 seconds.
+✔ Test "N-SET exposes the Performed Series attributes the CLI gained" passed after 0.085 seconds.
+✔ Test "the discontinuation reason field is hidden for a COMPLETED update" passed after 0.085 seconds.
+✔ Test "no network tool has a duplicate parameter id" passed after 0.085 seconds.
+✔ Test "the parent-key opt-out is offered at series and instance level" passed after 0.085 seconds.
+✔ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" passed after 0.085 seconds.
+✔ Test "the two --performing-physician fields never appear together" passed after 0.085 seconds.
+✔ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" passed after 0.085 seconds.
+✔ Test "the parent-key toggle is hidden for a study-level query" passed after 0.085 seconds.
+✔ Test "the worklist query exposes the Performing Physician matching key" passed after 0.085 seconds.
+✔ Test "the series-level QIDO matching keys are exposed" passed after 0.085 seconds.
+✔ Test "QIDO series filters are hidden for a study-level search" passed after 0.085 seconds.
+✔ Test "a flag shared by two parameters is always operation-scoped" passed after 0.085 seconds.
+✔ Test "Requested Procedure ID is its own field, not the Performed Step ID" passed after 0.085 seconds.
+✔ Test "the discontinuation reason is gated on the DISCONTINUED status" passed after 0.085 seconds.
+◇ Test case passing 1 argument order → .bigEndian to "Numeric VRs retain signedness, precision, byte order and every value" started.
+✔ Suite "Network tools — Workshop/CLI option parity" passed after 0.085 seconds.
+✔ Test "Explicit CT, MR and SC classes survive the Workshop preview and shared preflight" passed after 0.081 seconds.
+✔ Suite "M2 Workshop MPPS reference preflight" passed after 0.114 seconds.
+✔ Test "Numeric VRs retain signedness, precision, byte order and every value" with 2 test cases passed after 0.113 seconds.
+◇ Test "Binary float text round trips finite values and preserves non-finite categories" started.
+✔ Test "Binary float text round trips finite values and preserves non-finite categories" passed after 0.001 seconds.
+◇ Test "Empty numeric values copy empty and malformed widths are never partially decoded" started.
+✔ Test "Empty numeric values copy empty and malformed widths are never partially decoded" passed after 0.001 seconds.
+◇ Test "Decimal copy retains lexical precision and every empty value" started.
+◇ Test case passing 1 argument raw → "1.23456789" to "Decimal copy retains lexical precision and every empty value" started.
+◇ Test case passing 1 argument raw → "1\\3" to "Decimal copy retains lexical precision and every empty value" started.
+◇ Test case passing 1 argument raw → "\1\" to "Decimal copy retains lexical precision and every empty value" started.
+◇ Test case passing 1 argument raw → "+001.2300\\-0.0" to "Decimal copy retains lexical precision and every empty value" started.
+◇ Test case passing 1 argument raw → "" to "Decimal copy retains lexical precision and every empty value" started.
+✔ Test "Decimal copy retains lexical precision and every empty value" with 5 test cases passed after 0.001 seconds.
+◇ Test "Integer presentation does not discard leading, internal or trailing empty components" started.
+✔ Test "Integer presentation does not discard leading, internal or trailing empty components" passed after 0.001 seconds.
+◇ Test "Text copy preserves meaningful whitespace, newlines, PN syntax and Unicode" started.
+✔ Test "Text copy preserves meaningful whitespace, newlines, PN syntax and Unicode" passed after 0.001 seconds.
+◇ Test "Sequence descendants, filtering and bulk copy retain exact values" started.
+✔ Test "Sequence descendants, filtering and bulk copy retain exact values" passed after 0.001 seconds.
+◇ Test "Part 10 parsing carries dataset byte order into metadata nodes" started.
+◇ Test case passing 1 argument order → .littleEndian to "Part 10 parsing carries dataset byte order into metadata nodes" started.
+◇ Test case passing 1 argument order → .bigEndian to "Part 10 parsing carries dataset byte order into metadata nodes" started.
+✔ Test "Part 10 parsing carries dataset byte order into metadata nodes" with 2 test cases passed after 0.002 seconds.
+◇ Test "The active Workshop info route retains its shared numeric and raw decimal output" started.
+✔ Test "The active Workshop info route retains its shared numeric and raw decimal output" passed after 0.008 seconds.
+✔ Suite "Legacy metadata value integrity" passed after 0.126 seconds.
+✔ Test run with 115 tests in 8 suites passed after 0.126 seconds.

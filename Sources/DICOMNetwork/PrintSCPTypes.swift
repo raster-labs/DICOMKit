@@ -260,9 +260,9 @@ public struct PrintSCPConfiguration: Sendable, Hashable {
     /// pausing between films does not trip it.
     public let associationIdleTimeout: TimeInterval
 
-    /// Whether to push Print Job N-EVENT-REPORTs (PENDING → PRINTING → DONE)
-    /// to the SCU after an N-ACTION. Off by default: many SCUs ignore them and
-    /// a few mishandle interleaved requests.
+    /// Whether to push a Done Print Job N-EVENT-REPORT after an N-ACTION,
+    /// when the association accepted the optional Print Job SOP Class.
+    /// Off by default; a terminal confirmation deletes that job instance.
     public let pushPrintJobEvents: Bool
 
     /// Default Implementation Class UID for the DICOMKit Print SCP.

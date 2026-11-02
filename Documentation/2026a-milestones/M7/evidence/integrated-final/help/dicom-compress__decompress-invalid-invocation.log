@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-compress decompress <input> --output <output> [--syntax <syntax>] [--verbose]
+  See 'dicom-compress decompress --help' for more information.

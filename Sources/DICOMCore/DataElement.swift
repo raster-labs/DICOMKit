@@ -23,6 +23,13 @@ public struct DataElement: Sendable {
     /// Raw value data
     public let valueData: Data
 
+    /// Encoding of charset-dependent text bytes. Nil means unbound raw bytes;
+    /// readers bind the enclosing (0008,0005), including inherited Item context.
+    /// An empty string explicitly denotes the default ASCII repertoire.
+    public let specificCharacterSet: String?
+
+    public static let characterSetDependentVRs: Set<VR> = [.SH, .LO, .ST, .LT, .PN, .UC, .UT]
+
     /// Byte order the raw `valueData` is encoded in, used by the numeric value accessors.
     ///
     /// Almost always `.littleEndian`. It is `.bigEndian` only for elements parsed from a
@@ -64,11 +71,12 @@ public struct DataElement: Sendable {
     ///   - vr: Value Representation
     ///   - length: Value length (use 0xFFFFFFFF for undefined length)
     ///   - valueData: Raw value data
-    public init(tag: Tag, vr: VR, length: UInt32, valueData: Data, byteOrder: ByteOrder = .littleEndian) {
+    public init(tag: Tag, vr: VR, length: UInt32, valueData: Data, byteOrder: ByteOrder = .littleEndian, specificCharacterSet: String? = nil) {
         self.tag = tag
         self.vr = vr
         self.length = length
         self.valueData = valueData
+        self.specificCharacterSet = specificCharacterSet
         self.byteOrder = byteOrder
         self.sequenceItems = nil
         self.encapsulatedFragments = nil
@@ -87,6 +95,7 @@ public struct DataElement: Sendable {
         self.vr = vr
         self.length = length
         self.valueData = valueData
+        self.specificCharacterSet = nil
         self.byteOrder = byteOrder
         self.sequenceItems = sequenceItems
         self.encapsulatedFragments = nil
@@ -106,6 +115,7 @@ public struct DataElement: Sendable {
         self.vr = vr
         self.length = length
         self.valueData = valueData
+        self.specificCharacterSet = nil
         self.byteOrder = byteOrder
         self.sequenceItems = nil
         self.encapsulatedFragments = encapsulatedFragments
@@ -150,44 +160,45 @@ public struct DataElement: Sendable {
     /// Extracts the value as a string (for string-based VRs)
     ///
     /// Returns nil if the VR doesn't support string values or if decoding fails.
-    /// Trims leading/trailing whitespace and null padding per DICOM conventions.
-    ///
-    /// Reference: PS3.5 Section 6.2 - Value padding uses space (0x20) for most
-    /// string VRs and null (0x00) for UI.
+    /// Removes trailing Value Field padding only; leading whitespace and text
+    /// control characters are significant and are preserved (PS3.5 Table 6.2-1).
     public var stringValue: String? {
-        guard vr.characterRepertoire != nil else {
-            return nil
-        }
-        
-        guard let string = String(data: valueData, encoding: .utf8) else {
-            return nil
-        }
-        
-        // Create a character set containing whitespace, newlines, and null characters
-        // DICOM pads UI with null (0x00) and other string VRs with space (0x20)
-        var trimmingSet = CharacterSet.whitespacesAndNewlines
-        trimmingSet.insert(charactersIn: "\0")
-        
-        return string.trimmingCharacters(in: trimmingSet)
+        guard let string = decodedStringValue else { return nil }
+        return Self.removingValuePadding(string, vr: vr)
     }
-    
-    /// Extracts multiple string values (for multi-valued string VRs)
-    ///
-    /// DICOM uses backslash (\) as a delimiter for multiple values. An empty value between
-    /// two delimiters is a value (PS3.5 Section 6.4: "MPG\\XR3" has a Value Multiplicity of
-    /// three, the second value zero length), so empty values are kept in their position; a
-    /// zero-length or padding-only Value Field has no values.
-    /// Reference: PS3.5 Section 6.2, Section 6.4
+
+    /// Charset-aware text including the complete Value Field padding. Validators
+    /// use this accessor so illegal leading characters are never hidden.
+    public var decodedStringValue: String? {
+        guard vr.characterRepertoire != nil else { return nil }
+        let charset = Self.characterSetDependentVRs.contains(vr) ? specificCharacterSet : ""
+        return CharacterSetHandler.decodeStrict(valueData, specificCharacterSet: charset ?? "")
+    }
+
+    public static func removingValuePadding(_ string: String, vr: VR) -> String {
+        var result = string
+        let padding: Character = vr == .UI ? "\0" : " "
+        while result.last == padding { result.removeLast() }
+        return result
+    }
+
+    /// Returns each value without discarding significant leading whitespace.
     public var stringValues: [String]? {
-        guard let value = stringValue else {
-            return nil
-        }
-        guard !value.isEmpty else {
-            return []
-        }
-        return value.components(separatedBy: "\\").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        guard let value = stringValue else { return nil }
+        guard !value.isEmpty else { return [] }
+        // These VRs have VM 1 and permit a literal backslash in their text.
+        if [.ST, .LT, .UT, .UR].contains(vr) { return [value] }
+        return value.components(separatedBy: "\\")
     }
-    
+
+    /// Binds raw text to its enclosing dataset's character set, without changing bytes.
+    /// Values created by the string factory already carry their actual encoding.
+    public func bindingSpecificCharacterSet(_ inherited: String) -> DataElement {
+        guard Self.characterSetDependentVRs.contains(vr), specificCharacterSet == nil else { return self }
+        return DataElement(tag: tag, vr: vr, length: length, valueData: valueData,
+                           byteOrder: byteOrder, specificCharacterSet: inherited)
+    }
+
     /// Extracts the value as a 16-bit unsigned integer
     ///
     /// Supports VR types that can contain 16-bit values:
@@ -606,20 +617,21 @@ public struct DataElement: Sendable {
     
     /// Extracts the value as a DICOM Time (for TM VR)
     ///
-    /// Compatibility accessor using trimmed `stringValue` and legacy colon support.
+    /// Compatibility accessor that explicitly trims whitespace/NUL and supports
+    /// legacy colon forms. Strict validation does not use this normalization.
     /// Use `strictTimeValue` to validate original TM bytes and padding.
     /// Reference: PS3.5 Section 6.2 - TM Value Representation
     public var timeValue: DICOMTime? {
-        guard vr == .TM, let string = stringValue else {
-            return nil
-        }
-        return DICOMTime.parse(string)
+        guard vr == .TM, let string = decodedStringValue else { return nil }
+        var trimming = CharacterSet.whitespacesAndNewlines
+        trimming.insert(charactersIn: "\0")
+        return DICOMTime.parse(string.trimmingCharacters(in: trimming))
     }
     
     /// Extracts one strict TM value directly from the original bytes.
     ///
-    /// Unlike `timeValue`, this does not use the compatibility String accessor,
-    /// which trims whitespace and NUL. It rejects malformed padding, colon forms,
+    /// Unlike `timeValue`, this does not normalize whitespace or NUL before
+    /// parsing. It rejects malformed padding, colon forms,
     /// multiple values and query syntax. See `DICOMTime.parseStrict` for limits.
     public var strictTimeValue: DICOMTime? {
         guard vr == .TM else { return nil }

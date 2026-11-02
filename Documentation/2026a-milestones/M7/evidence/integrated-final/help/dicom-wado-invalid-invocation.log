@@ -1,0 +1,3 @@
+Error: Unknown option '--dicomkit-m7-invalid-option'
+Usage: dicom-wado <subcommand>
+  See 'dicom-wado --help' for more information.

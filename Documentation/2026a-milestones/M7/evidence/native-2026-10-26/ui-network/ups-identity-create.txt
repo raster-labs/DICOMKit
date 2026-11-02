@@ -1,0 +1,19 @@
+						48 text field (settable) Description: Workitem JSON File, Placeholder: workitem.json, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json
+						51 pop up button Description: Operation, Value: create-json
+						53 text field (settable) Description: Base URL, Value: http://127.0.0.1:62708/native/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+							56 radio button Description: none, Value: 0
+							57 radio button Description: basic, Value: 1
+							58 radio button Description: bearer, Value: 0
+						60 text field (settable) Description: Username, Value: m7-native, Placeholder: e.g. admin
+						62 text field (settable) Description: Password, Value: only-test:pass
+						64 checkbox Description: Verbose, Value: 0
+					71 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					72 button Description: Run command, Help: Runs the selected Workshop action
+					76 button Description: Copy command, Help: Copies the command to the clipboard
+					77 text Console SUCCESS
+						81 text $ # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado ups http://127.0.0.1:62708/native/dicom-web --create /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json
+
+Created worklist item:
+  UID: 2.25.20261024001
+  Retrieve URL: http://127.0.0.1:62708/native/dicom-web/workitems/2.25.20261024001

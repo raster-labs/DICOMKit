@@ -1,0 +1,41 @@
+OVERVIEW: Bridge DICOM with HL7 v2, HL7 FHIR, and IHE profiles
+
+Bridge DICOM with other healthcare standards (HL7 v2, HL7 FHIR, IHE profiles)
+for interoperability and integration with broader healthcare IT systems.
+
+Examples:
+  # Convert DICOM to HL7 ADT message
+  dicom-gateway dicom-to-hl7 study.dcm --output study.hl7 --message-type ADT
+  
+  # Convert HL7 to DICOM
+  dicom-gateway hl7-to-dicom message.hl7 --template template.dcm --output
+study.dcm
+  
+  # Convert DICOM to FHIR ImagingStudy
+  dicom-gateway dicom-to-fhir study.dcm --output study.json --resource
+ImagingStudy
+  
+  # Convert FHIR to DICOM (--template is required, see fhir-to-dicom --help)
+  dicom-gateway fhir-to-dicom imaging-study.json --template template.dcm
+--output study.dcm
+  
+  # Batch conversion
+  dicom-gateway batch dicom-to-fhir studies/*.dcm --output fhir-resources/
+
+USAGE: dicom-gateway <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  dicom-to-hl7 (default)  Convert DICOM files to HL7 v2 messages
+  hl7-to-dicom            Convert HL7 v2 messages to DICOM files
+  dicom-to-fhir           Convert DICOM files to FHIR resources
+  fhir-to-dicom           Convert FHIR resources to DICOM files
+  batch                   Batch convert multiple files
+  listen                  Listen for HL7 messages and convert them to DICOM
+  forward                 Forward DICOM events as HL7/FHIR messages (DICOM
+                          listener not implemented)
+
+  See 'dicom-gateway help <subcommand>' for detailed help.

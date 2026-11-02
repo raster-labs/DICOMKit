@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input file (DICOM or XML)
+Usage: dicom-xml <input> [--output <output>] [--reverse] [--pretty] [--no-keywords] [--include-empty] [--no-include-empty] [--inline-threshold <inline-threshold>] [--bulk-data-url <bulk-data-url>] [--metadata-only] [--filter-tag <filter-tag> ...] [--verbose]
+  See 'dicom-xml --help' for more information.

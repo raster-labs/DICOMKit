@@ -1,0 +1,60 @@
+{
+  "name": "forward-ExplicitVRLittleEndian-rgb8",
+  "commands": [
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-ExplicitVRLittleEndian-rgb8/encoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-ExplicitVRLittleEndian-rgb8/encoded.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-ExplicitVRLittleEndian-rgb8/self-decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    }
+  ],
+  "encoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 3,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "RGB",
+    "planarConfiguration": 0,
+    "transferSyntax": "1.2.840.10008.1.2.1"
+  },
+  "max_source_error": 0,
+  "mean_source_error": 0.0,
+  "decoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 3,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "RGB",
+    "planarConfiguration": 0,
+    "transferSyntax": "1.2.840.10008.1.2.1"
+  },
+  "max_decoder_disagreement": 0,
+  "status": "passed",
+  "elapsed_seconds": 0.027187792002223432
+}

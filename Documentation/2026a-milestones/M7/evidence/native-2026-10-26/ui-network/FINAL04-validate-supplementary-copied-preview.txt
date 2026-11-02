@@ -1,0 +1,2 @@
+
+						32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory, Value: dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm --level 2 --strict --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-json.json

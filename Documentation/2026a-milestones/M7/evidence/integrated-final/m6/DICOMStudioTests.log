@@ -1,0 +1,73 @@
+Building for debugging...
+[Computing dependencies]
+[Constructing description]
+[Pre-planning 1 / 919]
+[Planning deferred tasks]
+[2 / 69]
+[4 / 5] DICOMStudioTests-product
+Build complete! (1.25 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:54:21.945.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-24 20:54:21.950.
+Test Suite 'M6PrintCommandCodecTests' started at 2026-10-24 20:54:21.950.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testHiddenValuesNeverLeakAcrossOperationsAndImportStartsFresh]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testHiddenValuesNeverLeakAcrossOperationsAndImportStartsFresh]' passed (0.013 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testImportDefaultsAndBothShortAliasesRoundTrip]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testImportDefaultsAndBothShortAliasesRoundTrip]' passed (0.021 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testInvalidVisibleListOrBooleanFailsBeforeArgumentPublication]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testInvalidVisibleListOrBooleanFailsBeforeArgumentPublication]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testJSONListsAreLosslessAndMalformedInputIsRefused]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testJSONListsAreLosslessAndMalformedInputIsRefused]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPInheritAndExplicitInversionsRemainDifferent]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPInheritAndExplicitInversionsRemainDifferent]' passed (0.102 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPSimulateVariadicPathsAndRepeatedOutputsRemainOrdered]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPSimulateVariadicPathsAndRepeatedOutputsRemainOrdered]' passed (0.057 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUArgumentSnapshotPreservesRepeatedValuesAndLeadingDashPaths]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUArgumentSnapshotPreservesRepeatedValuesAndLeadingDashPaths]' passed (0.027 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUStandardAliasesAndExactScalarStringsSurviveImport]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUStandardAliasesAndExactScalarStringsSurviveImport]' passed (0.041 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testShellOperatorsExpansionsAndBrokenQuotesAreRejectedWithoutEffects]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testShellOperatorsExpansionsAndBrokenQuotesAreRejectedWithoutEffects]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testStrictTokenizerPreservesPOSIXQuotingAndEscapedLiteralCharacters]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testStrictTokenizerPreservesPOSIXQuotingAndEscapedLiteralCharacters]' passed (0.040 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testWrongToolUnknownHiddenFlagsAndDuplicateScalarsRefuseAtomically]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testWrongToolUnknownHiddenFlagsAndDuplicateScalarsRefuseAtomically]' passed (0.062 seconds).
+Test Suite 'M6PrintCommandCodecTests' passed at 2026-10-24 20:54:22.315.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.364 (0.365) seconds
+Test Suite 'M6PrintSCUCatalogTests' started at 2026-10-24 20:54:22.315.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testEveryFrozenSCUDeclarationHasAnApplicableControl]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testEveryFrozenSCUDeclarationHasAnApplicableControl]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testRepeatableAndAliasFieldsDoNotLoseImportedMeaning]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testRepeatableAndAliasFieldsDoNotLoseImportedMeaning]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterMutatesOnlyExplicitRegistryLocation]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterMutatesOnlyExplicitRegistryLocation]' passed (0.009 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterUsesSameParserRefusals]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterUsesSameParserRefusals]' passed (0.067 seconds).
+Test Suite 'M6PrintSCUCatalogTests' passed at 2026-10-24 20:54:22.391.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.076 (0.076) seconds
+Test Suite 'M6WorkshopExecutionTests' started at 2026-10-24 20:54:22.391.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M6WorkshopExecutionTests.swift:173: -[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions] : Test skipped - Set M6 Workshop request/output paths and an isolated print settings directory to run the external campaign
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' skipped (0.001 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testInvalidPreflightDoesNotRunOrCreateHistory]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testInvalidPreflightDoesNotRunOrCreateHistory]' passed (0.050 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testPaperQueueWithoutExplicitConsentRefusesBeforeAnyOutput]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testPaperQueueWithoutExplicitConsentRefusesBeforeAnyOutput]' passed (0.214 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testQuietServePublishesBoundStateBlocksSwitchingAndStopReleasesPortForRestart]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testQuietServePublishesBoundStateBlocksSwitchingAndStopReleasesPortForRestart]' passed (0.426 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testSuccessfulImportPersistsAndFailedImportPreservesAllCurrentState]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testSuccessfulImportPersistsAndFailedImportPreservesAllCurrentState]' passed (0.038 seconds).
+Test Suite 'M6WorkshopExecutionTests' passed at 2026-10-24 20:54:23.120.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.728 (0.729) seconds
+Test Suite 'M6WorkshopSCPCatalogTests' started at 2026-10-24 20:54:23.120.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPDeclarationsAreRepresentedOnceAndScopedToActualCommands]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPDeclarationsAreRepresentedOnceAndScopedToActualCommands]' passed (0.003 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPRepeatablesUseLosslessArrayFields]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPRepeatablesUseLosslessArrayFields]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testSCPOptionalFlagsExposeInheritAndBothActualParserSpellings]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testSCPOptionalFlagsExposeInheritAndBothActualParserSpellings]' passed (0.392 seconds).
+Test Suite 'M6WorkshopSCPCatalogTests' passed at 2026-10-24 20:54:23.515.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.395 (0.395) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-24 20:54:23.515.
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 1.564 (1.565) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:54:23.515.
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 1.564 (1.570) seconds

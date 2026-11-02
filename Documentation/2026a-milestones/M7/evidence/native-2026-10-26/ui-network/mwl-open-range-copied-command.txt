@@ -1,0 +1,2 @@
+
+						69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*, Value: dicom-mwl query 127.0.0.1:60660 --aet M7NATIVE --called-aet M7MWL --date=-20261231 --time=-120000 --timeout 60 --json

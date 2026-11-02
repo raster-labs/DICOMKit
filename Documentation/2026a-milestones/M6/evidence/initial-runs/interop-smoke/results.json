@@ -1,0 +1,418 @@
+{
+  "cases": [
+    {
+      "id": "DC-F01",
+      "title": "DICOMKit SCU to DCMTK: Printer status",
+      "status": "failed",
+      "error": "list index out of range",
+      "elapsed_seconds": 0.265701792,
+      "observations": {
+        "accepted_contexts": [
+          {
+            "1": {
+              "abstract": "1.2.840.10008.5.1.1.9",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "3": {
+              "abstract": "1.2.840.10008.5.1.1.1",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "5": {
+              "abstract": "1.2.840.10008.5.1.1.2",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "7": {
+              "abstract": "1.2.840.10008.5.1.1.4",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "9": {
+              "abstract": "1.2.840.10008.5.1.1.16",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "11": {
+              "abstract": "1.2.840.10008.5.1.1.14",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "13": {
+              "abstract": "1.2.840.10008.5.1.1.23",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "15": {
+              "abstract": "1.2.840.10008.5.1.1.15",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            }
+          }
+        ],
+        "dimse_messages": 2
+      }
+    },
+    {
+      "id": "DC-F02",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 8-bit",
+      "status": "passed",
+      "elapsed_seconds": 0.2908924999999998,
+      "observations": {
+        "accepted_contexts": [
+          {
+            "1": {
+              "abstract": "1.2.840.10008.5.1.1.9",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "3": {
+              "abstract": "1.2.840.10008.5.1.1.1",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "5": {
+              "abstract": "1.2.840.10008.5.1.1.2",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "7": {
+              "abstract": "1.2.840.10008.5.1.1.4",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "9": {
+              "abstract": "1.2.840.10008.5.1.1.16",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "11": {
+              "abstract": "1.2.840.10008.5.1.1.14",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            },
+            "13": {
+              "abstract": "1.2.840.10008.5.1.1.23",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "15": {
+              "abstract": "1.2.840.10008.5.1.1.15",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2"
+            }
+          }
+        ],
+        "dimse_messages": 10,
+        "dcmtk_stored_objects": [
+          {
+            "file": "dcmtk/database/HG_6adcc13a21eb3b48.dcm",
+            "class": "1.2.840.10008.5.1.1.29",
+            "sha256": "bd4299c922e9ef001d2ce1d15f161978f04e5f6f915f0f0232f86fbfd4744c44"
+          },
+          {
+            "file": "dcmtk/database/SP_6adcc13a5de1b706.dcm",
+            "class": "1.2.840.10008.5.1.1.27",
+            "sha256": "9116addfb2c54288891a94e54919f79bae513d02cfbc31f7d05209a14c30c07e"
+          }
+        ]
+      }
+    },
+    {
+      "id": "DC-F03",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 12-bit",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F04",
+      "title": "DICOMKit SCU to DCMTK: implicit VR",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F05",
+      "title": "DICOMKit SCU to DCMTK: IDENTITY Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F06",
+      "title": "DICOMKit SCU to DCMTK: LIN OD Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F07",
+      "title": "DICOMKit SCU to DCMTK: unavailable required LUT refuses before print",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R01",
+      "title": "DCMTK SCU to DICOMKit: 8-bit grayscale",
+      "status": "passed",
+      "elapsed_seconds": 0.45105808299999994,
+      "observations": {
+        "films": [
+          {
+            "file": "film-20261024-200122-001.png",
+            "sha256": "a378928ed5a92fc1212efe6f8030c297df5f9448fe2924875d62407e30795223"
+          }
+        ],
+        "dimse_messages": 18,
+        "accepted_contexts": [
+          {
+            "1": {
+              "abstract": "1.2.840.10008.5.1.1.9",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2.2",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "3": {
+              "abstract": "1.2.840.10008.5.1.1.23",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2.2",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            }
+          }
+        ],
+        "received_bits": 8,
+        "received_size": [
+          16,
+          16
+        ]
+      }
+    },
+    {
+      "id": "DC-R02",
+      "title": "DCMTK SCU to DICOMKit: 12-bit grayscale",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R03",
+      "title": "DCMTK SCU to DICOMKit: implicit VR",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R04",
+      "title": "DCMTK SCU to DICOMKit: IDENTITY Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R05",
+      "title": "DCMTK SCU to DICOMKit: LIN OD Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R06",
+      "title": "DCMTK SCU to DICOMKit: separate annotation context and literal text",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F01",
+      "title": "DICOMKit SCU to pynetdicom: exact planar color",
+      "status": "passed",
+      "elapsed_seconds": 0.549737833,
+      "observations": {
+        "dimse_messages": 10,
+        "accepted_contexts": [
+          {
+            "1": {
+              "abstract": "1.2.840.10008.5.1.1.18",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "13": {
+              "abstract": "1.2.840.10008.5.1.1.23",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "3": {
+              "abstract": "1.2.840.10008.5.1.1.1",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "5": {
+              "abstract": "1.2.840.10008.5.1.1.2",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "7": {
+              "abstract": "1.2.840.10008.5.1.1.4.1",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "9": {
+              "abstract": "1.2.840.10008.5.1.1.16",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "11": {
+              "abstract": "1.2.840.10008.5.1.1.14",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "15": {
+              "abstract": "1.2.840.10008.5.1.1.15",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "PY-F02",
+      "title": "DICOMKit SCU to pynetdicom: repeated annotations",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F03",
+      "title": "DICOMKit SCU to pynetdicom: N-SET failure and cleanup",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F04",
+      "title": "DICOMKit SCU to pynetdicom: Printer FAILURE prevents print",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F05",
+      "title": "DICOMKit SCU to pynetdicom: Printer WARNING surfaced",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F06",
+      "title": "DICOMKit SCU to pynetdicom: N-ACTION warning surfaced",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F07",
+      "title": "DICOMKit SCU to pynetdicom: interleaved Done ACK and second-association Job query",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-R01",
+      "title": "pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and retained Job",
+      "status": "failed",
+      "error": "'Dataset' object has no attribute 'ReferencedPrintJobSequence'",
+      "elapsed_seconds": 0.3068279999999999,
+      "observations": {}
+    },
+    {
+      "id": "PY-R02",
+      "title": "pynetdicom SCU to DICOMKit: invalid color planarity refused",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-R03",
+      "title": "pynetdicom SCU to DICOMKit: no Job context means no event",
+      "status": "not_run"
+    }
+  ],
+  "complete": true,
+  "passed": 3,
+  "failed": 2,
+  "not_run": 18
+}

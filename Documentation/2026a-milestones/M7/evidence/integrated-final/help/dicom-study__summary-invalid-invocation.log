@@ -1,0 +1,4 @@
+Error: Missing expected argument '<path>'
+Help:  <path>  Study directory or DICOM file
+Usage: dicom-study summary <path> [--format <format>] [--verbose]
+  See 'dicom-study summary --help' for more information.

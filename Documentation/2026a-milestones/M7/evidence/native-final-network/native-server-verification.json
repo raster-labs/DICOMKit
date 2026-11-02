@@ -1,0 +1,191 @@
+{
+  "cases": [
+    "FINAL-10 successful restarted GET",
+    "FINAL-15 Review and Auto"
+  ],
+  "native_actions": 3,
+  "CLI_actions": 3,
+  "assertions": 28,
+  "checks": [
+    {
+      "name": "actual start stop restart ready final stop ordering",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "first process terminated before a different process restarted",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "final owned process stopped after SIGTERM",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "source and stored fixture unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get native SUCCESS and CLI exit0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get complete console parity after output-directory substitution",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get native exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get native exact source dataset bytes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get native exact independent identifiers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get cli exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get cli exact source dataset bytes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "retrieve-restarted-get cli exact independent identifiers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review native SUCCESS and CLI exit0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review complete console parity after output-directory substitution",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review native exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review cli exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review native offers Review and Auto only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-review exactly one matching study",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto native SUCCESS and CLI exit0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto complete console parity after output-directory substitution",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto native exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto native exact source dataset bytes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto native exact independent identifiers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto cli exact file count",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto cli exact source dataset bytes",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto cli exact independent identifiers",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto native offers Review and Auto only",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qr-auto exactly one matching study",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "files": {
+    "retrieve-restarted-get-native": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/restarted-get-gui/2.25.505.1.1.dcm",
+        "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf",
+        "dataset_sha256": "a6d7c1d4f10916417c5bbb69806870580bf27ecf799f177b73d113cf2deb85a6"
+      }
+    ],
+    "retrieve-restarted-get-cli": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-restarted-get-cli/2.25.505.1.1.dcm",
+        "sha256": "83f56c386e88397d80a880b4b176980883d29f89152ae5450447accb20b7d2d4",
+        "dataset_sha256": "a6d7c1d4f10916417c5bbb69806870580bf27ecf799f177b73d113cf2deb85a6"
+      }
+    ],
+    "qr-review-native": [],
+    "qr-review-cli": [],
+    "qr-auto-native": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-auto-gui/2.25.505.1.1.dcm",
+        "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf",
+        "dataset_sha256": "a6d7c1d4f10916417c5bbb69806870580bf27ecf799f177b73d113cf2deb85a6"
+      }
+    ],
+    "qr-auto-cli": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-auto-cli/2.25.505.1.1.dcm",
+        "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf",
+        "dataset_sha256": "a6d7c1d4f10916417c5bbb69806870580bf27ecf799f177b73d113cf2deb85a6"
+      }
+    ]
+  },
+  "passed": true,
+  "limits": [
+    "This is one actual native workflow across a process restart; broader durability proofs remain separate.",
+    "SIGTERM uses default process termination exit -15. Initial helper incorrectly required exit0; that failure is retained. No graceful shutdown callback or power-loss guarantee is claimed.",
+    "Stale Interactive persisted-state injection has no supported native import route and was not executed; existing model refusal test remains separately attributed.",
+    "Only output directory paths were normalized for console comparison; all other console text is identical."
+  ],
+  "verified_utc": "2026-10-26T08:26:24.195804+00:00"
+}

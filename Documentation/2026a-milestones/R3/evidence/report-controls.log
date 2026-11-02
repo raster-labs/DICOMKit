@@ -1,0 +1,17 @@
+test_absent_empty_and_malformed_coverage_fails (test_report_scheduled_tests.ReportTests) ... ok
+test_cli_green_tests_without_coverage_fail (test_report_scheduled_tests.ReportTests) ... ok
+test_cli_preserves_failure_and_writes_report_without_rerunning (test_report_scheduled_tests.ReportTests) ... ok
+test_counts_each_product_once_not_nested_suites_or_last_trailer (test_report_scheduled_tests.ReportTests) ... ok
+test_earlier_swift_testing_failure_cannot_be_hidden (test_report_scheduled_tests.ReportTests) ... ok
+test_earlier_xctest_failure_cannot_be_hidden_by_last_green_product (test_report_scheduled_tests.ReportTests) ... ok
+test_empty_and_truncated_selections_fail (test_report_scheduled_tests.ReportTests) ... ok
+test_missing_log_is_not_verified (test_report_scheduled_tests.ReportTests) ... ok
+test_process_failure_overrides_green_summaries (test_report_scheduled_tests.ReportTests) ... ok
+test_source_envelope_requires_exactly_one_test (test_report_scheduled_tests.ReportTests) ... ok
+test_unexecuted_or_foreign_coverage_cannot_pass (test_report_scheduled_tests.ReportTests) ... ok
+test_valid_production_coverage_records_hashes_and_counts (test_report_scheduled_tests.ReportTests) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.250s
+
+OK

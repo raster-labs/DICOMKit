@@ -1,0 +1,33 @@
+OVERVIEW: Display metadata from DICOM medical imaging files
+
+Extracts and displays metadata tags from DICOM Part 10 files.
+Supports multiple output formats for different use cases.
+
+Examples:
+  dicom-info scan.dcm
+  dicom-info --format json report.dcm
+  dicom-info --bounded-summary --format json scan.dcm
+  dicom-info --tag PatientName --tag StudyDate exam.dcm
+
+--tag takes a PS3.6 keyword (exact, e.g. PatientName), a tag (0010,0010), or
+any part of a PS3.6 Attribute name (case-insensitive, e.g. "Patient").
+
+USAGE: dicom-info <file-path> [--format <format>] [--tag <tag> ...] [--show-private] [--statistics] [--force] [--bounded-summary]
+
+ARGUMENTS:
+  <file-path>             Path to the DICOM file
+
+OPTIONS:
+  -f, --format <format>   Output format: text, json, csv (default: plain text
+                          (default))
+  -t, --tag <tag>         Filter by keyword, tag (GGGG,EEEE) or part of the
+                          Attribute name (can be used multiple times)
+  --show-private          Include private tags in output
+  --statistics            Show file statistics
+  --force                 Force parsing of files without DICM prefix
+  --bounded-summary       Strictly parse verified source windows and report
+                          source/index storage usage without displaying tag
+                          values
+  --version               Show the version.
+  -h, --help              Show help information.
+

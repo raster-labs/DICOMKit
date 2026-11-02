@@ -1,0 +1,13 @@
+OVERVIEW: Update an existing DICOMDIR with new files
+
+USAGE: dicom-dcmdir update <dicomdir-path> [--add <add>] [--verbose]
+
+ARGUMENTS:
+  <dicomdir-path>         Path to existing DICOMDIR file
+
+OPTIONS:
+  --add <add>             Directory with new DICOM files to add
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,15 @@
+{
+  "baseline_commit": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+  "branch": "codex/dicom-2026a-milestones",
+  "source_hash_manifest": "../source-hashes.json",
+  "overlay": "source-overlay.zip",
+  "deleted_paths": [
+    "Sources/dicom-print/main.swift",
+    "Sources/dicom-printscp/EmulatorOptions.swift",
+    "Sources/dicom-printscp/InfoCommands.swift",
+    "Sources/dicom-printscp/ServeCommand.swift",
+    "Sources/dicom-printscp/SimulateCommand.swift"
+  ],
+  "temporary_app_scheme": "DICOMStudio-M6App.xcscheme",
+  "qualification_scope": "Local Debug builds and focused tests; this is an in-progress M6 checkpoint, not exact-head remote CI or packaged GUI acceptance."
+}

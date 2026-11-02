@@ -1,0 +1,11 @@
+[
+  {
+    "calledAETitle" : "M6SCP",
+    "callingAETitle" : "M6WORKSHOP",
+    "colorMode" : "color",
+    "host" : "127.0.0.1",
+    "isDefault" : true,
+    "name" : "Synthetic; O'Neil 雪",
+    "port" : 11112
+  }
+]

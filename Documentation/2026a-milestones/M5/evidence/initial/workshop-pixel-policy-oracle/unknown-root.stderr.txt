@@ -1,0 +1,1 @@
+Error: Invalid command: Command 1: Unknown DICOM tool 'dicom-not-a-tool'

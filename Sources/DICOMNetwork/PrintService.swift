@@ -565,6 +565,26 @@ public struct PrinterStatus: Sendable, Equatable {
 
 // MARK: - Print Result
 
+/// A warning returned while a Film Box was accepted for printing.
+/// Submission still succeeds; the warning must remain visible to the caller.
+public struct PrintWarning: Sendable {
+    public let status: DIMSEStatus
+    public let filmBoxUID: String
+    public let detail: String?
+
+    public init(status: DIMSEStatus, filmBoxUID: String, detail: String? = nil) {
+        self.status = status
+        self.filmBoxUID = filmBoxUID
+        self.detail = detail
+    }
+
+    public var message: String {
+        let explanation = detail.map { " — \($0)" } ?? ""
+        let statusText = DIMSEServiceStatusText.describe(status, service: .filmBoxNAction)
+        return "N-ACTION for Film Box \(filmBoxUID): \(statusText)\(explanation)"
+    }
+}
+
 /// Result of a print operation
 public struct PrintResult: Sendable {
     public let success: Bool
@@ -587,6 +607,9 @@ public struct PrintResult: Sendable {
 
     public let errorMessage: String?
 
+    /// Every N-ACTION warning, in film order. A later success does not erase it.
+    public let warnings: [PrintWarning]
+
     /// The last Film Box UID of the job (see ``filmBoxUIDs`` for all of them).
     public var filmBoxUID: String? { filmBoxUIDs.last }
 
@@ -594,24 +617,28 @@ public struct PrintResult: Sendable {
     public var printJobUID: String? { printJobUIDs.last }
 
     public init(success: Bool, status: DIMSEStatus, filmSessionUID: String? = nil,
-                filmBoxUID: String? = nil, printJobUID: String? = nil, errorMessage: String? = nil) {
+                filmBoxUID: String? = nil, printJobUID: String? = nil, errorMessage: String? = nil,
+                warnings: [PrintWarning] = []) {
         self.init(success: success,
                   status: status,
                   filmSessionUID: filmSessionUID,
                   filmBoxUIDs: filmBoxUID.map { [$0] } ?? [],
                   printJobUIDs: printJobUID.map { [$0] } ?? [],
-                  errorMessage: errorMessage)
+                  errorMessage: errorMessage,
+                  warnings: warnings)
     }
 
     /// Creates a result carrying every film box / print job of a multi-film job.
     public init(success: Bool, status: DIMSEStatus, filmSessionUID: String? = nil,
-                filmBoxUIDs: [String], printJobUIDs: [String], errorMessage: String? = nil) {
+                filmBoxUIDs: [String], printJobUIDs: [String], errorMessage: String? = nil,
+                warnings: [PrintWarning] = []) {
         self.success = success
         self.status = status
         self.filmSessionUID = filmSessionUID
         self.filmBoxUIDs = filmBoxUIDs
         self.printJobUIDs = printJobUIDs
         self.errorMessage = errorMessage
+        self.warnings = warnings
     }
 }
 
@@ -4165,6 +4192,7 @@ public enum DICOMPrintService {
 
             // ── Step 2: Process film boxes ────────────────────────────────
             var allPrintJobUIDs: [String] = []
+            var printWarnings: [PrintWarning] = []
             var allFilmBoxUIDs: [String] = []
 
             let imagesPerFilm = max(1, displayFormat.imageBoxCount)
@@ -4491,6 +4519,12 @@ public enum DICOMPrintService {
                     throw DICOMNetworkError.printOperationFailed(actionRsp.status, detail: errorDetail(from: actionRsp.commandSet))
                 }
                 
+                if actionRsp.status.isWarning {
+                    printWarnings.append(PrintWarning(
+                        status: actionRsp.status, filmBoxUID: filmBoxUID,
+                        detail: errorDetail(from: actionRsp.commandSet)))
+                }
+
                 // The Print Job SOP Instance UID travels only in the response
                 // data set, as Referenced Print Job Sequence (2100,0500) —
                 // PS3.4 Table H.4-8, "-/MC, required if Print Job SOP is
@@ -4532,10 +4566,11 @@ public enum DICOMPrintService {
             
             return PrintResult(
                 success: true,
-                status: .success,
+                status: printWarnings.first?.status ?? .success,
                 filmSessionUID: filmSessionUID,
                 filmBoxUIDs: allFilmBoxUIDs,
-                printJobUIDs: allPrintJobUIDs
+                printJobUIDs: allPrintJobUIDs,
+                warnings: printWarnings
             )
         } catch {
             // P2-3: while an abort discards the SCP's box hierarchy per PS3.4,

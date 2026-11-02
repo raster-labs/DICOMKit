@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 904, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 818, in <lambda>
+    ('DC-F07','DICOMKit SCU to DCMTK: unavailable required LUT refuses before print',lambda c:dc_forward(c,shape='identity',no_lut=True)),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 607, in dc_forward
+    result=case.cli(proxy.port,fixture,extra=['--presentation-lut',shape] if shape else [],
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 480, in cli
+    return self.run(argv,name,expect)
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 472, in run
+    elif expect=='nonzero': require(code!=0,'%s unexpectedly succeeded'%name)
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 51, in require
+    raise AssertionError(message)
+AssertionError: client unexpectedly succeeded

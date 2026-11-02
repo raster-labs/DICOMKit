@@ -1,0 +1,10 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~						86 text field (settable) Description: Script File, Placeholder: workflow.dcmscript, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/conditional-pipeline.dcmscript
+~					57 text Console ERROR
+~							81 text $ dicom-script validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/conditional-pipeline.dcmscript
+
+✗ Script has 1 issue(s):
+  - Parse error at line 2: Pipelines inside conditional blocks are not supported
+
+~						85 text dicom-script dicom-script dicom-script dicom-script
+The focused UI element is 63 search text field (settable) Search features

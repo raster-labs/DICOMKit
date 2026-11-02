@@ -2,13 +2,13 @@
 """Diff DICOMStudio (and DICOMStudioApp) against the frozen DICOM DocBook and against the dicom-* CLI contract.
 
 Usage:
-    for p in 3 4 5 6 7 8 10 11 15 16 18; do python3 Scripts/nema_docbook.py fetch 2026a $p --out DIR; done
+    for p in 3 4 5 6 7 8 10 11 15 16 18 19; do python3 Scripts/nema_docbook.py fetch 2026a $p --out DIR; done
     python3 Scripts/diff_studio.py --nema DIR [--group G1] [--only NAME] [--verbose]
     python3 Scripts/diff_studio.py --inventory            # not-standard-touching files (for check_nema_markers.py)
     python3 Scripts/diff_studio.py --list-surface [--tool dicom-anon]   # the Workshop form of each tool
     python3 Scripts/diff_studio.py --emit-parity dicom-anon             # markdown parity table for the report
 
-DICOMStudio is the macOS app over DICOMKit. Most of its 334 files are SwiftUI views, caches and view-model
+DICOMStudio is the macOS app over DICOMKit. Most of its files are SwiftUI views, caches and view-model
 plumbing that carry no standard-derived value; FILES below records every file with its group and tier:
 `ST` (standard-touching: reviewed row by row, carries a NEMA-verified marker), `CR` (confirm-read: incidental
 hits only, read once and recorded as NST unless promoted), `NST` (not standard-touching: inventoried, no marker).
@@ -22,12 +22,14 @@ Checks:
     `rawParameterDefinitions`) is extracted and compared with the real tool's ArgumentParser surface
     (diff_cli.extract_options) and with the contract rows of cli_contracts.CONTRACT: every Workshop flag is a
     real option, defaults agree, picker values are the option's accepted values, and every contract row with a
-    standard verdict (not plumbing) is offered. Tools the UI does not offer (dicom-server, gateway, jpip, cloud,
-    ai, j2k, report, measure, 3d, viewer, print, printscp, script) are out of scope by the owner's decision.
+    standard verdict (not plumbing) is offered. CLI tools absent from the Workshop are reported separately
+    as coverage exclusions, not as evidence of parity or conformance. Form parity does not test execution.
   * per-group checks added as each group is verified (see DICOMSTUDIO_STANDARD_IMPLEMENTATION.md).
 
 Statuses: `ok`; `FAIL` (Studio contradicts the text or the CLI contract; exit 1); `PEND` (the fix changes public
 API and waits for the owner); `DEFR` (the value lives in another module; D-number given).
+`ERROR` means a check could not execute, not a product failure. Remaining checks still run; exit 2 indicates
+an incomplete audit, exit 1 completed checks with findings, and exit 0 no findings in the executed scope.
 """
 import argparse
 import importlib.util
@@ -100,6 +102,13 @@ FILES = {
     'DICOMStudio/Components/CLIToolBuilder.swift': ('G1', 'ST'),
     'DICOMStudio/Components/CLIToolTerminalCompare.swift': ('G1', 'ST'),
     'DICOMStudio/Components/CLIWorkshopHelpers.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintCatalog.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintSCPCatalog.swift': ('G1', 'ST'),
+    'DICOMStudio/Components/CLIWorkshopPrintCommandCodec.swift': ('G1', 'ST'),
+    'DICOMStudio/Services/CLIWorkshopPrintExecutor.swift': ('G1', 'ST'),
+    'DICOMStudio/Services/CLIWorkshopPrintSCPExecutor.swift': ('G1', 'ST'),
+    'DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift': ('G1', 'ST'),
+    'DICOMStudio/Views/CLIWorkshopPrintControls.swift': ('G1', 'CR'),
     'DICOMStudio/Components/ImportValidation.swift': ('G1', 'ST'),
     'DICOMStudio/Components/IntegratedTerminalHelpers.swift': ('G1', 'ST'),
     'DICOMStudio/Components/ParameterBuilderHelpers.swift': ('G1', 'ST'),
@@ -160,12 +169,14 @@ FILES = {
     'DICOMStudio/Components/OutputAccess.swift': ('G2', 'NST'),
     'DICOMStudio/Components/ProjectionHelpers.swift': ('G2', 'NST'),
     'DICOMStudio/Components/ScrollWheelModifier.swift': ('G2', 'NST'),
+    'DICOMStudio/Components/SelectionCard.swift': ('G2', 'NST'),  # SwiftUI selection styling only
     'DICOMStudio/Components/StatusIndicator.swift': ('G2', 'NST'),
     'DICOMStudio/Components/SurfaceExtractionHelpers.swift': ('G2', 'NST'),
     'DICOMStudio/Components/TooltipModifier.swift': ('G2', 'NST'),
     'DICOMStudio/Components/VolumeRenderingHelpers.swift': ('G2', 'NST'),
     'DICOMStudioApp/DICOMStudioApp.swift': ('G2', 'NST'),
     'DICOMStudio/Models/SavedViewReference.swift': ('G2', 'NST'),
+    'DICOMStudio/Models/StudioBuildInfo.swift': ('G2', 'NST'),  # app/library/platform version metadata
     'DICOMStudio/Services/AnnotationOverlayTextureCache.swift': ('G2', 'NST'),
     'DICOMStudio/Services/AnnotationTextureBuilder.swift': ('G2', 'NST'),
     'DICOMStudio/Services/ImageCacheService.swift': ('G2', 'NST'),
@@ -433,6 +444,7 @@ WORKSHOP_TOOLS = {           # Workshop tool id -> CLI tool directory
     'dicom-query': 'dicom-query', 'dicom-send': 'dicom-send', 'dicom-retrieve': 'dicom-retrieve',
     'dicom-qr': 'dicom-qr', 'dicom-mwl': 'dicom-mwl', 'dicom-mpps': 'dicom-mpps',
     'dicom-qido': 'dicom-wado', 'dicom-wado': 'dicom-wado', 'dicom-stow': 'dicom-wado', 'dicom-ups': 'dicom-wado',
+    'dicom-print': 'dicom-print', 'dicom-printscp': 'dicom-printscp',
     'dicom-study': 'dicom-study', 'dicom-uid': 'dicom-uid', 'dicom-script': 'dicom-script',
 }
 # dicom-wado is split into four Workshop tools; each sees only its subcommand's options.
@@ -581,6 +593,11 @@ def parse_definition(call):
     """`CLIParameterDefinition(...)` call text -> dict of its literal arguments. A non-literal `allowedValues:`
     is resolved to its values where it can be (`resolve_value_list`), else kept as the expression text;
     `visibility` and `mapping` carry the parsed `visibleWhen` / `visibleWhenAll` and `cliMapping`."""
+    return parse_definition_arguments(split_swift_arguments(call))
+
+
+def split_swift_arguments(call):
+    """Top-level argument expressions, retaining literals and nested calls."""
     body = call[call.index('(') + 1:-1]
     args, depth, cur, i, n = [], 0, '', 0, len(body)
     while i < n:
@@ -608,6 +625,10 @@ def parse_definition(call):
         i += 1
     if cur.strip():
         args.append(cur)
+    return [a.strip() for a in args]
+
+
+def parse_definition_arguments(args):
     d = {}
     for a in args:
         if ':' not in a:
@@ -667,6 +688,75 @@ def workshop_surface():
             for t in ids:
                 out[t].append(d)
             i = k
+    for tool_id, filename in [('dicom-print', 'CLIWorkshopPrintCatalog.swift'),
+                              ('dicom-printscp', 'CLIWorkshopPrintSCPCatalog.swift')]:
+        out[tool_id] = print_catalog_surface(tool_id, filename)
+    return out
+
+
+
+def print_catalog_surface(tool_id, filename):
+    path = os.path.join(SOURCES, 'DICOMStudio', 'Components', filename)
+    src = dw.read(path)
+    start = re.search(r'(?:return\s+)?\[\s*CLIParameterDefinition\(', src)
+    if not start:
+        raise ValueError(f'{filename}: parameter array not found')
+    # Resolve only the local literal string lists used for visibility. Any
+    # unsupported expression is an audit error rather than silently hidden.
+    lists = {}
+    def values(expr):
+        out = []
+        for part in expr.split('+'):
+            part = part.strip()
+            if part in lists:
+                out.extend(lists[part])
+            else:
+                parsed, literal = swift_string_list(part)
+                if not literal:
+                    raise ValueError(f'{filename}: unresolved command list {expr!r}')
+                out.extend(parsed)
+        return out
+    for m in re.finditer(r'let\s+(\w+)\s*=\s*([^\n]+)', src[:start.start()]):
+        if m.group(2).strip().startswith('[') or '+' in m.group(2):
+            lists[m.group(1)] = values(m.group(2))
+    out = []
+    body = src[start.start():]
+    i = 0
+    while True:
+        match = re.search(r'\b(CLIParameterDefinition|field)\(', body[i:])
+        if not match:
+            break
+        j = i + match.start()
+        k = dc.balanced(body, i + match.end() - 1)
+        call = body[j:k]
+        if match.group(1) == 'CLIParameterDefinition':
+            definition = parse_definition(call)
+        else:
+            args = split_swift_arguments(call)
+            if len(args) < 3 or not all(STR.fullmatch(x) for x in args[:3]):
+                raise ValueError(f'{filename}: unsupported field identity {call}')
+            definition = {'id': STR.fullmatch(args[0]).group(1),
+                          'flag': STR.fullmatch(args[1]).group(1),
+                          'displayName': STR.fullmatch(args[2]).group(1),
+                          'parameterType': 'textField', 'defaultValue': ''}
+            offset = 3
+            if args[offset].startswith('.'):
+                definition['parameterType'] = args[offset][1:]
+                offset += 1
+            named = dict(a.split(':', 1) for a in args[offset:])
+            named = {key.strip(): val.strip() for key, val in named.items()}
+            definition.update(parse_definition_arguments([
+                {'value': 'defaultValue', 'allowed': 'allowedValues',
+                 'required': 'isRequired', 'repeated': 'isRepeatable',
+                 'help': 'helpText'}.get(key, key) + ': ' + val
+                for key, val in named.items() if key != 'commands']))
+            definition['visibility'] = [('operation', values(named['commands']))]
+        definition['file'] = filename
+        definition['line'] = src.count('\n', 0, start.start() + j) + 1
+        out.append(definition)
+        i = k
+    if not out:
+        raise ValueError(f'{filename}: no definitions extracted')
     return out
 
 
@@ -762,7 +852,7 @@ def option_commands(tool, files, options):
         name = dc.struct_name_for_var(src, pos)
         o['command'] = None
         if name:
-            m = re.search(r'struct\s+' + re.escape(name) + r'\s*:\s*(?:Async)?ParsableCommand\s*\{', src)
+            m = re.search(r'struct\s+' + re.escape(name) + r'\s*:\s*(?:(?:Async)?ParsableCommand|PrintExecutableCommand)\s*\{', src)
             cmds = dc.extract_commands(src[m.start():]) if m else []
             o['command'] = cmds[0] if cmds else None
     return options
@@ -804,7 +894,7 @@ def check_workshop_parity(rep, ws, tool_id):
                      by_name.get(token))
             if o is None:
                 wrong.append(f'{tool_id}: {p.get("id")} cliMapping "{value}" emits {token} '
-                             f'(CLIWorkshopHelpers.swift:{p["line"]}), not a {tool} option')
+                             f'({p.get("file", "CLIWorkshopHelpers.swift")}:{p["line"]}), not a {tool} option')
             else:
                 offered.add(o['names'][-1])
                 matched += 1
@@ -818,7 +908,7 @@ def check_workshop_parity(rep, ws, tool_id):
                     else:
                         matched += 1
             continue
-        key = f'{tool_id}: {flag} (CLIWorkshopHelpers.swift:{p["line"]})'
+        key = f'{tool_id}: {flag} ({p.get("file", "CLIWorkshopHelpers.swift")}:{p["line"]})'
         flag = POSITIONAL.get(tool, {}).get(flag, flag)
         if flag not in by_name:
             if flag in EXEMPT:
@@ -891,12 +981,19 @@ def check_generic(rep, parts, files, label):
     uid_files = {n: re.sub(r'hasPrefix\("1\.2\.840\.10008[\d.]*"\)', 'hasPrefix("")',
                            re.sub(r'(static let \w+Prefix\s*=\s*)"1\.2\.840\.10008[\d.]*\."', r'\1""', s))
                  for n, s in files.items()}
-    dw.check_uids(rep, parts[6], uid_files)
-    dk.check_coded_concepts(rep, parts[16], files)
-    dk.check_tag_names(rep, parts[6], files, local_tags)
-    dk.check_citations(rep, {n: p for n, p in parts.items() if n in (3, 4, 5, 6, 10, 15, 16)}, files)
-    dk.check_cs_literals(rep, parts[3], parts[6], files, tags)
-    dk.check_photometric_terms(rep, parts[3], files)
+    # Resolve required parts inside each callback, so a missing part or a stale
+    # extractor does not prevent the independent checks from executing.
+    checks = [
+        ('uids', lambda: dw.check_uids(rep, parts[6], uid_files)),
+        ('coded concepts', lambda: dk.check_coded_concepts(rep, parts[16], files)),
+        ('tag names', lambda: dk.check_tag_names(rep, parts[6], files, local_tags)),
+        ('citations', lambda: dk.check_citations(rep, {n: p for n, p in parts.items()
+                                                   if n in (3, 4, 5, 6, 10, 15, 16)}, files)),
+        ('CS literals', lambda: dk.check_cs_literals(rep, parts[3], parts[6], files, tags)),
+        ('photometric terms', lambda: dk.check_photometric_terms(rep, parts[3], files)),
+    ]
+    for name, fn in checks:
+        run_check(rep, f'{label} generic {name}', fn)
     # dk.check_deidentification is not run: it checks DICOMKit's copy of Table E.1-1, which Studio does not carry.
 
 
@@ -907,9 +1004,14 @@ def check_generic(rep, parts, files, label):
 # DEFERRED / EXEMPT through its own dicts of the same names.
 import glob as _glob
 GROUP_CHECKS = {g: [] for g in GROUPS}
+GROUP_LOAD_ERRORS = {g: [] for g in GROUPS}
 for _g in GROUPS:
     for _path in sorted(_glob.glob(os.path.join(HERE, f'diff_studio_{_g.lower()}*.py'))):
-        _mod = load(os.path.basename(_path)[:-3])
+        try:
+            _mod = load(os.path.basename(_path)[:-3])
+        except (Exception, SystemExit) as _error:
+            GROUP_LOAD_ERRORS[_g].append((os.path.basename(_path), _error))
+            continue
         GROUP_CHECKS[_g] += list(getattr(_mod, 'CHECKS', []))
         PENDING_API_APPROVAL.update(getattr(_mod, 'PENDING_API_APPROVAL', {}))
         DEFERRED.update(getattr(_mod, 'DEFERRED', {}))
@@ -917,6 +1019,48 @@ for _g in GROUPS:
 
 
 # --- report emission ----------------------------------------------------------------------------------
+
+class StudioReport(dw.Report):
+    """Keep failed product assertions separate from incomplete audit execution."""
+
+    def __init__(self, verbose=False):
+        super().__init__(verbose)
+        self.completed_checks = 0
+        self.audit_errors = []
+
+    def audit_error(self, name, error):
+        detail = f'{type(error).__name__}: {error}'
+        self.audit_errors.append((name, detail))
+        print(f'ERROR {name}: audit could not execute: {detail}')
+
+    @property
+    def exit_code(self):
+        return 2 if self.audit_errors else (1 if self.failed else 0)
+
+
+def run_check(rep, name, fn, *args, **kwargs):
+    """Isolate an extractor failure without hiding findings or catching Ctrl-C."""
+    try:
+        result = fn(*args, **kwargs)
+    except (Exception, SystemExit) as error:
+        rep.audit_error(name, error)
+        return None
+    rep.completed_checks += 1
+    return result
+
+
+def check_workshop_coverage(rep, ws):
+    """A missing audit mapping is an error in coverage, never a silent omission."""
+    unmapped = sorted(set(ws) - set(WORKSHOP_TOOLS))
+    absent = sorted(set(WORKSHOP_TOOLS) - set(ws))
+    rep.check('Workshop audit mappings cover the extracted forms', len(set(ws) & set(WORKSHOP_TOOLS)),
+              [f'{tool}: form has no CLI audit mapping' for tool in unmapped]
+              + [f'{tool}: audit mapping has no extracted form' for tool in absent])
+    excluded = sorted(set(dc.ALL_TOOLS) - set(WORKSHOP_TOOLS.values()))
+    print(f'Coverage: {len(ws)} Workshop forms; CLI tools without a Workshop parity check: '
+          + ', '.join(excluded))
+    print('Coverage: form/literal checks do not qualify runtime execution, all accepted flag combinations, '
+          'packaged UI behavior or independent interoperability.')
 
 def emit_parity(tool_id):
     ws = workshop_surface()
@@ -974,38 +1118,52 @@ def main():
     if not args.nema:
         sys.exit('--nema DIR is required')
 
+    rep = StudioReport(args.verbose)
     parts = {}
-    for n in (3, 4, 5, 6, 10, 11, 15, 16, 18):
+    for n in (3, 4, 5, 6, 7, 8, 10, 11, 15, 16, 18, 19):
         path = os.path.join(args.nema, f'part{n:02d}_{args.edition}.xml')
         if not os.path.exists(path):
-            print(f'missing {path} (fetch it); checks needing PS3.{n} are skipped', file=sys.stderr)
+            rep.audit_error(f'PS3.{n} input', FileNotFoundError(path))
             continue
-        parts[n] = nd.Part(path)
-        if args.edition not in parts[n].subtitle:
-            sys.exit(f'{path}: subtitle {parts[n].subtitle!r} does not name {args.edition}')
+        try:
+            part = nd.Part(path)
+            if args.edition not in part.subtitle:
+                raise ValueError(f'{path}: subtitle {part.subtitle!r} does not name {args.edition}')
+        except (Exception, SystemExit) as error:
+            rep.audit_error(f'PS3.{n} input', error)
+            continue
+        parts[n] = part
         print(f'using {path}: {parts[n].subtitle}')
 
-    rep = dw.Report(args.verbose)
     groups = [args.group] if args.group else sorted(GROUPS)
     if not args.only or 'inventory' in args.only:
-        check_inventory(rep)
+        run_check(rep, 'inventory', check_inventory, rep)
     for g in groups:
-        files = studio_files(tier='ST', group=g)
+        files = run_check(rep, f'{g} source loading', studio_files, tier='ST', group=g)
+        if files is None:
+            print(f'\n== {g}: {GROUPS[g]} (source loading failed; group incomplete)')
+            continue
         print(f'\n== {g}: {GROUPS[g]} ({len(files)} standard-touching files)')
+        for name, error in GROUP_LOAD_ERRORS[g]:
+            rep.audit_error(f'{g} load {name}', error)
         if not args.only or 'generic' in args.only:
-            check_generic(rep, parts, files, g)
+            # The generic runner isolates its individual checks as well.
+            run_check(rep, f'{g} generic setup', check_generic, rep, parts, files, g)
         if g == 'G1' and (not args.only or 'parity' in args.only):
-            ws = workshop_surface()
-            for tool_id in (args.tool or sorted(WORKSHOP_TOOLS)):
-                check_workshop_parity(rep, ws, tool_id)
-        ctx = {'root': ROOT, 'sources': SOURCES, 'dw': dw, 'dk': dk, 'dc': dc, 'nd': nd, 'studio_files': studio_files,
+            ws = run_check(rep, 'G1 Workshop extraction', workshop_surface)
+            if ws is not None:
+                run_check(rep, 'G1 Workshop coverage', check_workshop_coverage, rep, ws)
+                for tool_id in (args.tool or sorted(WORKSHOP_TOOLS)):
+                    run_check(rep, f'G1 parity {tool_id}', check_workshop_parity, rep, ws, tool_id)
+        ctx = {'root': ROOT, 'sources': SOURCES, 'parts': parts, 'dw': dw, 'dk': dk, 'dc': dc, 'nd': nd, 'studio_files': studio_files,
                'workshop_surface': workshop_surface, 'split_pending': split_pending, 'cli_surface': cli_surface}
         for name, fn in GROUP_CHECKS[g]:
             if args.only and args.only not in name:
                 continue
-            fn(rep, parts, files, ctx)
-    print(f'\n{rep.failed} check(s) with wrong or missing values, {rep.pending} pending owner approval')
-    sys.exit(1 if rep.failed else 0)
+            run_check(rep, f'{g} {name}', fn, rep, parts, files, ctx)
+    print(f'\n{rep.completed_checks} audit callback(s) completed, {len(rep.audit_errors)} audit execution error(s); '
+          f'{rep.failed} check(s) with wrong or missing values, {rep.pending} pending owner approval')
+    sys.exit(rep.exit_code)
 
 
 if __name__ == '__main__':

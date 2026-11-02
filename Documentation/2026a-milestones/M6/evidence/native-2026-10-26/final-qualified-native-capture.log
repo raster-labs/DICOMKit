@@ -1,0 +1,18 @@
+{
+  "verdict": "Passed identity and scoped source-equivalence checks; native acceptance remains separate.",
+  "source_counts": {
+    "baseline": 2058,
+    "first_repair": 2059,
+    "current": 2060,
+    "modified": 7,
+    "added": 2,
+    "removed": 0
+  },
+  "artifact_counts": {
+    "CLI": 41,
+    "test_executables": 16,
+    "application": 14,
+    "total": 71
+  },
+  "failed_checks": []
+}

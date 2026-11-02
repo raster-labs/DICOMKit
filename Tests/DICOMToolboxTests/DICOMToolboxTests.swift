@@ -753,7 +753,7 @@ struct DicomReportToolRegistryTests {
             "footer": "Confidential",
             "embed-images": "true",
         ])
-        #expect(command.contains("--title \"Custom Title\"") || command.contains("--title Custom Title"))
+        #expect(command.contains("--title 'Custom Title'"))
         #expect(command.contains("--logo logo.png"))
         #expect(command.contains("--footer Confidential"))
         #expect(command.contains("--embed-images"))

@@ -1,0 +1,10 @@
+OVERVIEW: Show archive statistics
+
+USAGE: dicom-archive stats --archive <archive> [--format <format>]
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  -f, --format <format>   Output format: text, json (default: text)
+  --version               Show the version.
+  -h, --help              Show help information.
+

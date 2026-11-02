@@ -1,0 +1,4 @@
+Error: Missing expected argument '<path>'
+Help:  <path>  Study directory
+Usage: dicom-study check <path> [--expected-series <expected-series>] [--expected-instances <expected-instances>] [--report <report>] [--verbose]
+  See 'dicom-study check --help' for more information.

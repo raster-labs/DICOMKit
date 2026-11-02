@@ -1,0 +1,105 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button (selected) Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area
+						40 text Print Client.  Printer list: /Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification/printers.json. This Workshop list is separate from Print Center and may differ from the terminal's list when the app is sandboxed.
+						41 button Import Command
+						42 text Parameters Parameters Operation
+						43 Operation
+							44 radio button Description: status, Value: 0
+							45 radio button Description: send, Value: 0
+							46 radio button Description: job, Value: 0
+							47 radio button Description: list-printers, Value: 1
+							48 radio button Description: add-printer, Value: 0
+							49 radio button Description: remove-printer, Value: 0
+						50 text The printer list belongs to this Workshop environment and is separate from Print Center. Send uses its explicit URL and AE fields. Output Format --format
+						51 Output Format
+							52 radio button Description: text, Value: 0
+							53 radio button Description: json, Value: 1
+						54 text JSON is result output; diagnostics remain separate in the CLI. Options
+						55 checkbox Description: Verbose, Value: 1
+					56 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					57 button Description: Run command, Help: Runs the selected Workshop action
+				58 splitter (disabled, settable, float) 460
+				59 container
+					60 text Command Preview Valid $ Select a tool to build a command
+					61 button Description: Copy command, Help: Copies the command to the clipboard
+					62 text Console SUCCESS
+					63 button Description: Copy console output, Help: Copies the console output to the clipboard
+					64 button Clear console output
+					65 scroll area
+						66 text $ dicom-print list-printers --format json --verbose
+
+No printers configured.
+
+Add a printer with:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+							67 text $ dicom-print list-printers --format json --verbose
+
+No printers configured.
+
+Add a printer with:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+					68 text History
+					69 button Clear
+					70 scroll area
+						71 text dicom-print
+	72 toolbar
+		73 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		74 search text field (settable) Search features
+			75 button Search
+	76 close button
+	77 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	78 minimize button
+	79 text DICOM Studio
+80 menu bar
+	81 DICOMStudio
+	82 File
+	83 Edit
+	84 View
+	85 Image
+	86 Window
+	87 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

@@ -1,0 +1,4 @@
+❌ Conversion failed
+Cannot convert Explicit VR Little Endian [1.2.840.10008.1.2.1] to JPEG Extended (Process 2 & 4): Default Transfer Syntax for Lossy JPEG 12 Bit Image Compression (Process 4 only) [1.2.840.10008.1.2.4.51].
+Reason: JPEG Extended (Process 2 & 4): Default Transfer Syntax for Lossy JPEG 12 Bit Image Compression (Process 4 only) needs 1 samples per pixel, but the source has 3.
+Source: Bits Allocated 8, Bits Stored 8, unsigned, 3 samples per pixel, RGB, 1 frame, 64×48

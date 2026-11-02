@@ -1,0 +1,25 @@
+OVERVIEW: Add a model to the registry
+
+USAGE: dicom-ai registry add --name <name> --path <path> [--version <version>] --type <type> [--description <description>] [--input-width <input-width>] [--input-height <input-height>] [--output-type <output-type>] [--tags <tags>] [--overwrite] [--verbose]
+
+OPTIONS:
+  -n, --name <name>       Model name
+  --path <path>           Model path (.mlmodel or .mlmodelc)
+  --version <version>     Model version (e.g., 1.0.0) (default: 1.0.0)
+  --type <type>           Model type: classification, segmentation, detection,
+                          enhancement, other
+  --description <description>
+                          Model description
+  --input-width <input-width>
+                          Input width
+  --input-height <input-height>
+                          Input height
+  --output-type <output-type>
+                          Output type: classification, segmentation, detection,
+                          image, multiArray (default: classification)
+  --tags <tags>           Tags (comma-separated)
+  --overwrite             Overwrite if model already exists
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

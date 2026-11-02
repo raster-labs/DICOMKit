@@ -1,0 +1,7 @@
+Error: Refusing to anonymize burned-in-synthetic.dcm: the pixel data may still contain PHI.
+
+  ⚠️  Burned In Annotation (0028,0301) is YES: identifying text is rendered into the pixel data, which a metadata-only pass leaves untouched. The image is NOT de-identified; (0012,0062) is therefore recorded as NO. Clean the pixels (PS3.15 Clean Pixel Data Option) before release.
+
+With --no-clean-pixel-data this tool de-identifies the DATASET ONLY, so burned-in text survives unchanged.
+
+Let pixel cleaning run (add --redact-region x,y,w,h if the automatic region selection cannot resolve this device), or pass --allow-burned-in-phi to write the metadata-scrubbed file anyway (it will be marked Patient Identity Removed = NO).

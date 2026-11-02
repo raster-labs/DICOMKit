@@ -1,0 +1,24 @@
+OVERVIEW: Convert HL7 v2 messages to DICOM files
+
+Parse HL7 v2 messages and populate DICOM tags from demographics
+and order information.
+
+--template is required: an HL7 message carries no image, and without a
+template the output would claim Secondary Capture Image Storage with no
+Image Pixel or SC Image Module, which PS3.3 Table A.8-1 makes Mandatory.
+A template that claims an image Storage SOP Class but has no Pixel Data
+is refused for the same reason (exit 1).
+
+USAGE: dicom-gateway hl7-to-dicom <input> --output <output> [--template <template>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input HL7 file
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  --template <template>   Template DICOM file to populate (required; PS3.3
+                          Table A.8-1)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

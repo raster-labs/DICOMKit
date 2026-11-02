@@ -1,0 +1,14 @@
+OVERVIEW: Remove a printer configuration
+
+Removes a printer from the local configuration file.
+
+Examples:
+  dicom-print remove-printer --name radiology-printer
+
+USAGE: dicom-print remove-printer --name <name>
+
+OPTIONS:
+  --name <name>           Printer name to remove
+  --version               Show the version.
+  -h, --help              Show help information.
+

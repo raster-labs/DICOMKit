@@ -1,0 +1,55 @@
+{
+  "recorded_at": "2026-10-24T15:23:58.503049+00:00",
+  "state": "Final-bundle runtime completed exit0; provenance recorded immediately afterward",
+  "command": [
+    "work/m7/peer-venv/bin/python",
+    "-B",
+    "Scripts/verify_m7_tls_interop.py",
+    "--test-bundle",
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMNetworkTests.xctest",
+    "--output-dir",
+    "work/m7/tls-qualified"
+  ],
+  "source_sha256": {
+    "Scripts/verify_m7_tls_interop.py": "ea583d049b167639c20e08d896059753c776f2757f3bea14608c1b7acb303f94",
+    "Tests/DICOMNetworkTests/M7TLSRuntimeHarnessTests.swift": "c383c0c077c4724b065151f2fd3da8a0bcbe1dd4841586ecb5c66289a253d95d",
+    "Sources/DICOMNetwork/TLSConfiguration.swift": "b4312f35984797b334a389fd986a39797b6bb2c7ddf8c2fe618b3f18b43e2718",
+    "Sources/DICOMNetwork/VerificationService.swift": "de5746b54013e5f3db34aa08017df5a1dd235293691fc03ed251e08449a239c0"
+  },
+  "test_executable": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMNetworkTests.xctest/Contents/MacOS/DICOMNetworkTests",
+  "test_executable_sha256": "a03e673354a5cceb367ec7146dbfe7d3c610cefc6439e164539f1573e26d868d",
+  "client_cases": 8,
+  "positive": 4,
+  "negative": 4,
+  "independent_valid_endpoint_controls": 8,
+  "activated_XCTest_methods": 1,
+  "private_keys_excluded_from_export": [
+    "wrong-ca.key",
+    "localhost.key",
+    "wrong-host.key",
+    "ca.key"
+  ],
+  "exportable_evidence_sha256": {
+    "client-results.json": "bcf014cc9d754d45472d79c251860b8f69b78a67ee225b41c89a00147f8fa891",
+    "peer-echo-records.json": "9fb8ce34df3decc74ad77e84dad9b48567db398d4641f23d0c823cc66d98643f",
+    "versions.json": "202b24e79440d920a93f09cecab647b90e2d0aa39765b6e8d5df3c20d388cad5",
+    "results.json": "38b8d854ed0be4fc33f9216403832b1d61a547acdd3e18fe9328c39ab11c16f9",
+    "ca.srl": "2236a8453b8e3b176b99c1853df8ca66452c6cf087c9dbdbf70ffda33c3c8e50",
+    "pki-generation.log": "904c291e4e4ee006e4e176ebb726220cb1e564e2704931aed3ab92b032ada88e",
+    "peer-handshakes.json": "ea6b227caab2ba8de31d89c99dc5d12d8b07bb3bb95de500a20de884f1676c25",
+    "ca.pem": "4e4f552c4138ab1aa60d103bfc314b51c13163ec43653afdf1fac8f3e5ce03fa",
+    "peer-controls.json": "85537577246de0b11dd80f3d534138a050ef2f68744f727f8c3e06d49ca21e58",
+    "localhost.ext": "21ca491f0420e7f65b13b5004b7981b55ab8b7c32e23072bd58ec43cd3443270",
+    "wrong-host.pem": "65fe115637709fe619467dd54d81ee9907e277702d21df6d0d5d1b9ff6c38b7c",
+    "client-harness.log": "6dd566386adc511cc2c097aff0cc6c3b9a1ff87a53e85f51ee87bdbd2f924cc4",
+    "cases.json": "6d7742542ad8c190d56dad72199724d6debc0142ff9f89eb628e69fedf5f00ef",
+    "ca.der": "026022b83f681ed838af074f0ebf05a4a57a2661cd6bfaa23e47f14714853257",
+    "wrong-host.csr": "a643bef95e00e414449e5f377359b5e0dc97ede0bad74fd4127e50b272197642",
+    "localhost.pem": "e16d5c305d2a0d91e881f148e8b21b594553d31828adf6b906d62827bac67361",
+    "wrong-ca.der": "608566611dc52e123fdf1f3a6f727b45a2ee2ea1a3f8b3676829b14096f645fd",
+    "wrong-host.ext": "92e88e331c02ff1ae151008ba26eb1a2d1d84859b042a07cec470d4c7cdb8143",
+    "localhost.csr": "228f976d3e5e0320a067c008ededc6d44ea70dc5693bbe66738552c870f3d50a",
+    "wrong-ca.pem": "177f4bb2cf1a7368c0e89f7173a60148dfa407b1174325b3a8625b56f224c897"
+  },
+  "scope": "Library C-ECHO TLS1.2/1.3, configured cipher subset, trust/hostname/protocol refusal; no full PS3.15, mutual TLS, revocation, serverTLS, or wholeM7 acceptance claim."
+}

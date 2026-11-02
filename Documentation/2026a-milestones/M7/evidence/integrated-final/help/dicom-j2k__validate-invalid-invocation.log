@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-j2k validate <input> [--frame-number <frame-number>] [--frame <frame>] [--strict] [--json]
+  See 'dicom-j2k validate --help' for more information.

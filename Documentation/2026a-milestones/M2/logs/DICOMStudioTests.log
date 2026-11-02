@@ -1,0 +1,584 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 832]
+[Planning deferred tasks]
+[8 / 83]
+[11 / 40] dicom-mwl
+[13 / 42] dicom-mwl
+[23 / 64] DICOMPrintKit
+[23 / 64] DICOMRenderKit
+[31 / 65] DICOMPrintKit
+[32 / 65] DICOMPrintKit
+[35 / 65] DICOMPrintKit
+[36 / 65] DICOMPrintKit
+[43 / 68] DICOMPrintKit
+[44 / 67] DICOMStudio
+[55 / 82] DICOMStudio
+[56 / 82] DICOMStudio
+[57 / 82] DICOMStudio
+[58 / 82] DICOMStudio
+[59 / 82] DICOMStudio
+[63 / 82] DICOMStudio
+[65 / 82] DICOMStudio
+[67 / 78] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/MacOSEnhancementsServiceTests.swift:77:13: warning: variable 'actions' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 75 |     func testUpdateMenuAction() {
+ 76 |         let service = MacOSEnhancementsService()
+ 77 |         var actions = service.getMenuActions()
+    |             `- warning: variable 'actions' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 78 |         guard var first = actions.first else { return }
+ 79 |         let originalEnabled = first.isEnabled
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/NetworkingHelpersTests.swift:263:13: warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+261 |     @Test("SendQueueHelpers retryLabel shows retry count")
+262 |     func testSendQueueRetryCount() {
+263 |         var item = SendItem(label: "CT.dcm", sourceIdentifier: "UID",
+    |             `- warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+264 |                             serverProfileID: UUID(), retryCount: 2)
+265 |         let config = SendRetryConfig(maxRetries: 3)
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[77 / 89] DICOMStudioTests-product
+[78 / 89] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:140:49: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+138 |         let selection = PrintSelectionModel()
+139 |         selection.add(contentsOf: (1...12).map {
+140 |             PrintSelectionItem(filePath: "/ax/\($0).dcm", frameIndex: 0,
+    |                                                 |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                                 |- note: use a default value parameter to avoid this warning
+    |                                                 |- note: provide a default value to avoid this warning
+    |                                                 `- note: use 'String(describing:)' to silence this warning
+141 |                                seriesDescription: "AXIAL",
+142 |                                seriesInstanceUID: "1.1", instanceNumber: $0)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:145:49: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+143 |         })
+144 |         selection.add(contentsOf: (1...5).map {
+145 |             PrintSelectionItem(filePath: "/sc/\($0).dcm", frameIndex: 0,
+    |                                                 |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                                 |- note: use a default value parameter to avoid this warning
+    |                                                 |- note: provide a default value to avoid this warning
+    |                                                 `- note: use 'String(describing:)' to silence this warning
+146 |                                seriesDescription: "SCOUT",
+147 |                                seriesInstanceUID: "2.2", instanceNumber: $0)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:241:46: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+239 |         let selection = PrintSelectionModel()
+240 |         selection.add(contentsOf: (100...120).map { number in
+241 |             PrintSelectionItem(filePath: "/\(number).dcm", frameIndex: 0,
+    |                                              |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                              |- note: use a default value parameter to avoid this warning
+    |                                              |- note: provide a default value to avoid this warning
+    |                                              `- note: use 'String(describing:)' to silence this warning
+242 |                                seriesInstanceUID: "1.2.3", instanceNumber: number)
+243 |         })
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:255:46: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+253 |         let selection = PrintSelectionModel()
+254 |         selection.add(contentsOf: [3, 6, 9, 12, 15].map { number in
+255 |             PrintSelectionItem(filePath: "/\(number).dcm", frameIndex: 0,
+    |                                              |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                              |- note: use a default value parameter to avoid this warning
+    |                                              |- note: provide a default value to avoid this warning
+    |                                              `- note: use 'String(describing:)' to silence this warning
+256 |                                seriesInstanceUID: "1.2.3", instanceNumber: number)
+257 |         })
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintQueueAuditTests.swift:448:21: warning: 'printerIsUp' mutated after capture by sendable closure
+434 |     func offlineJobWaits() async throws {
+435 |         let (queue, _, _) = makeQueue()
+436 |         var printerIsUp = false
+    |             `- note: variable defined here
+437 |         queue.isPrinterReady = { _ in printerIsUp }
+    |                                |      `- note: capturing use
+    |                                `- note: variable captured by sendable closure
+438 |         queue.maxAutoRetries = 0
+439 |         let id = enqueue(queue)
+    :
+446 | 
+447 |         // The printer comes back; reevaluate is the monitor's signal.
+448 |         printerIsUp = true
+    |                     `- warning: 'printerIsUp' mutated after capture by sendable closure
+449 |         queue.reevaluate()
+450 |         var waited = 0
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:16:25: warning: comparing non-optional value of type 'ImageRenderingService' to 'nil' always returns true
+14 |     func testServiceCreation() {
+15 |         let service = ImageRenderingService()
+16 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageRenderingService' to 'nil' always returns true
+17 |     }
+18 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:42:25: warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+40 |     func testServiceCreationDefault() {
+41 |         let service = ImageCacheService()
+42 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+43 |     }
+44 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:48:25: warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+46 |     func testServiceCreationCustom() {
+47 |         let service = ImageCacheService(maxMemoryMB: 100)
+48 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+49 |     }
+50 | }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImportServiceTests.swift:16:37: warning: 'is' test is always true
+ 14 |     func testInitDefault() {
+ 15 |         let service = ImportService()
+ 16 |         #expect(service.fileService is DICOMFileService)
+    |                                     `- warning: 'is' test is always true
+ 17 |     }
+ 18 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:57:13: warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 55 |     func test_appendOutputLine_beyondMaxLines_doesNotExceedMaxLines() {
+ 56 |         let service = IntegratedTerminalService()
+ 57 |         var buffer = TerminalOutputBuffer(maxLines: 3)
+    |             `- warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 58 |         service.setOutputBuffer(buffer)
+ 59 |         _ = buffer  // suppress unused warning
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:81:13: warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 79 |     func test_clearOutput_preservesMaxLines() {
+ 80 |         let service = IntegratedTerminalService()
+ 81 |         var buffer = TerminalOutputBuffer(maxLines: 500)
+    |             `- warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 82 |         service.setOutputBuffer(buffer)
+ 83 |         _ = buffer
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:111:13: warning: variable 'state' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+109 |     func test_clearHistory_preservesMaxEntries() {
+110 |         let service = IntegratedTerminalService()
+111 |         var state = CommandHistoryState(maxEntries: 50)
+    |             `- warning: variable 'state' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+112 |         service.setHistoryState(state)
+113 |         _ = state
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrinterStatusWiringTests.swift:160:14: warning: immutable value 'model' was never used; consider replacing with '_' or removing it [#NoUsage]
+158 |     @Test("Saving a monitored printer starts polling it")
+159 |     func savingEnabledPrinterStartsMonitoring() async throws {
+160 |         let (model, directory) = try makeViewModel()
+    |              `- warning: immutable value 'model' was never used; consider replacing with '_' or removing it [#NoUsage]
+161 |         defer { try? FileManager.default.removeItem(at: directory) }
+162 | 
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/DICOMwebViewModelTests.swift:149:13: warning: initialization of immutable value 'vm' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+147 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+148 |     func testRunQIDOQueryClearsPreviousResults() async {
+149 |         let vm = DICOMwebViewModel()
+    |             `- warning: initialization of immutable value 'vm' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+150 |         // Seed the service directly to simulate pre-existing results
+151 |         let service = DICOMwebService()
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ThemeTests.swift:52:17: warning: immutable value 'g' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 50 |     @Test("Modality color for MRI alias")
+ 51 |     func testModalityColorMRI() {
+ 52 |         let (r, g, b) = StudioColors.modalityColor(for: "MRI")
+    |                 `- warning: immutable value 'g' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 53 |         #expect(r == StudioColors.mrRed)
+ 54 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ThemeTests.swift:52:20: warning: immutable value 'b' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 50 |     @Test("Modality color for MRI alias")
+ 51 |     func testModalityColorMRI() {
+ 52 |         let (r, g, b) = StudioColors.modalityColor(for: "MRI")
+    |                    `- warning: immutable value 'b' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 53 |         #expect(r == StudioColors.mrRed)
+ 54 |     }
+
+macro expansion #expect:1:62: warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerContentKindTests.swift:211:101: note: expanded code originates here
+206 |     @Test("Every PS3.3 Table C.17.3-7 value type reads as something, TABLE included")
+207 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+208 |     func testTableValueType() {
+    |          `- note: add '@MainActor' to make instance method 'testTableValueType()' part of global actor 'MainActor'
+209 |         // PS3.3 2026a Table C.17.3-7 lists 16 Value Types; TABLE (CP-2174) had no branch.
+210 |         let table = TableContentItem(rows: 2, columns: 3, cells: [])
+211 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(table)) == "(table, 2 × 3)")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(StructuredReportNarrativeView.value(of: AnyContentItem(table)),{ $0 == $1() },"(table, 2 × 3)",expression: .__fromBinaryOperation(.__fromSyntaxNode("StructuredReportNarrativeView.value(of: AnyContentItem(table))"),"==",.__fromStringLiteral(#""(table, 2 × 3)""#, "(table, 2 × 3)")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                              `- warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+212 |         let text = TextContentItem(conceptName: nil, textValue: "Normal study")
+213 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(text)) == "Normal study")
+
+DICOMStudio.StructuredReportNarrativeView.value:2:33: note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+1 | struct StructuredReportNarrativeView {
+2 | @MainActor internal static func value(of item: DICOMCore.AnyContentItem) -> String?}
+  |                                 `- note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:62: warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerContentKindTests.swift:213:97: note: expanded code originates here
+206 |     @Test("Every PS3.3 Table C.17.3-7 value type reads as something, TABLE included")
+207 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+208 |     func testTableValueType() {
+    |          `- note: add '@MainActor' to make instance method 'testTableValueType()' part of global actor 'MainActor'
+209 |         // PS3.3 2026a Table C.17.3-7 lists 16 Value Types; TABLE (CP-2174) had no branch.
+210 |         let table = TableContentItem(rows: 2, columns: 3, cells: [])
+211 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(table)) == "(table, 2 × 3)")
+212 |         let text = TextContentItem(conceptName: nil, textValue: "Normal study")
+213 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(text)) == "Normal study")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(StructuredReportNarrativeView.value(of: AnyContentItem(text)),{ $0 == $1() },"Normal study",expression: .__fromBinaryOperation(.__fromSyntaxNode("StructuredReportNarrativeView.value(of: AnyContentItem(text))"),"==",.__fromStringLiteral(#""Normal study""#, "Normal study")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                              `- warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+214 |     }
+215 | }
+
+DICOMStudio.StructuredReportNarrativeView.value:2:33: note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+1 | struct StructuredReportNarrativeView {
+2 | @MainActor internal static func value(of item: DICOMCore.AnyContentItem) -> String?}
+  |                                 `- note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:311:79: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+310 |         // alike and look nothing alike — were told apart by gradient alone.
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .hotIron),{ $0 == $1() },"Hot Iron",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .hotIron)"),"==",.__fromStringLiteral(#""Hot Iron""#, "Hot Iron")),comments: [.__line("// The name is the point of the change: the face showed a ramp and no"),.__line(#"// word, so "Hot Metal Blue" and "Hot Iron" — two names that sound"#),.__line("// alike and look nothing alike — were told apart by gradient alone.")],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:312:90: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+310 |         // alike and look nothing alike — were told apart by gradient alone.
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .hotMetalBlue),{ $0 == $1() },"Hot Metal Blue",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .hotMetalBlue)"),"==",.__fromStringLiteral(#""Hot Metal Blue""#, "Hot Metal Blue")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+314 |     }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:313:88: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+    :
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .petTwentyStep),{ $0 == $1() },"PET 20 Step",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .petTwentyStep)"),"==",.__fromStringLiteral(#""PET 20 Step""#, "PET 20 Step")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+314 |     }
+315 | 
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:321:73: note: expanded code originates here
+315 | 
+316 |     @Test("No palette says so rather than showing a bare glyph")
+317 |     func testNoPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testNoPaletteIsNamed()' part of global actor 'MainActor'
+318 |         // A bare paintpalette glyph says "there is a palette control here",
+319 |         // not "and it is off" — which is what a reader who has coloured an
+320 |         // image by accident is looking for.
+321 |         #expect(ViewerPalettePickerView.faceText(for: nil) == "No CLUT")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: nil),{ $0 == $1() },"No CLUT",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: nil)"),"==",.__fromStringLiteral(#""No CLUT""#, "No CLUT")),comments: [.__line(#"// A bare paintpalette glyph says "there is a palette control here","#),.__line(#"// not "and it is off" — which is what a reader who has coloured an"#),.__line("// image by accident is looking for.")],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+322 |         #expect(ViewerPalettePickerView.noPaletteLabel == "No CLUT")
+323 |     }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:322:69: note: expanded code originates here
+315 | 
+316 |     @Test("No palette says so rather than showing a bare glyph")
+317 |     func testNoPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testNoPaletteIsNamed()' part of global actor 'MainActor'
+318 |         // A bare paintpalette glyph says "there is a palette control here",
+319 |         // not "and it is off" — which is what a reader who has coloured an
+320 |         // image by accident is looking for.
+321 |         #expect(ViewerPalettePickerView.faceText(for: nil) == "No CLUT")
+322 |         #expect(ViewerPalettePickerView.noPaletteLabel == "No CLUT")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel,{ $0 == $1() },"No CLUT",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel"),"==",.__fromStringLiteral(#""No CLUT""#, "No CLUT")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+    +-------------------------------------------------------------------
+323 |     }
+324 | 
+
+DICOMStudio.ViewerPalettePickerView.noPaletteLabel:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let noPaletteLabel: String}
+  |                                `- note: static property declared here
+3 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:364:52: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+355 | 
+356 |     @Test("Every catalogue name fits the toolbar face whole")
+357 |     func everyCatalogueNameFitsTheToolbarFace() {
+    |          `- note: add '@MainActor' to make instance method 'everyCatalogueNameFitsTheToolbarFace()' part of global actor 'MainActor'
+358 |         // The cap exists for a name longer than anything shipped. If a new
+359 |         // palette pushes past it, this fails here rather than quietly putting
+    :
+362 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+363 |             for palette in entry.palettes {
+364 |                 let face = ViewerPalettePickerView.faceText(for: palette)
+    |                                                    `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+365 |                 #expect(face == palette.displayName,
+366 |                         "\(palette.displayName) does not fit the toolbar face")
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:382:60: note: expanded code originates here
+371 | 
+372 |     @Test("The cap is the width the face is allowed, ellipsis included")
+373 |     func testCapIsTheFaceWidth() {
+    |          `- note: add '@MainActor' to make instance method 'testCapIsTheFaceWidth()' part of global actor 'MainActor'
+374 |         // No catalogue palette exercises the shortening, so what is pinned
+375 |         // here is the contract the cap has to keep: the face never exceeds it.
+    :
+379 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+380 |             for palette in entry.palettes {
+381 |                 #expect(ViewerPalettePickerView.faceText(for: palette).count
+    |                 `- note: in expansion of macro 'expect' here
+382 |                         <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: palette).count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: palette).count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+383 |             }
+384 |         }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:124: warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:382:60: note: expanded code originates here
+379 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+380 |             for palette in entry.palettes {
+381 |                 #expect(ViewerPalettePickerView.faceText(for: palette).count
+    |                 `- note: in expansion of macro 'expect' here
+382 |                         <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: palette).count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: palette).count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                                                                            `- warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+    +-------------------------------------------------------------------
+383 |             }
+384 |         }
+
+DICOMStudio.ViewerPalettePickerView.nameCap:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let nameCap: Int}
+  |                                `- note: static property declared here
+3 | 
+
+macro expansion #expect:1:56: warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:386:52: note: expanded code originates here
+371 | 
+372 |     @Test("The cap is the width the face is allowed, ellipsis included")
+373 |     func testCapIsTheFaceWidth() {
+    |          `- note: add '@MainActor' to make instance method 'testCapIsTheFaceWidth()' part of global actor 'MainActor'
+374 |         // No catalogue palette exercises the shortening, so what is pinned
+375 |         // here is the contract the cap has to keep: the face never exceeds it.
+    :
+383 |             }
+384 |         }
+385 |         #expect(ViewerPalettePickerView.noPaletteLabel.count
+    |         `- note: in expansion of macro 'expect' here
+386 |                 <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel.count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel.count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+    +-------------------------------------------------------------------
+387 |     }
+388 | }
+
+DICOMStudio.ViewerPalettePickerView.noPaletteLabel:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let noPaletteLabel: String}
+  |                                `- note: static property declared here
+3 | 
+
+macro expansion #expect:1:116: warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:386:52: note: expanded code originates here
+383 |             }
+384 |         }
+385 |         #expect(ViewerPalettePickerView.noPaletteLabel.count
+    |         `- note: in expansion of macro 'expect' here
+386 |                 <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel.count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel.count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                                                                    `- warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+    +-------------------------------------------------------------------
+387 |     }
+388 | }
+
+DICOMStudio.ViewerPalettePickerView.nameCap:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let nameCap: Int}
+  |                                `- note: static property declared here
+3 | 
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[82 / 88] DICOMStudioTests-product
+[84 / 88] DICOMStudioTests-product
+[85 / 88] DICOMStudioTests-product
+[86 / 88] DICOMStudioTests-product
+Build complete! (85.54 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Workshop Basic authentication preview" started.
+◇ Suite "Network tools — Workshop/CLI option parity" started.
+◇ Suite "M2 Workshop MPPS reference preflight" started.
+◇ Suite "M2 Workshop attribute execution" started.
+◇ Suite "Workshop shell argument safety" started.
+◇ Test "N-SET exposes the Performed Series attributes the CLI gained" started.
+◇ Test "the worklist query exposes the Performing Physician matching key" started.
+◇ Test "the series-level QIDO matching keys are exposed" started.
+◇ Test "the parent-key toggle is hidden for a study-level query" started.
+◇ Test "no network tool has a duplicate parameter id" started.
+◇ Test "the parent-key opt-out is offered at series and instance level" started.
+◇ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" started.
+◇ Test "Missing and malformed image classes refuse before an MPPS network operation" started.
+◇ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" started.
+◇ Test "the discontinuation reason is gated on the DISCONTINUED status" started.
+◇ Test "the two --performing-physician fields never appear together" started.
+◇ Test "QIDO series filters are hidden for a study-level search" started.
+◇ Test "the discontinuation reason field is hidden for a COMPLETED update" started.
+◇ Test "All catalog Basic-auth entry points are app-only and omit credentials" started.
+◇ Test "corrected tag numbers appear in the worklist help text" started.
+◇ Test "All nine malformed edits refuse dry run and actual write without touching input" started.
+◇ Test "a flag shared by two parameters is always operation-scoped" started.
+◇ Test "Shell quoting alone cannot make a leading-hyphen range an MWL option value" started.
+◇ Test "Requested Procedure ID is its own field, not the Performed Step ID" started.
+◇ Test "Literal shell arguments survive sh and zsh without expansion or execution" started.
+◇ Test "Real MWL parser receives open-ended, bounded and single DA/TM values unchanged" started.
+◇ Test "A short option binds a leading-hyphen value without adding an equals sign" started.
+◇ Test "Every repeated leading-hyphen option value is bound to its flag" started.
+◇ Test "Malformed ranges survive parsing then fail identically in the shared validator" started.
+◇ Test "Trusted catalog prefixes retain separate executable and subcommand tokens" started.
+◇ Test "Built previews retain scalar, repeated and positional DICOM values" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+✔ Test "Built previews retain scalar, repeated and positional DICOM values" passed after 0.014 seconds.
+✔ Test "Every repeated leading-hyphen option value is bound to its flag" passed after 0.014 seconds.
+✔ Test "Shell quoting alone cannot make a leading-hyphen range an MWL option value" passed after 0.015 seconds.
+✔ Test "Missing and malformed image classes refuse before an MPPS network operation" passed after 0.041 seconds.
+◇ Test "Explicit CT, MR and SC classes survive the Workshop preview and shared preflight" started.
+✔ Test "A short option binds a leading-hyphen value without adding an equals sign" passed after 0.049 seconds.
+✔ Test "the worklist query exposes the Performing Physician matching key" passed after 0.060 seconds.
+✔ Test "N-SET exposes the Performed Series attributes the CLI gained" passed after 0.060 seconds.
+✔ Test "Literal shell arguments survive sh and zsh without expansion or execution" passed after 0.081 seconds.
+✔ Test "the parent-key opt-out is offered at series and instance level" passed after 0.083 seconds.
+✔ Test "the series-level QIDO matching keys are exposed" passed after 0.083 seconds.
+✔ Test "no network tool has a duplicate parameter id" passed after 0.083 seconds.
+✔ Test "CODE|SCHEME|MEANING parses the same for the CLI and the Workshop" passed after 0.083 seconds.
+✔ Test "the two --performing-physician fields never appear together" passed after 0.095 seconds.
+✔ Test "N-CREATE exposes the Type 1/2 attributes the CLI gained" passed after 0.095 seconds.
+✔ Test "QIDO series filters are hidden for a study-level search" passed after 0.095 seconds.
+✔ Test "corrected tag numbers appear in the worklist help text" passed after 0.127 seconds.
+✔ Test "the discontinuation reason field is hidden for a COMPLETED update" passed after 0.127 seconds.
+✔ Test "the parent-key toggle is hidden for a study-level query" passed after 0.127 seconds.
+✔ Test "the discontinuation reason is gated on the DISCONTINUED status" passed after 0.127 seconds.
+✔ Test "Requested Procedure ID is its own field, not the Performed Step ID" passed after 0.127 seconds.
+✔ Test "a flag shared by two parameters is always operation-scoped" passed after 0.127 seconds.
+✔ Suite "Network tools — Workshop/CLI option parity" passed after 0.127 seconds.
+✔ Test "Explicit CT, MR and SC classes survive the Workshop preview and shared preflight" passed after 0.095 seconds.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+✔ Suite "M2 Workshop MPPS reference preflight" passed after 0.137 seconds.
+✔ Test "Real MWL parser receives open-ended, bounded and single DA/TM values unchanged" passed after 0.146 seconds.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "All catalog Basic-auth entry points are app-only and omit credentials" started.
+✔ Test "All catalog Basic-auth entry points are app-only and omit credentials" with 4 test cases passed after 0.184 seconds.
+◇ Test "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "None and Bearer retain supported command previews" started.
+✔ Test "Malformed ranges survive parsing then fail identically in the shared validator" passed after 0.197 seconds.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "None and Bearer retain supported command previews" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "None and Bearer retain supported command previews" started.
+✔ Test "None and Bearer retain supported command previews" with 4 test cases passed after 0.061 seconds.
+◇ Test "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "Basic-auth detection survives changed labels and command spellings" started.
+✔ Test "Trusted catalog prefixes retain separate executable and subcommand tokens" passed after 0.253 seconds.
+✔ Suite "Workshop shell argument safety" passed after 0.253 seconds.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "Basic-auth detection survives changed labels and command spellings" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "Basic-auth detection survives changed labels and command spellings" started.
+✔ Test "Basic-auth detection survives changed labels and command spellings" with 4 test cases passed after 0.061 seconds.
+◇ Test "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-qido" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-wado" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-stow" to "Every line of a multiline Basic-auth preview remains commented" started.
+◇ Test case passing 1 argument toolID → "dicom-ups" to "Every line of a multiline Basic-auth preview remains commented" started.
+✔ Test "Every line of a multiline Basic-auth preview remains commented" with 4 test cases passed after 0.067 seconds.
+✔ Suite "Workshop Basic authentication preview" passed after 0.375 seconds.
+✔ Test "All nine malformed edits refuse dry run and actual write without touching input" passed after 0.385 seconds.
+◇ Test "Unicode, signed values and SOP identity survive Workshop writing and validation" started.
+✔ Test "Unicode, signed values and SOP identity survive Workshop writing and validation" passed after 0.020 seconds.
+◇ Test "Numeric copy selectors use the same actual Workshop path as keyword selectors" started.
+✔ Test "Numeric copy selectors use the same actual Workshop path as keyword selectors" passed after 0.035 seconds.
+◇ Test "Workshop level 2 recursively reports invalid nested AS, DA and registered VR" started.
+✔ Test "Workshop level 2 recursively reports invalid nested AS, DA and registered VR" passed after 0.008 seconds.
+✔ Suite "M2 Workshop attribute execution" passed after 0.449 seconds.
+✔ Test run with 33 tests in 5 suites passed after 0.449 seconds.

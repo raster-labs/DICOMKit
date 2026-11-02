@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-paths> ...'
+Help:  <input-paths>  Input DICOM files (multi-slice series)
+Usage: dicom-3d mpr <input-paths> ... --output <output> [--planes <planes>] [--oblique-normal <x,y,z>] [--oblique-point <x,y,z>] [--format <format>] [--thickness <thickness>] [--interpolation <interpolation>] [--window-center <window-center>] [--window-width <window-width>] [--verbose]
+  See 'dicom-3d mpr --help' for more information.

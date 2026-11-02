@@ -1,0 +1,22 @@
+[
+  {
+    "kind": "Stale test expectation",
+    "evidence": "evidence/initial/DICOMToolboxTests-stale-workflow.log",
+    "resolution": "Phase8 workflow test still asserted clinical-trial/regenerate-uids; repaired to current ps315 and explicit UID retention/default replacement contract, keeping workflow assertions. Entire Toolbox suite rerun."
+  },
+  {
+    "kind": "Product defect found during independent review",
+    "evidence": "evidence/initial/DICOMStudioTests-before-nested-pipeline-repair.log",
+    "resolution": "Unquoted conditional pipelines could hide an unsupported nested command. Parser now refuses that unsupported syntax with line number before execution/logging; quoted pipes remain data. Final suite, CLI/VM and GUI negative gate passed."
+  },
+  {
+    "kind": "Process oracle mismatch",
+    "evidence": "evidence/initial/workshop-quiet-CLI-oracle/results.json",
+    "resolution": "Initial live CLI oracle expected detailed output without --verbose. Corrected test invocation to request verbose output; product output was not loosened."
+  },
+  {
+    "kind": "Process oracle policy mismatch",
+    "evidence": "evidence/initial/workshop-pixel-policy-oracle/results.json",
+    "resolution": "Initial CLI used default pixel cleaning while paired Workshop had cleaning disabled. Corrected CLI to --no-clean-pixel-data; allow-burned-in-phi remains an override, not an instruction to disable cleaning."
+  }
+]

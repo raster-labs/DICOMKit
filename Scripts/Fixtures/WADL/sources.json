@@ -1,0 +1,10 @@
+{
+  "wadl.xsd": {
+    "source": "https://www.w3.org/submissions/wadl/wadl.xsd",
+    "sha256": "125b6727e8181da7b8fe4f598a5e8241606d20a71f5bcb173f6ddfe9dc41e94e"
+  },
+  "xml.xsd": {
+    "source": "https://www.w3.org/2001/xml.xsd",
+    "sha256": "61960fb3131e38022caad5360e2f33a3382578ab3c80cd58bd74320ede61b20c"
+  }
+}

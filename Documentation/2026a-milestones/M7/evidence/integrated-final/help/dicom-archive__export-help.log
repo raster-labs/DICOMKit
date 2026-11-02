@@ -1,0 +1,21 @@
+OVERVIEW: Export files from the archive
+
+USAGE: dicom-archive export --archive <archive> --output <output> [--study-uid <study-uid>] [--series-uid <series-uid>] [--patient-id <patient-id>] [--flatten] [--verbose]
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  -o, --output <output>   Output directory for exported files
+  --study-uid <study-uid> Export by Study Instance UID (0020,000D); one UID or
+                          a backslash-separated list (PS3.4 C.2.2.2.2)
+  --series-uid <series-uid>
+                          Export by Series Instance UID (0020,000E); one UID or
+                          a backslash-separated list (PS3.4 C.2.2.2.2)
+  --patient-id <patient-id>
+                          Export by Patient ID (0010,0020); exact match, no
+                          wild cards
+  --flatten               Flatten output to <SOP Instance UID>.dcm (no Patient
+                          ID / Study / Series subdirectories)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

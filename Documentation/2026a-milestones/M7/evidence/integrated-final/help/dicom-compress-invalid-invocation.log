@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  DICOM file path
+Usage: dicom-compress info <input> [--json]
+  See 'dicom-compress info --help' for more information.

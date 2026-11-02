@@ -1,0 +1,209 @@
+{
+  "cases" : [
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-ps315.dcm",
+        "--profile",
+        "ps315"
+      ],
+      "directory" : false,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "regenerate",
+      "id" : "anon-ps315",
+      "tool" : "dicom-anon",
+      "values" : {
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-ps315.dcm",
+        "profile" : "ps315"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-ps315-retain.dcm",
+        "--profile",
+        "ps315",
+        "--retain-uids"
+      ],
+      "directory" : false,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "retain",
+      "id" : "anon-ps315-retain",
+      "tool" : "dicom-anon",
+      "values" : {
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-ps315-retain.dcm",
+        "profile" : "ps315",
+        "retain-uids" : "true"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-basic.dcm",
+        "--profile",
+        "basic"
+      ],
+      "directory" : false,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "regenerate",
+      "id" : "anon-basic",
+      "tool" : "dicom-anon",
+      "values" : {
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-basic.dcm",
+        "profile" : "basic"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-basic-retain.dcm",
+        "--profile",
+        "basic",
+        "--retain-uids"
+      ],
+      "directory" : false,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "retain",
+      "id" : "anon-basic-retain",
+      "tool" : "dicom-anon",
+      "values" : {
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-basic-retain.dcm",
+        "profile" : "basic",
+        "retain-uids" : "true"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-all-current-controls.dcm",
+        "--profile",
+        "ps315",
+        "--shift-dates=-30",
+        "--retain-uids",
+        "--remove",
+        "0008,0050",
+        "--replace",
+        "0008,1030=SYNTHETIC",
+        "--backup",
+        "--audit-log",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/audit.log"
+      ],
+      "directory" : false,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "retain",
+      "id" : "anon-all-current-controls",
+      "tool" : "dicom-anon",
+      "values" : {
+        "audit-log" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/audit.log",
+        "backup" : "true",
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-all-current-controls.dcm",
+        "profile" : "ps315",
+        "remove" : "0008,0050",
+        "replace" : "0008,1030=SYNTHETIC",
+        "retain-uids" : "true",
+        "shift-dates" : "-30"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-dry-run.dcm",
+        "--profile",
+        "ps315",
+        "--dry-run"
+      ],
+      "directory" : false,
+      "dryRun" : true,
+      "expectedUIDPolicy" : "no-output",
+      "id" : "anon-dry-run",
+      "tool" : "dicom-anon",
+      "values" : {
+        "dry-run" : "true",
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input.dcm",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-dry-run.dcm",
+        "profile" : "ps315"
+      }
+    },
+    {
+      "arguments" : [
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input-directory",
+        "--output",
+        "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-recursive",
+        "--profile",
+        "ps315",
+        "--recursive"
+      ],
+      "directory" : true,
+      "dryRun" : false,
+      "expectedUIDPolicy" : "regenerate",
+      "id" : "anon-recursive",
+      "tool" : "dicom-anon",
+      "values" : {
+        "inputPath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/input-directory",
+        "output" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anon-recursive",
+        "profile" : "ps315",
+        "recursive" : "true"
+      }
+    },
+    {
+      "arguments" : [
+        "template",
+        "workflow"
+      ],
+      "id" : "template-workflow",
+      "stdoutFile" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/workflow.dscript",
+      "tool" : "dicom-script"
+    },
+    {
+      "arguments" : [
+        "template",
+        "pipeline"
+      ],
+      "id" : "template-pipeline",
+      "stdoutFile" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/pipeline.dscript",
+      "tool" : "dicom-script"
+    },
+    {
+      "arguments" : [
+        "template",
+        "query"
+      ],
+      "id" : "template-query",
+      "stdoutFile" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/query.dscript",
+      "tool" : "dicom-script"
+    },
+    {
+      "arguments" : [
+        "template",
+        "archive"
+      ],
+      "id" : "template-archive",
+      "stdoutFile" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/archive.dscript",
+      "tool" : "dicom-script"
+    },
+    {
+      "arguments" : [
+        "template",
+        "anonymize"
+      ],
+      "id" : "template-anonymize",
+      "stdoutFile" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m5\/toolbox-cli\/anonymize.dscript",
+      "tool" : "dicom-script"
+    }
+  ],
+  "fixtureRequirements" : "Create input.dcm and input-directory\/nested\/input.dcm from synthetic Part 10 data with Study\/Series\/SOP Instance UIDs, StudyDate=20260115, AccessionNumber=TEST-ACCESSION, StudyDescription=BEFORE. Use no Pixel Data to avoid unqualified OCR, or a known safe synthetic pixel fixture. Never use patient data.",
+  "oracle" : "Run each argv with the current CLI. Check exit 0, unchanged inputs, default UID replacement vs --retain-uids equality and valid output meta\/dataset identities. All-controls must remove AccessionNumber, replace StudyDescription, shift StudyDate to 20251216, write audit log and a byte-identical original-input backup at outputURL.appendingPathExtension(backup), namely anon-all-current-controls.dcm.backup. Dry-run writes no output. Recursive discovers nested input. Save template stdout as app\/test action then run dicom-script validate on all five outputs.",
+  "schemaVersion" : 1,
+  "scope" : "DICOMToolbox library is not packaged into DICOMStudio in this repository; no packaged Toolbox UI claim."
+}

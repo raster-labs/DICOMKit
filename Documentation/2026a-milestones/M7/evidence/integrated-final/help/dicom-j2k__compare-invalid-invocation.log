@@ -1,0 +1,4 @@
+Error: Missing expected argument '<reference>'
+Help:  <reference>  Reference DICOM file
+Usage: dicom-j2k compare <reference> <test> [--frame-number <frame-number>] [--frame <frame>] [--json]
+  See 'dicom-j2k compare --help' for more information.

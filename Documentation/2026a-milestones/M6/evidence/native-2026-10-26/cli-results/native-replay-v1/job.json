@@ -1,0 +1,32 @@
+{
+  "name": "job",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "job",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M7CLI",
+    "--timeout",
+    "5",
+    "--format",
+    "json",
+    "--job-id",
+    "1.2.826.0.1.3680043.10.511.4.1792992311950314.969050",
+    "--",
+    "pacs://127.0.0.1:21113"
+  ],
+  "environmentOverrides": {
+    "DICOMKIT_PRINT_TEST_SETTINGS_DIRECTORY": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-settings"
+  },
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.038751666000000004,
+  "recordedUTC": "2026-10-26T05:35:22.727827+00:00",
+  "stdout": "{\n  \"creationDate\" : \"2026-10-25T18:30:00Z\",\n  \"CreationDate\" : \"20261026\",\n  \"CreationTime\" : \"105511\",\n  \"ExecutionStatus\" : \"DONE\",\n  \"ExecutionStatusInfo\" : \"NORMAL\",\n  \"jobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792992311950314.969050\",\n  \"status\" : \"DONE\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+  "stderr": "",
+  "filmCountBefore": 10,
+  "filmCountAfter": 10,
+  "expectedFilmDelta": 0,
+  "binarySHA256": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75"
+}

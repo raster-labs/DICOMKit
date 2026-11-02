@@ -1,0 +1,29 @@
+{
+  "index": 1,
+  "utc": "2026-10-26T09:23:31.482002+00:00",
+  "method": "POST",
+  "target": "/native/dicom-web/workitems",
+  "headers": {
+    "Host": "127.0.0.1:62708",
+    "Content-Type": "application/dicom+json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+    "Accept": "application/dicom+json",
+    "User-Agent": "DICOMKit/1.0",
+    "Authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+    "Accept-Encoding": "gzip, deflate",
+    "Content-Length": "300"
+  },
+  "body": "{\"00404041\":{\"Value\":[\"READY\"],\"vr\":\"CS\"},\"00741000\":{\"Value\":[\"SCHEDULED\"],\"vr\":\"CS\"},\"00741200\":{\"Value\":[\"MEDIUM\"],\"vr\":\"CS\"},\"00404005\":{\"Value\":[\"20261024103000.123456+0530\"],\"vr\":\"DT\"},\"00741204\":{\"Value\":[\"M2 synthetic schedule\"],\"vr\":\"LO\"},\"00080018\":{\"Value\":[\"2.25.20261024001\"],\"vr\":\"UI\"}}",
+  "surface": "native",
+  "uid": "2.25.20261024001",
+  "identity_form": "body",
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Length": "0",
+      "Location": "http://127.0.0.1:62708/native/dicom-web/workitems/2.25.20261024001"
+    },
+    "body": ""
+  }
+}

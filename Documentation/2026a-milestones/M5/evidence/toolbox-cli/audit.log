@@ -1,0 +1,18 @@
+DICOM Anonymization Audit Log
+Generated: 2026-10-24T13:52:38Z
+Method: Basic Application Confidentiality Profile; Retain Longitudinal Temporal Information Modified Dates Option; Retain UIDs Option
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - Z/D zero-or-shift - (0008,0020)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - X remove - (0008,0050)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - Z zero - (0008,0050)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - D replace - (0008,1030)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - X remove - (0008,1030)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - Z zero - (0010,0010)
+
+[2026-10-24T13:52:38Z] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/toolbox-cli/input.dcm - Z/D zero-or-shift - (0010,0020)
+

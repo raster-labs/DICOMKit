@@ -1,0 +1,23 @@
+DICOM Query (C-FIND)
+====================
+  Server:            127.0.0.1:49398
+  Calling AE Title:  M3CLI
+  Called AE Title:   M3SCP
+  Query Level:       SERIES
+  Information Model: Study Root
+  Timeout:           60s
+  Filters:
+    Modality:        CT
+    Study UID:       2.25.301
+
+[
+  {
+    "(0008,0052)" : "SERIES",
+    "(0008,0060)" : "CT",
+    "(0008,103E)" : "M3 CT SERIES",
+    "(0020,000D)" : "2.25.301",
+    "(0020,000E)" : "2.25.301.1",
+    "(0020,0011)" : "1",
+    "(0020,1209)" : "1"
+  }
+]

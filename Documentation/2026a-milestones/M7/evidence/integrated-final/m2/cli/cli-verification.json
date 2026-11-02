@@ -1,0 +1,998 @@
+{
+  "schema_version": 1,
+  "results": [
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientAge=Y123",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientAge=Y123",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-0.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientAge=Y123"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20260231",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20260231",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-1.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20260231"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelSpacing=1..2\\3",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelSpacing=1..2\\3",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-2.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelSpacing=1..2\\3"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SeriesNumber=++1",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SeriesNumber=++1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-3.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SeriesNumber=++1"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20269999112233",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20269999112233",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-4.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20269999112233"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyTime=256199",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyTime=256199",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-5.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyTime=256199"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyInstanceUID=1..02",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyInstanceUID=1..02",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-6.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyInstanceUID=1..02"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=1\\2",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=1\\2",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-7.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=1\\2"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "RetrieveAETitle=M\u00fcller",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "RetrieveAETitle=M\u00fcller",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/rejected-8.dcm"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "RetrieveAETitle=M\u00fcller"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]\",\n          \"tag\" : \"(0010,1010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/invalid_AS.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Invalid date\\/time format for Acquisition DateTime (expected compact DICOM DT with valid calendar components)\",\n          \"tag\" : \"(0008,002A)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/invalid_DT.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Rows has 2 values; PS3.6 Table 6-1 gives VM 1 [PS3.5 6.4]\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/invalid_VM.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Invalid date format for Patient's Birth Date (expected YYYYMMDD)\",\n          \"tag\" : \"(0010,0030)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/invalid_calendar_date.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"(0008,1110)[1]: Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]\",\n          \"tag\" : \"(0010,1010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/nested-invalid-AS.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"(0008,1110)[1]: Invalid date format for Patient's Birth Date (expected YYYYMMDD)\",\n          \"tag\" : \"(0010,0030)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/nested-invalid-date.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Rows has 3 values; PS3.6 Table 6-1 gives VM 1 [PS3.5 6.4]\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/odd_numeric_length.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 5,\n      \"errors\" : [\n        {\n          \"message\" : \"Type 1 File Meta Information element Media Storage SOP Class UID is empty\",\n          \"tag\" : \"(0002,0002)\"\n        },\n        {\n          \"message\" : \"Type 1 File Meta Information element Media Storage SOP Instance UID is empty\",\n          \"tag\" : \"(0002,0003)\"\n        },\n        {\n          \"message\" : \"Type 1 File Meta Information element Implementation Class UID is empty\",\n          \"tag\" : \"(0002,0012)\"\n        },\n        {\n          \"message\" : \"File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'\",\n          \"tag\" : \"(0002,0002)\"\n        },\n        {\n          \"message\" : \"File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'\",\n          \"tag\" : \"(0002,0003)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/empty-required-meta.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 5,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'\",\n          \"tag\" : \"(0002,0003)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/uid-changed.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/base.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 5,\n      \"errors\" : [\n        {\n          \"message\" : \"Type 1 File Meta Information element Media Storage SOP Class UID is empty\",\n          \"tag\" : \"(0002,0002)\"\n        },\n        {\n          \"message\" : \"Type 1 File Meta Information element Media Storage SOP Instance UID is empty\",\n          \"tag\" : \"(0002,0003)\"\n        },\n        {\n          \"message\" : \"Type 1 File Meta Information element Implementation Class UID is empty\",\n          \"tag\" : \"(0002,0012)\"\n        },\n        {\n          \"message\" : \"File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'\",\n          \"tag\" : \"(0002,0002)\"\n        },\n        {\n          \"message\" : \"File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'\",\n          \"tag\" : \"(0002,0003)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/empty-required-meta.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 5,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'\",\n          \"tag\" : \"(0002,0003)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/uid-changed.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/base.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "text"
+      ],
+      "exit": 1,
+      "stdout": "DICOM Validation Report\n=======================\n\nFile: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm\nStatus: \u2717 INVALID\n\nErrors (1):\n  \u2022 Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--strict"
+      ],
+      "exit": 1,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/fixtures\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 0\n}",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "text",
+        "--strict"
+      ],
+      "exit": 1,
+      "stdout": "DICOM Validation Report\n=======================\n\nFile: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm\nStatus: \u2717 INVALID\n\nErrors (1):\n  \u2022 Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n",
+      "stderr": "",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=512",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "stdout": "SET (0028,0010) Rows = 512\n1 change(s) applied.\nDry run complete \u2014 no files modified.\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20240229",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "stdout": "SET (0010,0030) Patient's Birth Date = 20240229\n1 change(s) applied.\nDry run complete \u2014 no files modified.\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=2026",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "stdout": "SET (0008,002A) Acquisition DateTime = 2026\n1 change(s) applied.\nDry run complete \u2014 no files modified.\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20261024103000.123456+0530",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "stdout": "SET (0008,002A) Acquisition DateTime = 20261024103000.123456+0530\n1 change(s) applied.\nDry run complete \u2014 no files modified.\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientName=",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "stdout": "SET (0010,0010) Patient's Name = \n1 change(s) applied.\nDry run complete \u2014 no files modified.\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=65536",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0010): [VR US, VM 1] 65536 is out of range for VR US (0...65535, PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SOPInstanceUID=2.25.222222222",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-instance.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-instance.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-instance.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/identity-instance.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SOPClassUID=1.2.840.10008.5.1.4.1.1.2",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-class.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-class.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/identity-class.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/identity-class.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientName=M\u00fcller^\u60a3\u8005",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--set",
+        "StudyDescription=  Leading text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/latin-edited.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/latin-edited.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "0010,0010",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-0.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-0.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-0.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/copy-0.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "(0010,0010)",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-1.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-1.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-1.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/copy-1.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "00100010",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-2.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-2.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-2.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/copy-2.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "PatientName",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-3.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-3.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-3.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/copy-3.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "0010,0010",
+        "--verbose",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-compatible-latin1.dcm"
+      ],
+      "exit": 0,
+      "stdout": "COPY (0010,0010) Patient's Name = M\u00fcller^J\u00f6rg\n1 change(s) applied.\nOutput written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-compatible-latin1.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/copy-compatible-latin1.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/copy-compatible-latin1.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SmallestImagePixelValue=-1",
+        "--set",
+        "PixelRepresentation=1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-0.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-0.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-0.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/signed-0.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/signed.dcm",
+        "--set",
+        "SmallestImagePixelValue=-1",
+        "--set",
+        "PixelRepresentation=1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-1.dcm"
+      ],
+      "exit": 0,
+      "stdout": "Output written to: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-1.dcm\n",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-validate",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/signed-1.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"files\" : [\n    {\n      \"errorCount\" : 0,\n      \"errors\" : [\n\n      ],\n      \"filePath\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/integrated-final\\/m2\\/cli\\/signed-1.dcm\",\n      \"isValid\" : true,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 0,\n  \"totalErrors\" : 0,\n  \"totalFiles\" : 1,\n  \"totalWarnings\" : 0,\n  \"validFiles\" : 1\n}",
+      "stderr": "",
+      "expected_exit": 0
+    },
+    {
+      "tool": "dicom-tags",
+      "argv": [
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelRepresentation=0",
+        "--set",
+        "SmallestImagePixelValue=-1",
+        "--dry-run"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "Error: --set (0028,0106): [VR US, VM 1] -1 is out of range for VR US (0...65535, PS3.5 Table 6.2-1)\n",
+      "expected_exit": 1
+    }
+  ]
+}

@@ -1,0 +1,2511 @@
+{
+  "source_root": "repository root",
+  "source_head": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
+  "method": "Current Swift declarations read without build or runtime execution. OptionGroup membership expanded; wrapper metadata is parsed without help prose. No product changes.",
+  "count_rule": "Each argument, option or flag property counts once; aliases/negative spellings do not add properties. Built-in help/version excluded from property counts. Optional flags remain nil/unset and inherit resolved settings.",
+  "tools": [
+    {
+      "tool": "dicom-print",
+      "default_subcommand": "send",
+      "source_sha256": {
+        "Sources/dicom-print/main.swift": "0bfec013b62f4c7688ad20483eba392acb0d83a0797cdf905bd36fadc75dbaf8"
+      },
+      "commands": [
+        {
+          "name": "dicom-print",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 28,
+          "option_groups": [],
+          "direct_parameter_ids": [],
+          "effective_parameter_ids": [],
+          "effective_parameter_count": 0,
+          "effective_spellings": []
+        },
+        {
+          "name": "status",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 125,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "StatusCommand.url",
+            "StatusCommand.aet",
+            "StatusCommand.calledAet",
+            "StatusCommand.timeout",
+            "StatusCommand.verbose",
+            "StatusCommand.format"
+          ],
+          "effective_parameter_ids": [
+            "StatusCommand.url",
+            "StatusCommand.aet",
+            "StatusCommand.calledAet",
+            "StatusCommand.timeout",
+            "StatusCommand.verbose",
+            "StatusCommand.format"
+          ],
+          "effective_parameter_count": 6,
+          "effective_spellings": [
+            "<url>",
+            "--aet",
+            "--called-aet",
+            "--timeout",
+            "-v",
+            "--verbose",
+            "--format"
+          ]
+        },
+        {
+          "name": "send",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 207,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "SendCommand.url",
+            "SendCommand.paths",
+            "SendCommand.aet",
+            "SendCommand.calledAet",
+            "SendCommand.copies",
+            "SendCommand.filmSize",
+            "SendCommand.orientation",
+            "SendCommand.priority",
+            "SendCommand.layout",
+            "SendCommand.template",
+            "SendCommand.medium",
+            "SendCommand.magnification",
+            "SendCommand.filmDestination",
+            "SendCommand.checkStatus",
+            "SendCommand.verifyFirst",
+            "SendCommand.format",
+            "SendCommand.color",
+            "SendCommand.frame",
+            "SendCommand.allFrames",
+            "SendCommand.raw",
+            "SendCommand.windowCenter",
+            "SendCommand.windowWidth",
+            "SendCommand.bitDepth",
+            "SendCommand.presentationLut",
+            "SendCommand.palette",
+            "SendCommand.annotate",
+            "SendCommand.annotationFormat",
+            "SendCommand.recursive",
+            "SendCommand.dryRun",
+            "SendCommand.verbose",
+            "SendCommand.timeout",
+            "SendCommand.retries"
+          ],
+          "effective_parameter_ids": [
+            "SendCommand.url",
+            "SendCommand.paths",
+            "SendCommand.aet",
+            "SendCommand.calledAet",
+            "SendCommand.copies",
+            "SendCommand.filmSize",
+            "SendCommand.orientation",
+            "SendCommand.priority",
+            "SendCommand.layout",
+            "SendCommand.template",
+            "SendCommand.medium",
+            "SendCommand.magnification",
+            "SendCommand.filmDestination",
+            "SendCommand.checkStatus",
+            "SendCommand.verifyFirst",
+            "SendCommand.format",
+            "SendCommand.color",
+            "SendCommand.frame",
+            "SendCommand.allFrames",
+            "SendCommand.raw",
+            "SendCommand.windowCenter",
+            "SendCommand.windowWidth",
+            "SendCommand.bitDepth",
+            "SendCommand.presentationLut",
+            "SendCommand.palette",
+            "SendCommand.annotate",
+            "SendCommand.annotationFormat",
+            "SendCommand.recursive",
+            "SendCommand.dryRun",
+            "SendCommand.verbose",
+            "SendCommand.timeout",
+            "SendCommand.retries"
+          ],
+          "effective_parameter_count": 32,
+          "effective_spellings": [
+            "<url>",
+            "<paths>",
+            "--aet",
+            "--called-aet",
+            "--copies",
+            "--film-size",
+            "--orientation",
+            "--priority",
+            "--layout",
+            "--template",
+            "--medium",
+            "--magnification",
+            "--film-destination",
+            "--check-status",
+            "--verify",
+            "--format",
+            "--color",
+            "--frame",
+            "--all-frames",
+            "--raw",
+            "--window-center",
+            "--window-width",
+            "--bit-depth",
+            "--presentation-lut",
+            "--palette",
+            "--annotate",
+            "--annotation-format",
+            "-r",
+            "--recursive",
+            "--dry-run",
+            "-v",
+            "--verbose",
+            "--timeout",
+            "--retries"
+          ]
+        },
+        {
+          "name": "job",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 714,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "JobCommand.url",
+            "JobCommand.aet",
+            "JobCommand.calledAet",
+            "JobCommand.jobId",
+            "JobCommand.timeout",
+            "JobCommand.verbose",
+            "JobCommand.format"
+          ],
+          "effective_parameter_ids": [
+            "JobCommand.url",
+            "JobCommand.aet",
+            "JobCommand.calledAet",
+            "JobCommand.jobId",
+            "JobCommand.timeout",
+            "JobCommand.verbose",
+            "JobCommand.format"
+          ],
+          "effective_parameter_count": 7,
+          "effective_spellings": [
+            "<url>",
+            "--aet",
+            "--called-aet",
+            "--job-id",
+            "--timeout",
+            "-v",
+            "--verbose",
+            "--format"
+          ]
+        },
+        {
+          "name": "list-printers",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 798,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "ListPrintersCommand.format",
+            "ListPrintersCommand.verbose"
+          ],
+          "effective_parameter_ids": [
+            "ListPrintersCommand.format",
+            "ListPrintersCommand.verbose"
+          ],
+          "effective_parameter_count": 2,
+          "effective_spellings": [
+            "--format",
+            "-v",
+            "--verbose"
+          ]
+        },
+        {
+          "name": "add-printer",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 885,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "AddPrinterCommand.name",
+            "AddPrinterCommand.host",
+            "AddPrinterCommand.port",
+            "AddPrinterCommand.calledAe",
+            "AddPrinterCommand.callingAe",
+            "AddPrinterCommand.color",
+            "AddPrinterCommand.default"
+          ],
+          "effective_parameter_ids": [
+            "AddPrinterCommand.name",
+            "AddPrinterCommand.host",
+            "AddPrinterCommand.port",
+            "AddPrinterCommand.calledAe",
+            "AddPrinterCommand.callingAe",
+            "AddPrinterCommand.color",
+            "AddPrinterCommand.default"
+          ],
+          "effective_parameter_count": 7,
+          "effective_spellings": [
+            "--name",
+            "--host",
+            "--port",
+            "--called-ae",
+            "--calling-ae",
+            "--color",
+            "--default"
+          ]
+        },
+        {
+          "name": "remove-printer",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 950,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "RemovePrinterCommand.name"
+          ],
+          "effective_parameter_ids": [
+            "RemovePrinterCommand.name"
+          ],
+          "effective_parameter_count": 1,
+          "effective_spellings": [
+            "--name"
+          ]
+        }
+      ],
+      "groups": {},
+      "declarations": [
+        {
+          "id": "StatusCommand.url",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 146,
+          "kind": "Argument",
+          "names": [
+            "<url>"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer URL (pacs://host:port)"
+        },
+        {
+          "id": "StatusCommand.aet",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 149,
+          "kind": "Option",
+          "names": [
+            "--aet"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Local Application Entity Title (calling AE)"
+        },
+        {
+          "id": "StatusCommand.calledAet",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 152,
+          "kind": "Option",
+          "names": [
+            "--called-aet"
+          ],
+          "type": "String",
+          "declaration_default": "\"ANY-SCP\"",
+          "repeatable": false,
+          "help_source_text": "Remote Application Entity Title (default: ANY-SCP)"
+        },
+        {
+          "id": "StatusCommand.timeout",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 155,
+          "kind": "Option",
+          "names": [
+            "--timeout"
+          ],
+          "type": "Int",
+          "declaration_default": "30",
+          "repeatable": false,
+          "help_source_text": "Connection timeout in seconds (default: 30)"
+        },
+        {
+          "id": "StatusCommand.verbose",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 158,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show verbose output"
+        },
+        {
+          "id": "StatusCommand.format",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 161,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json (default: text)"
+        },
+        {
+          "id": "SendCommand.url",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 234,
+          "kind": "Argument",
+          "names": [
+            "<url>"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer URL (pacs://host:port)"
+        },
+        {
+          "id": "SendCommand.paths",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 237,
+          "kind": "Argument",
+          "names": [
+            "<paths>"
+          ],
+          "type": "[String]",
+          "declaration_default": "required positional/value",
+          "repeatable": true,
+          "help_source_text": "DICOM files or directories to print"
+        },
+        {
+          "id": "SendCommand.aet",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 240,
+          "kind": "Option",
+          "names": [
+            "--aet"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Local Application Entity Title (calling AE)"
+        },
+        {
+          "id": "SendCommand.calledAet",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 243,
+          "kind": "Option",
+          "names": [
+            "--called-aet"
+          ],
+          "type": "String",
+          "declaration_default": "\"ANY-SCP\"",
+          "repeatable": false,
+          "help_source_text": "Remote Application Entity Title (default: ANY-SCP)"
+        },
+        {
+          "id": "SendCommand.copies",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 246,
+          "kind": "Option",
+          "names": [
+            "--copies"
+          ],
+          "type": "Int",
+          "declaration_default": "1",
+          "repeatable": false,
+          "help_source_text": "Number of Copies (2000,0010), 1 or more (default: 1)"
+        },
+        {
+          "id": "SendCommand.filmSize",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 249,
+          "kind": "Option",
+          "names": [
+            "--film-size"
+          ],
+          "type": "FilmSizeOption",
+          "declaration_default": ".size14x17",
+          "repeatable": false,
+          "help_source_text": "Film Size ID (2010,0050), PS3.3 Table C.13-3; token (Defined Term, also accepted): \\(FilmSizeOption.tokenList) (default: 14x17)"
+        },
+        {
+          "id": "SendCommand.orientation",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 252,
+          "kind": "Option",
+          "names": [
+            "--orientation"
+          ],
+          "type": "OrientationOption",
+          "declaration_default": ".portrait",
+          "repeatable": false,
+          "help_source_text": "Film Orientation (2010,0040): \\(OrientationOption.tokenList) (default: portrait)"
+        },
+        {
+          "id": "SendCommand.priority",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 255,
+          "kind": "Option",
+          "names": [
+            "--priority"
+          ],
+          "type": "PrintPriorityOption",
+          "declaration_default": ".medium",
+          "repeatable": false,
+          "help_source_text": "Print Priority (2000,0020), PS3.3 Table C.13-1: \\(PrintPriorityOption.tokenList) (default: medium)"
+        },
+        {
+          "id": "SendCommand.layout",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 258,
+          "kind": "Option",
+          "names": [
+            "--layout"
+          ],
+          "type": "LayoutOption?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Image Display Format (2010,0010): a grid RxC (1x1 to 4x5; R rows by C columns, sent as STANDARD\\\\C,R) or any PS3.3 Table C.13-3 form — STANDARD\\\\C,R, ROW\\\\R1,R2,..., COL\\\\C1,C2,..., SLIDE, SUPERSLIDE, CUSTOM\\\\i (quote it, the shell eats backslashes); auto if not specified"
+        },
+        {
+          "id": "SendCommand.template",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 261,
+          "kind": "Option",
+          "names": [
+            "--template"
+          ],
+          "type": "TemplateOption?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Layout preset: single, comparison, grid, multi-phase (sets layout + film size + orientation; conflicts with --layout)"
+        },
+        {
+          "id": "SendCommand.medium",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 264,
+          "kind": "Option",
+          "names": [
+            "--medium"
+          ],
+          "type": "MediumOption",
+          "declaration_default": ".paper",
+          "repeatable": false,
+          "help_source_text": "Medium Type (2000,0030), PS3.3 Table C.13-1: \\(MediumOption.tokenList) (default: paper)"
+        },
+        {
+          "id": "SendCommand.magnification",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 267,
+          "kind": "Option",
+          "names": [
+            "--magnification"
+          ],
+          "type": "MagnificationOption",
+          "declaration_default": ".replicate",
+          "repeatable": false,
+          "help_source_text": "Magnification Type (2010,0060): \\(MagnificationOption.tokenList) (default: replicate)"
+        },
+        {
+          "id": "SendCommand.filmDestination",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 270,
+          "kind": "Option",
+          "names": [
+            "--film-destination"
+          ],
+          "type": "FilmDestinationOption",
+          "declaration_default": ".processor",
+          "repeatable": false,
+          "help_source_text": "Film Destination (2000,0040): \\(FilmDestinationOption.tokenList) (default: processor). PS3.3 Table C.13-1 numbers sorter bins from 1 with no maximum; any bin-N / BIN_N is sent (no leading zeros)"
+        },
+        {
+          "id": "SendCommand.checkStatus",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 273,
+          "kind": "Flag",
+          "names": [
+            "--check-status"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "N-GET Printer Status (2110,0010) before printing; abort on FAILURE, warn on WARNING"
+        },
+        {
+          "id": "SendCommand.verifyFirst",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 276,
+          "kind": "Flag",
+          "names": [
+            "--verify"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Perform a C-ECHO connectivity check against the printer before printing"
+        },
+        {
+          "id": "SendCommand.format",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 279,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json (json writes the result object to stdout; diagnostics stay on stderr)"
+        },
+        {
+          "id": "SendCommand.color",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 282,
+          "kind": "Option",
+          "names": [
+            "--color"
+          ],
+          "type": "ColorModeOption",
+          "declaration_default": ".grayscale",
+          "repeatable": false,
+          "help_source_text": "Meta SOP Class negotiated: grayscale = Basic Grayscale Print Management Meta SOP Class (1.2.840.10008.5.1.1.9), color = Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18) (default: grayscale)"
+        },
+        {
+          "id": "SendCommand.frame",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 285,
+          "kind": "Option",
+          "names": [
+            "--frame"
+          ],
+          "type": "Int",
+          "declaration_default": "1",
+          "repeatable": false,
+          "help_source_text": "1-based frame to print from multi-frame files (default: 1)"
+        },
+        {
+          "id": "SendCommand.allFrames",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 288,
+          "kind": "Flag",
+          "names": [
+            "--all-frames"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Print every frame of multi-frame files (one image box per frame)"
+        },
+        {
+          "id": "SendCommand.raw",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 291,
+          "kind": "Flag",
+          "names": [
+            "--raw"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Send stored pixel values without preprocessing (no rescale/window/inversion). Compressed sources are still decoded."
+        },
+        {
+          "id": "SendCommand.windowCenter",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 294,
+          "kind": "Option",
+          "names": [
+            "--window-center"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Explicit VOI window center (requires --window-width; overrides the data set's window)"
+        },
+        {
+          "id": "SendCommand.windowWidth",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 297,
+          "kind": "Option",
+          "names": [
+            "--window-width"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Explicit VOI window width (requires --window-center)"
+        },
+        {
+          "id": "SendCommand.bitDepth",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 300,
+          "kind": "Option",
+          "names": [
+            "--bit-depth"
+          ],
+          "type": "Int",
+          "declaration_default": "8",
+          "repeatable": false,
+          "help_source_text": "Grayscale output bit depth: 8 or 12 (default: 8). PS3.3 Table C.13-5 allows Bits Stored of 8 or 12 only; 12 sends 12-in-16 P-Values. A higher value is clamped, not refused."
+        },
+        {
+          "id": "SendCommand.presentationLut",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 303,
+          "kind": "Option",
+          "names": [
+            "--presentation-lut"
+          ],
+          "type": "PresentationLUTOption?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Presentation LUT Shape (2050,0020), PS3.3 Table C.11-4: \\(PresentationLUTOption.tokenList) (default: none, no Presentation LUT is created)"
+        },
+        {
+          "id": "SendCommand.palette",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 306,
+          "kind": "Option",
+          "names": [
+            "--palette"
+          ],
+          "type": "PaletteOption?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Pseudo-colour palette baked into the pixels (default: none, grayscale); PaletteOption.discussion supplies further help."
+        },
+        {
+          "id": "SendCommand.annotate",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 311,
+          "kind": "Option",
+          "names": [
+            "--annotate"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Text String (2030,0020) of a Basic Annotation Box (repeatable; Annotation Position (2030,0010) is the order given). Requires --annotation-format."
+        },
+        {
+          "id": "SendCommand.annotationFormat",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 314,
+          "kind": "Option",
+          "names": [
+            "--annotation-format"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Annotation Display Format ID (2010,0030), defined in the printer's Conformance Statement (required with --annotate)"
+        },
+        {
+          "id": "SendCommand.recursive",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 317,
+          "kind": "Flag",
+          "names": [
+            "-r",
+            "--recursive"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Recursively scan directories for DICOM files"
+        },
+        {
+          "id": "SendCommand.dryRun",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 320,
+          "kind": "Flag",
+          "names": [
+            "--dry-run"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show what would be printed without actually printing"
+        },
+        {
+          "id": "SendCommand.verbose",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 323,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show verbose output with progress"
+        },
+        {
+          "id": "SendCommand.timeout",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 326,
+          "kind": "Option",
+          "names": [
+            "--timeout"
+          ],
+          "type": "Int",
+          "declaration_default": "60",
+          "repeatable": false,
+          "help_source_text": "Connection timeout in seconds (default: 60)"
+        },
+        {
+          "id": "SendCommand.retries",
+          "owner": "SendCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 329,
+          "kind": "Option",
+          "names": [
+            "--retries"
+          ],
+          "type": "Int",
+          "declaration_default": "0",
+          "repeatable": false,
+          "help_source_text": "Retry the print on connection/setup failure, up to N times with exponential backoff (default: 0)"
+        },
+        {
+          "id": "JobCommand.url",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 734,
+          "kind": "Argument",
+          "names": [
+            "<url>"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer URL (pacs://host:port)"
+        },
+        {
+          "id": "JobCommand.aet",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 737,
+          "kind": "Option",
+          "names": [
+            "--aet"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Local Application Entity Title (calling AE)"
+        },
+        {
+          "id": "JobCommand.calledAet",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 740,
+          "kind": "Option",
+          "names": [
+            "--called-aet"
+          ],
+          "type": "String",
+          "declaration_default": "\"ANY-SCP\"",
+          "repeatable": false,
+          "help_source_text": "Remote Application Entity Title (default: ANY-SCP)"
+        },
+        {
+          "id": "JobCommand.jobId",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 743,
+          "kind": "Option",
+          "names": [
+            "--job-id"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Print Job SOP Instance UID to query"
+        },
+        {
+          "id": "JobCommand.timeout",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 746,
+          "kind": "Option",
+          "names": [
+            "--timeout"
+          ],
+          "type": "Int",
+          "declaration_default": "30",
+          "repeatable": false,
+          "help_source_text": "Connection timeout in seconds (default: 30)"
+        },
+        {
+          "id": "JobCommand.verbose",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 749,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show verbose output"
+        },
+        {
+          "id": "JobCommand.format",
+          "owner": "JobCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 752,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json (default: text)"
+        },
+        {
+          "id": "ListPrintersCommand.format",
+          "owner": "ListPrintersCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 815,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json (default: text)"
+        },
+        {
+          "id": "ListPrintersCommand.verbose",
+          "owner": "ListPrintersCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 818,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show verbose output"
+        },
+        {
+          "id": "AddPrinterCommand.name",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 902,
+          "kind": "Option",
+          "names": [
+            "--name"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer name (identifier)"
+        },
+        {
+          "id": "AddPrinterCommand.host",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 905,
+          "kind": "Option",
+          "names": [
+            "--host"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer hostname or IP address"
+        },
+        {
+          "id": "AddPrinterCommand.port",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 908,
+          "kind": "Option",
+          "names": [
+            "--port"
+          ],
+          "type": "Int",
+          "declaration_default": "11112",
+          "repeatable": false,
+          "help_source_text": "Printer DICOM port (default: 11112)"
+        },
+        {
+          "id": "AddPrinterCommand.calledAe",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 911,
+          "kind": "Option",
+          "names": [
+            "--called-ae"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Remote Application Entity Title (called AE)"
+        },
+        {
+          "id": "AddPrinterCommand.callingAe",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 914,
+          "kind": "Option",
+          "names": [
+            "--calling-ae"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Local Application Entity Title (calling AE, optional)"
+        },
+        {
+          "id": "AddPrinterCommand.color",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 917,
+          "kind": "Option",
+          "names": [
+            "--color"
+          ],
+          "type": "ColorModeOption",
+          "declaration_default": ".grayscale",
+          "repeatable": false,
+          "help_source_text": "Color mode: grayscale, color (default: grayscale)"
+        },
+        {
+          "id": "AddPrinterCommand.default",
+          "owner": "AddPrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 920,
+          "kind": "Flag",
+          "names": [
+            "--default"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Set as default printer"
+        },
+        {
+          "id": "RemovePrinterCommand.name",
+          "owner": "RemovePrinterCommand",
+          "source": "Sources/dicom-print/main.swift",
+          "line": 962,
+          "kind": "Option",
+          "names": [
+            "--name"
+          ],
+          "type": "String",
+          "declaration_default": "required positional/value",
+          "repeatable": false,
+          "help_source_text": "Printer name to remove"
+        }
+      ],
+      "declaration_property_count": 55
+    },
+    {
+      "tool": "dicom-printscp",
+      "default_subcommand": "serve",
+      "source_sha256": {
+        "Sources/dicom-printscp/DICOMPrintSCPCommand.swift": "99aa538792c6a21c84aebb1f560d3d4ed3bf7e03daf306f47382c57e3f8a38c4",
+        "Sources/dicom-printscp/EmulatorOptions.swift": "8a33090abfa16b27303107ae696e027eee0eeb28e191d857fde512a1be1ff8a1",
+        "Sources/dicom-printscp/InfoCommands.swift": "56dbcc7239fd7ad2c180005102b1b1b7a78987d2498aea358a920ec56a5c61fe",
+        "Sources/dicom-printscp/ServeCommand.swift": "d0355362b5302559958834271eb58c6add1ba780d8bd82987bf212a763d5ab70",
+        "Sources/dicom-printscp/SimulateCommand.swift": "ab6c7fcfe7545bd120d4074f36c31c580b234244bb1e86429a647103abe24723"
+      },
+      "commands": [
+        {
+          "name": "dicom-printscp",
+          "source": "Sources/dicom-printscp/DICOMPrintSCPCommand.swift",
+          "line": 23,
+          "option_groups": [],
+          "direct_parameter_ids": [],
+          "effective_parameter_ids": [],
+          "effective_parameter_count": 0,
+          "effective_spellings": []
+        },
+        {
+          "name": "status",
+          "source": "Sources/dicom-printscp/InfoCommands.swift",
+          "line": 17,
+          "option_groups": [
+            "TransportOptions",
+            "CompositionOptions",
+            "FilmOutputOptions",
+            "ConfigOptions"
+          ],
+          "direct_parameter_ids": [
+            "StatusCommand.format",
+            "StatusCommand.verbose"
+          ],
+          "effective_parameter_ids": [
+            "StatusCommand.format",
+            "StatusCommand.verbose",
+            "TransportOptions.port",
+            "TransportOptions.aeTitle",
+            "TransportOptions.maxAssociations",
+            "TransportOptions.idleTimeout",
+            "TransportOptions.allowAe",
+            "TransportOptions.denyAe",
+            "TransportOptions.maxPdu",
+            "TransportOptions.acceptColor",
+            "TransportOptions.presentationLUT",
+            "TransportOptions.annotationBox",
+            "TransportOptions.annotationBoxesPerFilm",
+            "TransportOptions.pushJobEvents",
+            "TransportOptions.filmSize",
+            "TransportOptions.medium",
+            "TransportOptions.maxImageBoxes",
+            "TransportOptions.maxImageDimension",
+            "TransportOptions.printerName",
+            "TransportOptions.manufacturer",
+            "TransportOptions.model",
+            "TransportOptions.serialNumber",
+            "TransportOptions.softwareVersion",
+            "TransportOptions.printerStatus",
+            "TransportOptions.statusInfo",
+            "CompositionOptions.dpi",
+            "CompositionOptions.density",
+            "CompositionOptions.marginMm",
+            "CompositionOptions.cellSpacingMm",
+            "CompositionOptions.annotations",
+            "CompositionOptions.trimMarks",
+            "CompositionOptions.maxPixels",
+            "FilmOutputOptions.output",
+            "FilmOutputOptions.outputDir",
+            "FilmOutputOptions.namePattern",
+            "FilmOutputOptions.paperQueue",
+            "FilmOutputOptions.allowPaper",
+            "FilmOutputOptions.open",
+            "ConfigOptions.config",
+            "ConfigOptions.saveConfig"
+          ],
+          "effective_parameter_count": 40,
+          "effective_spellings": [
+            "--port",
+            "--ae-title",
+            "--max-associations",
+            "--idle-timeout",
+            "--allow-ae",
+            "--deny-ae",
+            "--max-pdu",
+            "--accept-color",
+            "--no-accept-color",
+            "--presentation-lut",
+            "--no-presentation-lut",
+            "--annotation-box",
+            "--no-annotation-box",
+            "--annotation-boxes-per-film",
+            "--push-job-events",
+            "--film-size",
+            "--medium",
+            "--max-image-boxes",
+            "--max-image-dimension",
+            "--printer-name",
+            "--manufacturer",
+            "--model",
+            "--serial-number",
+            "--software-version",
+            "--printer-status",
+            "--status-info",
+            "--dpi",
+            "--density",
+            "--margin-mm",
+            "--cell-spacing-mm",
+            "--annotations",
+            "--no-annotations",
+            "--trim-marks",
+            "--no-trim-marks",
+            "--max-pixels",
+            "--output",
+            "--output-dir",
+            "--name-pattern",
+            "--paper-queue",
+            "--allow-paper",
+            "--open",
+            "--config",
+            "--save-config",
+            "--format",
+            "-v",
+            "--verbose"
+          ]
+        },
+        {
+          "name": "queues",
+          "source": "Sources/dicom-printscp/InfoCommands.swift",
+          "line": 83,
+          "option_groups": [],
+          "direct_parameter_ids": [
+            "QueuesCommand.format"
+          ],
+          "effective_parameter_ids": [
+            "QueuesCommand.format"
+          ],
+          "effective_parameter_count": 1,
+          "effective_spellings": [
+            "--format"
+          ]
+        },
+        {
+          "name": "serve",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 15,
+          "option_groups": [
+            "TransportOptions",
+            "CompositionOptions",
+            "FilmOutputOptions",
+            "ConfigOptions"
+          ],
+          "direct_parameter_ids": [
+            "ServeCommand.maxFilms",
+            "ServeCommand.duration",
+            "ServeCommand.format",
+            "ServeCommand.verbose",
+            "ServeCommand.quiet"
+          ],
+          "effective_parameter_ids": [
+            "ServeCommand.maxFilms",
+            "ServeCommand.duration",
+            "ServeCommand.format",
+            "ServeCommand.verbose",
+            "ServeCommand.quiet",
+            "TransportOptions.port",
+            "TransportOptions.aeTitle",
+            "TransportOptions.maxAssociations",
+            "TransportOptions.idleTimeout",
+            "TransportOptions.allowAe",
+            "TransportOptions.denyAe",
+            "TransportOptions.maxPdu",
+            "TransportOptions.acceptColor",
+            "TransportOptions.presentationLUT",
+            "TransportOptions.annotationBox",
+            "TransportOptions.annotationBoxesPerFilm",
+            "TransportOptions.pushJobEvents",
+            "TransportOptions.filmSize",
+            "TransportOptions.medium",
+            "TransportOptions.maxImageBoxes",
+            "TransportOptions.maxImageDimension",
+            "TransportOptions.printerName",
+            "TransportOptions.manufacturer",
+            "TransportOptions.model",
+            "TransportOptions.serialNumber",
+            "TransportOptions.softwareVersion",
+            "TransportOptions.printerStatus",
+            "TransportOptions.statusInfo",
+            "CompositionOptions.dpi",
+            "CompositionOptions.density",
+            "CompositionOptions.marginMm",
+            "CompositionOptions.cellSpacingMm",
+            "CompositionOptions.annotations",
+            "CompositionOptions.trimMarks",
+            "CompositionOptions.maxPixels",
+            "FilmOutputOptions.output",
+            "FilmOutputOptions.outputDir",
+            "FilmOutputOptions.namePattern",
+            "FilmOutputOptions.paperQueue",
+            "FilmOutputOptions.allowPaper",
+            "FilmOutputOptions.open",
+            "ConfigOptions.config",
+            "ConfigOptions.saveConfig"
+          ],
+          "effective_parameter_count": 43,
+          "effective_spellings": [
+            "--port",
+            "--ae-title",
+            "--max-associations",
+            "--idle-timeout",
+            "--allow-ae",
+            "--deny-ae",
+            "--max-pdu",
+            "--accept-color",
+            "--no-accept-color",
+            "--presentation-lut",
+            "--no-presentation-lut",
+            "--annotation-box",
+            "--no-annotation-box",
+            "--annotation-boxes-per-film",
+            "--push-job-events",
+            "--film-size",
+            "--medium",
+            "--max-image-boxes",
+            "--max-image-dimension",
+            "--printer-name",
+            "--manufacturer",
+            "--model",
+            "--serial-number",
+            "--software-version",
+            "--printer-status",
+            "--status-info",
+            "--dpi",
+            "--density",
+            "--margin-mm",
+            "--cell-spacing-mm",
+            "--annotations",
+            "--no-annotations",
+            "--trim-marks",
+            "--no-trim-marks",
+            "--max-pixels",
+            "--output",
+            "--output-dir",
+            "--name-pattern",
+            "--paper-queue",
+            "--allow-paper",
+            "--open",
+            "--config",
+            "--save-config",
+            "--max-films",
+            "--duration",
+            "--format",
+            "-v",
+            "--verbose",
+            "--quiet"
+          ]
+        },
+        {
+          "name": "simulate",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 20,
+          "option_groups": [
+            "CompositionOptions",
+            "FilmOutputOptions",
+            "ConfigOptions"
+          ],
+          "direct_parameter_ids": [
+            "SimulateCommand.paths",
+            "SimulateCommand.layout",
+            "SimulateCommand.filmSize",
+            "SimulateCommand.orientation",
+            "SimulateCommand.magnification",
+            "SimulateCommand.medium",
+            "SimulateCommand.copies",
+            "SimulateCommand.polarity",
+            "SimulateCommand.presentationLut",
+            "SimulateCommand.trim",
+            "SimulateCommand.borderDensity",
+            "SimulateCommand.emptyDensity",
+            "SimulateCommand.annotate",
+            "SimulateCommand.annotationFormat",
+            "SimulateCommand.color",
+            "SimulateCommand.frame",
+            "SimulateCommand.allFrames",
+            "SimulateCommand.raw",
+            "SimulateCommand.windowCenter",
+            "SimulateCommand.windowWidth",
+            "SimulateCommand.bitDepth",
+            "SimulateCommand.recursive",
+            "SimulateCommand.callingAe",
+            "SimulateCommand.format",
+            "SimulateCommand.verbose",
+            "SimulateCommand.quiet"
+          ],
+          "effective_parameter_ids": [
+            "SimulateCommand.paths",
+            "SimulateCommand.layout",
+            "SimulateCommand.filmSize",
+            "SimulateCommand.orientation",
+            "SimulateCommand.magnification",
+            "SimulateCommand.medium",
+            "SimulateCommand.copies",
+            "SimulateCommand.polarity",
+            "SimulateCommand.presentationLut",
+            "SimulateCommand.trim",
+            "SimulateCommand.borderDensity",
+            "SimulateCommand.emptyDensity",
+            "SimulateCommand.annotate",
+            "SimulateCommand.annotationFormat",
+            "SimulateCommand.color",
+            "SimulateCommand.frame",
+            "SimulateCommand.allFrames",
+            "SimulateCommand.raw",
+            "SimulateCommand.windowCenter",
+            "SimulateCommand.windowWidth",
+            "SimulateCommand.bitDepth",
+            "SimulateCommand.recursive",
+            "SimulateCommand.callingAe",
+            "SimulateCommand.format",
+            "SimulateCommand.verbose",
+            "SimulateCommand.quiet",
+            "CompositionOptions.dpi",
+            "CompositionOptions.density",
+            "CompositionOptions.marginMm",
+            "CompositionOptions.cellSpacingMm",
+            "CompositionOptions.annotations",
+            "CompositionOptions.trimMarks",
+            "CompositionOptions.maxPixels",
+            "FilmOutputOptions.output",
+            "FilmOutputOptions.outputDir",
+            "FilmOutputOptions.namePattern",
+            "FilmOutputOptions.paperQueue",
+            "FilmOutputOptions.allowPaper",
+            "FilmOutputOptions.open",
+            "ConfigOptions.config",
+            "ConfigOptions.saveConfig"
+          ],
+          "effective_parameter_count": 41,
+          "effective_spellings": [
+            "--dpi",
+            "--density",
+            "--margin-mm",
+            "--cell-spacing-mm",
+            "--annotations",
+            "--no-annotations",
+            "--trim-marks",
+            "--no-trim-marks",
+            "--max-pixels",
+            "--output",
+            "--output-dir",
+            "--name-pattern",
+            "--paper-queue",
+            "--allow-paper",
+            "--open",
+            "--config",
+            "--save-config",
+            "<paths>",
+            "--layout",
+            "--film-size",
+            "--orientation",
+            "--magnification",
+            "--medium",
+            "--copies",
+            "--polarity",
+            "--presentation-lut",
+            "--trim",
+            "--border-density",
+            "--empty-density",
+            "--annotate",
+            "--annotation-format",
+            "--color",
+            "--frame",
+            "--all-frames",
+            "--raw",
+            "--window-center",
+            "--window-width",
+            "--bit-depth",
+            "-r",
+            "--recursive",
+            "--calling-ae",
+            "--format",
+            "-v",
+            "--verbose",
+            "--quiet"
+          ]
+        }
+      ],
+      "groups": {
+        "TransportOptions": [
+          "TransportOptions.port",
+          "TransportOptions.aeTitle",
+          "TransportOptions.maxAssociations",
+          "TransportOptions.idleTimeout",
+          "TransportOptions.allowAe",
+          "TransportOptions.denyAe",
+          "TransportOptions.maxPdu",
+          "TransportOptions.acceptColor",
+          "TransportOptions.presentationLUT",
+          "TransportOptions.annotationBox",
+          "TransportOptions.annotationBoxesPerFilm",
+          "TransportOptions.pushJobEvents",
+          "TransportOptions.filmSize",
+          "TransportOptions.medium",
+          "TransportOptions.maxImageBoxes",
+          "TransportOptions.maxImageDimension",
+          "TransportOptions.printerName",
+          "TransportOptions.manufacturer",
+          "TransportOptions.model",
+          "TransportOptions.serialNumber",
+          "TransportOptions.softwareVersion",
+          "TransportOptions.printerStatus",
+          "TransportOptions.statusInfo"
+        ],
+        "CompositionOptions": [
+          "CompositionOptions.dpi",
+          "CompositionOptions.density",
+          "CompositionOptions.marginMm",
+          "CompositionOptions.cellSpacingMm",
+          "CompositionOptions.annotations",
+          "CompositionOptions.trimMarks",
+          "CompositionOptions.maxPixels"
+        ],
+        "FilmOutputOptions": [
+          "FilmOutputOptions.output",
+          "FilmOutputOptions.outputDir",
+          "FilmOutputOptions.namePattern",
+          "FilmOutputOptions.paperQueue",
+          "FilmOutputOptions.allowPaper",
+          "FilmOutputOptions.open"
+        ],
+        "ConfigOptions": [
+          "ConfigOptions.config",
+          "ConfigOptions.saveConfig"
+        ]
+      },
+      "declarations": [
+        {
+          "id": "TransportOptions.port",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 27,
+          "kind": "Option",
+          "names": [
+            "--port"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "TCP port to listen on (default: 11113)"
+        },
+        {
+          "id": "TransportOptions.aeTitle",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 30,
+          "kind": "Option",
+          "names": [
+            "--ae-title"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "AE title the emulator answers as (default: DCMPRINT)"
+        },
+        {
+          "id": "TransportOptions.maxAssociations",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 33,
+          "kind": "Option",
+          "names": [
+            "--max-associations"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Maximum concurrent associations (default: 10)"
+        },
+        {
+          "id": "TransportOptions.idleTimeout",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 36,
+          "kind": "Option",
+          "names": [
+            "--idle-timeout"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Seconds an idle association may sit before it is aborted; 0 disables (default: 300)"
+        },
+        {
+          "id": "TransportOptions.allowAe",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 39,
+          "kind": "Option",
+          "names": [
+            "--allow-ae"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Calling AE title to accept (repeatable; default: accept all)"
+        },
+        {
+          "id": "TransportOptions.denyAe",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 42,
+          "kind": "Option",
+          "names": [
+            "--deny-ae"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Calling AE title to refuse (repeatable; takes precedence over --allow-ae)"
+        },
+        {
+          "id": "TransportOptions.maxPdu",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 45,
+          "kind": "Option",
+          "names": [
+            "--max-pdu"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Maximum Length of a received P-DATA-TF PDU offered during negotiation (PS3.8 D.1), in bytes (default: 65536)"
+        },
+        {
+          "id": "TransportOptions.acceptColor",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 48,
+          "kind": "Flag",
+          "names": [
+            "--accept-color",
+            "--no-accept-color"
+          ],
+          "type": "Bool?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Accept the Basic Color Print Management Meta SOP Class (1.2.840.10008.5.1.1.18); --no-accept-color offers grayscale only (default: yes)"
+        },
+        {
+          "id": "TransportOptions.presentationLUT",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 52,
+          "kind": "Flag",
+          "names": [
+            "--presentation-lut",
+            "--no-presentation-lut"
+          ],
+          "type": "Bool?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Accept the Presentation LUT SOP Class (1.2.840.10008.5.1.1.23): N-CREATE of Presentation LUT Shape (2050,0020) or a Presentation LUT Sequence (default: yes)"
+        },
+        {
+          "id": "TransportOptions.annotationBox",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 56,
+          "kind": "Flag",
+          "names": [
+            "--annotation-box",
+            "--no-annotation-box"
+          ],
+          "type": "Bool?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Accept the Basic Annotation Box SOP Class (1.2.840.10008.5.1.1.15): N-SET of Text String (2030,0020) (default: yes)"
+        },
+        {
+          "id": "TransportOptions.annotationBoxesPerFilm",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 60,
+          "kind": "Option",
+          "names": [
+            "--annotation-boxes-per-film"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Basic Annotation Box instances created per film box, referenced in Referenced Basic Annotation Box Sequence (2010,0520) (default: 6)"
+        },
+        {
+          "id": "TransportOptions.pushJobEvents",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 63,
+          "kind": "Flag",
+          "names": [
+            "--push-job-events"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Send a Print Job SOP Class (1.2.840.10008.5.1.1.14) N-EVENT-REPORT, Event Type Done (3, PS3.4 Table H.4-14), after each N-ACTION"
+        },
+        {
+          "id": "TransportOptions.filmSize",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 66,
+          "kind": "Option",
+          "names": [
+            "--film-size"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Film Size ID (2010,0050) to accept (repeatable; default: all). Values (the Defined Term is also accepted): \\(OptionTokens.filmSizes)"
+        },
+        {
+          "id": "TransportOptions.medium",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 70,
+          "kind": "Option",
+          "names": [
+            "--medium"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Medium Type (2000,0030) to accept (repeatable; default: all). Values (the Defined Term is also accepted): \\(OptionTokens.media)"
+        },
+        {
+          "id": "TransportOptions.maxImageBoxes",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 74,
+          "kind": "Option",
+          "names": [
+            "--max-image-boxes"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Maximum image boxes an Image Display Format (2010,0010) may declare (default: 64)"
+        },
+        {
+          "id": "TransportOptions.maxImageDimension",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 77,
+          "kind": "Option",
+          "names": [
+            "--max-image-dimension"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Largest image dimension accepted in an image box, in pixels (default: 10000)"
+        },
+        {
+          "id": "TransportOptions.printerName",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 82,
+          "kind": "Option",
+          "names": [
+            "--printer-name"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Printer Name (2110,0030)"
+        },
+        {
+          "id": "TransportOptions.manufacturer",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 85,
+          "kind": "Option",
+          "names": [
+            "--manufacturer"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Manufacturer (0008,0070)"
+        },
+        {
+          "id": "TransportOptions.model",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 88,
+          "kind": "Option",
+          "names": [
+            "--model"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Manufacturer's Model Name (0008,1090)"
+        },
+        {
+          "id": "TransportOptions.serialNumber",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 91,
+          "kind": "Option",
+          "names": [
+            "--serial-number"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Device Serial Number (0018,1000)"
+        },
+        {
+          "id": "TransportOptions.softwareVersion",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 94,
+          "kind": "Option",
+          "names": [
+            "--software-version"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Software Versions (0018,1020)"
+        },
+        {
+          "id": "TransportOptions.printerStatus",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 97,
+          "kind": "Option",
+          "names": [
+            "--printer-status"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Printer Status (2110,0010) reported to N-GET, PS3.3 Table C.13-9: \\(OptionTokens.printerStatuses)"
+        },
+        {
+          "id": "TransportOptions.statusInfo",
+          "owner": "TransportOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 101,
+          "kind": "Option",
+          "names": [
+            "--status-info"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Printer Status Info (2110,0020), a PS3.3 C.13.9.1 Defined Term such as SUPPLY EMPTY; empty uses the status's own term"
+        },
+        {
+          "id": "CompositionOptions.dpi",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 155,
+          "kind": "Option",
+          "names": [
+            "--dpi"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Rasterization resolution of the composed sheet (default: 300)"
+        },
+        {
+          "id": "CompositionOptions.density",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 158,
+          "kind": "Option",
+          "names": [
+            "--density"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Density interpretation: \\(OptionTokens.densities) (default: paper)"
+        },
+        {
+          "id": "CompositionOptions.marginMm",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 161,
+          "kind": "Option",
+          "names": [
+            "--margin-mm"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Sheet margin in millimetres (default: 5)"
+        },
+        {
+          "id": "CompositionOptions.cellSpacingMm",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 164,
+          "kind": "Option",
+          "names": [
+            "--cell-spacing-mm"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Gap between image cells in millimetres (default: 2)"
+        },
+        {
+          "id": "CompositionOptions.annotations",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 167,
+          "kind": "Flag",
+          "names": [
+            "--annotations",
+            "--no-annotations"
+          ],
+          "type": "Bool?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Draw Basic Annotation Box text on the sheet (default: yes)"
+        },
+        {
+          "id": "CompositionOptions.trimMarks",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 171,
+          "kind": "Flag",
+          "names": [
+            "--trim-marks",
+            "--no-trim-marks"
+          ],
+          "type": "Bool?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Print a trim box around each image when Trim (2010,0140) is YES, PS3.3 Table C.13-3 (default: yes)"
+        },
+        {
+          "id": "CompositionOptions.maxPixels",
+          "owner": "CompositionOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 175,
+          "kind": "Option",
+          "names": [
+            "--max-pixels"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Cap on the composed bitmap's longest side, in pixels (default: 12000)"
+        },
+        {
+          "id": "FilmOutputOptions.output",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 200,
+          "kind": "Option",
+          "names": [
+            "--output"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Film output: \\(OptionTokens.outputs) (repeatable)"
+        },
+        {
+          "id": "FilmOutputOptions.outputDir",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 203,
+          "kind": "Option",
+          "names": [
+            "--output-dir"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Directory written films are saved to (default: ~/Downloads/DICOMKit Films)"
+        },
+        {
+          "id": "FilmOutputOptions.namePattern",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 206,
+          "kind": "Option",
+          "names": [
+            "--name-pattern"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "File-name pattern; tokens {job} {session} {film} {ae} {index} {timestamp}"
+        },
+        {
+          "id": "FilmOutputOptions.paperQueue",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 209,
+          "kind": "Option",
+          "names": [
+            "--paper-queue"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Spool film to this CUPS queue (requires --allow-paper; empty uses the system default queue)"
+        },
+        {
+          "id": "FilmOutputOptions.allowPaper",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 213,
+          "kind": "Flag",
+          "names": [
+            "--allow-paper"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Enable paper spooling. Required for --paper-queue to have any effect."
+        },
+        {
+          "id": "FilmOutputOptions.open",
+          "owner": "FilmOutputOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 216,
+          "kind": "Flag",
+          "names": [
+            "--open"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Open each written film in the default viewer"
+        },
+        {
+          "id": "ConfigOptions.config",
+          "owner": "ConfigOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 343,
+          "kind": "Option",
+          "names": [
+            "--config"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Settings file to read (default: ~/.config/dicomkit/printscp.json when it exists)"
+        },
+        {
+          "id": "ConfigOptions.saveConfig",
+          "owner": "ConfigOptions",
+          "source": "Sources/dicom-printscp/EmulatorOptions.swift",
+          "line": 346,
+          "kind": "Flag",
+          "names": [
+            "--save-config"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Write the resolved settings back to the configuration file and exit"
+        },
+        {
+          "id": "StatusCommand.format",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-printscp/InfoCommands.swift",
+          "line": 41,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json"
+        },
+        {
+          "id": "StatusCommand.verbose",
+          "owner": "StatusCommand",
+          "source": "Sources/dicom-printscp/InfoCommands.swift",
+          "line": 44,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show the full resolved configuration"
+        },
+        {
+          "id": "QueuesCommand.format",
+          "owner": "QueuesCommand",
+          "source": "Sources/dicom-printscp/InfoCommands.swift",
+          "line": 89,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json"
+        },
+        {
+          "id": "ServeCommand.maxFilms",
+          "owner": "ServeCommand",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 36,
+          "kind": "Option",
+          "names": [
+            "--max-films"
+          ],
+          "type": "Int?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Stop after this many films (default: run until interrupted)"
+        },
+        {
+          "id": "ServeCommand.duration",
+          "owner": "ServeCommand",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 39,
+          "kind": "Option",
+          "names": [
+            "--duration"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Stop after this many seconds (default: run until interrupted)"
+        },
+        {
+          "id": "ServeCommand.format",
+          "owner": "ServeCommand",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 42,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json (json writes one object per event to stdout)"
+        },
+        {
+          "id": "ServeCommand.verbose",
+          "owner": "ServeCommand",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 45,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show each film's attributes as it arrives"
+        },
+        {
+          "id": "ServeCommand.quiet",
+          "owner": "ServeCommand",
+          "source": "Sources/dicom-printscp/ServeCommand.swift",
+          "line": 48,
+          "kind": "Flag",
+          "names": [
+            "--quiet"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Suppress console output; only errors are reported"
+        },
+        {
+          "id": "SimulateCommand.paths",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 38,
+          "kind": "Argument",
+          "names": [
+            "<paths>"
+          ],
+          "type": "[String]",
+          "declaration_default": "required positional/value",
+          "repeatable": true,
+          "help_source_text": "DICOM files or directories to compose"
+        },
+        {
+          "id": "SimulateCommand.layout",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 47,
+          "kind": "Option",
+          "names": [
+            "--layout"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Image Display Format (2010,0010): a grid \\(OptionTokens.layouts) (R rows by C columns, sent as STANDARD\\\\C,R) or any PS3.3 Table C.13-3 form — STANDARD\\\\C,R, ROW\\\\R1,R2,..., COL\\\\C1,C2,..., SLIDE, SUPERSLIDE, CUSTOM\\\\i (auto if omitted)"
+        },
+        {
+          "id": "SimulateCommand.filmSize",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 50,
+          "kind": "Option",
+          "names": [
+            "--film-size"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Film Size ID (2010,0050): \\(OptionTokens.filmSizes) (default: 14x17)"
+        },
+        {
+          "id": "SimulateCommand.orientation",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 53,
+          "kind": "Option",
+          "names": [
+            "--orientation"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Film Orientation (2010,0040): \\(OptionTokens.orientations) (default: portrait)"
+        },
+        {
+          "id": "SimulateCommand.magnification",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 56,
+          "kind": "Option",
+          "names": [
+            "--magnification"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Magnification Type (2010,0060): \\(OptionTokens.magnifications) (default: replicate)"
+        },
+        {
+          "id": "SimulateCommand.medium",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 59,
+          "kind": "Option",
+          "names": [
+            "--medium"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Medium Type (2000,0030): \\(OptionTokens.media) (default: paper)"
+        },
+        {
+          "id": "SimulateCommand.copies",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 62,
+          "kind": "Option",
+          "names": [
+            "--copies"
+          ],
+          "type": "Int",
+          "declaration_default": "1",
+          "repeatable": false,
+          "help_source_text": "Number of Copies (2000,0010) recorded on the film (default: 1)"
+        },
+        {
+          "id": "SimulateCommand.polarity",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 65,
+          "kind": "Option",
+          "names": [
+            "--polarity"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Polarity (2020,0020): \\(OptionTokens.polarities) (default: normal; PS3.3 Table C.13-5: NORMAL when absent)"
+        },
+        {
+          "id": "SimulateCommand.presentationLut",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 68,
+          "kind": "Option",
+          "names": [
+            "--presentation-lut"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Presentation LUT Shape (2050,0020): \\(OptionTokens.presentationLUTShapes) (default: none)"
+        },
+        {
+          "id": "SimulateCommand.trim",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 71,
+          "kind": "Flag",
+          "names": [
+            "--trim"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Trim (2010,0140) = YES (default: NO)"
+        },
+        {
+          "id": "SimulateCommand.borderDensity",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 74,
+          "kind": "Option",
+          "names": [
+            "--border-density"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Border Density (2010,0100): BLACK, WHITE, or i hundredths of OD (150 = 1.5 OD) (default: BLACK)"
+        },
+        {
+          "id": "SimulateCommand.emptyDensity",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 77,
+          "kind": "Option",
+          "names": [
+            "--empty-density"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Empty Image Density (2010,0110): BLACK, WHITE, or i hundredths of OD (default: BLACK)"
+        },
+        {
+          "id": "SimulateCommand.annotate",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 80,
+          "kind": "Option",
+          "names": [
+            "--annotate"
+          ],
+          "type": "[String]",
+          "declaration_default": "[]",
+          "repeatable": true,
+          "help_source_text": "Text String (2030,0020) of a Basic Annotation Box (repeatable; requires --annotation-format)"
+        },
+        {
+          "id": "SimulateCommand.annotationFormat",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 83,
+          "kind": "Option",
+          "names": [
+            "--annotation-format"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Annotation Display Format ID (2010,0030) (required with --annotate)"
+        },
+        {
+          "id": "SimulateCommand.color",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 88,
+          "kind": "Option",
+          "names": [
+            "--color"
+          ],
+          "type": "String?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Image box class: grayscale = Basic Grayscale Image Box SOP Class, color = Basic Color Image Box SOP Class (default: grayscale)"
+        },
+        {
+          "id": "SimulateCommand.frame",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 91,
+          "kind": "Option",
+          "names": [
+            "--frame"
+          ],
+          "type": "Int",
+          "declaration_default": "1",
+          "repeatable": false,
+          "help_source_text": "1-based frame to take from multi-frame files (default: 1)"
+        },
+        {
+          "id": "SimulateCommand.allFrames",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 94,
+          "kind": "Flag",
+          "names": [
+            "--all-frames"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Take every frame of multi-frame files (one cell per frame)"
+        },
+        {
+          "id": "SimulateCommand.raw",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 97,
+          "kind": "Flag",
+          "names": [
+            "--raw"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Use stored pixel values with no rescale / window / inversion"
+        },
+        {
+          "id": "SimulateCommand.windowCenter",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 100,
+          "kind": "Option",
+          "names": [
+            "--window-center"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Explicit VOI window center (requires --window-width)"
+        },
+        {
+          "id": "SimulateCommand.windowWidth",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 103,
+          "kind": "Option",
+          "names": [
+            "--window-width"
+          ],
+          "type": "Double?",
+          "declaration_default": "nil (not supplied; resolve stored/default settings)",
+          "repeatable": false,
+          "help_source_text": "Explicit VOI window width (requires --window-center)"
+        },
+        {
+          "id": "SimulateCommand.bitDepth",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 106,
+          "kind": "Option",
+          "names": [
+            "--bit-depth"
+          ],
+          "type": "Int",
+          "declaration_default": "8",
+          "repeatable": false,
+          "help_source_text": "Grayscale Bits Stored: 8 or 12, PS3.3 Table C.13-5 (default: 8)"
+        },
+        {
+          "id": "SimulateCommand.recursive",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 111,
+          "kind": "Flag",
+          "names": [
+            "-r",
+            "--recursive"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Recursively scan directories for DICOM files"
+        },
+        {
+          "id": "SimulateCommand.callingAe",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 114,
+          "kind": "Option",
+          "names": [
+            "--calling-ae"
+          ],
+          "type": "String",
+          "declaration_default": "\"SIMULATE\"",
+          "repeatable": false,
+          "help_source_text": "Calling AE title recorded on the composed film (default: SIMULATE)"
+        },
+        {
+          "id": "SimulateCommand.format",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 117,
+          "kind": "Option",
+          "names": [
+            "--format"
+          ],
+          "type": "OutputFormat",
+          "declaration_default": ".text",
+          "repeatable": false,
+          "help_source_text": "Output format: text, json"
+        },
+        {
+          "id": "SimulateCommand.verbose",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 120,
+          "kind": "Flag",
+          "names": [
+            "-v",
+            "--verbose"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Show each film's attributes and per-image progress"
+        },
+        {
+          "id": "SimulateCommand.quiet",
+          "owner": "SimulateCommand",
+          "source": "Sources/dicom-printscp/SimulateCommand.swift",
+          "line": 123,
+          "kind": "Flag",
+          "names": [
+            "--quiet"
+          ],
+          "type": "Bool",
+          "declaration_default": "false",
+          "repeatable": false,
+          "help_source_text": "Suppress console output; only errors are reported"
+        }
+      ],
+      "declaration_property_count": 72
+    }
+  ]
+}

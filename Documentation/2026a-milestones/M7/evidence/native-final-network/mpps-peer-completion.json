@@ -1,0 +1,7 @@
+{
+  "chunk_id": "141b58",
+  "wall_time_seconds": 0.000005166,
+  "exit_code": 0,
+  "original_token_count": 141,
+  "output": "Test Case '-[DICOMNetworkTests.MPPSReferenceIntegrityTests testManualMPPSCapturePeer]' passed (122.308 seconds).\nTest Suite 'MPPSReferenceIntegrityTests' passed at 2026-10-26 13:51:55.362.\n\t Executed 1 test, with 0 failures (0 unexpected) in 122.308 (122.308) seconds\nTest Suite 'DICOMNetworkTests.xctest' passed at 2026-10-26 13:51:55.362.\n\t Executed 1 test, with 0 failures (0 unexpected) in 122.308 (122.308) seconds\nTest Suite 'Selected tests' passed at 2026-10-26 13:51:55.362.\n\t Executed 1 test, with 0 failures (0 unexpected) in 122.308 (122.314) seconds\n"
+}

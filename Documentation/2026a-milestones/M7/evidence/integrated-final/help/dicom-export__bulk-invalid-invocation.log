@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input directory path
+Usage: dicom-export bulk <input> --output <output> [--format <format>] [--quality <quality>] [--organize-by <organize-by>] [--recursive] [--apply-window] [--embed-metadata] [--verbose]
+  See 'dicom-export bulk --help' for more information.

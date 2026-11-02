@@ -1,0 +1,3 @@
+Error: The OCR workflow supports --profile ps315 or basic. Legacy profiles are available through the library API only.
+Usage: dicom-anon [<options>] <input-path>
+  See 'dicom-anon --help' for more information.

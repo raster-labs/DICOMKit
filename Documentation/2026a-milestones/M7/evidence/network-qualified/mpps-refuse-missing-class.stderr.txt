@@ -1,0 +1,3 @@
+Error: --image-uid requires --sop-class-uid from the referenced object: Referenced SOP Class UID (0008,1150) cannot be inferred from a SOP Instance UID (PS3.4 Table F.7.2-1)
+Usage: dicom-mpps <subcommand>
+  See 'dicom-mpps --help' for more information.

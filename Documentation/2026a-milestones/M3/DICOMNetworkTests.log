@@ -1,0 +1,264 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[5 / 60]
+[7 / 28] DICOMNetwork
+[9 / 30] DICOMNetwork
+[14 / 29] DICOMNetwork
+[16 / 27] DICOMNetworkTests-product
+[18 / 29] DICOMNetworkTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/PrintSCPTests.swift:192:64: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 190 | final class PrintSCPParserTests: XCTestCase {
+ 191 | 
+ 192 |     private let configuration = PrintSCPConfiguration(aeTitle: try! AETitle("DCMPRINT"), port: 0)
+     |                                                                `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+ 193 | 
+ 194 |     private func parse(_ elements: [DataElement], explicitVR: Bool = true) throws -> PrintAttributeSet {
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[24 / 28] DICOMNetworkTests-product
+[26 / 28] DICOMNetworkTests-product
+Build complete! (5.94 sec)
+Test Suite 'Selected tests' started at 2026-10-24 17:17:06.650.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-10-24 17:17:06.655.
+Test Suite 'QueryFilterPreflightTests' started at 2026-10-24 17:17:06.655.
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testAcceptedIdentifiersCarryCorrectModalityTagsAndUnchangedQueryExpressions]' started.
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testAcceptedIdentifiersCarryCorrectModalityTagsAndUnchangedQueryExpressions]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel]' started.
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testEveryBuilderFilterIsEitherEmittedOrRefusedAtEveryLevel]' passed (0.001 seconds).
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testRefusalSurvivesNonBaselineReturnKeysAndFluentCopies]' started.
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testRefusalSurvivesNonBaselineReturnKeysAndFluentCopies]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testUnsupportedFilterFailsBeforeTransport]' started.
+Test Case '-[DICOMNetworkTests.QueryFilterPreflightTests testUnsupportedFilterFailsBeforeTransport]' passed (0.000 seconds).
+Test Suite 'QueryFilterPreflightTests' passed at 2026-10-24 17:17:06.657.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'QueryHierarchicalKeyTests' started at 2026-10-24 17:17:06.657.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_imageLevelRequiresStudyAndSeriesUID]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_imageLevelRequiresStudyAndSeriesUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_messageNamesTheKeyAndTheSection]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_messageNamesTheKeyAndTheSection]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_patientRootStudyLevelRequiresPatientID]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_patientRootStudyLevelRequiresPatientID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_seriesLevelRejectsWildcardOrEmptyStudyUID]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_seriesLevelRejectsWildcardOrEmptyStudyUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_seriesLevelRequiresStudyUID]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_seriesLevelRequiresStudyUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_studyLevelUnderStudyRootNeedsNothing]' started.
+Test Case '-[DICOMNetworkTests.QueryHierarchicalKeyTests test_studyLevelUnderStudyRootNeedsNothing]' passed (0.000 seconds).
+Test Suite 'QueryHierarchicalKeyTests' passed at 2026-10-24 17:17:06.658.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'QueryJSONTextContextTests' started at 2026-10-24 17:17:06.658.
+Test Case '-[DICOMNetworkTests.QueryJSONTextContextTests testSequenceItemsInheritOrOverrideOriginalRepertoireBeforeTranscoding]' started.
+Test Case '-[DICOMNetworkTests.QueryJSONTextContextTests testSequenceItemsInheritOrOverrideOriginalRepertoireBeforeTranscoding]' passed (0.030 seconds).
+Test Case '-[DICOMNetworkTests.QueryJSONTextContextTests testTranscodedTextCarriesItsActualUTF8Context]' started.
+Test Case '-[DICOMNetworkTests.QueryJSONTextContextTests testTranscodedTextCarriesItsActualUTF8Context]' passed (0.000 seconds).
+Test Suite 'QueryJSONTextContextTests' passed at 2026-10-24 17:17:06.689.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.030 (0.030) seconds
+Test Suite 'QueryKeysTests' started at 2026-10-24 17:17:06.689.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testAccessionNumberKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testAccessionNumberKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testBodyPartExaminedKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testBodyPartExaminedKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testContentDateKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testContentDateKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultInstanceKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultInstanceKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultPatientKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultPatientKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultSeriesKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultSeriesKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultStudyKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testDefaultStudyKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testEmptyQueryKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testEmptyQueryKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testGenericMatchingKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testGenericMatchingKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testGenericReturningKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testGenericReturningKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testInstanceNumberKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testInstanceNumberKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testModalitiesInStudyKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testModalitiesInStudyKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testModalityKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testModalityKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testMultipleKeysChaining]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testMultipleKeysChaining]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientBirthDateKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientBirthDateKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientBirthDateRangeKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientBirthDateRangeKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientIDKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientIDKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientNameKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientNameKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientSexKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testPatientSexKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyConstruction]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyConstruction]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyEquality]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyHashable]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeyHashable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeysEquality]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testQueryKeysEquality]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testRequestPatientName]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testRequestPatientName]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesDescriptionKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesDescriptionKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesInstanceUIDKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesInstanceUIDKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesNumberKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSeriesNumberKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSOPInstanceUIDKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testSOPInstanceUIDKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDateKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDateKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDateRangeKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDateRangeKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDescriptionKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyDescriptionKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyInstanceUIDKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyInstanceUIDKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyTimeKey]' started.
+Test Case '-[DICOMNetworkTests.QueryKeysTests testStudyTimeKey]' passed (0.000 seconds).
+Test Suite 'QueryKeysTests' passed at 2026-10-24 17:17:06.693.
+	 Executed 33 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'QueryParentLevelKeyTests' started at 2026-10-24 17:17:06.693.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_ignoredParentLevelFiltersNamesTheDroppedFilters]' started.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_ignoredParentLevelFiltersNamesTheDroppedFilters]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_imageLevelOmitsParentLevelKeysByDefault]' started.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_imageLevelOmitsParentLevelKeysByDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_includeParentLevelReturnKeysReaddsThemAsReturnKeys]' started.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_includeParentLevelReturnKeysReaddsThemAsReturnKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_seriesLevelOmitsParentLevelKeysByDefault]' started.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_seriesLevelOmitsParentLevelKeysByDefault]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_studyLevelStillMatchesPatientAndStudyAttributes]' started.
+Test Case '-[DICOMNetworkTests.QueryParentLevelKeyTests test_studyLevelStillMatchesPatientAndStudyAttributes]' passed (0.000 seconds).
+Test Suite 'QueryParentLevelKeyTests' passed at 2026-10-24 17:17:06.694.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'QueryRetrieveCLIStandardTests' started at 2026-10-24 17:17:06.694.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRQueryHelpNamesStandardConcepts]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryRetrieveCLIStandardTests.swift:164: -[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRQueryHelpNamesStandardConcepts] : Test skipped - dicom-qr is not built in the products directory
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRQueryHelpNamesStandardConcepts]' skipped (0.001 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRResumeExitsNonZeroWhenAStudyFails]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryRetrieveCLIStandardTests.swift:192: -[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRResumeExitsNonZeroWhenAStudyFails] : Test skipped - dicom-qr is not built in the products directory
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testQRResumeExitsNonZeroWhenAStudyFails]' skipped (0.001 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveExitCodesForUsageAndTransportFailure]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryRetrieveCLIStandardTests.swift:143: -[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveExitCodesForUsageAndTransportFailure] : Test skipped - dicom-retrieve is not built in the products directory
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveExitCodesForUsageAndTransportFailure]' skipped (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveHelpNamesStandardConcepts]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMNetworkTests/QueryRetrieveCLIStandardTests.swift:126: -[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveHelpNamesStandardConcepts] : Test skipped - dicom-retrieve is not built in the products directory
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testRetrieveHelpNamesStandardConcepts]' skipped (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceAwareDescriptionsPerPS34]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceAwareDescriptionsPerPS34]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34RetrieveTables2026a]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34RetrieveTables2026a]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34StoreAndFindTables2026a]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testServiceStatusTextCarriesPS34StoreAndFindTables2026a]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testToolsUseTheSharedStatusTable]' started.
+Test Case '-[DICOMNetworkTests.QueryRetrieveCLIStandardTests testToolsUseTheSharedStatusTable]' passed (0.000 seconds).
+Test Suite 'QueryRetrieveCLIStandardTests' passed at 2026-10-24 17:17:06.697.
+	 Executed 8 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'QueryServiceTests' started at 2026-10-24 17:17:06.697.
+Test Case '-[DICOMNetworkTests.QueryServiceTests test64BitVRsUseFourByteLengthInExplicitVR]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests test64BitVRsUseFourByteLengthInExplicitVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindCommandSetEncoding]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindCommandSetEncoding]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindPresentationContextCreation]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindPresentationContextCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestCreation]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestFragmentation]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestFragmentation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestWithPatientRootModel]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindRequestWithPatientRootModel]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindResponseAssembly]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindResponseAssembly]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindResponseCreation]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testCFindResponseCreation]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testDefaultImplementationClassUID]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testDefaultImplementationClassUID]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testDefaultImplementationVersionName]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testDefaultImplementationVersionName]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationCustomValues]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationCustomValues]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationDefaults]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationHashable]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryConfigurationHashable]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryFailedError]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testQueryFailedError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testVRIsStringVR]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testVRIsStringVR]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.QueryServiceTests testVRUses32BitLengthIsDICOMCoreRule]' started.
+Test Case '-[DICOMNetworkTests.QueryServiceTests testVRUses32BitLengthIsDICOMCoreRule]' passed (0.000 seconds).
+Test Suite 'QueryServiceTests' passed at 2026-10-24 17:17:06.699.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'WorklistQueryKeysTests' started at 2026-10-24 17:17:06.699.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_requestRequestedProcedureDescriptionTag]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_requestRequestedProcedureDescriptionTag]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_specificCharacterSetIsAnEmptyReturnKey]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_specificCharacterSetIsAnEmptyReturnKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_tagNumbersMatchDictionaryNames]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testDefaultKeys_tagNumbersMatchDictionaryNames]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_emptyDateAndTimeOmitted]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_emptyDateAndTimeOmitted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_invalidDatePropagatesError]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_invalidDatePropagatesError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_invalidTimePropagatesError]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_invalidTimePropagatesError]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_omittedPerformingPhysicianStaysUniversalMatch]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_omittedPerformingPhysicianStaysUniversalMatch]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_performingPhysicianWildcardPassedThrough]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_performingPhysicianWildcardPassedThrough]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_setsBothDateAndTimeMatchingKeys]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_setsBothDateAndTimeMatchingKeys]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_setsPerformingPhysicianMatchingKey]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testForQuery_setsPerformingPhysicianMatchingKey]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_closedRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_closedRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_exact]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_exact]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_invalidThrows]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_invalidThrows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_malformedRangeThrows]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_malformedRangeThrows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_openEndRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_openEndRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_openStartRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_openStartRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_rangeWithTodayTomorrowBounds]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_rangeWithTodayTomorrowBounds]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_today]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_today]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_tomorrow]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledDate_tomorrow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_closedRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_closedRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_exact]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_exact]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_fraction]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_fraction]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_invalidThrows]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_invalidThrows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_malformedRangeThrows]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_malformedRangeThrows]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_openEndRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_openEndRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_openStartRange]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_openStartRange]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_shortForms]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testResolveScheduledTime_shortForms]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_invalidValuesThrow]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_invalidValuesThrow]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_validValuesAccepted]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_validValuesAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_wildcardsRefusedSingleValueMatchingOnly]' started.
+Test Case '-[DICOMNetworkTests.WorklistQueryKeysTests testStationAETitle_wildcardsRefusedSingleValueMatchingOnly]' passed (0.000 seconds).
+Test Suite 'WorklistQueryKeysTests' passed at 2026-10-24 17:17:06.703.
+	 Executed 30 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-10-24 17:17:06.703.
+	 Executed 104 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.044 (0.048) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 17:17:06.703.
+	 Executed 104 tests, with 4 tests skipped and 0 failures (0 unexpected) in 0.044 (0.053) seconds

@@ -1,0 +1,23 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~						61 text field (settable) Description: Patient ID, Value: M4PARTIAL, Placeholder: e.g. PAT001
+~						86 scroll bar (settable, float) 0.4388451868097911
+~							87 value indicator (settable, float) 0.4388451868097911
+~							103 text $ dicom-query 127.0.0.1:52948 --aet M4CLIENT --called-aet M4PEER --level study --patient-id M4PARTIAL --timeout 60 --format json
+
+[
+  {
+    "(0008,0020)" : "20261024",
+    "(0008,0030)" : "103000",
+    "(0008,0050)" : "M31",
+    "(0008,0052)" : "STUDY",
+    "(0008,0061)" : "CT",
+    "(0008,0090)" : "TEST^PHYSICIAN",
+    "(0008,1030)" : "M3 CT STUDY",
+    "(0010,0010)" : "M4^PARTIAL",
+    "(0010,0020)" : "M4PARTIAL",
+    "(0010,0030)" : "19800101",
+    "(0020,000D)" : "2.25.301",
+    "(0020,0010)" : "1",
+   
+~						107 text dicom-query dicom-query
+The focused UI element is 61 text field (settable) Description: Patient ID, Value: M4PARTIAL, Placeholder: e.g. PAT001

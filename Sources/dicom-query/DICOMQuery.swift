@@ -51,7 +51,7 @@ struct DICOMQuery: AsyncParsableCommand {
     @Option(name: .long, help: "Patient ID")
     var patientId: String?
     
-    @Option(name: .long, help: "Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5)")
+    @Option(name: .long, help: "Study-level Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5)")
     var studyDate: String?
     
     @Option(name: .long, help: "Study Instance UID")
@@ -63,13 +63,13 @@ struct DICOMQuery: AsyncParsableCommand {
     @Option(name: .long, help: "Accession Number")
     var accessionNumber: String?
     
-    @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("filter")))
+    @Option(name: .long, help: ArgumentHelp(stringLiteral: ModalityOptionValidator.helpText("filter") + " Supported at STUDY and SERIES levels only; other levels refuse this filter."))
     var modality: String?
 
     @Flag(name: .long, help: "Reject a --modality value that is not a current DICOM Defined Term")
     var strictModality: Bool = false
     
-    @Option(name: .long, help: "Study Description (0008,1030); * and ? wild cards per PS3.4 C.2.2.2.4")
+    @Option(name: .long, help: "Study-level Study Description (0008,1030); * and ? wild cards per PS3.4 C.2.2.2.4")
     var studyDescription: String?
     
     @Option(name: .long, help: "Referring physician name")
@@ -106,9 +106,14 @@ struct DICOMQuery: AsyncParsableCommand {
         default:
             break
         }
+        if let reason = buildQueryKeys().rejectionReason {
+            throw ValidationError(reason)
+        }
     }
 
     mutating func run() async throws {
+        // Also protect direct programmatic run() calls that bypass ArgumentParser.
+        try validate()
         // Validate --modality once, up front: an unrecognized code otherwise
         // reaches the PACS as a filter that silently matches nothing.
         modality = try ModalityOptionValidator.resolve(
@@ -130,13 +135,6 @@ struct DICOMQuery: AsyncParsableCommand {
                 timeout: timeout, filters: appliedFilters()), terminator: "")
         }
 
-        // PS3.4 C.4.1.2.1: patient/study filters cannot be matched at SERIES or
-        // IMAGE level under the hierarchical model. Say so instead of dropping
-        // them silently.
-        if let warning = parentLevelFilterWarning() {
-            FileHandle.standardError.write((warning + "\n").data(using: .utf8) ?? Data())
-        }
-
         // Build query keys
         let queryKeys = buildQueryKeys()
 
@@ -149,15 +147,15 @@ struct DICOMQuery: AsyncParsableCommand {
             timeout: TimeInterval(timeout)
         )
 
-        let results = try await executor.executeQuery(
-            level: level.queryLevel,
-            queryKeys: queryKeys
-        )
-
         // Format and output results via the shared formatter (DICOMNetwork).
         let formatter = Self.formatter(format: format, level: level.queryLevel, csvKeywords: csvKeywords)
-        let output = formatter.format(results: results)
-        print(output, terminator: "")
+        do {
+            let results = try await executor.executeQuery(level: level.queryLevel, queryKeys: queryKeys)
+            print(formatter.format(results: results), terminator: "")
+        } catch let cancellation as QueryCancelledError {
+            print(formatter.format(results: cancellation.partialResults), terminator: "")
+            throw cancellation
+        }
         #else
         throw ValidationError("Network functionality is not available on this platform")
         #endif
@@ -175,20 +173,7 @@ struct DICOMQuery: AsyncParsableCommand {
     /// Applied, non-empty match filters in the canonical order shared with the app's
     /// header, so the verbose listing is identical on both sides.
     func appliedFilters() -> [(label: String, value: String)] {
-        var f: [(String, String)] = []
-        func add(_ label: String, _ value: String?) {
-            if let v = value, !v.isEmpty { f.append((label, v)) }
-        }
-        add("Patient Name:", patientName)
-        add("Patient ID:", patientId)
-        add("Study Date:", studyDate)
-        add("Modality:", modality)
-        add("Study UID:", studyUid)
-        add("Series UID:", seriesUid)
-        add("Accession:", accessionNumber)
-        add("Study Desc:", studyDescription)
-        add("Referring Physician:", referringPhysician)
-        return f
+        DICOMQueryService.appliedFilters(in: buildQueryKeys())
     }
 
     func buildQueryKeys() -> QueryKeys {
@@ -210,26 +195,6 @@ struct DICOMQuery: AsyncParsableCommand {
         )
     }
 
-    /// The stderr warning for patient/study filters given at SERIES/IMAGE
-    /// level, or nil when nothing is ignored (PS3.4 C.4.1.2.1). Names the level
-    /// by its Query/Retrieve Level (0008,0052) value (PS3.4 Table C.6.2-1).
-    func parentLevelFilterWarning() -> String? {
-        let ignored = DICOMQueryService.ignoredParentLevelFilters(
-            level: level.queryLevel,
-            patientName: patientName ?? "",
-            patientID: patientId ?? "",
-            studyDate: studyDate ?? "",
-            accession: accessionNumber ?? "",
-            studyDescription: studyDescription ?? "",
-            referringPhysician: referringPhysician ?? ""
-        )
-        guard !ignored.isEmpty else { return nil }
-        return "Warning: \(ignored.joined(separator: ", ")) cannot be matched at \(level.queryLevel.rawValue) level "
-            + "under the hierarchical query model and will be ignored "
-            + "(PS3.4 C.4.1.2.1: only the Unique Keys of the levels above may be sent). "
-            + "Query at STUDY level first, then narrow with --study-uid."
-    }
-    
     /// Resolves the final host and port from ``--host`` and ``--port`` options.
     func resolveHostPort() -> (host: String, port: UInt16) {
         var resolvedHost = host

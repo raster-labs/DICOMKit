@@ -181,9 +181,12 @@ struct StructuredReportNarrativeView: View {
                                 .foregroundStyle(.white.opacity(row.isContainer ? 1 : 0.7))
                         }
                         if let value = row.value {
-                            Text(value)
+                            // Selection copies this complete representation,
+                            // including the original temporal fraction/offset.
+                            Text(verbatim: value)
                                 .font(.callout)
                                 .foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
                                 .textSelection(.enabled)
                         }
                         Spacer(minLength: 0)
@@ -224,14 +227,14 @@ struct StructuredReportNarrativeView: View {
     }
 
     /// One line of the report.
-    private struct Row {
+    struct Row {
         let depth: Int
         let name: String?
         let value: String?
         let isContainer: Bool
     }
 
-    private var rows: [Row] {
+    var rows: [Row] {
         var result: [Row] = []
         append(container: document.rootContent, depth: 0, into: &result)
         return result

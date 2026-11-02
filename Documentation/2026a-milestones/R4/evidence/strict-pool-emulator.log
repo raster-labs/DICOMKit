@@ -1,0 +1,28 @@
+Test Suite 'Selected tests' started at 2026-11-02 11:20:14.188.
+Test Suite 'DICOMPrintKitTests.xctest' started at 2026-11-02 11:20:14.193.
+Test Suite 'PrintEmulatorEndToEndTests' started at 2026-11-02 11:20:14.193.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testColorJobProducesAColorFilm]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testColorJobProducesAColorFilm]' passed (0.039 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testCompositionFailureIsReportedToTheSCU]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testCompositionFailureIsReportedToTheSCU]' passed (0.005 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testFilmAlsoReachesAFileSinkWhenComposed]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testFilmAlsoReachesAFileSinkWhenComposed]' passed (0.008 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testMultiImageJobFillsEveryCell]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testMultiImageJobFillsEveryCell]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrinterStatusIsAnsweredByTheHandler]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrinterStatusIsAnsweredByTheHandler]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrintingFromAnSCUProducesAComposedFilmOnScreen]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrintingFromAnSCUProducesAComposedFilmOnScreen]' passed (0.005 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testRawColorJobOnAGrayscaleRequestStillPrintsInColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testRawColorJobOnAGrayscaleRequestStillPrintsInColor]' passed (0.067 seconds).
+Test Suite 'PrintEmulatorEndToEndTests' passed at 2026-11-02 11:20:14.324.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.130 (0.131) seconds
+Test Suite 'DICOMPrintKitTests.xctest' passed at 2026-11-02 11:20:14.324.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.130 (0.131) seconds
+Test Suite 'Selected tests' passed at 2026-11-02 11:20:14.324.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.130 (0.136) seconds
+[colour-film phase] connecting
+[colour-film phase] creatingSession
+[colour-film phase] uploadingImages(current: 1, total: 1)
+[colour-film phase] printing
+[colour-film phase] cleanup

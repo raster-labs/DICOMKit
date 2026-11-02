@@ -109,8 +109,9 @@ struct DICOMJSONModelConformanceTests {
 
     @Test("F.2.2: PN component groups are Alphabetic, Ideographic and Phonetic strings; empty groups are omitted")
     func testPersonNameGroups() throws {
-        let element = DataElement(tag: Tag.patientName, vr: .PN, length: 18,
-                                  valueData: Data("Wang^XiaoDong=王^小東=".utf8))
+        let data = Data("Wang^XiaoDong=王^小東=".utf8)
+        let element = DataElement(tag: Tag.patientName, vr: .PN, length: UInt32(data.count),
+                                  valueData: data, specificCharacterSet: "ISO_IR 192")
         let object = try encoder.encodeToObject([element])["00100010"] as? [String: Any]
         let value = (object?["Value"] as? [[String: Any]])?.first
         #expect(value?["Alphabetic"] as? String == "Wang^XiaoDong")

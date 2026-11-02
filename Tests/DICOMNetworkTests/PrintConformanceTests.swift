@@ -650,7 +650,8 @@ final class PrintConformanceLoopbackTests: XCTestCase {
                 host: "127.0.0.1", port: await server.boundPort,
                 callingAETitle: "TEST_SCU", calledAETitle: "DCMPRINT",
                 timeout: 15, colorMode: .color),
-            images: [pixels], options: .default, imageDescriptors: [descriptor])
+            images: [pixels], options: .default, imageDescriptors: [descriptor],
+            progressHandler: { print("[colour-wire phase] \($0.phase)") })
         XCTAssertTrue(result.success, result.errorMessage ?? "")
 
         let films = await handler.films
@@ -675,7 +676,7 @@ final class PrintConformanceLoopbackTests: XCTestCase {
                 host: "127.0.0.1", port: await scp.port,
                 callingAETitle: "TEST_SCU", calledAETitle: "MOCK_SCP", timeout: 10),
             images: [pixels], imageDescriptors: [descriptor])
-        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.mock.job.1")
+        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.9001.1.1")
         XCTAssertNotEqual(result.printJobUID, result.filmBoxUIDs.first)
     }
 

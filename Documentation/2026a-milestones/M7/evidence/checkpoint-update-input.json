@@ -1,0 +1,428 @@
+{
+  "mode": "checkpoint",
+  "baseline_commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "branch": "codex/dicom-2026a-milestones",
+  "review": {
+    "fresh_artifacts_accepted": true,
+    "full_dicomweb_accepted": true,
+    "unaffected_27_native_groups_reuse_accepted": true,
+    "json_decoder_repair_review_accepted": true,
+    "privacy_review_accepted": true,
+    "checkpoint_application_authorized": false,
+    "repaired_UPS_native_accepted": false
+  },
+  "review_basis": "Root accepted fresh identity and requested the concrete review tree; explicit application authorization remains false. Synthetic-only evidence, scoped identity/reuse and independent build/source reviews are retained.",
+  "evidence": {
+    "source_manifest": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/ups-native-source-hashes.json",
+      "sha256": "74fcd858623de80d04832169878aecb1a9d77e747e740941f1efbb2d60f82efc"
+    },
+    "artifact_manifest": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/ups-native-artifact-hashes.json",
+      "sha256": "2e9e24ea3612857b7ae053ebc6c883380f683b533d734bdd0ed1394ad11d0f0e"
+    },
+    "identity_receipt": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/ups-native-identity.json",
+      "sha256": "235f81a2b17ad50d1a24ad7cc6ecad160b4bb2f87e8924a501fb1b3ad7da3f7f"
+    },
+    "equivalence_receipt": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/ups-native-identity.json",
+      "sha256": "235f81a2b17ad50d1a24ad7cc6ecad160b4bb2f87e8924a501fb1b3ad7da3f7f"
+    },
+    "repair_review": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/independent-repair-build-acceptance.json",
+      "sha256": "141600e3cacba4a0b9bae3139d98984c80ed3af9760d522648531d41e3ae4e7e"
+    },
+    "affected_regressions": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/root-final-repair-verification.json",
+      "sha256": "081aa76726ff1714a60fd9b226e5409c3c9c9c75e80b8cb2a491fb10bb946d8d"
+    },
+    "full_dicomweb_log": {
+      "path": "work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all-repaired-v2.log",
+      "sha256": "3a118739ad39f1b3fad3497fbc5af606cdbbae4984722f2df8bb7a1615dcf3f5"
+    }
+  },
+  "artifacts_to_verify": [
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-3d",
+      "sha256": "0978a0850305f145d645e7abdbfe4b8d7a39246e29ac6a9841cb098ffd5e0601",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-ai",
+      "sha256": "d1d77bfbc139aa6649b902b7b5b7df3c7a35cb50c747eebcb1703675f4da33e4",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+      "sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-archive",
+      "sha256": "052fe4f4e6171acc7f84936d6598733771a098494ffc7f3ab57b4165bedc4f35",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-compress",
+      "sha256": "bd207c509ffe89388c48a2f5517678e074339b406942be19237c611d5ec3d947",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+      "sha256": "669fd8101413db95d73d58a503c6fcab05ab159b9b502b5d8b0352716181f37f",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dcmdir",
+      "sha256": "817062932004d46ad730f676e1d6f0a84180e4ccb2350fd2bd24556160ad4d74",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-diff",
+      "sha256": "fc9325dc2dcc3cd63c14737c2ad595edad45a3efa4ee9d7f44826f7aa074915d",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-dump",
+      "sha256": "4ede7f8141a876b20aede6868eb2f0af667e39cdc6afd8ea35b827825e9a08b2",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-echo",
+      "sha256": "a689e087fc9581c6a7ccbe55472b7ef4545507e6107219d03f944820581dc46b",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-export",
+      "sha256": "6d8416e7964e9b804d08c4b5ca376b68dafb61bc80e8e17d3fbc3edaad999bb4",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-gateway",
+      "sha256": "e6f0cc5d0c3a613f90150f1d817d55622bae54ff4ddedcea6c7607d3b676af1e",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-image",
+      "sha256": "946913607dff13acf17d94ca98e64d5cd4023f4e19f5e8633e4f1f5f107ddb24",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+      "sha256": "feec778109d2d5c531d2e4752a082051c982adff102b1dd6930d6bb0b2dac163",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-j2k",
+      "sha256": "7107f09f75ffe3f5bd15e61d0fd8d5a7bc0e8a35f586dd45958736c30c8f9596",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-jpip",
+      "sha256": "83ba8541c699c73f0af6323b9aed8f0194e1625053c3bc7621da2d123c383fe5",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-json",
+      "sha256": "0af44b1a4232024411c99986cb3426fd0270d2d8edbd1224b403159894d38fde",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-measure",
+      "sha256": "7c5f0d675e455556fb9384a0cd5d358c10296eb7123f63a36d8ec097e65b14df",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-merge",
+      "sha256": "5f163834f5dfe1e5900ec48746f246772b2bb2d7a28bda11b46c11b963e6f139",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+      "sha256": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mwl",
+      "sha256": "7c478c8ac3186071233bcf2c8a907b42912ce278c7868db5ba9bb47f023bd002",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pdf",
+      "sha256": "a9e0c7d95ff2c344d62bc196fbb30cd5226b700af6f6a737d9d74c06604d7001",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-pixedit",
+      "sha256": "1efee8f9042f2eb11639c18c5594a4088473521f9c662a6e3e86a94ac256a1e8",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+      "sha256": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+      "sha256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+      "sha256": "2884bbe66af11baf0b5d35cf6dd05b783ed7ecdcc8bf137c011b28ba6a34cb9b",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+      "sha256": "682b17457a004a752fb8a598e1f391a732b95729246055f5333f8f9b58605414",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-report",
+      "sha256": "431d099ef120c9e18cc144b14a2f17e8eddb6e3eecfa7e793bc683d273ec0e1a",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+      "sha256": "cd24a6f9a690b83914efbe37184baf1296bfb4e544108decbf92e6cc041e76ea",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+      "sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+      "sha256": "fed329f5b86c408fc393a95f8130c1d9ee021101fc634cccba15297b7aec0440",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+      "sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-split",
+      "sha256": "f89771ad87427c647426cb082f453ddc92f2fff65fb904f46ba7b9503e5b1e6f",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-study",
+      "sha256": "4a012623a1f436ebee14d2d30266433048662262dd8b305fa52e29a4504d0fee",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+      "sha256": "971952b7737aeb34fd4c6ce001d6962680da260e9ca534b899f32761c690a5fa",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-uid",
+      "sha256": "36d278cee35d353ec2821c3a10eea07149878b4e6d1aba96099b53d846092fcf",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+      "sha256": "b4dcfee556c23f4c56dc748bacb416312b14bda4edb7b7bf3d0df78ca052a798",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-video",
+      "sha256": "62fc91ab753f322b1f3706ceb6351d205739b4a39fcd788580f4828a1a8ead1b",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-viewer",
+      "sha256": "a42ef3e0193d285df5d9f13995ad6becdcab9974a8f140bfd71de5263110d0ad",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "sha256": "225d63b4bc1717875e661a6a572394e4f750f29e57a7cc984073677ff793b2a0",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-xml",
+      "sha256": "90adf46e447c5b678abebaaeb0d9c25e90871e726cc2c0c62c9cd4661b4764bf",
+      "role": "CLI"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMCoreTests.xctest/Contents/MacOS/DICOMCoreTests",
+      "sha256": "28fc4ebff8eda8c05df225590d0e0ce50c7c38bc95f824894fdc4ee21c7f602a",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMKitTests.xctest/Contents/MacOS/DICOMKitTests",
+      "sha256": "c9fc28a8aa09312db82c65fea59220ad411ef27ecdf94b0a1adca711682f423d",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMNetworkTests.xctest/Contents/MacOS/DICOMNetworkTests",
+      "sha256": "a03e673354a5cceb367ec7146dbfe7d3c610cefc6439e164539f1573e26d868d",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMPrintKitTests.xctest/Contents/MacOS/DICOMPrintKitTests",
+      "sha256": "0b53be02d29f1ffe1eab17c97320867b5843f378a3e766b20727fb838156368a",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMRoundTripTests.xctest/Contents/MacOS/DICOMRoundTripTests",
+      "sha256": "547c466419a7e268554e7d4e43ea5eaeba471cd3d54deb8f626a05bcc96453a9",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests",
+      "sha256": "d5160b88f221f78e64bce6344e5fbd9c57dfe66dde55e9024cc616bf064c78dc",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMToolboxTests.xctest/Contents/MacOS/DICOMToolboxTests",
+      "sha256": "4ec9e9251f938a6a6f84db3da382c8a20f28d54e9237d7eff51ca50e89dfa94c",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMWebTests.xctest/Contents/MacOS/DICOMWebTests",
+      "sha256": "359d16a67dc3187f098cfbd21d8896211576692bddc794ba789d972885acd74a",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printTests.xctest/Contents/MacOS/dicom-printTests",
+      "sha256": "d9ab2127042e9ac019c4b6b2b37055564a4c9e2f18b78a5782ed0db765b2ea02",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscpTests.xctest/Contents/MacOS/dicom-printscpTests",
+      "sha256": "23444f9ff30aef901e7e8271bba9db6cc4608e2d693b23e0fdf36ace66b308d1",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-queryTests.xctest/Contents/MacOS/dicom-queryTests",
+      "sha256": "22e2e2380a59f576c08e707c09ec20bcc38b57325d30721de0906ba704c7e060",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieveTests.xctest/Contents/MacOS/dicom-retrieveTests",
+      "sha256": "4410f001c76013f8c7df751c58f05ca7e447688eba996bb2dc7cea2a4c551c9a",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-serverTests.xctest/Contents/MacOS/dicom-serverTests",
+      "sha256": "e4c0f2068e95e92534ebaa60d2e61d8b80a7d543c8e50f509d52ec8a462cd4e8",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tagsTests.xctest/Contents/MacOS/dicom-tagsTests",
+      "sha256": "6b3512b4b8bb42a614ce540de46a0f8e7db54662a167ba27056339ae464113e8",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validateTests.xctest/Contents/MacOS/dicom-validateTests",
+      "sha256": "be41bad962b3b86b03982003471fb84087f54306942e7696ecf8a9b8fea8ad7c",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wadoTests.xctest/Contents/MacOS/dicom-wadoTests",
+      "sha256": "3a2b93dd1d06cb51f657ccbce21f3f98a3c78fb278b15fd599db2bf1778f63ba",
+      "role": "test"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Info.plist",
+      "sha256": "a1d5241af265d42049bf0d55efaea8719065eb589c99a7827b0ce13f6eb87bc2",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio",
+      "sha256": "e0837eab8fa146b4b0aab26ba22b6d7842ec38106b4c4fde6b1e7de884b8a45b",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio.debug.dylib",
+      "sha256": "8a9f6c761170c3230a60f7794fc242c13924047461d6ed5ed2c35f21dd4f41cd",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/__preview.dylib",
+      "sha256": "acbd386c191ea35fc59c0967373e464b014093ad3a12ef677ccd61d42ca7d0e1",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/PkgInfo",
+      "sha256": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/AppIcon.icns",
+      "sha256": "d8c931b086cb5682398d1953f8f019090d77dd904975450f12e65d935e941468",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/Assets.car",
+      "sha256": "b2a13d3277174a88915e8d33a39727dc41335c33ea1da2e22d313d1a1745c1d1",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Info.plist",
+      "sha256": "4b32cf440e64cbeddaf6c81c7f64c94b9b69446bbf282a183d0cc25cfd28901b",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Resources/DataElementDictionary.txt",
+      "sha256": "76686cbcc2007e4e128cb880636ab062d948fdf9884d8e19549c76a9ebd4f919",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Info.plist",
+      "sha256": "f2a1bdce8c9ac48cae12e244a1faee7c4eb4ce397e9364de54e9460a43c6395c",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/FrameRender.metal.txt",
+      "sha256": "1ca5889c9ca61321bb27e323d1c80f8532a4c1d3802c19b10f87748de092afa7",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Info.plist",
+      "sha256": "b005991c19f79fc04dd7f4d913ced59b182de485bf0c644bc6419c500a0f1543",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Resources/default.metallib",
+      "sha256": "659aa6f38c5ef771eba04b683dd950daa81cdfb94f6104d0b3aaa9ca3cca288b",
+      "role": "application"
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/_CodeSignature/CodeResources",
+      "sha256": "a563cda702b2a040bac57115c6472d9c8ed7c5a706cbd3265cfde4b26932ef3f",
+      "role": "application"
+    }
+  ],
+  "full_dicomweb": {
+    "scope": "Complete DICOMWebTests product",
+    "exit_code": 0,
+    "command": "Complete DICOMWebTests through the repository focused-product runner; source/workflow/receipt identify the gate. Exact shell command not asserted by this configuration.",
+    "counts": {
+      "SwiftTesting_framework_reported_tests": 649,
+      "SwiftTesting_suites": 63,
+      "XCTest_reported": 504,
+      "XCTest_skipped": 2,
+      "XCTest_executed_passes": 502,
+      "XCTest_failures": 0
+    }
+  },
+  "native_blocker": "CUA confirmed Mac locked after fresh app build/signing; repaired native UPS executions remain zero. Evidence: ups-identity-repair/native-lock-confirmed.json.",
+  "recorded_utc": "2026-10-26T09:14:23.825676+00:00",
+  "source_inputs_rehashed": 2062,
+  "actual_artifacts_rehashed": 71,
+  "native_groups": {
+    "Passed": 27,
+    "Partial": 1
+  },
+  "register": {
+    "Completed": 45,
+    "In progress": 1,
+    "Deferred": 22
+  }
+}

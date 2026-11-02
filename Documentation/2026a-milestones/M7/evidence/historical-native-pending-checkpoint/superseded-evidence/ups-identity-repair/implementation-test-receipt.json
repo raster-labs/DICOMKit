@@ -1,0 +1,58 @@
+{
+  "source_files": {
+    "Sources/DICOMWeb/UPS/UPSClient.swift": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+    "Sources/DICOMWeb/DICOMwebClient.swift": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+    "Sources/DICOMWeb/UPS/UPSCreateIdentity.swift": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b",
+    "Tests/DICOMWebTests/UPSCreateIdentityTests.swift": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4"
+  },
+  "focused_identity": {
+    "log": "identity-focused-v3.log",
+    "exit": 0,
+    "test_declarations": 5,
+    "parameterized_invocations": 9,
+    "local_refusal_combinations": 90,
+    "captured_HTTP_requests": 18
+  },
+  "retained_failures": [
+    {
+      "log": "identity-focused-v1.log",
+      "reason": "Test configuration initializer label compile error; corrected test-only."
+    },
+    {
+      "log": "identity-focused-v2.log",
+      "reason": "Duplicate tests exposed pre-existing generic409mapping; both create methods repaired narrowly."
+    }
+  ],
+  "full_DICOMWeb_product": {
+    "log": "dicomweb-all.log",
+    "exit": 1,
+    "XCTest": {
+      "executed": 504,
+      "skipped": 2,
+      "failures": 0
+    },
+    "SwiftTesting": {
+      "tests": 644,
+      "suites": 63,
+      "failed_tests": 5,
+      "issues": 12
+    },
+    "classification": "UPS tests pass; unrelated PN and capability failures escalated to root. This full product was not passed. Later related repair/retest is separately owned."
+  },
+  "strict_CLI": {
+    "receipt": "strict-ups-cli-verification.json",
+    "corrected_actions": 5,
+    "HTTP_requests": 4,
+    "assertions": 38,
+    "passed": true
+  },
+  "native": {
+    "actions": 0,
+    "status": "Await root rebuilt app and native access"
+  },
+  "limits": [
+    "No code outside the four listed source/test files was changed by this agent.",
+    "Root owns workflow/gate additions, source freeze, app rebuild, related JSON repair, docs and Git.",
+    "Public-client loopback tests require Network framework on supported Apple platforms; helper test is portable."
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "step": "debug-test-build",
+    "command": [
+      "swift",
+      "build",
+      "-Xswiftc",
+      "-Xfrontend",
+      "-Xswiftc",
+      "-enable-cross-import-overlays",
+      "--build-tests",
+      "--enable-code-coverage"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 272.58
+  },
+  {
+    "step": "debug-test-discovery",
+    "command": [
+      "swift",
+      "test",
+      "-Xswiftc",
+      "-Xfrontend",
+      "-Xswiftc",
+      "-enable-cross-import-overlays",
+      "list",
+      "--skip-build"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 35.99
+  },
+  {
+    "step": "release-source-envelope",
+    "command": [
+      "swift",
+      "test",
+      "-Xswiftc",
+      "-Xfrontend",
+      "-Xswiftc",
+      "-enable-cross-import-overlays",
+      "-c",
+      "release",
+      "--test-product",
+      "DICOMKitTests",
+      "--skip-build",
+      "--filter",
+      "largeSparseSource"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.2
+  },
+  {
+    "step": "debug-suite",
+    "command": [
+      "swift",
+      "test",
+      "-Xswiftc",
+      "-Xfrontend",
+      "-Xswiftc",
+      "-enable-cross-import-overlays",
+      "--enable-code-coverage",
+      "--skip-build",
+      "--no-parallel",
+      "--skip",
+      "largeSparseSource"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 237.66
+  },
+  {
+    "step": "test-report",
+    "command": [
+      "python3",
+      ".github/scripts/report-scheduled-tests.py",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/outputs/DICOMKit_R3",
+      "--release-outcome",
+      "success",
+      "--debug-outcome",
+      "success",
+      "--coverage-dir",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Debug/codecov"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.22
+  }
+]

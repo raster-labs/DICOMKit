@@ -1,0 +1,27 @@
+						48 text field (settable) Description: DICOM Files, Placeholder: e.g. a.dcm; b.dcm or a directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm
+						51 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+						53 text field (settable) Description: Target Study UID, Placeholder: e.g. 1.2.840.113619...
+						55 text field (settable) Description: Batch Size, Value: 10
+							58 radio button Description: none, Value: 0
+							59 radio button Description: basic, Value: 1
+							60 radio button Description: bearer, Value: 0
+						62 text field (settable) Description: Username, Value: m7-native, Placeholder: e.g. admin
+						64 text field (settable) Description: Password, Value: only-test:pass
+						66 checkbox Description: Continue on Error, Value: 0
+						67 checkbox Description: Verbose, Value: 0
+						69 text field (settable) Description: Input File List, Help: Shows additional flags for this tool, Placeholder: e.g. files.txt
+						72 disclosure triangle Description: Advanced options (1), Help: Shows additional flags for this tool, Value: on
+					79 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					80 button Description: Run command, Help: Runs the selected Workshop action
+					83 text Command Preview Valid $ Select a tool to build a command
+					85 text Console SUCCESS
+		98 search text field (settable) Search features
+Complete console:
+$ # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado store http://127.0.0.1:60241/dicom-web /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm --batch 10
+
+
+Upload Summary:
+  Total files: 1
+  Successful: 1
+  Failed: 0

@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 20:17:04.610.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-24 20:17:04.614.
+Test Suite 'M6WorkshopExecutionTests' started at 2026-10-24 20:17:04.614.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' passed (2.115 seconds).
+Test Suite 'M6WorkshopExecutionTests' passed at 2026-10-24 20:17:06.729.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.115 (2.115) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-24 20:17:06.729.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.115 (2.115) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:17:06.729.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.115 (2.120) seconds

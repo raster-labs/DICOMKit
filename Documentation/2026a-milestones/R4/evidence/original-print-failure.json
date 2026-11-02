@@ -1,0 +1,18 @@
+{
+  "run_id": 41192585026,
+  "attempt": 1,
+  "job_id": 124512201079,
+  "source_commit": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+  "artifact_id": 13040410579,
+  "artifact_sha256": "04df476d35300e212693f04636a7931621223e8dcd9089976bfd053f7bedaaa7",
+  "test": "PrintEmulatorEndToEndTests.testColorJobProducesAColorFilm",
+  "error": "ARTIM timer expired: remote peer did not respond in time",
+  "elapsed_seconds": 32.14,
+  "xctest_reported": 379,
+  "xctest_skips": 3,
+  "xctest_failures": 1,
+  "later_swift_testing_reported": 84,
+  "later_swift_testing_result": "passed",
+  "root_cause": "Not established; original log does not identify which association-response wait expired.",
+  "handling": "Retain failure; investigate with 20 local repetitions and one remote retry; do not change application timeouts or add automatic test retries."
+}

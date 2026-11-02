@@ -1,0 +1,50 @@
+{
+  "recorded_utc": "2026-10-26T07:54:17.113265+00:00",
+  "method": "Reviewed check_native_remaining_attributes.py and original native-final-checklist.json, then recomputed all assertions against the saved AX, copied-command, file and CLI evidence. Intercepted report writes in memory; all three recomputed receipts equal saved receipts except timestamp. No native UI, product execution, build or source changes.",
+  "checker_sha256": "fb1802393a9c2d71d1b420676ffa914da3d33f24aee4b2bf0cd3d134f607f018",
+  "cases": [
+    {
+      "id": "FINAL-14",
+      "receipt": "native-FINAL-14-verification.json",
+      "sha256": "7fb6d585b03c556481554c528a892c2452e4281ef41c0d1756cf2073350cd32c",
+      "assertions_passed": 30,
+      "assertions_failed": 0,
+      "native_executions": 5,
+      "preflight_only": 1,
+      "read_only_recomputation_matches_saved_receipt": true
+    },
+    {
+      "id": "FINAL-16",
+      "receipt": "native-FINAL-16-verification.json",
+      "sha256": "ed7378835fa10a86a32b3ef02564b2f865868b73fc01f99c73bc6444679d9a33",
+      "assertions_passed": 22,
+      "assertions_failed": 0,
+      "native_executions": 2,
+      "preflight_only": 0,
+      "read_only_recomputation_matches_saved_receipt": true
+    },
+    {
+      "id": "FINAL-18",
+      "receipt": "native-FINAL-18-verification.json",
+      "sha256": "80999d77b928b3540cb06e983ee95e5d8a560dec98afeb27c8574a94433b5ebb",
+      "assertions_passed": 44,
+      "assertions_failed": 0,
+      "native_executions": 6,
+      "preflight_only": 0,
+      "read_only_recomputation_matches_saved_receipt": true
+    }
+  ],
+  "total_assertions_passed": 96,
+  "total_assertions_failed": 0,
+  "native_executions": 13,
+  "preflight_only": 1,
+  "missing_evidence": [],
+  "blockers": [],
+  "documentation_pending": "M7 REPORT and native acceptance ledger must incorporate these finished receipts; old report still describes these groups as pending.",
+  "limits": [
+    "One workflow template manually exercised; all five template contracts remain automated coverage.",
+    "Script live refusal is a disabled preflight observation, not an execution or CLI parity claim.",
+    "Codec outcomes are three successful conversions, two supported refusals and one strict precision interoperability limit.",
+    "JPEG independent decoder comparison reused only by exact native codestream identity; maximum difference one is not exact original lossy pixels."
+  ]
+}

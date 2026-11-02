@@ -1,0 +1,17 @@
+{
+  "recordedUTC": "2026-10-26T07:39:12.909405+00:00",
+  "selection": "Allowlisted synthetic print captures, independently generated fixtures and wire records, isolated test configuration, print tests/build identity and reports only.",
+  "excluded": [
+    "ui-attributes",
+    "ui-viewer",
+    "native-catalogue-selection.json",
+    "native-results.json",
+    "real clinical library data",
+    "configured PACS fields",
+    "credentials/secrets",
+    "actual user printer registry"
+  ],
+  "endpoints": "Loopback peers and synthetic AE titles only; generic UI help placeholders are not configured PACS settings.",
+  "settings": "Synthetic baseline/config and isolated CLI registry copied. OS-denied app registry access was not bypassed; its native output is compared to a separate isolated CLI registry.",
+  "historicalFailures": "Initial layout/oracle/fallback receipts retained and labeled by final report; no initial failure is counted as a pass."
+}

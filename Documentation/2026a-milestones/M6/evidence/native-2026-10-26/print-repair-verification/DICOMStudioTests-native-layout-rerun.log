@@ -1,0 +1,35 @@
+Building for debugging...
+[Computing dependencies]
+[Provisioning 5 / 42]
+[1 / 2] J2KSwift_J2KMetal
+[1 / 3] dicom-wado-product
+[1 / 52] DICOMRenderKit
+[1 / 28] DICOMDictionary
+[2 / 12] DICOMStudio
+[4 / 14] DICOMStudio
+[9 / 17] DICOMStudio
+[10 / 17] DICOMStudio
+[11 / 16] DICOMStudioTests-product
+[13 / 18] DICOMStudioTests-product
+[18 / 21] DICOMStudioTests-product
+[19 / 23] DICOMStudioTests-product
+[20 / 23] DICOMStudioTests-product
+[21 / 23] DICOMStudioTests-product
+Build complete! (39.91 sec)
+Test Suite 'Selected tests' started at 2026-10-26 11:56:56.312.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 11:56:56.318.
+Test Suite 'M7PrintNativeCheckboxTests' started at 2026-10-26 11:56:56.318.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' passed (0.114 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testHostedPrintOptionsStayInsideNarrowDefaultAndExpandedPaneWidths]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testHostedPrintOptionsStayInsideNarrowDefaultAndExpandedPaneWidths]' passed (0.056 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' passed (0.224 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' passed (0.000 seconds).
+Test Suite 'M7PrintNativeCheckboxTests' passed at 2026-10-26 11:56:56.713.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.394 (0.395) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-26 11:56:56.713.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.394 (0.395) seconds
+Test Suite 'Selected tests' passed at 2026-10-26 11:56:56.713.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.394 (0.401) seconds

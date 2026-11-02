@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "serve",
+    "--port",
+    "57491",
+    "--ae-title",
+    "M6CLI",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/workshop/cli/absent.json",
+    "--output",
+    "none",
+    "--dpi",
+    "25",
+    "--max-pixels",
+    "1024",
+    "--duration",
+    "240",
+    "--format",
+    "json"
+  ],
+  "pid": 55418
+}

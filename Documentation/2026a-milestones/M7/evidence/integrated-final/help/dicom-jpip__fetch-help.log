@@ -1,0 +1,34 @@
+OVERVIEW: Fetch a DICOM image from a JPIP server (currently unavailable — see
+F1)
+
+Connects to a JPIP server and retrieves a DICOM image progressively.
+Use --layers to limit quality for faster previews, --region for ROI fetching,
+and --level for low-resolution thumbnails.
+
+Examples:
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 --layers 4
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 --region
+0,0,512,512
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 --level 2
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 --output
+decoded.raw
+
+USAGE: dicom-jpip fetch <server-url> --image <image> [--layers <layers>] [--level <level>] [--region <region>] [--output <output>] [--verbose]
+
+ARGUMENTS:
+  <server-url>            JPIP server base URL (e.g.,
+                          http://pacs.example.com:8080)
+
+OPTIONS:
+  --image <image>         Image ID or JPIP target path on the server
+  --layers <layers>       Quality layers to fetch (1 = lowest, omit for full
+                          quality)
+  --level <level>         Resolution level (0 = full, 1 = half, 2 = quarter...)
+  --region <region>       Region of interest: x,y,width,height (e.g.,
+                          0,0,512,512)
+  -o, --output <output>   Output file path for raw decoded pixel data
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

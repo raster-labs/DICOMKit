@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 880, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 809, in <lambda>
+    ('PY-R01','pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and retained Job',lambda c:py_reverse(c)),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 747, in py_reverse
+    job_uid=str(response.ReferencedPrintJobSequence[0].ReferencedSOPInstanceUID)
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/peer-venv/lib/python3.9/site-packages/pydicom/dataset.py", line 908, in __getattr__
+    return object.__getattribute__(self, name)
+AttributeError: 'Dataset' object has no attribute 'ReferencedPrintJobSequence'

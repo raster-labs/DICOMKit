@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "xcrun",
+    "xctest",
+    "-XCTest",
+    "DICOMStudioTests.M6WorkshopExecutionTests/testConfiguredWorkshopActions",
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/DICOMStudioTests.xctest"
+  ],
+  "pid": 40317
+}

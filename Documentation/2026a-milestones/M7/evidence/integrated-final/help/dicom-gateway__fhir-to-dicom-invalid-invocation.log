@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input FHIR JSON file
+Usage: dicom-gateway fhir-to-dicom <input> --output <output> [--template <template>] [--verbose]
+  See 'dicom-gateway fhir-to-dicom --help' for more information.

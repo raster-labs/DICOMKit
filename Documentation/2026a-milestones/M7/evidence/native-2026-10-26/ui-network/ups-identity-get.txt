@@ -1,0 +1,29 @@
+						48 pop up button Description: Operation, Value: get
+						50 text field (settable) Description: Base URL, Value: http://127.0.0.1:62708/native/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+						52 text field (settable) Description: Get Workitem UID, Value: 2.25.20261024001, Placeholder: e.g. 1.2.840.113619...
+							55 radio button Description: none, Value: 0
+							56 radio button Description: basic, Value: 1
+							57 radio button Description: bearer, Value: 0
+						59 text field (settable) Description: Username, Value: m7-native, Placeholder: e.g. admin
+						61 text field (settable) Description: Password, Value: only-test:pass
+							64 radio button Description: table, Value: 0
+							65 radio button Description: json, Value: 1
+							66 radio button Description: csv, Value: 0
+							67 radio button Description: dicom-json, Value: 0
+						69 checkbox Description: Verbose, Value: 0
+					76 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					77 button Description: Run command, Help: Runs the selected Workshop action
+					81 button Description: Copy command, Help: Copies the command to the clipboard
+					82 text Console SUCCESS
+						86 text $ # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado ups http://127.0.0.1:62708/native/dicom-web --get 2.25.20261024001 --format json
+
+[
+  {
+    "priority" : "MEDIUM",
+    "procedureStepLabel" : "M2 synthetic schedule",
+    "scheduledStartDateTime" : "20261024103000.123456+0530",
+    "state" : "SCHEDULED",
+    "workitemUID" : "2.25.20261024001"
+  }
+]

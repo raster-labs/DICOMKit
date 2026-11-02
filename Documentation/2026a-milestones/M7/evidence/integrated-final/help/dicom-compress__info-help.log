@@ -1,0 +1,26 @@
+OVERVIEW: Show compression information about a DICOM file
+
+Display transfer syntax, compression status, and image parameters.
+
+--json keys: the PS3.6 Table 6-1 keywords TransferSyntaxUID, Rows, Columns,
+BitsAllocated, BitsStored, SamplesPerPixel, PhotometricInterpretation,
+NumberOfFrames and LossyImageCompression (when present). The camelCase keys
+(transferSyntaxUID, rows, columns, bitsAllocated, bitsStored, samplesPerPixel,
+photometricInterpretation, numberOfFrames) are deprecated and keep their old
+values; file, transferSyntax, compressed, lossless, codec and pixelDataSize
+are tool keys.
+
+Examples:
+  dicom-compress info file.dcm
+  dicom-compress info file.dcm --json
+
+USAGE: dicom-compress info <input> [--json]
+
+ARGUMENTS:
+  <input>                 DICOM file path
+
+OPTIONS:
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

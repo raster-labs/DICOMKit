@@ -1,0 +1,4 @@
+Error: Missing expected argument '<conversion-type>'
+Help:  <conversion-type>  Conversion type: dicom-to-hl7, dicom-to-fhir
+Usage: dicom-gateway batch <conversion-type> <input-pattern> --output <output> [--type <type>] [--verbose]
+  See 'dicom-gateway batch --help' for more information.

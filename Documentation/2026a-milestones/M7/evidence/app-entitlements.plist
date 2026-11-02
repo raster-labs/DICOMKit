@@ -1,0 +1,19 @@
+[Dict]
+	[Key] com.apple.security.app-sandbox
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.files.bookmarks.app-scope
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.files.downloads.read-write
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.files.user-selected.read-write
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.network.client
+	[Value]
+		[Bool] true
+	[Key] com.apple.security.network.server
+	[Value]
+		[Bool] true

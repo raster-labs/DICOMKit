@@ -1,0 +1,17 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[1 / 62]
+[8 / 55]
+[9 / 20] DICOMNetwork
+[20 / 31] DICOMNetwork
+[28 / 35] DICOMNetwork
+[28 / 35] dicom-mpps-product
+[30 / 37] dicom-mpps-product
+[31 / 37] dicom-mpps-product
+[32 / 37] DICOMNetwork
+[34 / 37] DICOMNetwork
+[35 / 37] dicom-mpps-product
+[37 / 37] dicom-mpps-product
+Build complete! (5.44 sec)

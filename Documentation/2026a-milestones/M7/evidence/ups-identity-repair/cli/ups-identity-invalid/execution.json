@@ -1,0 +1,21 @@
+{
+  "case": "ups-identity-invalid",
+  "surface": "cli",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "ups",
+    "http://127.0.0.1:62053/cli/dicom-web",
+    "--create",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/invalid-workitem.json"
+  ],
+  "started_utc": "2026-10-26T08:56:06.032337+00:00",
+  "finished_utc": "2026-10-26T08:56:06.052278+00:00",
+  "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+  "exit": 1,
+  "expected_exit": 1,
+  "request_count_before": 2,
+  "request_count_after": 2,
+  "request_indices": [],
+  "expected_requests": 0,
+  "passed": true
+}

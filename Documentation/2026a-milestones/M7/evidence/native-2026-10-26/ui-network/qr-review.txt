@@ -1,0 +1,60 @@
+						47 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						49 text field (settable) Description: Port, Value: 60927, Placeholder: 11112
+						51 text field (settable) Description: AE Title, Value: M7NATIVE, Placeholder: DICOMSTUDIO
+						53 text field (settable) Description: Called AE Title, Value: M7NATIVE, Placeholder: ANY-SCP
+							56 radio button Description: auto, Value: 0
+							57 radio button Description: review, Value: 1
+							60 radio button Description: c-move, Value: 0
+							61 radio button Description: c-get, Value: 1
+						63 text field (settable) Description: Move Destination AET, Placeholder: e.g. MY_STORE_SCP
+						65 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						67 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						69 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						71 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						73 pop up button Description: Modality, Value: Any
+							76 radio button Description: 10, Value: 1
+							77 radio button Description: 30, Value: 0
+							78 radio button Description: 60, Value: 0
+							79 radio button Description: 120, Value: 0
+							80 radio button Description: 300, Value: 0
+						82 pop up button Description: Transfer Syntax, Value: Any
+						84 checkbox Description: Hierarchical Output, Value: 0
+						86 text field (settable) Description: Output Directory, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio), Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-review-gui
+						89 text field (settable) Description: Study Instance UID, Help: Shows additional flags for this tool, Value: 2.25.505, Placeholder: e.g. 1.2.840.113619...
+						91 text field (settable) Description: Study Description, Help: Shows additional flags for this tool, Placeholder: e.g. CHEST* or *ABDOMEN*
+						93 text field (settable) Description: Parallel Operations, Help: Shows additional flags for this tool, Value: 1
+							96 radio button Description: low, Value: 0
+							97 radio button Description: medium, Value: 1
+							98 radio button Description: high, Value: 0
+						100 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						101 checkbox Description: Include Parent Keys, Help: Shows additional flags for this tool, Value: 0
+						102 checkbox Description: Validate Files, Help: Shows additional flags for this tool, Value: 0
+						104 text field (settable) Description: Save State File, Help: Shows additional flags for this tool, Placeholder: query.state
+						107 disclosure triangle Help: Shows additional flags for this tool, Value: on
+					114 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					115 button Description: Run command, Help: Runs the selected Workshop action
+					118 text Command Preview Valid $ Select a tool to build a command
+					120 text Console SUCCESS
+		132 search text field (settable) Search features
+Complete console:
+$ dicom-qr 127.0.0.1:60927 --aet M7NATIVE --called-aet M7NATIVE --review --method c-get --study-uid 2.25.505 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-review-gui --parallel 1 --priority medium --timeout 10
+
+DICOM Query-Retrieve
+====================
+  Server:            127.0.0.1:60927
+  Calling AE Title:  M7NATIVE
+  Called AE Title:   M7NATIVE
+  Mode:              Review
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-review-gui
+  Timeout:           10s
+  Filters:
+    Study UID:       2.25.505
+
+Found 1 study(ies):
+
+  [1] M5^SYNTHETIC (ID: M5-001)
+      Study: BEFORE
+      Date: 20260115  Modalities in Study: CT
+      UID: 2.25.505
+
+Review complete. 1 study(ies) found.

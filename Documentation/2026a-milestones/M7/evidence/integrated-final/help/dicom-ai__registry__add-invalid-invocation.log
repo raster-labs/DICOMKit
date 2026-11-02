@@ -1,0 +1,4 @@
+Error: Missing expected argument '--name <name>'
+Help:  --name <name>  Model name
+Usage: dicom-ai registry add --name <name> --path <path> [--version <version>] --type <type> [--description <description>] [--input-width <input-width>] [--input-height <input-height>] [--output-type <output-type>] [--tags <tags>] [--overwrite] [--verbose]
+  See 'dicom-ai registry add --help' for more information.

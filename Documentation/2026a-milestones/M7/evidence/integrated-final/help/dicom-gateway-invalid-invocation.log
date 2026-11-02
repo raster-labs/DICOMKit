@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file
+Usage: dicom-gateway dicom-to-hl7 <input> [--output <output>] [--message-type <message-type>] [--event-type <event-type>] [--verbose]
+  See 'dicom-gateway dicom-to-hl7 --help' for more information.

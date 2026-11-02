@@ -1,0 +1,4 @@
+Error: Missing expected argument '<path1>'
+Help:  <path1>  First study directory
+Usage: dicom-study compare <path1> <path2> [--format <format>] [--verbose]
+  See 'dicom-study compare --help' for more information.

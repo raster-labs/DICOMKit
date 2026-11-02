@@ -1,0 +1,3 @@
+Error: Unknown option '--dicomkit-m7-invalid-option'
+Usage: dicom-gateway forward [--listen-port <listen-port>] [--forward-hl7 <forward-hl7>] [--forward-fhir <forward-fhir>] [--message-type <message-type>] [--verbose]
+  See 'dicom-gateway forward --help' for more information.

@@ -1,0 +1,205 @@
+{
+  "milestone": "M2",
+  "date": "2026-10-24",
+  "branch": "codex/dicom-2026a-milestones",
+  "base_commit": "3625b3317229584e42b831efd07c45019ff8236f",
+  "scope": [
+    "A-01",
+    "A-02",
+    "A-03",
+    "A-04",
+    "A-05",
+    "A-06",
+    "A-07",
+    "A-08",
+    "A-09",
+    "NET-06-A",
+    "NET-06-B",
+    "NET-07-A"
+  ],
+  "status": "Local implementation and verification completed",
+  "source_manifest_digest_sha256": "95ea918f0b56e48e6890d4239ff8fddcaff339bf2f415825651c510ab0525390",
+  "source_manifest_file_count": 1877,
+  "changed_source_sha256": {
+    ".github/workflows/attribute-integrity.yml": "6ac0cc4250c517dd013059fc188c4cc9f454f7d7a82131a0170d9fc4de6703bd",
+    "Package.swift": "1e64da9ee5e5d7dfb123daedaec712ccaa3e4031065230e80cba75036e506024",
+    "Scripts/verify_m2.sh": "2de58faa73341bff1404b0663e1d61626abef77c00591aa1b22686204910586e",
+    "Scripts/verify_m2_attributes.py": "fb86c5ba64318332cc3f38edf6fda4c258152ba8a200786df21e814d2ca3a9c3",
+    "Sources/DICOMCore/CharacterSetHandler.swift": "048c707934f69ed63bf5ae1af74be0513483b11be501f811c503b87c481b9f13",
+    "Sources/DICOMCore/DICOMDateTime.swift": "dd4920f5c233b2230a3b2a70fc4fa19bf1a74232ccfa541bd0fb60683d4c19e2",
+    "Sources/DICOMCore/DICOMValueRules.swift": "e747ac2064d226c71714c70419b62ce5b46ee415840c17b164af0db86c3e2d36",
+    "Sources/DICOMCore/DICOMWriter.swift": "4a1eae882aca9afdf1cb3c3e27e128bb3941de4f048ff600c4998139a1019486",
+    "Sources/DICOMCore/DataElement.swift": "b1d67a14454e832f5cb5d2c50f874ab98c1c7250e73f43c03c83c8b0527cad61",
+    "Sources/DICOMKit/DICOMFile+Write.swift": "ae352252b27eaa612ddbf9abf999d2796743693d4913f7e5089d58905be09a2b",
+    "Sources/DICOMKit/DICOMMetadataDiscovery.swift": "e8ae278b10603d54247670e0ea54397af079133162a581febebb5c7f0aafa1da",
+    "Sources/DICOMKit/DICOMParser.swift": "afb8f121f06e6941058d6fadab0e3c6058784c177cf87906479f9ae92c855cf8",
+    "Sources/DICOMKit/DataSet+ImplicitSignedVR.swift": "0a9d9c76dc417d93afdc0f201e397f07f1f3eeaa83abcb5457285a614339c359",
+    "Sources/DICOMKit/DataSet+SpecificCharacterSet.swift": "852987b8e786705829c9cdff6a43752bf6f89b90ad0a7d31f6e37321d979c4b3",
+    "Sources/DICOMKit/DataSet.swift": "2383953dbf9fda67bf59eb3df3680a15fc3d55a1acbe11bc42fa3dda978f13af",
+    "Sources/DICOMKit/TagEditing/TagEditRules.swift": "6e0435122e4ae79416d0f8d16c62138cfff089ccb185e56b395af20b83157c8e",
+    "Sources/DICOMKit/TagEditing/TagEditor.swift": "b742b368a078130f6387d49228a5581d558921841eaa78cbc8afc58d7c9679d1",
+    "Sources/DICOMKit/Validation/DICOMValidator.swift": "ee78d75b54b5ae30a844735a84f31052edc44d901c389b2084671e315518e4a8",
+    "Sources/DICOMNetwork/MPPSService.swift": "34b4730fc8d9c99c0368b7aaedd76525004b8be8335b81fc2ebe1ab7be418219",
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift": "6d192e4dd48ab4db5a50d9431207df13ba2750765cb07e2435b5f06acd05b79a",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift": "b7181745e87d6cd93ea75648dea0344c887bf71b7352a1b72f0f5ec1a1680b13",
+    "Sources/DICOMWeb/Server/DICOMwebServer.swift": "b20d910b136bd3a3b94e986f5ee630d23018ce4937fade3c1837aae7d9bbdb9f",
+    "Sources/DICOMWeb/UPS/Workitem.swift": "f0df6595e4f09d6fb159834385303f30c7e751eb81b61db563f74dbc0ef1264c",
+    "Sources/dicom-mpps/DICOMMPPSCommand.swift": "030b978bcd71d6270e7d1ed0d0445297add57e5727d330338caaf5095d3e1599",
+    "Sources/dicom-tags/main.swift": "b719b32897dd1350dc02383ce166a58d0b54aff4349ff1c72bd9105a474e5580",
+    "Tests/DICOMCoreTests/DICOMDateTimeFormattingTests.swift": "c3f13ed5ee61c4cdac3efa38e304103ea3fa8e1dcb677dbdb08ee1335af3a40c",
+    "Tests/DICOMCoreTests/DICOMValueRulesTests.swift": "ecc1f3a82f8aa7cea9ceee74b1b773547a590eb96a41fb87c9b72682e965bcdb",
+    "Tests/DICOMCoreTests/DataElementTextContextTests.swift": "32ec81f43685b1d3143b3273c3a604bec86feb0ed7068663a29d2cd6795a70da",
+    "Tests/DICOMKitTests/TagEditIntegrityTests.swift": "2fc35290172939eefac4a225ca6df9109e4c0dd036b66d378e695f6943aa108a",
+    "Tests/DICOMKitTests/TextEncodingIntegrityTests.swift": "2b9969ca37af34847f874d12d8d0b025c85498d0e4deb23bc528fbe62188099b",
+    "Tests/DICOMNetworkTests/MPPSDataSetConformanceTests.swift": "4f29bb9fb461aba090fbb82703123bcb2523ae730843fa38480a73079a6298e4",
+    "Tests/DICOMNetworkTests/MPPSReferenceIntegrityTests.swift": "9b470ed92df7c800cd5ede629a181d3319bcc1db3082d34f06e0b0f084b7b2e0",
+    "Tests/DICOMNetworkTests/MWLMPPSCLIEndToEndTests.swift": "bcb9a2d9cedd6b2a7ba5f7caaf7ab47b22860ee8982ef84e26d2f728f21ec8d5",
+    "Tests/DICOMNetworkTests/MockPrintSCP.swift": "f0b0f53de1ef7073305cb7a9424a0ed41650abc0d1d3b8e6eac41d54aa25ca53",
+    "Tests/DICOMStudioTests/M2WorkshopAttributeTests.swift": "b27d33a8892083fa3e1996d95c32fb37e30ddf73321a8733465ee93917b2fb01",
+    "Tests/DICOMStudioTests/M2WorkshopMPPSReferenceTests.swift": "2c16c5d3011e06c02eed2da0d0c15f7b0dc5b8fb47858566683695a81e91abf3",
+    "Tests/DICOMWebTests/UPSScheduledDateTimeTests.swift": "3373f9584d34fac2f336ac136793811337adbe29af3baed21ac095e166f2a32e",
+    "Tests/dicom-tagsTests/TagEditRulesTests.swift": "e8c220f8e368b3023e641f2dc4a77c10abb14ba60066ddd8a93b22edfbf69cce",
+    "Tests/dicom-validateTests/M2AttributeIntegrityTests.swift": "7f1613f7e7c324094641e7a626b9506669b2345e2e5c4903bd2788dd16aa3ccc"
+  },
+  "dependency_lock_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+  "toolchain": {
+    "swift": "Apple Swift 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1), arm64-apple-macosx27.0.0",
+    "xcode": "Xcode 27.0, 27A266a"
+  },
+  "build": {
+    "studio_app": "Passed: explicit DICOMStudioApp target through temporary DICOMStudio-M2App scheme. Final bundle relinked 2026-10-24 10:52:02 UTC, then quit/relaunched by exact absolute path for all published GUI evidence. CODE_SIGNING_ALLOWED=NO; cross-import overlays enabled.",
+    "excluded_attempt": "app-build.log selected the same-named package library scheme and did not relink the old app. Initial old-bundle GUI result excluded.",
+    "app_file_manifest_digest_sha256": "b06ec906fc0f788600b6b39595e5ece25a52aa0e93c85130dec704acdc85690c",
+    "app_files_sha256": {
+      "Contents/Info.plist": "0dec4d6bf0223b722d8ed4698df224d0daef73ce2242ba8b73e495753dd41474",
+      "Contents/MacOS/DICOMStudio": "363913fcf2c48e8f6993a5064acacd696557b3068bedad2fd37dfa739b218624",
+      "Contents/MacOS/DICOMStudio.debug.dylib": "832de1752631d8b62c0b6e1c46cacb9dc14b5760cc50af6a7d11597b75122b8e",
+      "Contents/MacOS/__preview.dylib": "0936b7cbfe55d70534b884ea295d74a6857be67f78db4f88e410d6c95a0d4c3d",
+      "Contents/PkgInfo": "82502191c9484b04d685374f9879a0066069c49b8acae7a04b01d38d07e8eca0",
+      "Contents/Resources/AppIcon.icns": "d8c931b086cb5682398d1953f8f019090d77dd904975450f12e65d935e941468",
+      "Contents/Resources/Assets.car": "b2a13d3277174a88915e8d33a39727dc41335c33ea1da2e22d313d1a1745c1d1",
+      "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Info.plist": "4b32cf440e64cbeddaf6c81c7f64c94b9b69446bbf282a183d0cc25cfd28901b",
+      "Contents/Resources/DICOMKit_DICOMDictionary.bundle/Contents/Resources/DataElementDictionary.txt": "76686cbcc2007e4e128cb880636ab062d948fdf9884d8e19549c76a9ebd4f919",
+      "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Info.plist": "f2a1bdce8c9ac48cae12e244a1faee7c4eb4ce397e9364de54e9460a43c6395c",
+      "Contents/Resources/DICOMKit_DICOMRenderKit.bundle/Contents/Resources/FrameRender.metal.txt": "1ca5889c9ca61321bb27e323d1c80f8532a4c1d3802c19b10f87748de092afa7",
+      "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Info.plist": "b005991c19f79fc04dd7f4d913ced59b182de485bf0c644bc6419c500a0f1543",
+      "Contents/Resources/J2KSwift_J2KMetal.bundle/Contents/Resources/default.metallib": "659aa6f38c5ef771eba04b683dd950daa81cdfb94f6104d0b3aaa9ca3cca288b"
+    },
+    "cli_sha256": {
+      "dicom-tags": "a4d729c31203912a6a67dd64106cab11734f1e83ec933166ef8a9b0a0323b058",
+      "dicom-validate": "11a703ef91fde4c632bb57c80b065bcd4a01a899165449b3d226d7185c2bfe3e",
+      "dicom-mpps": "62d93c09b909df02c2dfe4806dedd1d67d9885f81ad46ac2133a2c64f8b85aa5",
+      "dicom-mwl": "4dd5f877ddc57f66c8dacba9b3b6530bdebc52ee01d900a635251644767e52fd",
+      "dicom-wado": "b1395bfb4358dc9a34c342270752c123a77681f0802b30d89c41dc9e6e0d231a"
+    }
+  },
+  "tests": [
+    {
+      "name": "DICOMCoreTests",
+      "result": "Passed",
+      "passed": 235,
+      "skipped": 0,
+      "log": "logs/DICOMCoreTests.log"
+    },
+    {
+      "name": "dicom-tagsTests",
+      "result": "Passed",
+      "passed": 13,
+      "skipped": 0,
+      "log": "logs/dicom-tagsTests.log"
+    },
+    {
+      "name": "dicom-validateTests",
+      "result": "Passed",
+      "passed": 21,
+      "skipped": 0,
+      "log": "logs/dicom-validateTests.log"
+    },
+    {
+      "name": "DICOMKitTests",
+      "result": "Passed",
+      "passed": 55,
+      "skipped": 0,
+      "log": "logs/DICOMKitTests.log"
+    },
+    {
+      "name": "DICOMWebTests",
+      "result": "Passed",
+      "passed": 74,
+      "skipped": 0,
+      "log": "logs/DICOMWebTests.log"
+    },
+    {
+      "name": "DICOMNetworkTests",
+      "result": "Passed",
+      "passed": 77,
+      "skipped": 1,
+      "log": "logs/DICOMNetworkTests.log"
+    },
+    {
+      "name": "DICOMStudioTests",
+      "result": "Passed",
+      "passed": 33,
+      "skipped": 0,
+      "log": "logs/DICOMStudioTests.log"
+    },
+    {
+      "name": "audit-regression",
+      "result": "Passed",
+      "passed": 30,
+      "skipped": 0,
+      "log": "logs/audit-regression.log"
+    }
+  ],
+  "manual_receiver": {
+    "result": "Passed",
+    "tests": 1,
+    "log": "logs/mpps-capture-peer.log",
+    "note": "Opt-in harness, not an independent-vendor conformance SCP. Independent TLV inspection is separate."
+  },
+  "cli_process_probes": {
+    "result": "Passed",
+    "invocations": 72,
+    "evidence": "cli-verification.json"
+  },
+  "ui_evidence": "ui-verification.json",
+  "fixture_evidence": "gui-file-parity.json",
+  "network_evidence": "network-parity.json",
+  "ui_not_applicable": [
+    {
+      "route": "Generic UPS server attribute update",
+      "reason": "No matching Workshop route exists; change-state is a different transaction. Tested through real server request routing."
+    }
+  ],
+  "review": "Independent scoped reviews of attribute/validator, charset/Workshop, and UPS/MPPS diffs completed. DataSet+DictionaryVR.swift unchanged. Final production source freeze preceded qualifying builds/tests; later corrections changed test/inspection fixtures only.",
+  "limitations": [
+    "Focused M2 gates, not full repository or clinical IOD conformance.",
+    "M3 query matching and all later milestones are unexecuted.",
+    "External independent-vendor interoperability, physical printers and final release/platform qualification remain M7/later gates.",
+    "US/SS repair covers new/updated dependent fields and implicit parse context; changing Pixel Representation alone does not rewrite untouched fields or establish complete contextual multi-VR conformance.",
+    "Typed mixed MPPS class lists are tested through existing service API; CLI/Workshop form retains one explicit class per list.",
+    "UPS GUI retrieval uses its existing table; captured request DT plus server response tests prove scheduling integrity, not a visible DT table field.",
+    "Charset tests qualify the recorded Latin-1, UTF-8, Japanese and item-context cases; not every repertoire on every platform.",
+    "Packaged GUI uses temporary synthetic paths, not the patient library or Documents-path entitlement qualification."
+  ],
+  "log_sha256": {
+    "logs/DICOMCoreTests.log": "6b551bc3dc5ae9ab4a554ee9c9e61700ff086f019c55d131bb21889139cbeefc",
+    "logs/DICOMKitTests.log": "8b6cb4f0ba5fac4bb94552850f979ab1dba75dd8b56ab72d0b3d788f931c7118",
+    "logs/DICOMNetworkTests.log": "894dbb56d32dff1a7f089fe6b08148fe52e32b6c56bca8f6e6f7c339794eee76",
+    "logs/DICOMStudioTests.log": "8cf7ccba45599c6035b753e51c69dbd1e7d1b9e4e06d72b9e6b7b4e8de94d43d",
+    "logs/DICOMWebTests.log": "92e6415636f2e545442b780484162185657ddda8a22a246cba15f66e8ba9f3a4",
+    "logs/app-package-build.log": "df7d36fb1a6b125212116f42f89a336f994a5414c10577bfeda4b721f89a2aff",
+    "logs/audit-regression.log": "ceab533fd9ea7063d56678dfc2e88856d79a08b22d50cf2799b92529398c3782",
+    "logs/build-dicom-mpps.log": "b3a871ced536da867764b24feb9ae09bc19465b7b6370f275f4550062206060f",
+    "logs/build-dicom-mwl.log": "ff736059e23183ceff442ffea6b38fc99fff382f13e7a53a198af8820d095e79",
+    "logs/build-dicom-tags.log": "4023683ab6078d4e428cb801cdb23cbca7233973692f81815c9ee070d9f85404",
+    "logs/build-dicom-validate.log": "052025079e40eea942956276b316c3c7d8a6f4da367c19f8626c095e8037e3a5",
+    "logs/build-dicom-wado.log": "b5e4f4c2bee7a5a871dfb89eb0268bb5f77693d842893aeda94bd88ef77e9aaa",
+    "logs/cli-tests.log": "de5087b2aa3a44ca12a63dad27ea1dbff2a754432d0a28e1da8c3b88039d565e",
+    "logs/dicom-tagsTests.log": "95123e17c0fb3ce9919dfeceb621b5ddcc4d4513149190480bdfa9c8f69a1a02",
+    "logs/dicom-validateTests.log": "3f4fcc8a64d436b59727512f010b4583cc9a234e8841a8fad1d2290228da6bbb",
+    "logs/mpps-capture-peer.log": "493c3f29e2a148ea7ce157c12f2db066e912ba7ec45d2909b762336660bc82da"
+  },
+  "remote_verification": "Check Attribute and workflow integrity plus Command safety on the pushed implementation commit. Exact-head provider results are exported separately; this pre-commit record makes no future remote-success claim.",
+  "manifest_digest_format": "SHA-256 of sorted relative path + NUL + lowercase SHA-256 + LF. Source includes tracked and new Sources/Tests plus Package.swift/Package.resolved; app includes all regular bundle files."
+}

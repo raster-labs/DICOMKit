@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "send",
+    "pacs://127.0.0.1:21114",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm",
+    "--aet",
+    "M7CLI",
+    "--called-aet",
+    "DCMKIT_M6",
+    "--raw",
+    "--timeout",
+    "5",
+    "--format",
+    "json"
+  ],
+  "returncode": 0,
+  "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792993748311974.87301\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792993748311005.473290\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792993748313833.153537\",\n  \"success\" : true\n}\n",
+  "stderr": ""
+}

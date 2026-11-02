@@ -1,0 +1,13 @@
+{
+  "isNormal" : true,
+  "manufacturer" : "DICOMKit",
+  "Manufacturer" : "DICOMKit",
+  "ManufacturerModelName" : "DICOM Print Emulator",
+  "model" : "DICOM Print Emulator",
+  "name" : "M7 Native Baseline",
+  "PrinterName" : "M7 Native Baseline",
+  "PrinterStatus" : "NORMAL",
+  "PrinterStatusInfo" : "NORMAL",
+  "status" : "NORMAL",
+  "statusInfo" : "NORMAL"
+}

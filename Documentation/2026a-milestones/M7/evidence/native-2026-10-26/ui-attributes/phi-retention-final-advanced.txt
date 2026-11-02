@@ -1,0 +1,123 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button (selected) Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-convert, Help: Transfer syntax conversion and image export
+			24 button Description: dicom-validate, Help: DICOM conformance validation against IODs
+			25 button (selected) Description: dicom-anon, Help: Anonymize DICOM files following PS3.15 profiles
+			26 button Description: dicom-compress, Help: Compress and decompress DICOM pixel data
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text DICOM Anon. De-identifies DICOM files with the PS3.15 Annex E Basic Confidentiality Profile — header attributes and burned-in pixel text (OCR). Parameters Input Input File/Directory
+						32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory
+						33 button Description: Browse for Input File/Directory, Help: Opens a file picker dialog
+						34 text DICOM file or directory to de-identify Parameters Remove Attributes --remove
+						35 text field (settable) Description: Remove Attributes, Placeholder: Modality
+						36 text Remove attributes by tag or keyword Replace Attributes --replace
+						37 text field (settable) Description: Replace Attributes, Placeholder: PatientID=SUBJECT
+						38 text Replace attributes using tag=value Shift Dates (Modified Dates) --shift-dates
+						39 text field (settable) Shift Dates (Modified Dates)
+						40 text Retain Longitudinal Temporal Information with Modified Dates: shift every date by this many days so intervals survive. Alternative to Retain Dates. OCR Mode --ocr-mode
+						41 OCR Mode
+							42 radio button Description: header, Value: 0
+							43 radio button Description: classify, Value: 1
+						44 text The two modes differ in which way they fail. header: redact only text matching the file's own PHI or a PHI-shaped pattern; scales, legends and annotations survive. Fails open — text the header never carried is kept. classify: adds PHI keywords, keeping only text on the clinical allowlist; fails closed. To erase an area whatever it reads, use Redact Region. Redact Region(s) --redact-region
+						45 text field (settable) Description: Redact Region(s), Placeholder: e.g. 0,0,1024,90; 0,980,1024,44
+						46 text Rectangles to blank as x,y,width,height, unioned with the automatic sources (always applied, even when Burned In Annotation = NO). Separate with “ ; ”. Redact Style --redact-style
+						47 Redact Style
+							48 radio button Description: blank, Value: 1
+							49 radio button Description: label, Value: 0
+							50 radio button Description: replace, Value: 0
+						51 text blank: fill only. label: a fixed stamp drawn into the blanked box. replace: the header engine's own de-identified value for the matched attribute (needs OCR mode classify or header; uncertain regions get the label). The region is always blanked first. Redact Fill --redact-fill
+						52 Redact Fill
+							53 radio button Description: black, Value: 1
+							54 radio button Description: white, Value: 0
+						55 text What blanked regions are filled with: black (stored value 0) or white (the largest stored value at the image's bit depth, resolved per file). Re-encode Clean Pixels --recompress
+						56 pop up button Description: Re-encode Clean Pixels, Value: Any
+						57 text After cleaning: source mirrors the input transfer syntax (lossy sources are re-quantized), or any dicom-compress codec. Empty = Explicit VR Little Endian. Redacted regions are re-verified blank after re-encoding. Options
+						58 checkbox Description: Retain Full Dates, Value: 0
+						59 checkbox Description: Retain Modified Dates, Value: 0
+						60 checkbox Description: Retain Dates (Full Dates), Value: 0
+						61 checkbox Description: Retain Patient Characteristics, Value: 0
+						62 checkbox Description: Retain Device Identity, Value: 0
+						63 checkbox Description: Retain Institution Identity, Value: 0
+						64 checkbox Description: Retain UIDs, Value: 0
+						65 checkbox Description: Clean Descriptors, Value: 0
+						66 checkbox Description: Retain Safe Private, Value: 0
+						67 checkbox Description: Clean Graphics, Value: 0
+						68 checkbox Description: Clean Structured Content, Value: 0
+						69 checkbox Description: Clean Recognizable Visual Features, Value: 0
+						70 checkbox Description: Clean Pixel Data, Value: 1
+						71 checkbox Description: Text Only, Value: 0
+						72 checkbox Description: OCR Every Frame, Value: 0
+						73 checkbox Description: Allow Burned-in PHI, Value: 1
+						74 checkbox Description: Recursive, Value: 0
+						75 checkbox Description: Dry Run, Value: 0
+						76 checkbox Description: Backup Originals, Value: 0
+						77 checkbox Description: Force Parse, Value: 0
+						78 checkbox Description: Verbose, Value: 0
+						79 text Output Output Path --output
+						80 text field (settable) Description: Output Path, Placeholder: Output file or directory path
+						81 button Description: Browse for Output Path, Help: Opens a file picker dialog
+						82 text Destination file or directory (required unless Dry Run). Browse grants a folder: a single input file is written into it under its own name. Audit Log Path --audit-log
+						83 text field (settable) Description: Audit Log Path, Placeholder: Optional audit log file path
+						84 button Description: Browse for Audit Log Path, Help: Opens a file picker dialog
+						85 text Write the per-tag action log (never values) and the PHI-safe OCR lines to this file — also on a dry run
+						86 scroll bar (settable, float) 1
+							87 value indicator (settable, float) 1
+							88 increment arrow button
+							89 decrement arrow button
+							90 increment page button
+							91 decrement page button
+					92 button (disabled) Description: Run command, Help: Runs the selected Workshop action
+				93 splitter (disabled, settable, float) 460
+				94 container
+					95 text Command Preview $ Select a tool to build a command
+					96 button Description: Copy command, Help: Copies the command to the clipboard
+					97 text Console IDLE
+					98 button (disabled) Clear console output
+					99 image Description: Terminal Command Prompt, ID: terminal
+					100 text Console output will appear here History
+					101 button Clear
+					102 scroll area
+						103 text dicom-convert dicom-convert dicom-convert dicom-anon dicom-anon dicom-script dicom-script dicom-script dicom-script dicom-script
+	104 toolbar
+		105 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		106 search text field (settable) Search features
+			107 button Search
+	108 close button
+	109 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	110 minimize button
+	111 text DICOM Studio
+112 menu bar
+	113 DICOMStudio
+	114 File
+	115 Edit
+	116 View
+	117 Image
+	118 Window
+	119 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

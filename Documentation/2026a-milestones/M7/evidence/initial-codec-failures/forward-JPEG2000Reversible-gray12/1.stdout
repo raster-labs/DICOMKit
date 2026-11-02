@@ -1,0 +1,6 @@
+[INFO] Start to read j2k main header (0).
+[INFO] Main header has been correctly decoded.
+[INFO] No decoded area parameters, set the decoded area to the whole image
+[INFO] Header of tile 1 / 1 has been read.
+[INFO] Generated Outfile /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/forward-JPEG2000Reversible-gray12/foreign-decoded.pgm
+decode time: 0 ms

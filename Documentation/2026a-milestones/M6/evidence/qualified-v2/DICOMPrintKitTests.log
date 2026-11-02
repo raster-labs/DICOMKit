@@ -1,0 +1,1171 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 569]
+[Planning deferred tasks]
+[6 / 63]
+[8 / 19] DICOMPrintKitTests-product
+[19 / 30] DICOMPrintKitTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/CombinedAnnotationTests.swift:112:55: warning: left side of nil coalescing operator '??' has non-optional type 'Double', so the right side is never used
+110 |         let text = try XCTUnwrap(converted.textObjects.first)
+111 |         XCTAssertEqual(text.text, "Nodule")
+112 |         XCTAssertEqual(text.boundingBoxTopLeft.column ?? -1, 0.2 * 400, accuracy: 1e-9)
+    |                                                       `- warning: left side of nil coalescing operator '??' has non-optional type 'Double', so the right side is never used
+113 |         XCTAssertEqual(text.boundingBoxTopLeft.row ?? -1, 0.2 * 200, accuracy: 1e-9)
+114 |         XCTAssertEqual(text.anchorPoint?.column ?? -1, 0.7 * 400, accuracy: 1e-9)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/CombinedAnnotationTests.swift:113:52: warning: left side of nil coalescing operator '??' has non-optional type 'Double', so the right side is never used
+111 |         XCTAssertEqual(text.text, "Nodule")
+112 |         XCTAssertEqual(text.boundingBoxTopLeft.column ?? -1, 0.2 * 400, accuracy: 1e-9)
+113 |         XCTAssertEqual(text.boundingBoxTopLeft.row ?? -1, 0.2 * 200, accuracy: 1e-9)
+    |                                                    `- warning: left side of nil coalescing operator '??' has non-optional type 'Double', so the right side is never used
+114 |         XCTAssertEqual(text.anchorPoint?.column ?? -1, 0.7 * 400, accuracy: 1e-9)
+115 |         XCTAssertEqual(text.anchorPoint?.row ?? -1, 0.7 * 200, accuracy: 1e-9)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/DCMTKInteropTests.swift:166:26: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+164 |         let server = DICOMPrintServer(
+165 |             configuration: PrintSCPConfiguration(
+166 |                 aeTitle: try AETitle("DCMPRINT"), port: 0,
+    |                          `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+167 |                 associationIdleTimeout: 60),
+168 |             delegate: handler)
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/PrintOutputSinkTests.swift:433:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+431 |             sink: CompositePrintSink([localScreen, archive]))
+432 |         let localServer = DICOMPrintServer(
+433 |             configuration: PrintSCPConfiguration(aeTitle: try AETitle("ARCHIVE"), port: 0),
+    |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+434 |             delegate: composing)
+435 |         try await localServer.start()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/PrintOutputSinkTests.swift:460:59: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+458 |             sink: ScreenSink())
+459 |         let failingServer = DICOMPrintServer(
+460 |             configuration: PrintSCPConfiguration(aeTitle: try AETitle("FAILCOMP"), port: 0),
+    |                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+461 |             delegate: failing)
+462 |         try await failingServer.start()
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[23 / 29] DICOMPrintKitTests-product
+[25 / 29] DICOMPrintKitTests-product
+[27 / 29] DICOMPrintKitTests-product
+Build complete! (3.79 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:11:09.467.
+Test Suite 'DICOMPrintKitTests.xctest' started at 2026-10-24 20:11:09.472.
+Test Suite 'CombinedAnnotationTests' started at 2026-10-24 20:11:09.472.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_blankOnlyWhenBothHalvesAreMissing]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_blankOnlyWhenBothHalvesAreMissing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationBecomesTextObjectWithVisibleAnchor]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationBecomesTextObjectWithVisibleAnchor]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationSurvivesTheSidecarEncoding]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationSurvivesTheSidecarEncoding]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationWithoutArrowKeepsItsAnchorInvisible]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_combinedAnnotationWithoutArrowKeepsItsAnchorInvisible]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderExitIsNilWhenTheAnchorIsInsideTheBox]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderExitIsNilWhenTheAnchorIsInsideTheBox]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderExitLandsOnTheBoxBorder]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderExitLandsOnTheBoxBorder]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailIsNilWithoutAnArrow]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailIsNilWithoutAnArrow]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailIsTheRawStartWhenThereAreNoWords]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailIsTheRawStartWhenThereAreNoWords]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailWithWordsSitsOutsideTheStartButShortOfTheAnchor]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_leaderTailWithWordsSitsOutsideTheStartButShortOfTheAnchor]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_rasterizingDrawsACombinedAnnotation]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_rasterizingDrawsACombinedAnnotation]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_rasterizingDrawsAnUnlabelledCombinedAnnotation]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_rasterizingDrawsAnUnlabelledCombinedAnnotation]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_unlabelledCombinedAnnotationFallsBackToArrowPolylines]' started.
+Test Case '-[DICOMPrintKitTests.CombinedAnnotationTests test_unlabelledCombinedAnnotationFallsBackToArrowPolylines]' passed (0.000 seconds).
+Test Suite 'CombinedAnnotationTests' passed at 2026-10-24 20:11:09.483.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.011 (0.011) seconds
+Test Suite 'CompositeAndPaperSinkTests' started at 2026-10-24 20:11:09.483.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeFailsWhenEverySinkFails]' started.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeFailsWhenEverySinkFails]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeFansOutToEverySink]' started.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeFansOutToEverySink]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeRequiresAllPropagatesTheFirstFailure]' started.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeRequiresAllPropagatesTheFirstFailure]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeToleratesOneFailingSinkByDefault]' started.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testCompositeToleratesOneFailingSinkByDefault]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testPaperSinkRefusesUnlessExplicitlyAllowed]' started.
+Test Case '-[DICOMPrintKitTests.CompositeAndPaperSinkTests testPaperSinkRefusesUnlessExplicitlyAllowed]' passed (0.001 seconds).
+Test Suite 'CompositeAndPaperSinkTests' passed at 2026-10-24 20:11:09.487.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'DCMTKInteropTests' started at 2026-10-24 20:11:09.487.
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testAttributeRejectionByTheDCMTKSCPFailsFastWithTheRealStatus]' started.
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testAttributeRejectionByTheDCMTKSCPFailsFastWithTheRealStatus]' passed (2.563 seconds).
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testDCMTKPrintSCUCanPrintToOurEmulator]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMPrintKitTests/DCMTKInteropTests.swift:157: -[DICOMPrintKitTests.DCMTKInteropTests testDCMTKPrintSCUCanPrintToOurEmulator] : Test skipped - No sample DICOM image available for the DCMTK tools
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testDCMTKPrintSCUCanPrintToOurEmulator]' skipped (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testOurPrintSCUCanPrintToTheDCMTKPrintSCP]' started.
+Test Case '-[DICOMPrintKitTests.DCMTKInteropTests testOurPrintSCUCanPrintToTheDCMTKPrintSCP]' passed (2.567 seconds).
+Test Suite 'DCMTKInteropTests' passed at 2026-10-24 20:11:14.622.
+	 Executed 3 tests, with 1 test skipped and 0 failures (0 unexpected) in 5.135 (5.135) seconds
+Test Suite 'FileSinkTests' started at 2026-10-24 20:11:14.622.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testImageSinkWritesAPNGPerFilm]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testImageSinkWritesAPNGPerFilm]' passed (0.009 seconds).
+Test Case '-[DICOMPrintKitTests.FileSinkTests testImageSinkWritesTIFF]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testImageSinkWritesTIFF]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.FileSinkTests testNamingExpandsEveryToken]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testNamingExpandsEveryToken]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.FileSinkTests testNamingSanitizesPathSeparators]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testNamingSanitizesPathSeparators]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FileSinkTests testPDFSinkWritesAPDF]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testPDFSinkWritesAPDF]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.FileSinkTests testPDFSinkWritesOneMultiPageFileForAMultiFilmJob]' started.
+Test Case '-[DICOMPrintKitTests.FileSinkTests testPDFSinkWritesOneMultiPageFileForAMultiFilmJob]' passed (0.005 seconds).
+Test Suite 'FileSinkTests' passed at 2026-10-24 20:11:14.645.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.022 (0.023) seconds
+Test Suite 'FilmCellLayoutTests' started at 2026-10-24 20:11:14.645.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testColumnFormatGivesEachBandItsOwnCellCount]' started.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testColumnFormatGivesEachBandItsOwnCellCount]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testMarginAndSpacingInsetTheCells]' started.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testMarginAndSpacingInsetTheCells]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testRowFormatGivesEachBandItsOwnCellCount]' started.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testRowFormatGivesEachBandItsOwnCellCount]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testSlideAndCustomFormatsUseOneFullCell]' started.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testSlideAndCustomFormatsUseOneFullCell]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testStandardGridIsRowMajorAndCoversTheSheet]' started.
+Test Case '-[DICOMPrintKitTests.FilmCellLayoutTests testStandardGridIsRowMajorAndCoversTheSheet]' passed (0.000 seconds).
+Test Suite 'FilmCellLayoutTests' passed at 2026-10-24 20:11:14.646.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'FilmComposerPaletteTests' started at 2026-10-24 20:11:14.646.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testAColourFilmIsRecolouredToo]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testAColourFilmIsRecolouredToo]' passed (0.037 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testAGrayscaleFilmBecomesColourUnderAPalette]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testAGrayscaleFilmBecomesColourUnderAPalette]' passed (0.016 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testColourSamplesReduceByLuminance]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testColourSamplesReduceByLuminance]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testComposingDoesNotAlterTheReceivedPValues]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testComposingDoesNotAlterTheReceivedPValues]' passed (0.015 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testDifferentPalettesProduceDifferentFilms]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testDifferentPalettesProduceDifferentFilms]' passed (0.029 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testGreyPalettesAreDropped]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testGreyPalettesAreDropped]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testNoPaletteByDefault]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testNoPaletteByDefault]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testPalettiseAlwaysReturnsRGB]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testPalettiseAlwaysReturnsRGB]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testSettingsRoundTripAndBackwardCompatibility]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerPaletteTests testSettingsRoundTripAndBackwardCompatibility]' passed (0.000 seconds).
+Test Suite 'FilmComposerPaletteTests' passed at 2026-10-24 20:11:14.743.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.096 (0.097) seconds
+Test Suite 'FilmComposerTests' started at 2026-10-24 20:11:14.743.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testBandsMoveTheCellsOffTheirEdge]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testBandsMoveTheCellsOffTheirEdge]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testBorderDensityPaintsTheSheetBackground]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testBorderDensityPaintsTheSheetBackground]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testCGImageIsProducedForOutput]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testCGImageIsProducedForOutput]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testColorImageBoxProducesAnRGBFilm]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testColorImageBoxProducesAnRGBFilm]' passed (0.014 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testComposedInfoCarriesTheFilmAttributes]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testComposedInfoCarriesTheFilmAttributes]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testComposesASheetSizedFromTheFilmBox]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testComposesASheetSizedFromTheFilmBox]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testCompositionIsDeterministic]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testCompositionIsDeterministic]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testDifferentLayoutsProduceDifferentFilms]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testDifferentLayoutsProduceDifferentFilms]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testDownsamplingShrinksTheBitmapAndKeepsTheMetadata]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testDownsamplingShrinksTheBitmapAndKeepsTheMetadata]' passed (0.013 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testEmptyImageBoxesShowEmptyImageDensityNotTheImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testEmptyImageBoxesShowEmptyImageDensityNotTheImage]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFailBehaviorSkipsTheBoxAndReportsIt]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFailBehaviorSkipsTheBoxAndReportsIt]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFilmEmulationInvertsRelativeToPaperDirect]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFilmEmulationInvertsRelativeToPaperDirect]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFooterBandPutsTheTextAtTheBottom]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testFooterBandPutsTheTextAtTheBottom]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testHeaderBandPutsTheTextAtTheTop]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testHeaderBandPutsTheTextAtTheTop]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testImagesAreDrawnUprightNotFlipped]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testImagesAreDrawnUprightNotFlipped]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testImagesLandInTheirImageBoxPositions]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testImagesLandInTheirImageBoxPositions]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testInversePresentationLUTInvertsTheImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testInversePresentationLUTInvertsTheImage]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLandscapeOrientationSwapsTheSheet]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLandscapeOrientationSwapsTheSheet]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLinODIsADensityCurveNotANegation]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLinODIsADensityCurveNotANegation]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLinODKeepsItsOrientation]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testLinODKeepsItsOrientation]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testMagnificationTypeChangesTheRendering]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testMagnificationTypeChangesTheRendering]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testMonochrome1SourceIsInverted]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testMonochrome1SourceIsInverted]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testOversizedSheetIsRejectedRatherThanAllocated]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testOversizedSheetIsRejectedRatherThanAllocated]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testPolarityReverseInvertsTheImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testPolarityReverseInvertsTheImage]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testResolutionIsClampedToWhatFilmImagersAddress]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testResolutionIsClampedToWhatFilmImagersAddress]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testSideBandsPutTheTextOnTheirEdge]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testSideBandsPutTheTextOnTheirEdge]' passed (0.006 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testSixteenBitImagesAreScaledFromBitsStored]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testSixteenBitImagesAreScaledFromBitsStored]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTrimBoxDoesNotCoverTheImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTrimBoxDoesNotCoverTheImage]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTrimYesPrintsABoxSurroundingEachImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTrimYesPrintsABoxSurroundingEachImage]' passed (0.020 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTwoInversionsCancel]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testTwoInversionsCancel]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testWhiteImageRendersLightAndBlackImageRendersDark]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testWhiteImageRendersLightAndBlackImageRendersDark]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testYBRFull422IsUnpackedAndConverted]' started.
+Test Case '-[DICOMPrintKitTests.FilmComposerTests testYBRFull422IsUnpackedAndConverted]' passed (0.015 seconds).
+Test Suite 'FilmComposerTests' passed at 2026-10-24 20:11:14.842.
+	 Executed 32 tests, with 0 failures (0 unexpected) in 0.098 (0.099) seconds
+Test Suite 'FilmDestinationCatalogTokenTests' started at 2026-10-24 20:11:14.842.
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testAnyBinIsAccepted]' started.
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testAnyBinIsAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testPickerDefaultsUnchanged]' started.
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testPickerDefaultsUnchanged]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testRefusals]' started.
+Test Case '-[DICOMPrintKitTests.FilmDestinationCatalogTokenTests testRefusals]' passed (0.000 seconds).
+Test Suite 'FilmDestinationCatalogTokenTests' passed at 2026-10-24 20:11:14.843.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'FilmIdentificationTests' started at 2026-10-24 20:11:14.843.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testAbsurdFooterCannotSwallowTheSheet]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testAbsurdFooterCannotSwallowTheSheet]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testAFilmWithoutItsOwnAnnotationsFallsBackToTheJobWideSet]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testAFilmWithoutItsOwnAnnotationsFallsBackToTheJobWideSet]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testCellsLeaveRoomForTheFooter]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testCellsLeaveRoomForTheFooter]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testFooterAnnotationsArePositionedInOrder]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testFooterAnnotationsArePositionedInOrder]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testFooterBandGrowsWithItsLines]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testFooterBandGrowsWithItsLines]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testForcedFooterListsEveryStudyOnTheFilm]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testForcedFooterListsEveryStudyOnTheFilm]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testMixedStudiesCaptionEachImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testMixedStudiesCaptionEachImage]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testNothingToSayDrawsNothing]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testNothingToSayDrawsNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testOneStudyFootersOnce]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testOneStudyFootersOnce]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testPerImageIsNeverFootered]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testPerImageIsNeverFootered]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testSameTextDifferentStudyStillCaptionsEachImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testSameTextDifferentStudyStillCaptionsEachImage]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testTypeSizeFollowsTheFilmSize]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testTypeSizeFollowsTheFilmSize]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testUncaptionedImageDoesNotBreakAFooter]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testUncaptionedImageDoesNotBreakAFooter]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testUnknownStudyCaptionsEachImage]' started.
+Test Case '-[DICOMPrintKitTests.FilmIdentificationTests testUnknownStudyCaptionsEachImage]' passed (0.000 seconds).
+Test Suite 'FilmIdentificationTests' passed at 2026-10-24 20:11:14.845.
+	 Executed 14 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'FilmImageFitterTests' started at 2026-10-24 20:11:14.845.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testCropFillsTheCellAndTrimsTheOverflowSymmetrically]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testCropFillsTheCellAndTrimsTheOverflowSymmetrically]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testDecimateFitsAndCentresWithoutDistortion]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testDecimateFitsAndCentresWithoutDistortion]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testFailBehaviorAcceptsAnImageThatFits]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testFailBehaviorAcceptsAnImageThatFits]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testFailBehaviorRejectsAnImageLargerThanTheCell]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testFailBehaviorRejectsAnImageLargerThanTheCell]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testRequestedImageSizeNeverOverflowsTheCell]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testRequestedImageSizeNeverOverflowsTheCell]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testRequestedImageSizePinsThePhysicalWidth]' started.
+Test Case '-[DICOMPrintKitTests.FilmImageFitterTests testRequestedImageSizePinsThePhysicalWidth]' passed (0.000 seconds).
+Test Suite 'FilmImageFitterTests' passed at 2026-10-24 20:11:14.845.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'FilmSheetTests' started at 2026-10-24 20:11:14.845.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testDPIScalesThePixelSheet]' started.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testDPIScalesThePixelSheet]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testImperialFilmSizesAreExactInchConversions]' started.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testImperialFilmSizesAreExactInchConversions]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testLandscapeSwapsTheSheet]' started.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testLandscapeSwapsTheSheet]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testMetricAndISOFilmSizes]' started.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testMetricAndISOFilmSizes]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testTenByFourteenIsTheSizeTheStandardStates]' started.
+Test Case '-[DICOMPrintKitTests.FilmSheetTests testTenByFourteenIsTheSizeTheStandardStates]' passed (0.000 seconds).
+Test Suite 'FilmSheetTests' passed at 2026-10-24 20:11:14.846.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'ImportedPresentationStateTests' started at 2026-10-24 20:11:14.846.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aDeletedImportedViewIsNotAdoptedBack]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aDeletedImportedViewIsNotAdoptedBack]' passed (0.034 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_ignoresFilesThatAreNotPresentationStates]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_ignoresFilesThatAreNotPresentationStates]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_isIdempotent]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_isIdempotent]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_skipsAnObjectDescribingNoImageTheStudyHas]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_skipsAnObjectDescribingNoImageTheStudyHas]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_skipsAnObjectOfAnotherStudy]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_skipsAnObjectOfAnotherStudy]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_takesTheStudysObjectIntoTheStore]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_adopt_takesTheStudysObjectIntoTheStore]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_anchoredLabelBecomesTheCombinedKind]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_anchoredLabelBecomesTheCombinedKind]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aPlainAnnotationEncodesNoNewKeys]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aPlainAnnotationEncodesNoNewKeys]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aShapeRoundTripsThroughJSON]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aShapeRoundTripsThroughJSON]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aShapeSavedByThisAppLeavesAsTheGraphicObjectItCameFrom]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_aShapeSavedByThisAppLeavesAsTheGraphicObjectItCameFrom]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_circleIsBurnedAsARing]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_circleIsBurnedAsARing]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_colorSoftcopyObjectIsReadAndAdopted]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_colorSoftcopyObjectIsReadAndAdopted]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_drawingsAreFiledPerImageAndFrame]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_drawingsAreFiledPerImageAndFrame]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerFollowsAQuarterTurn]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerFollowsAQuarterTurn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerIsBurnedAlongItsLine]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerIsBurnedAlongItsLine]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerKeepsItsGeometryColourAndLabel]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_rulerKeepsItsGeometryColourAndLabel]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterCarriesItsRegionAndValue]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterCarriesItsRegionAndValue]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterIsBurnedUnderTheRuler]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterIsBurnedUnderTheRuler]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterPaintsOutsideItsRegionOnly]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_shutterPaintsOutsideItsRegionOnly]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_sidecarWithoutTheNewKeysStillReads]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_sidecarWithoutTheNewKeysStillReads]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_stateCarriesItsOwnRescaleForTheWindow]' started.
+Test Case '-[DICOMPrintKitTests.ImportedPresentationStateTests test_stateCarriesItsOwnRescaleForTheWindow]' passed (0.003 seconds).
+Test Suite 'ImportedPresentationStateTests' passed at 2026-10-24 20:11:14.925.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.078 (0.079) seconds
+Test Suite 'M6PrintSinkFailureTests' started at 2026-10-24 20:11:14.925.
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testAllFailuresStillThrowAndEachIsReported]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testAllFailuresStillThrowAndEachIsReported]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testOneFailedDestinationIsVisibleWithoutDiscardingSuccessfulScreenFilm]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testOneFailedDestinationIsVisibleWithoutDiscardingSuccessfulScreenFilm]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testPersistentFailureCannotProduceSavedFileCallback]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintSinkFailureTests testPersistentFailureCannotProduceSavedFileCallback]' passed (0.003 seconds).
+Test Suite 'M6PrintSinkFailureTests' passed at 2026-10-24 20:11:14.929.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds
+Test Suite 'M6PrintWarningOutputTests' started at 2026-10-24 20:11:14.929.
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testOlderWarningStatusCallerStillGetsVisibleWarningWithoutDetails]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testOlderWarningStatusCallerStillGetsVisibleWarningWithoutDetails]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testPlainSuccessKeepsExistingJSONShape]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testPlainSuccessKeepsExistingJSONShape]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testWarningRemainsSuccessfulAndVisibleInSharedTextAndJSON]' started.
+Test Case '-[DICOMPrintKitTests.M6PrintWarningOutputTests testWarningRemainsSuccessfulAndVisibleInSharedTextAndJSON]' passed (0.000 seconds).
+Test Suite 'M6PrintWarningOutputTests' passed at 2026-10-24 20:11:14.930.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PresentationLUTTransformTests' started at 2026-10-24 20:11:14.930.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testColourSamplesArePassedThrough]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testColourSamplesArePassedThrough]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testCurveAppliesToGrayscaleSamples]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testCurveAppliesToGrayscaleSamples]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testDeepPixelsArePassedThrough]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testDeepPixelsArePassedThrough]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testIdentityNeedsNoCurve]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testIdentityNeedsNoCurve]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLegalityAndPixelRenderingAreComplementary]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLegalityAndPixelRenderingAreComplementary]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODHonoursFilmDensityBounds]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODHonoursFilmDensityBounds]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODIsExponentialNotLinear]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODIsExponentialNotLinear]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODRejectsInvertedDensityRange]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODRejectsInvertedDensityRange]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODTokenSpelling]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testLinODTokenSpelling]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testOnlyStandardShapesGoOnTheWire]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testOnlyStandardShapesGoOnTheWire]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testRenderedInverseIsAFullNegation]' started.
+Test Case '-[DICOMPrintKitTests.PresentationLUTTransformTests testRenderedInverseIsAFullNegation]' passed (0.000 seconds).
+Test Suite 'PresentationLUTTransformTests' passed at 2026-10-24 20:11:14.931.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PresentationStateFramePaletteTests' started at 2026-10-24 20:11:14.931.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_blankFrames_writeNothing]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_blankFrames_writeNothing]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_framedAnnotations_surviveTheRoundTrip]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_framedAnnotations_surviveTheRoundTrip]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_legacyFlatSidecar_readsAsFrameZero]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_legacyFlatSidecar_readsAsFrameZero]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_palette_survivesTheRoundTrip]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_palette_survivesTheRoundTrip]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_paletteAlone_stillWritesASidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_paletteAlone_stillWritesASidecar]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_resavingPlain_removesTheColouredSidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_resavingPlain_removesTheColouredSidecar]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_viewWithoutColourOrDrawings_writesNoSidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFramePaletteTests test_viewWithoutColourOrDrawings_writesNoSidecar]' passed (0.001 seconds).
+Test Suite 'PresentationStateFramePaletteTests' passed at 2026-10-24 20:11:14.944.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.012 (0.012) seconds
+Test Suite 'PresentationStateFrameReferenceTests' started at 2026-10-24 20:11:14.944.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_colouredMultiFrame_isFramedToo]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_colouredMultiFrame_isFramedToo]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_framedWrite_leavesTheSidecarRoundTripIntact]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_framedWrite_leavesTheSidecarRoundTripIntact]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_frameNumbering_isTheSameForEveryModality]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_frameNumbering_isTheSameForEveryModality]' passed (0.018 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_keepsEachFramesDrawingsInItsOwnItem]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_keepsEachFramesDrawingsInItsOwnItem]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_referencedSeries_namesNoFrame]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_referencedSeries_namesNoFrame]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_writesOneItemPerDrawnFrame_withOneBasedFrameNumbers]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_multiFrame_writesOneItemPerDrawnFrame_withOneBasedFrameNumbers]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_singleFrame_namesNoFrameAnywhere]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_singleFrame_namesNoFrameAnywhere]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_singleFrameWithDrawingsOnHigherFrames_stillFlattens]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_singleFrameWithDrawingsOnHigherFrames_stillFlattens]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_twoFrameImage_isAlreadyMultiFrame]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_twoFrameImage_isAlreadyMultiFrame]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_unstatedFrameCount_writesTheSingleFrameForm]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateFrameReferenceTests test_unstatedFrameCount_writesTheSingleFrameForm]' passed (0.002 seconds).
+Test Suite 'PresentationStateFrameReferenceTests' passed at 2026-10-24 20:11:14.984.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.040 (0.040) seconds
+Test Suite 'PresentationStateIODConformanceTests' started at 2026-10-24 20:11:14.984.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_circularShutter_isCentredOnItsPixel]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_circularShutter_isCentredOnItsPixel]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_colourImage_isSavedAsAColorSoftcopyPresentationState]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_colourImage_isSavedAsAColorSoftcopyPresentationState]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_colourImageWithAPalette_isStillAColorState]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_colourImageWithAPalette_isStillAColorState]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_fittedView_writesTheWholeImageAsTheDisplayedArea]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_fittedView_writesTheWholeImageAsTheDisplayedArea]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_identityRescale_writesNoModalityLUT]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_identityRescale_writesNoModalityLUT]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_invertedColourImage_restoresInverted]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_invertedColourImage_restoresInverted]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochrome1_restoresTheViewItWasSavedFrom]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochrome1_restoresTheViewItWasSavedFrom]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochrome1_uprightViewIsInverse]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochrome1_uprightViewIsInverse]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochromeImage_staysGrayscale]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_monochromeImage_staysGrayscale]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_noPhotometric_keepsTheMonochrome2Reading]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_noPhotometric_keepsTheMonochrome2Reading]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_pseudoColorView_writesTheDisplayedAreaToo]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_pseudoColorView_writesTheDisplayedAreaToo]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rectangularShutter_edgePixelsAreOpen]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rectangularShutter_edgePixelsAreOpen]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rectangularShutter_opensFromTheLeftEdgeOfItsFirstPixel]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rectangularShutter_opensFromTheLeftEdgeOfItsFirstPixel]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rescaledImage_carriesItsRescaleInTheState]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rescaledImage_carriesItsRescaleInTheState]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rescaleTypeUnknown_isWrittenAsUnspecified]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_rescaleTypeUnknown_isWrittenAsUnspecified]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_storedState_readsBackTheModalityLUT]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateIODConformanceTests test_storedState_readsBackTheModalityLUT]' passed (0.001 seconds).
+Test Suite 'PresentationStateIODConformanceTests' passed at 2026-10-24 20:11:14.999.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.014 (0.015) seconds
+Test Suite 'PresentationStateStoreTests' started at 2026-10-24 20:11:14.999.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_allViewsOfAStudyShareOneSeries]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_allViewsOfAStudyShareOneSeries]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_annotations_surviveTheRoundTrip]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_annotations_surviveTheRoundTrip]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_annotationsAreKeptPerView]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_annotationsAreKeptPerView]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_blankAnnotations_areNotSaved]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_blankAnnotations_areNotSaved]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteAll_clearsTheStudy]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteAll_clearsTheStudy]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteView_removesEveryObjectOfAMultiImageView]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteView_removesEveryObjectOfAMultiImageView]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteView_removesOnlyThatView]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deleteView_removesOnlyThatView]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deletingAView_removesItsSidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_deletingAView_removesItsSidecar]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_label_survivesMixedCaseAndPunctuation]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_label_survivesMixedCaseAndPunctuation]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_label_withMixedCase_stillMatchesForDeletion]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_label_withMixedCase_stillMatchesForDeletion]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_oneImageCanCarrySeveralViews]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_oneImageCanCarrySeveralViews]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_carriesAnnotationsAlongsideTheObject]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_carriesAnnotationsAlongsideTheObject]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_describesAPresentationStateSeries]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_describesAPresentationStateSeries]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_leavesTheStoresOwnCopyInPlace]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_leavesTheStoresOwnCopyInPlace]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_publishedObjectIsReadableAsAPresentationState]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_publishedObjectIsReadableAsAPresentationState]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_twice_doesNotDuplicateObjects]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_twice_doesNotDuplicateObjects]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_twoViews_shareOneSeries]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_twoViews_shareOneSeries]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_unknownLabel_returnsNil]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_unknownLabel_returnsNil]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_writesOneObjectPerImageIntoTheStudy]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_publish_writesOneObjectPerImageIntoTheStudy]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_differsBetweenViewsOfOneStudy]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_differsBetweenViewsOfOneStudy]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_isFormattedForAReport]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_isFormattedForAReport]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_isStableAcrossReads]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_referenceID_isStableAcrossReads]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSaving_leavesNoOrphanedSidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSaving_leavesNoOrphanedSidecar]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSaving_staysInTheSameSeries]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSaving_staysInTheSameSeries]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSavingUnderTheSameLabel_replacesThePublishedObjects]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_reSavingUnderTheSameLabel_replacesThePublishedObjects]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_resavingWithoutAnnotations_dropsTheOldOnes]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_resavingWithoutAnnotations_dropsTheOldOnes]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_roundTripsWindowThroughDisk]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_roundTripsWindowThroughDisk]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_thenLoad_returnsTheView]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_thenLoad_returnsTheView]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_withNoImages_writesNothing]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_withNoImages_writesNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_writesOneObjectPerImage]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_save_writesOneObjectPerImage]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_savedObjectsCarryPRModality]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_savedObjectsCarryPRModality]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_savedView_findsTheStateForAGivenImage]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_savedView_findsTheStateForAGivenImage]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_saveUnderAnExistingLabel_replacesIt]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_saveUnderAnExistingLabel_replacesIt]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_areReturnedNewestFirst]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_areReturnedNewestFirst]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_forImage_excludesViewsThatDoNotCoverIt]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_forImage_excludesViewsThatDoNotCoverIt]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_ofUnknownStudy_isEmpty]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_ofUnknownStudy_isEmpty]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_skipsUnreadableFiles]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_views_skipsUnreadableFiles]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_viewWithoutAnnotations_loadsEmptyAndWritesNoSidecar]' started.
+Test Case '-[DICOMPrintKitTests.PresentationStateStoreTests test_viewWithoutAnnotations_loadsEmptyAndWritesNoSidecar]' passed (0.001 seconds).
+Test Suite 'PresentationStateStoreTests' passed at 2026-10-24 20:11:15.075.
+	 Executed 38 tests, with 0 failures (0 unexpected) in 0.074 (0.076) seconds
+Test Suite 'PrintBitDepthConformanceTests' started at 2026-10-24 20:11:15.075.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testCatalogLabelsNameTheTradeOff]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testCatalogLabelsNameTheTradeOff]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testCatalogOffersOnlyEnumeratedDepths]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testCatalogOffersOnlyEnumeratedDepths]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testClampNeverIncreasesDepth]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testClampNeverIncreasesDepth]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testClampNoteNamesRequestedAndActualDepth]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testClampNoteNamesRequestedAndActualDepth]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testConformantRequestSaysNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testConformantRequestSaysNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testGrayPaletteKeepsDeepGrayscale]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testGrayPaletteKeepsDeepGrayscale]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testLegalDepthsPassThroughUntouched]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testLegalDepthsPassThroughUntouched]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testNonsenseDepthIsRejected]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testNonsenseDepthIsRejected]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testPaletteForcesEightBitsRegardlessOfRequest]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testPaletteForcesEightBitsRegardlessOfRequest]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testPaletteNoteExplainsWhyDepthWasDropped]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testPaletteNoteExplainsWhyDepthWasDropped]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testRawJobSaysNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testRawJobSaysNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testSixteenBitClampsToTwelveNotEight]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testSixteenBitClampsToTwelveNotEight]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testSixteenBitRequestStillValidates]' started.
+Test Case '-[DICOMPrintKitTests.PrintBitDepthConformanceTests testSixteenBitRequestStillValidates]' passed (0.000 seconds).
+Test Suite 'PrintBitDepthConformanceTests' passed at 2026-10-24 20:11:15.076.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintColorModeTests' started at 2026-10-24 20:11:15.076.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testAgreeingConfigurationIsUnchanged]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testAgreeingConfigurationIsUnchanged]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testAgreeingConfigurationSaysNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testAgreeingConfigurationSaysNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testColorPixelsOnGrayscaleRequestSwitchToColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testColorPixelsOnGrayscaleRequestSwitchToColor]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testConnectionSettingsSurviveReconciliation]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testConnectionSettingsSurviveReconciliation]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testEmptyDescriptorsLeaveTheRequestAlone]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testEmptyDescriptorsLeaveTheRequestAlone]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testMonochromePixelsOnColorRequestDropToGrayscale]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testMonochromePixelsOnColorRequestDropToGrayscale]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testOneColorFrameAmongMonochromeSwitchesTheWholeJob]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testOneColorFrameAmongMonochromeSwitchesTheWholeJob]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testSwitchIsReportedToDiagnostics]' started.
+Test Case '-[DICOMPrintKitTests.PrintColorModeTests testSwitchIsReportedToDiagnostics]' passed (0.000 seconds).
+Test Suite 'PrintColorModeTests' passed at 2026-10-24 20:11:15.077.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintConsoleLabelTests' started at 2026-10-24 20:11:15.077.
+Test Case '-[DICOMPrintKitTests.PrintConsoleLabelTests testJobStatusLabelsAreTheC13_8AttributeNames]' started.
+Test Case '-[DICOMPrintKitTests.PrintConsoleLabelTests testJobStatusLabelsAreTheC13_8AttributeNames]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintConsoleLabelTests testPrinterStatusLabelsAreTheC13_9AttributeNames]' started.
+Test Case '-[DICOMPrintKitTests.PrintConsoleLabelTests testPrinterStatusLabelsAreTheC13_9AttributeNames]' passed (0.000 seconds).
+Test Suite 'PrintConsoleLabelTests' passed at 2026-10-24 20:11:15.077.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintEmulatorEndToEndTests' started at 2026-10-24 20:11:15.077.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testColorJobProducesAColorFilm]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testColorJobProducesAColorFilm]' passed (0.020 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testCompositionFailureIsReportedToTheSCU]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testCompositionFailureIsReportedToTheSCU]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testFilmAlsoReachesAFileSinkWhenComposed]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testFilmAlsoReachesAFileSinkWhenComposed]' passed (0.005 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testMultiImageJobFillsEveryCell]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testMultiImageJobFillsEveryCell]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrinterStatusIsAnsweredByTheHandler]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrinterStatusIsAnsweredByTheHandler]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrintingFromAnSCUProducesAComposedFilmOnScreen]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testPrintingFromAnSCUProducesAComposedFilmOnScreen]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testRawColorJobOnAGrayscaleRequestStillPrintsInColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintEmulatorEndToEndTests testRawColorJobOnAGrayscaleRequestStillPrintsInColor]' passed (0.064 seconds).
+Test Suite 'PrintEmulatorEndToEndTests' passed at 2026-10-24 20:11:15.178.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.100 (0.100) seconds
+Test Suite 'PrintGSDFTests' started at 2026-10-24 20:11:15.178.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_catalogOffersTheCalibratedMapping]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_catalogOffersTheCalibratedMapping]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_densitiesReproduceTableD21]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_densitiesReproduceTableD21]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_gsdfCurveIsMonotonicAndSpansTheSheet]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_gsdfCurveIsMonotonicAndSpansTheSheet]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_gsdfEndPointsMatchTableB1]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_gsdfEndPointsMatchTableB1]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_numericDensityUnderGSDFIsAPhysicalDensity]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_numericDensityUnderGSDFIsAPhysicalDensity]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_otherMappingsKeepTheirCurves]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_otherMappingsKeepTheirCurves]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_paperIsReflectiveAndDarkerAtMaxDensity]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_paperIsReflectiveAndDarkerAtMaxDensity]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_reflectivePrintHasNoAmbientTerm]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_reflectivePrintHasNoAmbientTerm]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_transmissiveRangeMatchesAnnexD2]' started.
+Test Case '-[DICOMPrintKitTests.PrintGSDFTests test_transmissiveRangeMatchesAnnexD2]' passed (0.000 seconds).
+Test Suite 'PrintGSDFTests' passed at 2026-10-24 20:11:15.179.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintManagementConformanceTests' started at 2026-10-24 20:11:15.179.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_catalogOffersEveryMediumTypeTerm]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_catalogOffersEveryMediumTypeTerm]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_defaultStatusInfo_isADefinedTerm]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_defaultStatusInfo_isADefinedTerm]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_footerLines_areLegalLOValues]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_footerLines_areLegalLOValues]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_footerLines_dropControlCharacters]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_footerLines_dropControlCharacters]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_mammographyPresetSendsTheTerm]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_mammographyPresetSendsTheTerm]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawConformantSources_areAccepted]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawConformantSources_areAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawHighBitNotBelowBitsStored_isRefused]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawHighBitNotBelowBitsStored_isRefused]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawJobOfASignedImage_throwsWithTheRule]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawJobOfASignedImage_throwsWithTheRule]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawPaletteColorSource_isRefused]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawPaletteColorSource_isRefused]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawSignedSource_isRefused]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawSignedSource_isRefused]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawSixteenBitsStored_isRefused]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawSixteenBitsStored_isRefused]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawYBRSource_isRefused]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_rawYBRSource_isRefused]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_simulatedBandFilm_carriesItsOwnImageDisplayFormat]' started.
+Test Case '-[DICOMPrintKitTests.PrintManagementConformanceTests test_simulatedBandFilm_carriesItsOwnImageDisplayFormat]' passed (0.001 seconds).
+Test Suite 'PrintManagementConformanceTests' passed at 2026-10-24 20:11:15.182.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'PrintNonRawColorTests' started at 2026-10-24 20:11:15.182.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testFlatteningIsStillAvailableOnRequest]' started.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testFlatteningIsStillAvailableOnRequest]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testPreparedPixelsAreNotFlattenedToGrey]' started.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testPreparedPixelsAreNotFlattenedToGrey]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testProcessedColorSourceKeepsItsColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testProcessedColorSourceKeepsItsColor]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testSavedFilmOfAColorStudyIsInColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testSavedFilmOfAColorStudyIsInColor]' passed (0.023 seconds).
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testSavedFilmOfAMonochromeStudyStaysGrey]' started.
+Test Case '-[DICOMPrintKitTests.PrintNonRawColorTests testSavedFilmOfAMonochromeStudyStaysGrey]' passed (0.001 seconds).
+Test Suite 'PrintNonRawColorTests' passed at 2026-10-24 20:11:15.209.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.027 (0.027) seconds
+Test Suite 'PrintOverlayAnnotationGSPSTests' started at 2026-10-24 20:11:15.209.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_arrowAnnotation_becomesShaftAndHeadPolylines]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_arrowAnnotation_becomesShaftAndHeadPolylines]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_blankAnnotationsConvertToNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_blankAnnotationsConvertToNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_layerCarriesTheFirstAnnotationsColour]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_layerCarriesTheFirstAnnotationsColour]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_storeOmitsSequencesWithoutDimensions]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_storeOmitsSequencesWithoutDimensions]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_storeWritesAnnotationSequencesIntoTheSavedObject]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_storeWritesAnnotationSequencesIntoTheSavedObject]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_textAnnotation_becomesAnchoredTextObjectInPixels]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_textAnnotation_becomesAnchoredTextObjectInPixels]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_unknownImageSizeConvertsToNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayAnnotationGSPSTests test_unknownImageSizeConvertsToNothing]' passed (0.000 seconds).
+Test Suite 'PrintOverlayAnnotationGSPSTests' passed at 2026-10-24 20:11:15.213.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.004 (0.004) seconds
+Test Suite 'PrintOverlayCompoundGraphicTests' started at 2026-10-24 20:11:15.213.
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_arrowIsACompoundGraphicWithItsAlternateRendering]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_arrowIsACompoundGraphicWithItsAlternateRendering]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_compoundIDsAreUniqueAcrossFrames]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_compoundIDsAreUniqueAcrossFrames]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_eachObjectCarriesItsOwnColour]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_eachObjectCarriesItsOwnColour]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_readBackShowsOneArrowInItsColour]' started.
+Test Case '-[DICOMPrintKitTests.PrintOverlayCompoundGraphicTests test_readBackShowsOneArrowInItsColour]' passed (0.000 seconds).
+Test Suite 'PrintOverlayCompoundGraphicTests' passed at 2026-10-24 20:11:15.214.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'PrintPlanLayoutTests' started at 2026-10-24 20:11:15.214.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testANamedBandPlansTheFilmItDraws]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testANamedBandPlansTheFilmItDraws]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandCellsAreTheBandsAndNotAGrid]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandCellsAreTheBandsAndNotAGrid]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandLayoutChunksFilmsByImageBoxCount]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandLayoutChunksFilmsByImageBoxCount]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandLayoutCountsItsOwnCellsRatherThanTheBoundingGrid]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testBandLayoutCountsItsOwnCellsRatherThanTheBoundingGrid]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testColumnLayoutCountsItsCells]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testColumnLayoutCountsItsCells]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testEveryCataloguedBandIsAFormatAndNotAGrid]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testEveryCataloguedBandIsAFormatAndNotAGrid]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testGridCellsAreUniformAndRowMajor]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testGridCellsAreUniformAndRowMajor]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testGridSelectionsStillReportTheirGrid]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testGridSelectionsStillReportTheirGrid]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testMarginAndSpacingInsetTheCells]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testMarginAndSpacingInsetTheCells]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testPlanSummaryNamesABandLayoutByItsFormat]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testPlanSummaryNamesABandLayoutByItsFormat]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTemplateSelectionCarriesTheTemplatesOwnFormat]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTemplateSelectionCarriesTheTemplatesOwnFormat]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTheNamedBandsHoldTheImagesTheirNamesSay]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTheNamedBandsHoldTheImagesTheirNamesSay]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTheSelectionResolvesToTheFormatItSends]' started.
+Test Case '-[DICOMPrintKitTests.PrintPlanLayoutTests testTheSelectionResolvesToTheFormatItSends]' passed (0.000 seconds).
+Test Suite 'PrintPlanLayoutTests' passed at 2026-10-24 20:11:15.216.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'PrintPreparationColorModeTests' started at 2026-10-24 20:11:15.216.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testColorIsFlattenedWhenPreservationIsOff]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testColorIsFlattenedWhenPreservationIsOff]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testExplicitGreysWinOverAColorRequest]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testExplicitGreysWinOverAColorRequest]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testExplicitGreysWinOverAPaletteOnAColorSource]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testExplicitGreysWinOverAPaletteOnAColorSource]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testMonochromeSourceStaysGrayscale]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testMonochromeSourceStaysGrayscale]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testPaletteColorSourceIsPreparedInColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testPaletteColorSourceIsPreparedInColor]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testRGBSourceIsPreparedInColorDespiteAGrayscaleRequest]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testRGBSourceIsPreparedInColorDespiteAGrayscaleRequest]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testYBRSourceIsPreparedInColor]' started.
+Test Case '-[DICOMPrintKitTests.PrintPreparationColorModeTests testYBRSourceIsPreparedInColor]' passed (0.000 seconds).
+Test Suite 'PrintPreparationColorModeTests' passed at 2026-10-24 20:11:15.216.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'PrintSCPConsoleTests' started at 2026-10-24 20:11:15.216.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testConsoleLineIsTimestampedAndTagged]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testConsoleLineIsTimestampedAndTagged]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testCountersTallyTheEventsThatMatter]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testCountersTallyTheEventsThatMatter]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testEventsAreWordedOnceForBothSurfaces]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testEventsAreWordedOnceForBothSurfaces]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testJSONLineCarriesTheCallingAE]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testJSONLineCarriesTheCallingAE]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testOutputSummarySaysSoWhenFilmsAreDiscarded]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testOutputSummarySaysSoWhenFilmsAreDiscarded]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testStartupSummaryStatesWhereFilmsGo]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPConsoleTests testStartupSummaryStatesWhereFilmsGo]' passed (0.000 seconds).
+Test Suite 'PrintSCPConsoleTests' passed at 2026-10-24 20:11:15.218.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintSCPCorrectionLogTests' started at 2026-10-24 20:11:15.218.
+Test Case '-[DICOMPrintKitTests.PrintSCPCorrectionLogTests testConformantBoxProducesNoCorrectionLine]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPCorrectionLogTests testConformantBoxProducesNoCorrectionLine]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPCorrectionLogTests testCorrectionRendersAsAWarningLine]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPCorrectionLogTests testCorrectionRendersAsAWarningLine]' passed (0.000 seconds).
+Test Suite 'PrintSCPCorrectionLogTests' passed at 2026-10-24 20:11:15.218.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintSCPOptionCatalogTests' started at 2026-10-24 20:11:15.218.
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testEveryCatalogueTokenIsDistinctAndLowercase]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testEveryCatalogueTokenIsDistinctAndLowercase]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testEveryDensityMappingAndStatusHasAToken]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testEveryDensityMappingAndStatusHasAToken]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testTokensResolveBothWays]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPOptionCatalogTests testTokensResolveBothWays]' passed (0.000 seconds).
+Test Suite 'PrintSCPOptionCatalogTests' passed at 2026-10-24 20:11:15.218.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'PrintSCPServiceAssemblyTests' started at 2026-10-24 20:11:15.218.
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testEnabledOutputsCompositeOntoTheScreen]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testEnabledOutputsCompositeOntoTheScreen]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testHandlerReportsTheConfiguredPrinterStatus]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testHandlerReportsTheConfiguredPrinterStatus]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testScreenOnlyWhenNothingIsEnabled]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPServiceAssemblyTests testScreenOnlyWhenNothingIsEnabled]' passed (0.000 seconds).
+Test Suite 'PrintSCPServiceAssemblyTests' passed at 2026-10-24 20:11:15.219.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'PrintSCPSettingsFileTests' started at 2026-10-24 20:11:15.219.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testMissingFileReadsAsDefaults]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testMissingFileReadsAsDefaults]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testPartialDocumentKeepsItsValuesAndDefaultsTheRest]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testPartialDocumentKeepsItsValuesAndDefaultsTheRest]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testRoundTrip]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsFileTests testRoundTrip]' passed (0.001 seconds).
+Test Suite 'PrintSCPSettingsFileTests' passed at 2026-10-24 20:11:15.220.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintSCPSettingsMappingTests' started at 2026-10-24 20:11:15.220.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testCapabilityFieldsReachTheConfiguration]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testCapabilityFieldsReachTheConfiguration]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testCompositionFieldsReachTheComposer]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testCompositionFieldsReachTheComposer]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testDefaultsMatchTheEmulatorContract]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testDefaultsMatchTheEmulatorContract]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testInvalidAETitleIsRejectedBeforeTheListenerStarts]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testInvalidAETitleIsRejectedBeforeTheListenerStarts]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testPrinterStatusInfoFallsBackToTheStatusText]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testPrinterStatusInfoFallsBackToTheStatusText]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testTransportFieldsReachTheConfiguration]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testTransportFieldsReachTheConfiguration]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testUnknownSizeTokensDoNotSilentlyNarrowWhatIsAccepted]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSettingsMappingTests testUnknownSizeTokensDoNotSilentlyNarrowWhatIsAccepted]' passed (0.000 seconds).
+Test Suite 'PrintSCPSettingsMappingTests' passed at 2026-10-24 20:11:15.221.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PrintSCPSharedRuntimeTests' started at 2026-10-24 20:11:15.221.
+Test Case '-[DICOMPrintKitTests.PrintSCPSharedRuntimeTests testAssembledEmulatorReceivesComposesAndWritesAFilm]' started.
+Test Case '-[DICOMPrintKitTests.PrintSCPSharedRuntimeTests testAssembledEmulatorReceivesComposesAndWritesAFilm]' passed (0.008 seconds).
+Test Suite 'PrintSCPSharedRuntimeTests' passed at 2026-10-24 20:11:15.229.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'PrintWindowSpaceTests' started at 2026-10-24 20:11:15.229.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testConversionHonorsRescaleSlope]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testConversionHonorsRescaleSlope]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testExplicitRequestFunctionStands]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testExplicitRequestFunctionStands]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testFrameWithNoVOIFallsBackToTheAutoStretch]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testFrameWithNoVOIFallsBackToTheAutoStretch]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testLinearStaysLinearWhenTheFileSaysNothing]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testLinearStaysLinearWhenTheFileSaysNothing]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testMultiValuedVOIResolvesToItsFirstPair]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testMultiValuedVOIResolvesToItsFirstPair]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testNoWindowStaysNil]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testNoWindowStaysNil]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testOutputUnitsWindowIsUnchangedByTheFix]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testOutputUnitsWindowIsUnchangedByTheFix]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testRequestWindowStillWinsOverTheDataSetVOI]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testRequestWindowStillWinsOverTheDataSetVOI]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testSigmoidChangesThePrintedPixels]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testSigmoidChangesThePrintedPixels]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testStoredWindowIsConvertedToOutputUnits]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testStoredWindowIsConvertedToOutputUnits]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testStoredWindowSentAsOutputUnitsFlattensTheFrame]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testStoredWindowSentAsOutputUnitsFlattensTheFrame]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testUnwindowedFrameUsesTheDataSetsOwnVOI]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testUnwindowedFrameUsesTheDataSetsOwnVOI]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testViewerWindowInheritsTheFilesSigmoidFunction]' started.
+Test Case '-[DICOMPrintKitTests.PrintWindowSpaceTests testViewerWindowInheritsTheFilesSigmoidFunction]' passed (0.000 seconds).
+Test Suite 'PrintWindowSpaceTests' passed at 2026-10-24 20:11:15.232.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'PseudoColorPresentationStateStoreTests' started at 2026-10-24 20:11:15.232.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_publish_carriesThePseudoColorClass]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_publish_carriesThePseudoColorClass]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_choosesTheIODPerImage]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_choosesTheIODPerImage]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_greyPalettesStayGSPS]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_greyPalettesStayGSPS]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_sizesThePaletteTableToTheImage]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_sizesThePaletteTableToTheImage]' passed (0.005 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_writesAValidPseudoColorObject]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_save_writesAValidPseudoColorObject]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_preferSidecarWhenPresent]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_preferSidecarWhenPresent]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restoreBakedInversionFromDICOMAlone]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restoreBakedInversionFromDICOMAlone]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restoreComputedPaletteFromTableAlone]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restoreComputedPaletteFromTableAlone]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restorePaletteFromDICOMAlone]' started.
+Test Case '-[DICOMPrintKitTests.PseudoColorPresentationStateStoreTests test_views_restorePaletteFromDICOMAlone]' passed (0.001 seconds).
+Test Suite 'PseudoColorPresentationStateStoreTests' passed at 2026-10-24 20:11:15.253.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.021 (0.021) seconds
+Test Suite 'PublishedStateDictionaryVRTests' started at 2026-10-24 20:11:15.253.
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedAnnotatedState_usesDictionaryVRsThroughout]' started.
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedAnnotatedState_usesDictionaryVRsThroughout]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedPseudoColorState_usesDictionaryVRsThroughout]' started.
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedPseudoColorState_usesDictionaryVRsThroughout]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedState_usesDictionaryVRsThroughout]' started.
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedState_usesDictionaryVRsThroughout]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedState_writesImageRotationAsUS]' started.
+Test Case '-[DICOMPrintKitTests.PublishedStateDictionaryVRTests test_publishedState_writesImageRotationAsUS]' passed (0.002 seconds).
+Test Suite 'PublishedStateDictionaryVRTests' passed at 2026-10-24 20:11:15.264.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.011 (0.012) seconds
+Test Suite 'ScreenSinkTests' started at 2026-10-24 20:11:15.265.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testClearEmptiesTheScrollback]' started.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testClearEmptiesTheScrollback]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testFilmsArrivingWithNoViewerAreCountedNotLost]' started.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testFilmsArrivingWithNoViewerAreCountedNotLost]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testScrollbackHoldsDownsampledCopies]' started.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testScrollbackHoldsDownsampledCopies]' passed (0.001 seconds).
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testScrollbackKeepsTheMostRecentFilms]' started.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testScrollbackKeepsTheMostRecentFilms]' passed (0.003 seconds).
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testStreamDeliversFilmsAtFullResolution]' started.
+Test Case '-[DICOMPrintKitTests.ScreenSinkTests testStreamDeliversFilmsAtFullResolution]' passed (0.032 seconds).
+Test Suite 'ScreenSinkTests' passed at 2026-10-24 20:11:15.302.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.037 (0.037) seconds
+Test Suite 'ViewerPresentationStateBridgeTests' started at 2026-10-24 20:11:15.302.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_expressesVerticalFlipAsHorizontalPlusHalfTurn]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_expressesVerticalFlipAsHorizontalPlusHalfTurn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_foldsBothFlipsIntoHalfTurn]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_foldsBothFlipsIntoHalfTurn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsDisplayedAreaForWholeImage]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsDisplayedAreaForWholeImage]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsWindowWhenNoneApplied]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsWindowWhenNoneApplied]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsWindowWhenWidthIsZero]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_omitsWindowWhenWidthIsZero]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsDisplayedAreaWhenZoomedIn]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsDisplayedAreaWhenZoomedIn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsHorizontalFlip]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsHorizontalFlip]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsInversionAsInversePresentationLUT]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsInversionAsInversePresentationLUT]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsQuarterTurn]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsQuarterTurn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsWindow]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_recordsWindow]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_statesAnUprightOrientationExplicitly]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_statesAnUprightOrientationExplicitly]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_statesIdentityTransformationForUntouchedView]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_statesIdentityTransformationForUntouchedView]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_writesOneBasedCoordinates]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_capture_writesOneBasedCoordinates]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_adaptsZoomToADifferentViewport]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_adaptsZoomToADifferentViewport]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_survivesEmptyState]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_survivesEmptyState]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_survivesZeroSizedViewport]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_restore_survivesZeroSizedViewport]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesEveryQuarterTurn]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesEveryQuarterTurn]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesInversion]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesInversion]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesRotation]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesRotation]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesWindow]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesWindow]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesZoom]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesZoom]' passed (0.000 seconds).
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesZoomAndPanTogether]' started.
+Test Case '-[DICOMPrintKitTests.ViewerPresentationStateBridgeTests test_roundTrip_preservesZoomAndPanTogether]' passed (0.000 seconds).
+Test Suite 'ViewerPresentationStateBridgeTests' passed at 2026-10-24 20:11:15.304.
+	 Executed 22 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'WeasisApplyGateTests' started at 2026-10-24 20:11:15.304.
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_enhancedMRMultiFrame_withIssuer_passesTheApplyGate]' started.
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_enhancedMRMultiFrame_withIssuer_passesTheApplyGate]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_stateWithoutTheImagesIssuer_failsThePatientGate]' started.
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_stateWithoutTheImagesIssuer_failsThePatientGate]' passed (0.002 seconds).
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_usMultiFrame_colouredView_publishesCSPSThatPassesTheApplyGate]' started.
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_usMultiFrame_colouredView_publishesCSPSThatPassesTheApplyGate]' passed (0.004 seconds).
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_xaMultiFrame_withoutIssuer_passesTheApplyGate]' started.
+Test Case '-[DICOMPrintKitTests.WeasisApplyGateTests test_xaMultiFrame_withoutIssuer_passesTheApplyGate]' passed (0.002 seconds).
+Test Suite 'WeasisApplyGateTests' passed at 2026-10-24 20:11:15.314.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.010 (0.010) seconds
+Test Suite 'DICOMPrintKitTests.xctest' passed at 2026-10-24 20:11:15.314.
+	 Executed 379 tests, with 1 test skipped and 0 failures (0 unexpected) in 5.827 (5.842) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:11:15.314.
+	 Executed 379 tests, with 1 test skipped and 0 failures (0 unexpected) in 5.827 (5.848) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Print Cell Padding Tests" started.
+◇ Suite "Annotation lettering stays upright" started.
+◇ Suite "Image Annotation Burner Tests" started.
+◇ Suite "Print Overlay Annotation Tests" started.
+◇ Suite "Presentation palette" started.
+◇ Suite "Print palette rules" started.
+◇ Suite "Print Overlay Orientation Tests" started.
+◇ Suite "Palette identity on the wire" started.
+◇ Test "MONOCHROME2 pads with the minimum stored value — black on film" started.
+◇ Suite "Print Cell Placement Tests" started.
+◇ Test "A 16-bit frame is refused untouched — the burner cannot caption it" started.
+◇ Test "The measurement can actually see a wrongly-turned glyph" started.
+◇ Test "Words read level and the right way round under every arrangement" started.
+◇ Test "Corner text burned after padding lands in the letterbox — the cell's corners" started.
+◇ Test "A tall frame in a wide cell grows columns, and only columns" started.
+◇ Test "RGB pads with black and keeps the picture's samples interleaved" started.
+◇ Test "MONOCHROME1 pads with the maximum stored value — black on film" started.
+◇ Test "Pixel spacing rides along — padded pixels are the same physical size" started.
+◇ Test "The picture is centred in the padding, byte for byte" started.
+◇ Test "A senseless aspect ratio is refused untouched" started.
+◇ Test "A wide frame in a tall cell grows rows, and only rows" started.
+◇ Test "A frame already the cell's shape is returned untouched" started.
+◇ Test "An arrow of no length draws nothing" started.
+◇ Test "A colour annotation survives a colour frame and a greyscale frame" started.
+◇ Test "An arrow is burned along the line it was drawn on" started.
+◇ Test "The film sets every corner line at the one size, as the preview does" started.
+◇ Test "Luminance is what a colour becomes on a greyscale printer" started.
+◇ Test "A short arrow keeps a shaft — the head never swallows it" started.
+◇ Test "An unturned cell burns exactly where it always did" started.
+◇ Test "A presentation saved before palettes still decodes" started.
+◇ Test "Without a palette a monochrome source stays grey" started.
+◇ Test "On a turned cell an annotation is burned where the anatomy went" started.
+◇ Test "No choice resolves to grey" started.
+◇ Test "A top corner is written at the top and a bottom corner at the bottom" started.
+◇ Test "No palette means no palette" started.
+◇ Test "A raw job never colourises" started.
+◇ Test "A frame this cannot write into comes back untouched" started.
+◇ Test "The palette survives a coding round trip" started.
+◇ Test "A grey film keeps the depth it asked for" started.
+◇ Test "The picture keeps every row it had — nothing is scaled away" started.
+◇ Test "A palette widens a monochrome source to colour" started.
+◇ Test "Coordinates are clamped into the image" started.
+◇ Test "A colour palette makes a presentation non-identity" started.
+◇ Test "Empty text and zero-length arrows are blank" started.
+◇ Test "The identification is written into the pixels" started.
+◇ Test "An explicitly grey palette does not widen" started.
+◇ Test "A truncated frame is left alone" started.
+◇ Test "Grey palettes are dropped rather than carried" started.
+◇ Test "Colour drops the job to 8-bit" started.
+◇ Test "Text is burned where its fractions say, not at the bottom" started.
+◇ Test "An arrow's head is unmistakably wider than its shaft" started.
+◇ Test case passing 3 arguments rotation → 0.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test "On MONOCHROME1 a bright colour is burned as a low value" started.
+◇ Test "Nothing to say means nothing is touched" started.
+◇ Test "A grey film cannot ask for 16-bit" started.
+◇ Test "Colour frames are burned in place, keeping their three samples" started.
+◇ Test "Grey palettes leave a presentation at the identity" started.
+◇ Test "A colour palette is carried to the preparer" started.
+◇ Test "Size is held between a readable floor and a covering ceiling" started.
+◇ Test "Blank annotations leave the pixels alone" started.
+◇ Test "Moving an annotation keeps it in the image and keeps an arrow's shape" started.
+◇ Test "A mirror reflects across the middle, and only on its own axis" started.
+◇ Test "A 16-bit frame is printed uncaptioned rather than written into blindly" started.
+◇ Test "A left corner is written on the left and a right corner on the right" started.
+◇ Test "Windowing and inversion are not arrangement — they move nothing" started.
+◇ Test "A drag on a turned cell moves the annotation the way the hand went" started.
+◇ Test "Standard palettes round-trip through their DICOM label" started.
+◇ Test "On MONOCHROME1 the caption is drawn in the value that reads as white" started.
+◇ Test "A click maps back to the annotation it was made on" started.
+◇ Test "An arrow burns pixels along its whole length, head included" started.
+◇ Test "Words are turned back by exactly what turned them" started.
+◇ Test "A round trip survives a crop too" started.
+◇ Test "True size sends CROP plus the physical width; missing spacing falls back" started.
+◇ Test "An unarranged picture moves nothing" started.
+◇ Test case passing 3 arguments rotation → 90.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test "Only DICOM's own palettes have a UID to record" started.
+◇ Test "One mirror reverses the sense of a turn, so the cancellation flips" started.
+◇ Test "CROP with a requested size prints at that size, letterboxed when smaller" started.
+◇ Test "A half turn takes a corner to the opposite one" started.
+◇ Test "The centre is the one point every arrangement leaves alone" started.
+◇ Test "A quarter turn takes the top-left corner to the top-right" started.
+◇ Test "Fill sends CROP for every image; fit and stretch send nothing" started.
+◇ Test "A drag is a delta, so a crop's offset drops out of it" started.
+◇ Test "CROP with an oversize request crops to the cell instead of shrinking" started.
+◇ Test "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test "A quarter turn swaps row and column spacing; a free angle clears both" started.
+◇ Test "Imager Pixel Spacing is the fallback; zeros and singletons are rejected" started.
+◇ Test "Alignment is a no-op when the image fills the cell" started.
+◇ Test "The DS rendering of a physical width stays within 16 characters" started.
+◇ Test case passing 3 arguments rotation → 180.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test "Fill alignment moves the crop window, not the destination" started.
+◇ Test "Stretch fills the cell exactly and ignores the aspect ratio" started.
+◇ Test "Lettering is mirrored back only when the picture actually mirrors it" started.
+◇ Test case passing 3 arguments rotation → 0.0, flipH → true, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test "Default arguments reproduce the centred fit exactly" started.
+◇ Test case passing 3 arguments rotation → 270.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test "FAIL still fails when the image cannot fit at the requested size" started.
+◇ Test case passing 3 arguments rotation → 0.0, flipH → false, flipV → true to "Words read level and the right way round under every arrangement" started.
+◇ Test "Pixel Spacing reads row then column, and column drives the width" started.
+◇ Test case passing 3 arguments rotation → 0.0, flipH → true, flipV → true to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 3 arguments rotation → 90.0, flipH → true, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 3 arguments rotation → 90.0, flipH → false, flipV → true to "Words read level and the right way round under every arrangement" started.
+✔ Test "A 16-bit frame is refused untouched — the burner cannot caption it" passed after 0.011 seconds.
+✔ Test "A tall frame in a wide cell grows columns, and only columns" passed after 0.011 seconds.
+✔ Test "MONOCHROME2 pads with the minimum stored value — black on film" passed after 0.011 seconds.
+✔ Test "RGB pads with black and keeps the picture's samples interleaved" passed after 0.011 seconds.
+◇ Test case passing 3 arguments rotation → 90.0, flipH → true, flipV → true to "Words read level and the right way round under every arrangement" started.
+✔ Test "MONOCHROME1 pads with the maximum stored value — black on film" passed after 0.012 seconds.
+◇ Test case passing 3 arguments rotation → 270.0, flipH → true, flipV → false to "Words read level and the right way round under every arrangement" started.
+✔ Test "Pixel spacing rides along — padded pixels are the same physical size" passed after 0.015 seconds.
+◇ Test case passing 3 arguments rotation → 180.0, flipH → false, flipV → true to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 1 argument depth → 8 to "A grey film keeps the depth it asked for" started.
+◇ Test case passing 1 argument depth → 12 to "A grey film keeps the depth it asked for" started.
+◇ Test case passing 3 arguments rotation → 30.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+✔ Test "The picture is centred in the padding, byte for byte" passed after 0.016 seconds.
+✔ Test "A frame already the cell's shape is returned untouched" passed after 0.016 seconds.
+◇ Test case passing 3 arguments rotation → 45.0, flipH → false, flipV → false to "Words read level and the right way round under every arrangement" started.
+✔ Test "A wide frame in a tall cell grows rows, and only rows" passed after 0.016 seconds.
+◇ Test case passing 3 arguments rotation → 30.0, flipH → true, flipV → false to "Words read level and the right way round under every arrangement" started.
+✔ Test "A senseless aspect ratio is refused untouched" passed after 0.016 seconds.
+◇ Test case passing 1 argument palette → .grayscale to "Grey palettes are dropped rather than carried" started.
+◇ Test case passing 1 argument palette → .inverseGrayscale to "Grey palettes are dropped rather than carried" started.
+◇ Test case passing 1 argument depth → 8 to "Colour drops the job to 8-bit" started.
+◇ Test case passing 3 arguments rotation → 30.0, flipH → false, flipV → true to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 1 argument depth → 12 to "Colour drops the job to 8-bit" started.
+◇ Test case passing 1 argument depth → 16 to "Colour drops the job to 8-bit" started.
+◇ Test case passing 3 arguments rotation → 135.0, flipH → true, flipV → false to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 3 arguments rotation → 200.0, flipH → false, flipV → true to "Words read level and the right way round under every arrangement" started.
+◇ Test case passing 1 argument alignment → .topLeft to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .topCenter to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .topRight to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .centerLeft to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .center to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .centerRight to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .bottomLeft to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .bottomCenter to "Each of the nine alignments places the letterboxed image at its anchor" started.
+◇ Test case passing 1 argument alignment → .bottomRight to "Each of the nine alignments places the letterboxed image at its anchor" started.
+✔ Test "An arrow of no length draws nothing" passed after 0.022 seconds.
+✔ Test "An arrow is burned along the line it was drawn on" passed after 0.022 seconds.
+✔ Test "A colour annotation survives a colour frame and a greyscale frame" passed after 0.022 seconds.
+✔ Test "Luminance is what a colour becomes on a greyscale printer" passed after 0.022 seconds.
+✔ Test "The film sets every corner line at the one size, as the preview does" passed after 0.022 seconds.
+✔ Test "A short arrow keeps a shaft — the head never swallows it" passed after 0.022 seconds.
+✔ Test "An unturned cell burns exactly where it always did" passed after 0.022 seconds.
+✔ Test "A presentation saved before palettes still decodes" passed after 0.022 seconds.
+✔ Test "Without a palette a monochrome source stays grey" passed after 0.021 seconds.
+✔ Test "On a turned cell an annotation is burned where the anatomy went" passed after 0.021 seconds.
+✔ Test "No choice resolves to grey" passed after 0.021 seconds.
+✔ Test "No palette means no palette" passed after 0.021 seconds.
+✔ Test "The measurement can actually see a wrongly-turned glyph" passed after 0.022 seconds.
+✔ Test "A raw job never colourises" passed after 0.021 seconds.
+✔ Test "A frame this cannot write into comes back untouched" passed after 0.021 seconds.
+✔ Test "The palette survives a coding round trip" passed after 0.021 seconds.
+✔ Test "A palette widens a monochrome source to colour" passed after 0.021 seconds.
+✔ Test "A grey film keeps the depth it asked for" with 2 test cases passed after 0.021 seconds.
+✔ Test "A colour palette makes a presentation non-identity" passed after 0.021 seconds.
+✔ Test "Coordinates are clamped into the image" passed after 0.021 seconds.
+✔ Test "Empty text and zero-length arrows are blank" passed after 0.021 seconds.
+✔ Test "An explicitly grey palette does not widen" passed after 0.021 seconds.
+✔ Test "A truncated frame is left alone" passed after 0.021 seconds.
+✔ Test "The picture keeps every row it had — nothing is scaled away" passed after 0.022 seconds.
+✔ Test "An arrow's head is unmistakably wider than its shaft" passed after 0.021 seconds.
+✔ Test "Grey palettes are dropped rather than carried" with 2 test cases passed after 0.021 seconds.
+✔ Test "Colour drops the job to 8-bit" with 3 test cases passed after 0.021 seconds.
+✔ Test "Corner text burned after padding lands in the letterbox — the cell's corners" passed after 0.022 seconds.
+✔ Test "Nothing to say means nothing is touched" passed after 0.021 seconds.
+✔ Test "A grey film cannot ask for 16-bit" passed after 0.021 seconds.
+✔ Test "Grey palettes leave a presentation at the identity" passed after 0.021 seconds.
+✔ Test "The identification is written into the pixels" passed after 0.022 seconds.
+✔ Test "Text is burned where its fractions say, not at the bottom" passed after 0.022 seconds.
+✔ Test "On MONOCHROME1 a bright colour is burned as a low value" passed after 0.021 seconds.
+✔ Test "A colour palette is carried to the preparer" passed after 0.021 seconds.
+✔ Test "Size is held between a readable floor and a covering ceiling" passed after 0.021 seconds.
+✔ Test "Blank annotations leave the pixels alone" passed after 0.021 seconds.
+✔ Test "Moving an annotation keeps it in the image and keeps an arrow's shape" passed after 0.021 seconds.
+✔ Test "A 16-bit frame is printed uncaptioned rather than written into blindly" passed after 0.021 seconds.
+✔ Test "A mirror reflects across the middle, and only on its own axis" passed after 0.021 seconds.
+✔ Test "A drag on a turned cell moves the annotation the way the hand went" passed after 0.021 seconds.
+✔ Test "Colour frames are burned in place, keeping their three samples" passed after 0.022 seconds.
+✔ Test "Windowing and inversion are not arrangement — they move nothing" passed after 0.021 seconds.
+✔ Test "On MONOCHROME1 the caption is drawn in the value that reads as white" passed after 0.021 seconds.
+✔ Test "Words are turned back by exactly what turned them" passed after 0.021 seconds.
+✔ Test "A click maps back to the annotation it was made on" passed after 0.021 seconds.
+✔ Test "An arrow burns pixels along its whole length, head included" passed after 0.021 seconds.
+✔ Test "An unarranged picture moves nothing" passed after 0.021 seconds.
+✔ Test "A round trip survives a crop too" passed after 0.021 seconds.
+✔ Test "True size sends CROP plus the physical width; missing spacing falls back" passed after 0.021 seconds.
+✔ Test "Only DICOM's own palettes have a UID to record" passed after 0.022 seconds.
+✔ Test "One mirror reverses the sense of a turn, so the cancellation flips" passed after 0.021 seconds.
+✔ Test "A half turn takes a corner to the opposite one" passed after 0.021 seconds.
+✔ Test "The centre is the one point every arrangement leaves alone" passed after 0.022 seconds.
+✔ Test "A quarter turn takes the top-left corner to the top-right" passed after 0.021 seconds.
+✔ Test "CROP with a requested size prints at that size, letterboxed when smaller" passed after 0.021 seconds.
+✔ Test "Standard palettes round-trip through their DICOM label" passed after 0.021 seconds.
+✔ Test "Fill sends CROP for every image; fit and stretch send nothing" passed after 0.021 seconds.
+✔ Test "CROP with an oversize request crops to the cell instead of shrinking" passed after 0.021 seconds.
+✔ Test "A quarter turn swaps row and column spacing; a free angle clears both" passed after 0.021 seconds.
+✔ Test "A drag is a delta, so a crop's offset drops out of it" passed after 0.022 seconds.
+✔ Test "Each of the nine alignments places the letterboxed image at its anchor" with 9 test cases passed after 0.022 seconds.
+✔ Test "Alignment is a no-op when the image fills the cell" passed after 0.021 seconds.
+✔ Test "Imager Pixel Spacing is the fallback; zeros and singletons are rejected" passed after 0.022 seconds.
+✔ Test "The DS rendering of a physical width stays within 16 characters" passed after 0.021 seconds.
+✔ Test "Fill alignment moves the crop window, not the destination" passed after 0.021 seconds.
+✔ Test "Stretch fills the cell exactly and ignores the aspect ratio" passed after 0.021 seconds.
+✔ Test "Lettering is mirrored back only when the picture actually mirrors it" passed after 0.022 seconds.
+✔ Test "Default arguments reproduce the centred fit exactly" passed after 0.021 seconds.
+✔ Test "FAIL still fails when the image cannot fit at the requested size" passed after 0.021 seconds.
+✔ Test "Pixel Spacing reads row then column, and column drives the width" passed after 0.021 seconds.
+✔ Suite "Presentation palette" passed after 0.023 seconds.
+✔ Suite "Print Overlay Annotation Tests" passed after 0.023 seconds.
+✔ Suite "Print palette rules" passed after 0.023 seconds.
+✔ Suite "Print Cell Padding Tests" passed after 0.023 seconds.
+✔ Suite "Palette identity on the wire" passed after 0.023 seconds.
+✔ Suite "Print Overlay Orientation Tests" passed after 0.023 seconds.
+✔ Suite "Print Cell Placement Tests" passed after 0.023 seconds.
+✔ Test "Words read level and the right way round under every arrangement" with 18 test cases passed after 0.028 seconds.
+✔ Suite "Annotation lettering stays upright" passed after 0.028 seconds.
+✔ Test "A top corner is written at the top and a bottom corner at the bottom" passed after 0.035 seconds.
+✔ Test "A left corner is written on the left and a right corner on the right" passed after 0.037 seconds.
+✔ Suite "Image Annotation Burner Tests" passed after 0.037 seconds.
+✔ Test run with 84 tests in 9 suites passed after 0.038 seconds.

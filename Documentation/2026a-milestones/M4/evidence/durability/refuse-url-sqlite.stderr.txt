@@ -1,0 +1,1 @@
+Error: Database error: SQLite is not implemented. Use --database filesystem (databaseURL: filesystem://) for durable files with startup reindex; no SQLite database is created.

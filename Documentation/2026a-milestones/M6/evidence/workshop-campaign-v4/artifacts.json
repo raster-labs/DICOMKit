@@ -1,0 +1,78 @@
+{
+  "simulated": {
+    "cli": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/cli/simulated/film-20261024-201704-001.pdf",
+        "bytes": 9136
+      },
+      {
+        "suffix": ".tiff",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "8c8bce65d56d7ccfccc41b28e52b8237c601d0dc1813783d34053699b6a490a2",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/cli/simulated/film-20261024-201704-001.tiff"
+      }
+    ],
+    "workshop": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/workshop/simulated/film-20261024-201706-001.pdf",
+        "bytes": 9136
+      },
+      {
+        "suffix": ".tiff",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "8c8bce65d56d7ccfccc41b28e52b8237c601d0dc1813783d34053699b6a490a2",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/workshop/simulated/film-20261024-201706-001.tiff"
+      }
+    ],
+    "rasterPixelEquality": true,
+    "PDFScope": "Both complete PDF containers produced; no diagnostic/hardware or PDF raster claim"
+  },
+  "received": {
+    "cli": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/cli/received/film-20261024-201706-001.pdf",
+        "bytes": 11814
+      },
+      {
+        "suffix": ".png",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "cbf6e05f226f2e3ddfa05c54f695911e58f86bb34fe2282a78313e2f18489c3a",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/cli/received/film-20261024-201706-001.png"
+      }
+    ],
+    "workshop": [
+      {
+        "suffix": ".pdf",
+        "containerValid": true,
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/workshop/received/film-20261024-201706-001.pdf",
+        "bytes": 11814
+      },
+      {
+        "suffix": ".png",
+        "size": [
+          504,
+          612
+        ],
+        "rgbaSHA256": "cbf6e05f226f2e3ddfa05c54f695911e58f86bb34fe2282a78313e2f18489c3a",
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-campaign-v4/workshop/received/film-20261024-201706-001.png"
+      }
+    ],
+    "rasterPixelEquality": true,
+    "PDFScope": "Both complete PDF containers produced; no diagnostic/hardware or PDF raster claim"
+  }
+}

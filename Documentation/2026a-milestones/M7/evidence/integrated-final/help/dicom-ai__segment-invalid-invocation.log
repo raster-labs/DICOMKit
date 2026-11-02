@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Path to the DICOM file or directory
+Usage: dicom-ai segment [<options>] <input> --model <model>
+  See 'dicom-ai segment --help' for more information.

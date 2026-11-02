@@ -1,0 +1,82 @@
+[
+  {
+    "id": "validate-L1-base.dcm",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "validate-L1-empty-required-meta.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-L1-uid-changed.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-L2-base.dcm",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "validate-L2-empty-required-meta.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-L2-uid-changed.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-invalid_AS.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-invalid_DT.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-invalid_VM.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-invalid_calendar_date.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-nested-invalid-AS.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-nested-invalid-date.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-odd_numeric_length.dcm",
+    "status": "ERROR"
+  },
+  {
+    "id": "wrong-VR-False-json",
+    "status": "ERROR"
+  },
+  {
+    "id": "wrong-VR-False-text",
+    "status": "ERROR"
+  },
+  {
+    "id": "wrong-VR-True-json",
+    "status": "ERROR"
+  },
+  {
+    "id": "wrong-VR-True-text",
+    "status": "ERROR"
+  },
+  {
+    "id": "validate-valid-leap.dcm",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "validate-valid-partial-DT.dcm",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "validate-valid-fraction-DT.dcm",
+    "status": "SUCCESS"
+  }
+]

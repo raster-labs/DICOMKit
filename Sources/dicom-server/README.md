@@ -4,7 +4,7 @@ A lightweight DICOM PACS server supporting C-ECHO, C-FIND, C-STORE, C-MOVE, and 
 
 ## Overview
 
-`dicom-server` is a production-ready PACS (Picture Archiving and Communication System) server implementation that provides essential DICOM networking services for development, testing, and small to medium-scale deployments. **All phases A, B, C, and D.1 are complete** with comprehensive logging, statistics tracking, and full network operations.
+`dicom-server` provides DICOM networking services for development, testing, and small deployments. Its default filesystem mode retains completed stores and reconstructs the metadata index before accepting connections after a restart. This is a filesystem/reindex implementation, not a SQL database or a production-scale qualification.
 
 ## Features
 
@@ -41,10 +41,14 @@ A lightweight DICOM PACS server supporting C-ECHO, C-FIND, C-STORE, C-MOVE, and 
   - Uptime and formatted reporting
 
 ### Storage Backend
-- **Filesystem**: Organized directory structure based on Study/Series UIDs
-- **In-Memory Database**: Fast metadata indexing (Phase A/B default)
-- **SQLite**: Lightweight database for metadata indexing (Phase D)
-- **PostgreSQL**: Full-featured database for large-scale deployments (Phase D)
+
+- **filesystem (default)**: Part 10 files organized by Study/Series UID, with a complete deterministic metadata reindex on startup.
+- **none**: Files are retained, but no query/retrieve index is configured; C-FIND/C-GET/C-MOVE are unavailable.
+- **SQLite and PostgreSQL**: Not implemented. Backend options and connection URLs are explicitly refused with guidance to use `--database filesystem`.
+
+The startup scan accepts regular `.dcm` files, validates their complete binary envelope and SOP identity, and rejects corrupt/unreadable files, duplicate SOP Instance UIDs and symbolic links. A failed scan prevents listening; it never publishes a partial index. One server process owns a storage directory at a time. New files are synchronized and published without overwriting an existing instance. A retransmission with the same SOP identity, transfer syntax and data set bytes is idempotent even if its File Meta AE titles differ; conflicting content is refused and the original file is preserved.
+
+**Migration from old SQLite-labelled configurations:** stop the server, retain the existing data directory and its Part 10 files, and change `--database sqlite` to `--database filesystem`, or set JSON `databaseURL` to `"filesystem://"`. The previous implementation did not create a persistent SQLite index. No SQL import occurs, and existing `.db` files are neither read nor modified. Resolve scan errors before restarting; do not run a second server against the same directory.
 
 ### Server Features
 - Configurable Application Entity Title
@@ -82,22 +86,18 @@ dicom-server start \
   --verbose
 ```
 
-With SQLite database:
+With explicit durable filesystem mode:
 ```bash
 dicom-server start \
   --aet MY_PACS \
   --port 11112 \
-  --database sqlite \
+  --database filesystem \
   --data-dir /var/lib/dicom-server
 ```
 
-With PostgreSQL database:
+For storage without a query/retrieve index:
 ```bash
-dicom-server start \
-  --aet MY_PACS \
-  --port 11112 \
-  --database postgres \
-  --database-url postgres://user:password@localhost/pacsdb
+dicom-server start --aet STORE_ONLY --data-dir ./store-only --database none
 ```
 
 With access control:
@@ -127,7 +127,7 @@ Create a JSON configuration file:
   "aeTitle": "MY_PACS",
   "port": 11112,
   "dataDirectory": "/var/lib/dicom-server",
-  "databaseURL": "sqlite:///var/lib/dicom-server/dicom-server.db",
+  "databaseURL": "filesystem://",
   "maxConcurrentConnections": 20,
   "maxPDUSize": 16384,
   "allowedCallingAETitles": ["WORKSTATION1", "WORKSTATION2"],
@@ -170,8 +170,8 @@ dicom-server stop --port 11112
 - `--aet, -a`: Application Entity Title (default: "DICOMKIT_SCP")
 - `--port, -p`: Port to listen on (default: 11112)
 - `--data-dir`: Data directory for storing DICOM files (default: "./dicom-data")
-- `--database`: Database type: sqlite, postgres, none (default: "sqlite")
-- `--database-url`: Database connection string
+- `--database`: `filesystem` (default; durable startup reindex) or `none` (unindexed). SQLite/PostgreSQL are refused.
+- `--database-url`: `filesystem://`; an empty string disables indexing. SQLite/PostgreSQL URLs are refused.
 - `--config`: Configuration file path (JSON format)
 - `--max-connections`: Maximum concurrent connections (default: 10)
 - `--max-pdu-size`: Maximum Length the server announces in the A-ASSOCIATE-AC, in bytes (default: 16384); outgoing P-DATA is fragmented to the peer's Maximum Length (PS3.8 D.1)
@@ -218,9 +218,9 @@ dicom-retrieve pacs://localhost:11112 --aet TEST_SCU --called-ae TEST_PACS \
   --study-uid 1.2.3.4.5 --output ./retrieved/
 ```
 
-### Production Server
+### Filesystem Configuration
 
-Recommended setup for production:
+Example service account and storage configuration (deployment qualification remains the operator's responsibility):
 ```bash
 # Create directory structure
 sudo mkdir -p /var/lib/dicom-server
@@ -232,11 +232,11 @@ cat > /etc/dicom-server.conf << EOF
   "aeTitle": "HOSPITAL_PACS",
   "port": 11112,
   "dataDirectory": "/var/lib/dicom-server/data",
-  "databaseURL": "postgres://dicom:password@localhost/pacsdb",
+  "databaseURL": "filesystem://",
   "maxConcurrentConnections": 50,
   "maxPDUSize": 65536,
   "allowedCallingAETitles": ["CT1", "MR1", "US1", "WORKSTATION1"],
-  "enableTLS": true,
+  "enableTLS": false,
   "verbose": false
 }
 EOF
@@ -260,12 +260,7 @@ sudo -u dicom dicom-server start --config /etc/dicom-server.conf
   - Performance tuning
   - Backup and disaster recovery
 
-- **[DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)**: Database schema documentation
-  - SQLite and PostgreSQL schema designs
-  - Migration guide from in-memory to persistent storage
-  - Performance considerations
-  - Full-text search setup
-  - Future enhancements roadmap
+- **[DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)**: Historical/future SQL schema designs. These are not implemented backends; use the filesystem migration instructions above for the current executable.
 
 ## Architecture
 
@@ -274,28 +269,22 @@ The server is organized into several key components:
 - **PACSServer**: Main server actor managing listener and sessions
 - **ServerSession**: Handles individual client connections
 - **StorageManager**: Manages DICOM file storage on filesystem
-- **DatabaseManager**: Indexes DICOM metadata for fast queries
+- **DatabaseManager**: Rebuilds an in-memory query index from the durable Part 10 files at startup
 - **ServerConfiguration**: Configuration management
 - **ServerStatistics**: Tracks operational metrics (Phase D.1)
 - **ServerLogger**: Structured logging system (Phase D.1)
 
 ## Performance
 
-- Handles 10+ concurrent connections by default (configurable to 100+)
-- Supports files up to 2GB
-- SQLite backend suitable for <100K studies (planned for Phase D)
-- PostgreSQL backend recommended for >100K studies (planned for Phase D)
-- Average C-STORE latency: <100ms per instance
-- Average C-FIND latency: <50ms per query
-- Real-time statistics tracking with minimal overhead
+The query index is held in memory. Startup reads every stored `.dcm` file, and durable queries verify indexed file presence/readability before matching. Startup time and memory usage therefore grow with the stored collection. No SQL database capacity, latency, throughput or power-loss guarantee is claimed. The default connection limit is 10 and can be configured for a qualified deployment.
 
 ## Security
 
 - AE Title whitelist/blacklist for access control
 - TLS/SSL encryption support (Phase D documentation provided)
 - No PHI in logs when verbose mode is disabled
-- File permissions: 0600 for DICOM files
-- Database encryption recommended for production (Phase D documentation)
+- Set storage directory permissions and access controls for the deployment
+- File encryption is not implemented by the filesystem index
 - Comprehensive security hardening guide included
 
 ## Limitations
@@ -304,10 +293,11 @@ The server is organized into several key components:
 - REST API not yet implemented (deferred to Phase D.2)
 - Storage Commitment (N-EVENT-REPORT) not yet implemented
 - Advanced query features (fuzzy matching, date ranges) partially implemented
-- SQLite and PostgreSQL persistence (Phase D.2)
-  - Currently using in-memory database
-  - Full persistent storage planned for v1.5+
-  - Schema documentation and migration guides provided
+- SQLite and PostgreSQL are unavailable; SQL URLs/options are explicitly refused
+- Filesystem durability is verified across completed-store process restarts, not power-loss faults
+- The storage envelope check does not validate full IOD conformance or decode compressed image samples
+- External file changes while the server is running are unsupported; missing/unreadable indexed files fail queries visibly, and additions require a restart
+- The filesystem index is not a shared, replicated or multi-process database
 - TLS/SSL encryption (Phase D documentation complete, implementation in v1.5+)
 
 ## Testing

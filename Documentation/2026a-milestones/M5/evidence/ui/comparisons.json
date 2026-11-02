@@ -1,0 +1,61 @@
+{
+  "passed": true,
+  "qr_cli_records": [
+    {
+      "name": "review",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+        "query",
+        "127.0.0.1:55131",
+        "--aet",
+        "DICOMSTUDIO",
+        "--called-aet",
+        "M5SCP",
+        "--review",
+        "--method",
+        "c-get",
+        "--study-uid",
+        "2.25.505",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-review-cli",
+        "--parallel",
+        "1",
+        "--priority",
+        "medium",
+        "--timeout",
+        "60"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "auto",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-qr",
+        "query",
+        "127.0.0.1:55131",
+        "--aet",
+        "DICOMSTUDIO",
+        "--called-aet",
+        "M5SCP",
+        "--auto",
+        "--method",
+        "c-get",
+        "--study-uid",
+        "2.25.505",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-auto-cli",
+        "--parallel",
+        "1",
+        "--priority",
+        "medium",
+        "--timeout",
+        "60"
+      ],
+      "exit": 0
+    }
+  ],
+  "qr_review_file_count": 0,
+  "qr_auto_file_count": 1,
+  "dataset_bytes_equal": true,
+  "sr_source_sha256": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6"
+}

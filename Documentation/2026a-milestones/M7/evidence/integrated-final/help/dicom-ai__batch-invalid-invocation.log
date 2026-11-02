@@ -1,0 +1,4 @@
+Error: Missing expected argument '--model <model>'
+Help:  --model <model>  CoreML model file path
+Usage: dicom-ai batch [<files> ...] --model <model> --output <output> [--format <format>] [--batch-size <batch-size>] [--confidence <confidence>] [--force] [--verbose]
+  See 'dicom-ai batch --help' for more information.

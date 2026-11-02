@@ -338,17 +338,24 @@ public extension GenericQueryResult {
         } else if vr.characterRepertoire != nil {
             value = Data(QueryResultDecoding.decodeString(raw, specificCharacterSet: characterSet).utf8)
         }
-        return DataElement(tag: tag, vr: vr, length: UInt32(value.count), valueData: value)
+        // The bytes above are now UTF-8, independently of the response's
+        // original repertoire. Bind that context for strict DataElement text
+        // accessors used by the JSON encoder; unbound bytes mean ASCII.
+        return DataElement(tag: tag, vr: vr, length: UInt32(value.count), valueData: value,
+                           specificCharacterSet: DataElement.characterSetDependentVRs.contains(vr) ? "ISO_IR 192" : nil)
     }
 
     /// One sequence item, its nested sequences decoded recursively.
     private static func jsonItem(_ set: PrintAttributeSet, characterSet: String?) -> SequenceItem {
+        // An Item inherits its enclosing repertoire unless it declares its own
+        // (0008,0005); an explicit empty declaration restores default ASCII.
+        let itemCharacterSet = set[.specificCharacterSet]?.stringValue ?? characterSet
         var elements: [DataElement] = set.elements.values.map {
-            jsonElement(tag: $0.tag, vr: $0.vr, raw: $0.valueData, characterSet: characterSet)
+            jsonElement(tag: $0.tag, vr: $0.vr, raw: $0.valueData, characterSet: itemCharacterSet)
         }
         for (tag, items) in set.sequences {
             elements.append(DataElement(tag: tag, vr: .SQ, length: 0, valueData: Data(),
-                                        sequenceItems: items.map { jsonItem($0, characterSet: characterSet) }))
+                                        sequenceItems: items.map { jsonItem($0, characterSet: itemCharacterSet) }))
         }
         return SequenceItem(elements: elements)
     }

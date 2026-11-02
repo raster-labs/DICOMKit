@@ -1,0 +1,396 @@
+[
+  {
+    "native_capture": 1,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "native_capture": 2,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": "Bearer m7-native-token",
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "native_capture": 3,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "native_capture": 4,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/series",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "series",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.301.2",
+      "1.2.826.0.1.3680043.10.543.302.1"
+    ]
+  },
+  {
+    "native_capture": 5,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "series",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.301.2"
+    ]
+  },
+  {
+    "native_capture": 6,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/instances",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "instance",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2",
+      "1.2.826.0.1.3680043.10.543.301.2.1",
+      "1.2.826.0.1.3680043.10.543.302.1.1",
+      "1.2.826.0.1.3680043.10.543.302.1.2"
+    ]
+  },
+  {
+    "native_capture": 7,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/instances",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "instance",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2",
+      "1.2.826.0.1.3680043.10.543.301.2.1"
+    ]
+  },
+  {
+    "native_capture": 8,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "instance",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2"
+    ]
+  },
+  {
+    "native_capture": 9,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/series",
+      [
+        [
+          "00080020",
+          "20260115"
+        ],
+        [
+          "00400244",
+          "20260115"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "series",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1"
+    ]
+  },
+  {
+    "native_capture": 10,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series",
+      [
+        [
+          "00400244",
+          "20260115"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "series",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1"
+    ]
+  },
+  {
+    "native_capture": 11,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies/1.2.826.0.1.3680043.10.543.301/series/1.2.826.0.1.3680043.10.543.301.1/instances",
+      [
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "instance",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1.1",
+      "1.2.826.0.1.3680043.10.543.301.1.2"
+    ]
+  },
+  {
+    "native_capture": 12,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/series",
+      [
+        [
+          "00080060",
+          "CT"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "series",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301.1",
+      "1.2.826.0.1.3680043.10.543.302.1"
+    ]
+  },
+  {
+    "native_capture": 13,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "00080061",
+          "CT"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "native_capture": 14,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "0020000D",
+          "1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301",
+      "1.2.826.0.1.3680043.10.543.302"
+    ]
+  },
+  {
+    "native_capture": 15,
+    "method_path_query": [
+      "GET",
+      "/dicom-web/studies",
+      [
+        [
+          "00100010",
+          "Müller*"
+        ],
+        [
+          "0020000D",
+          "1.2.826.0.1.3680043.10.543.301,1.2.826.0.1.3680043.10.543.302"
+        ],
+        [
+          "limit",
+          "100"
+        ],
+        [
+          "offset",
+          "0"
+        ]
+      ]
+    ],
+    "auth": null,
+    "status": 200,
+    "level": "study",
+    "UIDs": [
+      "1.2.826.0.1.3680043.10.543.301"
+    ]
+  }
+]

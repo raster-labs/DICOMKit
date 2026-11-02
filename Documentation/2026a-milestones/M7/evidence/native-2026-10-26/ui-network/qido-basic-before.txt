@@ -1,0 +1,124 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button (selected) Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			33 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down
+						40 text QIDO-RS Query.  DICOMweb Server
+						41 button Add new DICOMweb server
+						42 button Description: Save current DICOMweb server as default, Help: Persists base URL and authentication as defaults for all DICOMweb tools
+						43 button Use manual DICOMweb server entry
+[saved server preset omitted]
+[saved server preset omitted]
+[saved server preset omitted]
+						47 text Parameters Parameters Base URL
+						48 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+						49 text DICOMweb server base URL (PS3.18 §6.5) Query Level --level
+						50 Query Level
+							51 radio button Description: study, Value: 1
+							52 radio button Description: series, Value: 0
+							53 radio button Description: instance, Value: 0
+						54 text Query level: study, series, instance (default: study) Patient Name --patient-name
+						55 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						56 text Patient name (wildcards * and ? supported) Patient ID --patient-id
+						57 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						58 text Patient ID Study Date --study-date
+						59 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						60 text Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD) Modality --modality
+						61 pop up button Description: Modality, Value: Any
+						62 text Modality filter (0008,0060) — e.g. CT, MR, US, OPT. Run 'dicom-tags --list-modalities' for every DICOM 2026a code. Study Instance UID --study
+						63 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						64 text A single Study Instance UID scopes series/instance paths; a comma-separated UID list remains a matching filter (0020,000D) Accession Number --accession-number
+						65 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						66 text Accession number filter (0008,0050) Result Limit --limit
+						67 text field (settable) Description: Result Limit, Value: 100
+						68 text Maximum number of results (default: 100) Authentication --auth
+						69 Authentication
+							70 radio button Description: none, Value: 0
+							71 radio button Description: basic, Value: 1
+							72 radio button Description: bearer, Value: 0
+						73 text Authentication method for the DICOMweb server Username --username
+						74 text field (settable) Description: Username, Value: m7-native, Placeholder: e.g. admin
+						75 text Username for basic authentication Password
+						76 text field (settable) Description: Password, Value: only-test:pass
+						77 text Password for basic authentication (in-app only — the dicom-wado CLI has no basic-auth flags) Output Format --format
+						78 Output Format
+							79 radio button Description: table, Value: 0
+							80 radio button Description: json, Value: 1
+							81 radio button Description: csv, Value: 0
+							82 radio button Description: dicom-json, Value: 0
+						83 text Output format: table, json, csv, dicom-json (default: table). dicom-json is the PS3.18 F.2 DICOM JSON Model; json is a tool summary (keyword keys) Options
+						84 checkbox Description: Verbose, Value: 0
+						85 disclosure triangle Description: Advanced options (4), Help: Shows additional flags for this tool, Value: off
+						86 scroll bar (settable, float) 1
+							87 value indicator (settable, float) 1
+							88 increment arrow button
+							89 decrement arrow button
+							90 increment page button
+							91 decrement page button
+					92 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					93 button Description: Run command, Help: Runs the selected Workshop action
+				94 splitter (disabled, settable, float) 460
+				95 container
+					96 text Command Preview Valid $ Select a tool to build a command
+					97 button Description: Copy command, Help: Copies the command to the clipboard
+					98 text Console IDLE
+					99 button (disabled) Clear console output
+					100 image Description: Terminal Command Prompt, ID: terminal
+					101 text Console output will appear here History
+					102 button Clear
+					103 scroll area
+						104 text dicom-convert dicom-convert dicom-convert dicom-anon dicom-anon dicom-script dicom-script dicom-script dicom-script dicom-script
+	105 toolbar
+		106 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		107 search text field (settable) Search features
+			108 button Search
+	109 close button
+	110 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	111 minimize button
+	112 text DICOM Studio
+113 menu bar
+	114 DICOMStudio
+	115 File
+	116 Edit
+	117 View
+	118 Image
+	119 Window
+	120 Help
+
+The focused UI element is 76 text field (settable) Description: Password, Value: only-test:pass

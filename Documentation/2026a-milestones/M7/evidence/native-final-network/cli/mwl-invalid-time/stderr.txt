@@ -1,0 +1,3 @@
+Error: Invalid time filter 'not-a-time'. Use HHMMSS, or a DICOM time range (HHMMSS-HHMMSS, HHMMSS-, or -HHMMSS).
+Usage: dicom-mwl <subcommand>
+  See 'dicom-mwl --help' for more information.

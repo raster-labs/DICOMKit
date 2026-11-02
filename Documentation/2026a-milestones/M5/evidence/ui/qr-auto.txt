@@ -1,0 +1,24 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+~							144 radio button Description: auto, Value: 1
+~							145 radio button Description: review, Value: 0
+~						187 text field (settable) Description: Output Directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-auto, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)
++					199 button Description: Open retrieved file in viewer, Help: Opens the first retrieved DICOM file in the image viewer
+~					195 scroll area Secondary Actions: Scroll Up, Scroll Down
+~							197 text $ dicom-qr 127.0.0.1:55131 --aet DICOMSTUDIO --called-aet M5SCP --auto --method c-get --study-uid 2.25.505 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-auto --parallel 1 --priority medium --timeout 60
+
+DICOM Query-Retrieve
+====================
+  Server:            127.0.0.1:55131
+  Calling AE Title:  DICOMSTUDIO
+  Called AE Title:   M5SCP
+  Mode:              Automatic
+  Method:            C-GET
+  Output:            /Users/raster/Documents/Codex/2026
++						200 scroll bar (settable, float) 0
++							201 value indicator (settable, float) 0
++							202 increment arrow button
++							203 decrement arrow button
++							204 increment page button
++							205 decrement page button
+~						91 text dicom-script dicom-script dicom-script dicom-script dicom-anon dicom-anon dicom-qr dicom-qr
+The focused UI element is 190 text field (settable) Description: Save State File, Placeholder: query.state

@@ -1,0 +1,29 @@
+{
+  "run_id": 41191992135,
+  "artifact_id": 13042310839,
+  "artifact_bytes": 294713072,
+  "artifact_sha256": "bea8d0f38dfc3ede0c2e59473ad57ad8d5ac42037c2f3ee7a4012b177f0aace9",
+  "zip_crc": "passed",
+  "report_result": "passed",
+  "coverage_file_hashes": "passed",
+  "debug_reported": 15825,
+  "debug_xctest_skips": 57,
+  "coverage": {
+    "directory": "/Users/runner/work/DICOMKit/DICOMKit/.build/out/Products/Debug/codecov",
+    "files": [
+      {
+        "path": "/Users/runner/work/DICOMKit/DICOMKit/.build/out/Products/Debug/codecov/default.profdata",
+        "bytes": 20388400,
+        "sha256": "95e1ddde93682e41332971de909903a10192dada292ac45cac2cc2f5b94230b0"
+      },
+      {
+        "path": "/Users/runner/work/DICOMKit/DICOMKit/.build/out/Products/Debug/codecov/DICOMKit.json",
+        "bytes": 12515824,
+        "sha256": "c18bc5d6d6129951fd22bb44ce61c804a30a135b2deb0d2d07c2dc911152ea47"
+      }
+    ],
+    "covered_source_files": 291,
+    "covered_functions": 7761,
+    "errors": []
+  }
+}

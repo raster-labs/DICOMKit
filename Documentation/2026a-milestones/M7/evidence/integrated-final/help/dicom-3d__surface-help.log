@@ -1,0 +1,15 @@
+OVERVIEW: Extract 3D surface mesh using Marching Cubes
+
+USAGE: dicom-3d surface <input-paths> ... --output <output> --threshold <threshold> [--format <format>] [--verbose]
+
+ARGUMENTS:
+  <input-paths>           Input DICOM files (multi-slice series)
+
+OPTIONS:
+  -o, --output <output>   Output file path (.stl or .obj)
+  --threshold <threshold> Threshold value for surface extraction
+  --format <format>       Output format: stl, obj (default: stl)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

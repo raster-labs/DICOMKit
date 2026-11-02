@@ -1,0 +1,25 @@
+OVERVIEW: Validate DICOM UIDs for compliance
+
+Check UIDs against DICOM PS3.5 9.1: at most 64 characters, numeric
+components separated by ".", no leading zero in a component other than "0".
+UUID derived UIDs (2.25.<decimal>, PS3.5 B.2) are valid UIDs. --file checks
+every UI value of the file, including File Meta and sequence items.
+
+Examples:
+  dicom-uid validate 1.2.840.10008.1.2.1
+  dicom-uid validate 1.2.3 4.5.6 --json
+  dicom-uid validate --file study.dcm
+  dicom-uid validate --file study.dcm --check-registry
+
+USAGE: dicom-uid validate [<uids> ...] [--file <file>] [--check-registry] [--json]
+
+ARGUMENTS:
+  <uids>                  UIDs to validate
+
+OPTIONS:
+  --file <file>           Validate all UIDs in a DICOM file
+  --check-registry        Also print the PS3.6 Table A-1 name of registered UIDs
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

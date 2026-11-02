@@ -1,0 +1,527 @@
+{
+  "head_sha": "3be6b6ef5de2210016fbb45aef2e96bcabf74ba2",
+  "run_id": "41183009976",
+  "result": "failed",
+  "checks": {
+    "optimized_source_envelope": {
+      "log": "scheduled-test-logs/release-source-envelope.log",
+      "execution_outcome": "success",
+      "xctest_products": [],
+      "swift_testing_products": [
+        {
+          "outcome": "passed",
+          "tests": 1
+        }
+      ],
+      "errors": [],
+      "sha256": "757bda032501051c9da8ddaab9a5c44d39dfada54219f2669da9a300632aba0c",
+      "reported_tests": 1,
+      "xctest_skipped": 0
+    },
+    "debug_coverage": {
+      "log": "scheduled-test-logs/debug-suite.log",
+      "execution_outcome": "failure",
+      "xctest_products": [
+        {
+          "outcome": "passed",
+          "tests": 6,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 27,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 8,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 22,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 21,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 8,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 13,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 10,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 10,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 105,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 9,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 9,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 17,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 14,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 7,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 20,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 20,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 9,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 14,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 4,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 22,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 6,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 6,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 2,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 9,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 21,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 30,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 3,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 9,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 11,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 16,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 10,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 15,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 21,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 11,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 28,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 504,
+          "skipped": 2,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 51,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 11,
+          "skipped": 1,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 98,
+          "skipped": 5,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 553,
+          "skipped": 19,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 105,
+          "skipped": 14,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 379,
+          "skipped": 3,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 1529,
+          "skipped": 2,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 2388,
+          "skipped": 11,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0,
+          "skipped": 0,
+          "failures": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 96,
+          "skipped": 0,
+          "failures": 0
+        }
+      ],
+      "swift_testing_products": [
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 87
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 649
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 488
+        },
+        {
+          "outcome": "passed",
+          "tests": 5400
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 0
+        },
+        {
+          "outcome": "passed",
+          "tests": 84
+        },
+        {
+          "outcome": "passed",
+          "tests": 229
+        },
+        {
+          "outcome": "passed",
+          "tests": 20
+        },
+        {
+          "outcome": "passed",
+          "tests": 920
+        },
+        {
+          "outcome": "passed",
+          "tests": 31
+        },
+        {
+          "outcome": "passed",
+          "tests": 1630
+        }
+      ],
+      "errors": [
+        "test execution outcome is failure"
+      ],
+      "sha256": "731e162dcc3ff4a65838a238c6da171ef21746c8af5e72bc68dbab45ecf382d9",
+      "reported_tests": 15825,
+      "xctest_skipped": 57
+    }
+  },
+  "count_note": "Reported totals include skipped tests. XCTest skips are listed separately; raw logs retain all Swift Testing skip reasons."
+}

@@ -1,0 +1,23 @@
+OVERVIEW: Convert FHIR resources to DICOM files
+
+Parse FHIR JSON resources and populate DICOM tags.
+
+--template is required: a FHIR resource carries no image, and without a
+template the output would claim Secondary Capture Image Storage with no
+Image Pixel or SC Image Module, which PS3.3 Table A.8-1 makes Mandatory.
+A template that claims an image Storage SOP Class but has no Pixel Data
+is refused for the same reason (exit 1).
+
+USAGE: dicom-gateway fhir-to-dicom <input> --output <output> [--template <template>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input FHIR JSON file
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  --template <template>   Template DICOM file to populate (required; PS3.3
+                          Table A.8-1)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,4053 @@
+{
+  "base_commit": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+  "source_files": [
+    {
+      "path": "DICOMStudio.entitlements",
+      "sha256": "62c3864284e29180fbceb43373a8d9154be7539e2621ba914d2995296f1e4f18"
+    },
+    {
+      "path": "DICOMStudio.xcodeproj/project.pbxproj",
+      "sha256": "4ffa68f90248634b14a156a352e064142ae598e8923940522e42b96f2732e4ea"
+    },
+    {
+      "path": "Package.resolved",
+      "sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500"
+    },
+    {
+      "path": "Package.swift",
+      "sha256": "3ab016566b63e914445e6393bbeff228a414bedbad4c5fa7021c8595b682fa7b"
+    },
+    {
+      "path": "Sources/DICOMCore/AlignedPixelBuffer.swift",
+      "sha256": "9dbe206131b36e54c753656f0c59594adb03ccda70bdd117234c8b143d0d4cc9"
+    },
+    {
+      "path": "Sources/DICOMCore/ByteOrder.swift",
+      "sha256": "8697e4f81800ab468b8d4dda1f45dfb931272f5fb4d5bb572f4e3b2070d651f7"
+    },
+    {
+      "path": "Sources/DICOMCore/CLICodecSupport.swift",
+      "sha256": "4103a65014840ef27edeb0c04be3d06e62e34ee5a6768e77cf33f0bc9b65e1d9"
+    },
+    {
+      "path": "Sources/DICOMCore/CharacterSetHandler.swift",
+      "sha256": "048c707934f69ed63bf5ae1af74be0513483b11be501f811c503b87c481b9f13"
+    },
+    {
+      "path": "Sources/DICOMCore/CodecBackend.swift",
+      "sha256": "b552659efcd3df07ee076ed56eb7c8f946d2723db034aeef9b0b35c46632c215"
+    },
+    {
+      "path": "Sources/DICOMCore/ColorSampleLUT.swift",
+      "sha256": "12ee97541f517d1b2e864e1dee3c2224f151fb10a3d1b689eed5445a5bb45ae0"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMAgeString.swift",
+      "sha256": "1edc68b6a36dcc99ea3abbe6c3835ab9f9bf689949fde4b9da5a05d3d5ba4fe7"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMAllocationBudget.swift",
+      "sha256": "66afbbe641acd66cd3569c05987310cfd7c827e4c0667ceaacdcf11149a6924d"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMApplicationEntity.swift",
+      "sha256": "336a5e86bf100bc4a17fe0793a0ecf1bc0b9e3910141494007a24e03179ee3c7"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMByteBuffer.swift",
+      "sha256": "d38b7407a6adf06880cf2267cb6cb70dec210c9753e75d2881ca46931adf965b"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMCodeString.swift",
+      "sha256": "79e2588b97de6a674b6cf02348fbc911693745df8a594c6f42232c2bb6fee7d2"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMDate.swift",
+      "sha256": "0c146749b15fcd8df7d6ea0ba2ae21fe6d20b581edc1720786f59c755905459e"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMDateTime.swift",
+      "sha256": "dd4920f5c233b2230a3b2a70fc4fa19bf1a74232ccfa541bd0fb60683d4c19e2"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMDecimalString+Scalar.swift",
+      "sha256": "7a75839e3a0ba5e8ea08b59474e0d1503aceb1c5a00b0db05656b1958e29fcee"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMDecimalString.swift",
+      "sha256": "5301dc4c15d3e48a98d2c18cc846f8dc1e7be8d4da9a310adc80a692a51b9bf7"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMDirectory.swift",
+      "sha256": "764a1e6cd636a85d4f3ad6f9b2744ca66076737151c9439a38b43ac7fc710cfb"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMError.swift",
+      "sha256": "7f5678166ee63e80845d08b8d40abcca6ef717fb7d4c579f9bf30ebaa9f3b961"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMExecutionReservation.swift",
+      "sha256": "009dff8befbdd57576986c569ceadafabcd845443872bb008c04e2ba188f16dc"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMExternalAllocationCallbacks.swift",
+      "sha256": "1fefcd35cd4f31a9626d4512f4b4dc99033dc927458ae69a8d8da40860957a24"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMIntegerString.swift",
+      "sha256": "e765034e8a229c56b9d1532cf1180c11c3c9cd00663fe7537ce74e475f0ad5de"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMManagedFailure.swift",
+      "sha256": "bb23b91d0bcc0f58525ccd09d5ea6dffff0a370dbff9c943b9580ecc2667fbd7"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMManagedStorage.swift",
+      "sha256": "34329d6374087b4767f1a897359b7ff93b2a80f969d715d198b9ae7399ff0294"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMMappedStorage.swift",
+      "sha256": "f2ee66d462180e6ce4bd73b898eaec80ae60c3e4d130ebc84b6ce350388e9e7f"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMOutcomes.swift",
+      "sha256": "18925ae7559cfe0f1c0fee64b49a46a3afad84e5cad624a6f4f3658852472258"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMPersonName.swift",
+      "sha256": "7fb63c0514e59fc3931722170a88f69fe5d2c251ced5a7991c1869c242a7f66d"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMTime.swift",
+      "sha256": "e46cd37cb77d81617a2b2df97767dd635023bc43a632737e8b4510ba4ccaabea"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMUniqueIdentifier.swift",
+      "sha256": "6175d74466b87628ff3df616985b487523df6357fd3e5dbac9a70311ba208d7d"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMUniversalResource.swift",
+      "sha256": "678ca2aaa45ab57610f1c8c8d98f93c2133bcff9de6bd61805ca44b88f44eb96"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMValueRules.swift",
+      "sha256": "e747ac2064d226c71714c70419b62ce5b46ee415840c17b164af0db86c3e2d36"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMWellKnownPalettes.swift",
+      "sha256": "2d7196fa7baae545d2af4d57c5f2d1c9ff250b184280db0a6eb20d383ba85b91"
+    },
+    {
+      "path": "Sources/DICOMCore/DICOMWriter.swift",
+      "sha256": "4a1eae882aca9afdf1cb3c3e27e128bb3941de4f048ff600c4998139a1019486"
+    },
+    {
+      "path": "Sources/DICOMCore/DataElement+NumericTolerant.swift",
+      "sha256": "b56b44d1d66ed3bdc92b1becee06b1e6e81af66f33157af20fdc9cc4ae88fba0"
+    },
+    {
+      "path": "Sources/DICOMCore/DataElement.swift",
+      "sha256": "b1d67a14454e832f5cb5d2c50f874ab98c1c7250e73f43c03c83c8b0527cad61"
+    },
+    {
+      "path": "Sources/DICOMCore/DirectoryRecord.swift",
+      "sha256": "41318fd1cda2834c115a2407533f5e4b70a2aaee2c99af99da8516f44b3b6d72"
+    },
+    {
+      "path": "Sources/DICOMCore/DjpegCLICodec.swift",
+      "sha256": "998a6d75ea342c09e7813e44b4473e29623f35f92cf3baf74f4994bb2cd316d4"
+    },
+    {
+      "path": "Sources/DICOMCore/DjxlCLICodec.swift",
+      "sha256": "a4b044faf06f3517a045ff76316beabe67f373120fc35f25b591e29a6e45f14f"
+    },
+    {
+      "path": "Sources/DICOMCore/EncapsulatedPixelData.swift",
+      "sha256": "c6ba819aac05fd03677b0d87d983c198368ca1d6f38f43e2c8bb9ea3dd3d657a"
+    },
+    {
+      "path": "Sources/DICOMCore/GrokCLICodec.swift",
+      "sha256": "dd49378ee45ab2f6d3ca83c35812463c464ba37e504cd7494a582a42c1e2fda5"
+    },
+    {
+      "path": "Sources/DICOMCore/HTJ2KCodec.swift",
+      "sha256": "0a41bd64794597bcd56085703a96005c9f18920ef47ab11efd5fc13a8243ab8d"
+    },
+    {
+      "path": "Sources/DICOMCore/ImageCodec.swift",
+      "sha256": "a594e77140f6ff441af4467a4edf798fcf997ded6e4e79326e7ec655e4edc215"
+    },
+    {
+      "path": "Sources/DICOMCore/J2KCodestreamInspector.swift",
+      "sha256": "7ae2ae3d6d1206a0339a2b33572b49e6bcc0774b3d9313ba11c8c56f5250af00"
+    },
+    {
+      "path": "Sources/DICOMCore/J2KRoutePlanner.swift",
+      "sha256": "8ce7e0cb3273805678c81f5929e7dd23c40ee1f16f77edfe20b079ca7d933dad"
+    },
+    {
+      "path": "Sources/DICOMCore/J2KSwiftCodec.swift",
+      "sha256": "64d840a386c32c1f3ee70023675c6f63353185763f1a79f9cfbef6d4cb89458f"
+    },
+    {
+      "path": "Sources/DICOMCore/JLICodec.swift",
+      "sha256": "d183c296419af27ce0837b612ea0a5b20b9464daffafe68a0f7ce2067f56a612"
+    },
+    {
+      "path": "Sources/DICOMCore/JP3DCodec.swift",
+      "sha256": "313e90b4c46373c4c480bded61b1312bf72fc8dd507e2d304d7fd77b685ebadf"
+    },
+    {
+      "path": "Sources/DICOMCore/JPEGCodecEngine.swift",
+      "sha256": "a86c084303b59a50ee71ace57c2dcfd01f9775dbac8d4255645465d676326da9"
+    },
+    {
+      "path": "Sources/DICOMCore/JPEGFrameEnvelope.swift",
+      "sha256": "a4fe10605ae9a03dbccdae62531fb700db6e6d7f9cfcf185028d90d8a9476332"
+    },
+    {
+      "path": "Sources/DICOMCore/JPEGInterchangeFormat.swift",
+      "sha256": "de9bfea37d7803e1320a13a43ff5bff64f151ffd11c4f1858ea4495de90300c5"
+    },
+    {
+      "path": "Sources/DICOMCore/JPEGLSCodec.swift",
+      "sha256": "ece421f53e0440076f8a4e554ebeca7e34beb67f12aa468be3832f4f35555556"
+    },
+    {
+      "path": "Sources/DICOMCore/JXLCodec.swift",
+      "sha256": "75a8762474e96ef2bf070fac050e89e8f7508550af981c78d4ced85607b76a31"
+    },
+    {
+      "path": "Sources/DICOMCore/KakaduCLICodec.swift",
+      "sha256": "de61c08d0f72a6dd48c0618037aea7d90c59f32aaeed3b47f016f378d3693292"
+    },
+    {
+      "path": "Sources/DICOMCore/ManagedDecodedPixelFrame.swift",
+      "sha256": "1a95da456838e9dff9ac217f529a80ad5f4b207df35a68b4c1e081a1509e00cf"
+    },
+    {
+      "path": "Sources/DICOMCore/Modality.swift",
+      "sha256": "928b4160e356f3a68b60295d33ec0b24496559ccb6959a1236b2459b44f0adbb"
+    },
+    {
+      "path": "Sources/DICOMCore/ModalityOptionValidator.swift",
+      "sha256": "2e729f7ad60b504b53eabfe7a869b138b068f441f1d637708aabf845965e8ae2"
+    },
+    {
+      "path": "Sources/DICOMCore/NativeJPEG2000Codec.swift",
+      "sha256": "47af8f826f985058cc1df79e773a27bd85ad82a06d00e3f7afae253fdd90084f"
+    },
+    {
+      "path": "Sources/DICOMCore/NativeJPEGCodec.swift",
+      "sha256": "042ffe759c0ac43b2234e123e0e8b97a610250fca182f3fc4aa3b57bfe8a80c1"
+    },
+    {
+      "path": "Sources/DICOMCore/PaletteColorLUT.swift",
+      "sha256": "d7736c192375e95d3dee0fd92c9a8c677cf80eb698830f1651f33542db98a763"
+    },
+    {
+      "path": "Sources/DICOMCore/PerceptualColormaps.swift",
+      "sha256": "28839fcb7a4ecadef0947f4ddc7a1e10caec27db29d3d48a4bb787bd37743c1f"
+    },
+    {
+      "path": "Sources/DICOMCore/PhotometricInterpretation.swift",
+      "sha256": "8c618dfb99d92c9f5a4348a6a793f561fd1548d70abdd24cb882ea8cc6a33f77"
+    },
+    {
+      "path": "Sources/DICOMCore/PixelData.swift",
+      "sha256": "5095793fa97dacc27a6a75b09a9badbcedad864dbcc9be667e4b9db2e33cd8a8"
+    },
+    {
+      "path": "Sources/DICOMCore/PixelDataDescriptor.swift",
+      "sha256": "f84f39a65615459e8eeee426578a8f8b64ee62fdd4a6c8053d3e30a16402386c"
+    },
+    {
+      "path": "Sources/DICOMCore/PixelDataError.swift",
+      "sha256": "3d4955528f213c22ad3f149541b28ae3e7205555c33e0a3345b1a11bb4b0ee92"
+    },
+    {
+      "path": "Sources/DICOMCore/PixelDecodeLimits.swift",
+      "sha256": "247284874e4e6dd20b074d82e5768caadec6730bbacf9ec1abd8d1f3f4011dac"
+    },
+    {
+      "path": "Sources/DICOMCore/PixelInterleaveSupport.swift",
+      "sha256": "b2ed2b0868695383d02313b164804692225e1d042e3a1edcf9b774d75cefe230"
+    },
+    {
+      "path": "Sources/DICOMCore/PrintColorMode.swift",
+      "sha256": "e0dbd705ec5676bd692623c62cc989f0bfe3d7de988ee735f1eac32fe9a01772"
+    },
+    {
+      "path": "Sources/DICOMCore/PrivateTag/PrivateCreator.swift",
+      "sha256": "d3da7c2c368ba3f43ac6867a2e53ad58e436b1420b5612875905ad310ee196a1"
+    },
+    {
+      "path": "Sources/DICOMCore/PrivateTag/PrivateDataElement.swift",
+      "sha256": "6bc6706be4b212b583b23ffd8496736e4c7a9c34c4c9f525bdf4e2af1f3fd84d"
+    },
+    {
+      "path": "Sources/DICOMCore/PrivateTag/PrivateTagAllocator.swift",
+      "sha256": "906367c9379631cadb802259563392a321fb29bc5fc3504fb81f13f56bd361ed"
+    },
+    {
+      "path": "Sources/DICOMCore/PrivateTag/PrivateTagDictionary.swift",
+      "sha256": "44fd1930a08209c727185aba79448a9b130918b27d9491f0716489fae2424b8b"
+    },
+    {
+      "path": "Sources/DICOMCore/PrivateTag/SiemensCSAHeaderParser.swift",
+      "sha256": "2406cd762bdd2a576b0b8226dd840b88e074135ffdb34596f5bb685ba529a7ea"
+    },
+    {
+      "path": "Sources/DICOMCore/PseudoColorPalette.swift",
+      "sha256": "17a3aef8c3043b57ac7b29d2d7f50a8d71cce3ca4aa65f1ba9b452574bcc4bf3"
+    },
+    {
+      "path": "Sources/DICOMCore/RLECodec.swift",
+      "sha256": "59f7b00112760ce7b2342546185935dc457f17d6dcc1b4519b43374da18bca43"
+    },
+    {
+      "path": "Sources/DICOMCore/SequenceItem.swift",
+      "sha256": "6fae97e373fb4ecbf6bdd8275a0eb0ef7c8b055686db3f0a551206190dfd91f1"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/AnyContentItem.swift",
+      "sha256": "9a6b233fae6c56fc3e86d468d3c620df5ca43ee307b8379ac7e8258a4a5f9b54"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/CodeMapper.swift",
+      "sha256": "2e60584de0ebdd2512f726c5d98174f1be38750b9f363cee3903374ea577918d"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/CodedConcept.swift",
+      "sha256": "5d0ca8f7e40d19fe1921bd8aefd3321c1eb6c892aeec68d5a84c85635e454ec2"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/CodingScheme.swift",
+      "sha256": "66398b9cfec361a5356f3123ea7dc79d684904181d3b71c5cd61083deabd1046"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/ContentItem.swift",
+      "sha256": "8c4a469c7c56af3635de0163308d77a730c9cdb8504961ec026c5256eaab9efc"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/ContentItemTypes.swift",
+      "sha256": "850ef6c0375cf0fe06b81c60e5dbb9dd809ad7dfa515c9311ce0f786041589cc"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/ContentItemValueType.swift",
+      "sha256": "404be3a772efb41d27f183167bcf955ff64a57f1b960f47608f61b1a23efb09a"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/ContextGroup.swift",
+      "sha256": "4171e25df29f77852baa033e8cdbef3e680d75b6d996fedf7d6e906ddf88599c"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/DICOMCode.swift",
+      "sha256": "0608bbf9914df42fdd47c5f5a6e4d8a7aa5f57a32599eef918bb4622990a52db"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/LOINCCode.swift",
+      "sha256": "b80110699dde01a3c4b67bd6d7ccb22b79ce26bbcc89a89730345d27b9b2d626"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/RadLexCode.swift",
+      "sha256": "57948d5211d71b69525b61f7836917bc3a762c7918c603d690c57a5828c20cc7"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/RelationshipType.swift",
+      "sha256": "7ae51f87961eaddac39f3d292f08fbb23d58c93fb2891ba084130ea26fe80bb6"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SNOMEDCode.swift",
+      "sha256": "1a9f878a27429c72767fcca7b1f50aec71fc5372b9987a12ebb52b8b53356352"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRCADTemplates.swift",
+      "sha256": "56a75a0789846026023515d352d75b98b2065edcc63617c6ba6be82ddfa0a969"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRCoreTemplates.swift",
+      "sha256": "8c8913677f94ffdbbb6104b28e948f87e6fab68d77bca7a732a3ddabdc0d8f23"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRDocumentType.swift",
+      "sha256": "a3dfc9aa5209c2fa223f856ea8a89d9ad427edd8a3fc33074dfa410b5a4fbc64"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRMeasurementTemplates.swift",
+      "sha256": "d746f73c69815ca27858731730dbf99e82042da26a0f058c2c9b886a211fef56"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRTemplate.swift",
+      "sha256": "45a28d8f6e85b4e8506b80a0171ab3134e46b7303da5de9d61ecee4f45793dc7"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/SRTemplateValidator.swift",
+      "sha256": "a4f88c956cf884f7baab72d7367d3efd1ae14cb7c66f1dba70eeca3bb3b5070a"
+    },
+    {
+      "path": "Sources/DICOMCore/StructuredReporting/UCUMUnit.swift",
+      "sha256": "6ea350610739223585c39c1bbb39d563819db5ecbc487e8dfeb9abbde2ad1075"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+DICOMDIR.swift",
+      "sha256": "aca53205a437c5286334cf583e5c1e8da7e98fee76947ef9e8c55592b5559b87"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+EncapsulatedDocument.swift",
+      "sha256": "614c6caa81096624624746c71aa96da1329db128e671a70f26496c28088b1aa1"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+FileMetaInformation.swift",
+      "sha256": "3f7c5a3d4ae5fb88e286fb474f0e5f1c19a1412ed5c2c665b9365521bbf8b86f"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+HangingProtocol.swift",
+      "sha256": "16812fb216dd4a1aeb1cd567f0ea083216833bd0af1c69f1a658a7db331a852a"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+ImageInformation.swift",
+      "sha256": "665a8210af636fa2ed55070c17478cc8a95c5e75ab811acb238165b6422b1c78"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+ModalitySpecific.swift",
+      "sha256": "d2f063626c702ffac62fc40d332df28bfc5f2b65347fbae9e2290d2350dfbf45"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+MultiframeFunctionalGroups.swift",
+      "sha256": "d20e937553f6f6934c8f171a9f25d8f661cb80c6474dbd7821537078ed833a71"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+OverlayInformation.swift",
+      "sha256": "9de3c3c0645f36c4d676492ed17c52a47a2eb0fd46cfd4516d4ef3b0e13a9e2f"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+ParametricMap.swift",
+      "sha256": "60ff6ddf3cf258bb6ae0d41a1338f4b971bb4ca368a15deff615c49f44bdf453"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+PatientInformation.swift",
+      "sha256": "e988fbf37330d443bc53650015bfcf78d2c75d46fea3a1885ceecc5b6e44a409"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+PixelData.swift",
+      "sha256": "af03cff0c0226f9ef83ffd6329515e90ae51289d7349bfbb092d1f7d1caeacf0"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+PresentationState.swift",
+      "sha256": "c02e6b80451f5d466950db548a65eba1741aa2019db90a0514b087885ffd6d7b"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+RadiationTherapy.swift",
+      "sha256": "a39f46fd6a0b9431bf3089a156b876ddae8629fa46d7af5a592f86c27d57534c"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+SecondaryCapture.swift",
+      "sha256": "367073a55847e7752d491964d56dcd5f63e07217b5e03ea89623c666827ea160"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+Segmentation.swift",
+      "sha256": "3f7f8e578e1e62b2dbbf9e22fe15c209bc92dd4a14fc58b24a356a6df318d91b"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+SeriesInformation.swift",
+      "sha256": "cb456143915337d7e01a35eaf98215877ba5f708118cbfb2f4a6040fae42a77d"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+StructuredReporting.swift",
+      "sha256": "2657f83622e77c0e24164919a1358d1d189f767e41fa6f020f26dd3320209259"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+StudyInformation.swift",
+      "sha256": "06999c42bc4d29b1aacd92dcebf37a56aed8805ea0fa9d01ebdc43a641801de1"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+Video.swift",
+      "sha256": "97f4115f2b30221fd012b2471216baa34fb5564b67e6bc1fdb8a9b654265d18c"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag+Waveforms.swift",
+      "sha256": "cc30fa78a6458f67a529c0ceef29b2c4011f37ec627e8b7b0fd1a6c528f97b48"
+    },
+    {
+      "path": "Sources/DICOMCore/Tag.swift",
+      "sha256": "88bfcfb1df6f217d45102e22d6b3b764992c908e4ac84d5e0fd56c7f94ee31c1"
+    },
+    {
+      "path": "Sources/DICOMCore/TransferSyntax.swift",
+      "sha256": "d25333d89225de029ad413aa754e86306f24adc5f946afd2843921e3d8b48c83"
+    },
+    {
+      "path": "Sources/DICOMCore/TransferSyntaxConverter.swift",
+      "sha256": "8a6d487941e538a11e477e1c7e29902fe40b83feca95550cf4560da229af82a2"
+    },
+    {
+      "path": "Sources/DICOMCore/UIDGenerator.swift",
+      "sha256": "2638f8585e353b3af7caca00e0e69f38cbccc4060329a9a7c0fe98856e7c1953"
+    },
+    {
+      "path": "Sources/DICOMCore/VR.swift",
+      "sha256": "70ffd9f344a368ae7ef2ef852c14e0f3bbae6acb7d904b45ed31ab61af23a7a7"
+    },
+    {
+      "path": "Sources/DICOMCore/WindowLUT.swift",
+      "sha256": "84d1f6396d2b3a4577556441239ec5bc811568c71a0764bc73bca4989eb6a199"
+    },
+    {
+      "path": "Sources/DICOMCore/WindowSettings.swift",
+      "sha256": "bc9ef740ab7a54fac1dea22d95fa57d83b1636e70f9763ea0149dfb26809f928"
+    },
+    {
+      "path": "Sources/DICOMCore/YBRFullConversion.swift",
+      "sha256": "c247d537d46d905c95e3aae9f915cc89f7ce58846a2237f47bccaa9313b36af1"
+    },
+    {
+      "path": "Sources/DICOMDictionary/DataElementDictionary.swift",
+      "sha256": "3e5518ca730871b25864ab140773cc5144f1df92706f940cdcd66cfac2c79fae"
+    },
+    {
+      "path": "Sources/DICOMDictionary/DictionaryEntry.swift",
+      "sha256": "a13d2523c78fe57e19973d17d1421ab93b1fba64ff19f39067fed1e83230415e"
+    },
+    {
+      "path": "Sources/DICOMDictionary/PrimaryValueRepresentation.swift",
+      "sha256": "3b2ee1a6fbf3a7ce6ba9abfc14ccd77aba4f89e323370a07867432e22376d609"
+    },
+    {
+      "path": "Sources/DICOMDictionary/StorageSOPClasses.swift",
+      "sha256": "42715991f9272f29811a8e4950670fec8ed63dd70571788ab06c03bee9d36a0e"
+    },
+    {
+      "path": "Sources/DICOMDictionary/UIDDictionary.swift",
+      "sha256": "59f1ce143b2fff94137830a3ca92d43ed7eca773509f1ff99f129c8bdfc97c2e"
+    },
+    {
+      "path": "Sources/DICOMDictionary/UIDDictionaryEntries.swift",
+      "sha256": "ca3aa61d89f4856bbf9b45940c6d25f8087639bd89199352097e58dd449bda19"
+    },
+    {
+      "path": "Sources/DICOMKit/AI/AIInferenceResult.swift",
+      "sha256": "cf5da89fb7d22791e8b3599b7d8b652ce85cbcdf48db7b3445138a398deab556"
+    },
+    {
+      "path": "Sources/DICOMKit/AnnotationRenderer.swift",
+      "sha256": "f278396dae13355393391230249929c19308743d98a3b75341d855eb3027c6e6"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/AnonCLISupport.swift",
+      "sha256": "85a0d8a0a532b4cd2fa9042aaf34f7cecc46e1f20b0126e5000d5fc5cbf43aa0"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/AnonymizationWorkflow.swift",
+      "sha256": "20c460be6ccbac8d82c4c655a28f5d05c300ac557db324c5fbda99a19c4b61be"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/Anonymizer.swift",
+      "sha256": "3642a339b33e18a0a00fff12e04ccc6c973ee4701d2ff0378d246d62fe76a0bb"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/ConfidentialityEngine.swift",
+      "sha256": "fd58a2656fbbcdb79b972d79054ff5de81a6d88b70171430dba7292346fdfbb2"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/ConfidentialityProfile.swift",
+      "sha256": "3da4e6c4313816def23ca62c1436947cb8418082118b6f21d5c811fd7bd468a7"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/ConfidentialityProfileSafePrivate.swift",
+      "sha256": "2af3d50f55b7f24bbe3e430823c65b7476c79b2225987f6aab540178777f84ea"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/ConfidentialityProfileStructuredContent.swift",
+      "sha256": "cbe0dd6c5384470afe48407addd1305011239dd3c0000c762b9225e7a55c60f3"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/ConfidentialityProfileTableE11.swift",
+      "sha256": "4eb5acb1ce66886296f8fd5e726661fe011d4086c6dc26cf679eef4fddb9d584"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/DeviceRedactionTemplates.swift",
+      "sha256": "4299b5ff6f77b38bdf37c2f7bca89675a95c1165ab2d93c5527d12a70ff42c78"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/PHITextClassifier.swift",
+      "sha256": "75ee0581bf8a477b7480d5ce91547f42383f37ea6985113891cf635f133fb16f"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/PixelCleaningWorkflow.swift",
+      "sha256": "b275289aabf7c05da2709b77de8ca1f17620318157b40d5624ee55644affae9c"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/PixelRedactionPlan.swift",
+      "sha256": "e53890b75e2b420a2426fd0c5171eef548254cc1d3694d06a865693c8396f61c"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/PixelRedactor.swift",
+      "sha256": "e0974ef13c9d2121aded03f70211ebdd44b580f50e997c62bac49cc8a7abbc1b"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/RedactionLabelRenderer.swift",
+      "sha256": "bff9cce6a7554693c9e236d5f93c1ceb39f26543610e18c1a742bc9c5adbddf6"
+    },
+    {
+      "path": "Sources/DICOMKit/Anonymization/TextRegionDetector.swift",
+      "sha256": "cdd91c3352bb2a1a7d566cc3470630454ed3430a1feb584c257b2d49cacd33ea"
+    },
+    {
+      "path": "Sources/DICOMKit/Archive/ArchiveStore.swift",
+      "sha256": "b0f0c74e743e6e66c28aeff1814e025b114d0d111f53c4354fc6b57119026fd3"
+    },
+    {
+      "path": "Sources/DICOMKit/AttributeNames.swift",
+      "sha256": "842e79e1ca25fc6cf666d66bc26bdab29a26ac06d6d26f7d5afa6e4baa3cf39a"
+    },
+    {
+      "path": "Sources/DICOMKit/Comparison/ComparisonReport.swift",
+      "sha256": "cbd99807fff2ef3ead562858500c53609461213cca87229c2b6e6991c0884a66"
+    },
+    {
+      "path": "Sources/DICOMKit/Comparison/DICOMComparer.swift",
+      "sha256": "01fcd242f875abb8e8b9c544afbbce89f9e8c6886de0f57df9360bd1cf01eb24"
+    },
+    {
+      "path": "Sources/DICOMKit/Compression/CompressionConsole.swift",
+      "sha256": "e9147899cb427500bf933c80de164e579ecd6acefc888e26eb2a98b6e98e5755"
+    },
+    {
+      "path": "Sources/DICOMKit/Compression/CompressionManager.swift",
+      "sha256": "eac2917b07a5540d781b36f90c1b9a36ddcec6a46e08cbb8245f3d4ee2a37410"
+    },
+    {
+      "path": "Sources/DICOMKit/ConversionDiagnostics.swift",
+      "sha256": "00a5c8a1bfa9964b7b1ae3720ebab88fcf06dc6be3512c890c0c111318d00e95"
+    },
+    {
+      "path": "Sources/DICOMKit/ConvertConsole.swift",
+      "sha256": "f9964063245c79cb0179c121b945ff5e1074d8579a4b19de69b80058fbe00ffe"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMConverter.swift",
+      "sha256": "56c5b808962c49128a5649baecaeaf76611a699fc85e7075d6c966854d8f8f4f"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRDumpFormatter.swift",
+      "sha256": "4534ad88e7f0ec6904ec7b76722bed55d3833da294c3657b869d3e25889d4607"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRFileSetRules.swift",
+      "sha256": "8c7380a940841fc203c26af05facf182bba96a9195a897cb934a776a72d94dee"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRProfileImageRules.swift",
+      "sha256": "3082c60cc2c289c0ae5a1c11469ac2103ec636cad24342e71c517da3a332b3a0"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRProfileKeys.swift",
+      "sha256": "ed621c8e6deba1e17b2ac6ee5c0dbf7a4e67a273601d51ec249d510e0e7706a9"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRProfileRules.swift",
+      "sha256": "9446776b916949a74ea76766c4c84efa52f8b747d6a8bee9c0104e2f041ac799"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRProfileTables.swift",
+      "sha256": "8c4bf75f879d580add472c882a896f941cf18676f1206a3205cc6ed958c90168"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRReader.swift",
+      "sha256": "25d02a8384a2da741095d1251ca769750654fc203c49b0fde2f029593fba42f2"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRRecordKeyTables.swift",
+      "sha256": "a8aff91498e5e17d41b7506e6583d6a283f85f37da25bef395af4ed578d42da5"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRRecordKeys.swift",
+      "sha256": "46831edc0fbc978ddfc56243452b833c31dcae6cdead463e4b9bfcafab31dc6a"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRWorkflow.swift",
+      "sha256": "ba77d24853dd9ad89d9714b34542d2c189c5b013d3a93219e77ab2c060184b84"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMDIRWriter.swift",
+      "sha256": "46304e55ad0724f6b992fa420c04cb9b089811f7a49f7ff1ab68edb1e5c44ba8"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile+FrameAccess.swift",
+      "sha256": "37f3cfa285f11e17a20e8408ead41096126411c036c6a67eab64fe5d4f759b98"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile+ParallelDecode.swift",
+      "sha256": "b633bc657f136bc8b93c5bae5a8ede033ae99af47b261ffd25bace4f365ca0cb"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile+PixelData.swift",
+      "sha256": "4efb90874d9974bb2d5378084a79e13916a3aee0937fb02d4564d5dfdaba3418"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile+ProgressiveDecode.swift",
+      "sha256": "92205259511508b8d9c7b06e6a7c50e459a8c3ea7b4cf835a4cf65d29330c0bc"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile+Write.swift",
+      "sha256": "ae352252b27eaa612ddbf9abf999d2796743693d4913f7e5089d58905be09a2b"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMFile.swift",
+      "sha256": "1e92de5cec5fccb0def4208b080f4cdcb06d18ca0a9ff2628fc87a6b85bd89a6"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMJPIPClient.swift",
+      "sha256": "5089cd164f714a98fa4e5824dd5754db348db223114b528e9984998304858855"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMKit+Volume.swift",
+      "sha256": "7529e6700ece13637a7a6b3b69f31f8ca9511eaa7db7d3ebe1cd474fd2ba7d25"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMKit.swift",
+      "sha256": "9765b87efd5a766521bec0484d20706cdd49f1c9b7af29a3af078b6595b7126b"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMMetadataDiscovery.swift",
+      "sha256": "e8ae278b10603d54247670e0ea54397af079133162a581febebb5c7f0aafa1da"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMParser.swift",
+      "sha256": "afb8f121f06e6941058d6fadab0e3c6058784c177cf87906479f9ae92c855cf8"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMParserFailure.swift",
+      "sha256": "f9d0f7298d5aeb1a6237ef328aa43aba42cded41cc6d3f3786562d4f3eea146c"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMParserOutcome.swift",
+      "sha256": "d12937b7c505642c025385b70fe5b5f71136180901adc45327bfd2db47ff6411"
+    },
+    {
+      "path": "Sources/DICOMKit/DICOMVolume.swift",
+      "sha256": "ed4d7d3804a8e91b1222d57ac0efd3ad09f46372c1bb2d5f6f64ecc7d66a4708"
+    },
+    {
+      "path": "Sources/DICOMKit/DataSet+DictionaryVR.swift",
+      "sha256": "78955e6f1cb43e304359a35c434a0513e1f589559219852ed4ca137c007c7462"
+    },
+    {
+      "path": "Sources/DICOMKit/DataSet+ImplicitSignedVR.swift",
+      "sha256": "0a9d9c76dc417d93afdc0f201e397f07f1f3eeaa83abcb5457285a614339c359"
+    },
+    {
+      "path": "Sources/DICOMKit/DataSet+PixelData.swift",
+      "sha256": "974d48ba866637bdf7073d9c5a5168565d802344b3b5a066df9d19ddf4a873f0"
+    },
+    {
+      "path": "Sources/DICOMKit/DataSet+SpecificCharacterSet.swift",
+      "sha256": "852987b8e786705829c9cdff6a43752bf6f89b90ad0a7d31f6e37321d979c4b3"
+    },
+    {
+      "path": "Sources/DICOMKit/DataSet.swift",
+      "sha256": "2383953dbf9fda67bf59eb3df3680a15fc3d55a1acbe11bc42fa3dda978f13af"
+    },
+    {
+      "path": "Sources/DICOMKit/DeflatedDataSet.swift",
+      "sha256": "f5f592774fb82abc8bf3a0cd159724f23d4208dbc08453462b40ce0b8748fe34"
+    },
+    {
+      "path": "Sources/DICOMKit/EncapsulatedDocument/EncapsulatedDocument.swift",
+      "sha256": "3921f0291b88f2d6bbe4c47670f723176c0c55a40e2f0f38dbb4c9404fbee389"
+    },
+    {
+      "path": "Sources/DICOMKit/EncapsulatedDocument/EncapsulatedDocumentBuilder+OptionRules.swift",
+      "sha256": "ea9d2ab26a424c19d9ea69dce443dbb1a94cec32ccba13fb10bde6b10f48e9d1"
+    },
+    {
+      "path": "Sources/DICOMKit/EncapsulatedDocument/EncapsulatedDocumentBuilder.swift",
+      "sha256": "753f50cf1a703db1a08fc7af2fa2bc86ce5843cfb3b202fbeb39f56cd97861ae"
+    },
+    {
+      "path": "Sources/DICOMKit/EncapsulatedDocument/EncapsulatedDocumentParser.swift",
+      "sha256": "1c4277ae711cdc6f0dca4b56089c14e58841a029afa83fe442d6d69afa427a49"
+    },
+    {
+      "path": "Sources/DICOMKit/EncapsulatedDocument/EncapsulatedDocumentWorkflow.swift",
+      "sha256": "48b075fc5c57e88699ca32af0f3c3bd66fee0b27ac2381b7ac5a47a12972d863"
+    },
+    {
+      "path": "Sources/DICOMKit/FileGathering.swift",
+      "sha256": "0f719a32e461c5dcb1465327025e08329e82f05760a75b257b1563dfad65fdd4"
+    },
+    {
+      "path": "Sources/DICOMKit/GrayscaleDisplayPipeline.swift",
+      "sha256": "95110ce14d63d50c0afbd0092b1e90301fec7b6c5102149a988a41cecbfcca34"
+    },
+    {
+      "path": "Sources/DICOMKit/GrayscaleLUT.swift",
+      "sha256": "05c77c044f6eaaa835f391fb831a2cc78e270c71b743158bef7a664838886ce7"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/DisplaySet.swift",
+      "sha256": "51a9b1e4de3404b009450a7eafa0ffe834ca4886753beb6accab11f5dfe277b8"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/HangingProtocol.swift",
+      "sha256": "cb4ad5b632d1a9333a05f41adb5a6d1395d092e32f275c6275569c48c001422d"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/HangingProtocolMatcher.swift",
+      "sha256": "a8987fe9e5eed341b9d38ed195b715939bed49c874f0a25efed5898abc2821b7"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/HangingProtocolParser.swift",
+      "sha256": "bcc53a5f19b01533e8eccfd2fb4610ceb88e4153d81f708a99991e83fecac473"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/HangingProtocolSerializer.swift",
+      "sha256": "8212a54da171b51a4f0d3c385924f961ebf9d871ec6af08a9f2b0938c962e899"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/ImageSetDefinition.swift",
+      "sha256": "6c2b1ea8394efea233f9760e0feb7d059bcc99d2dcf51c298f53a076a99cc2e0"
+    },
+    {
+      "path": "Sources/DICOMKit/HangingProtocol/SelectorAttributeValueCoding.swift",
+      "sha256": "859030587e625a42221ffe959188e3d795f690b649a338076dc34d3fb6da1c15"
+    },
+    {
+      "path": "Sources/DICOMKit/HexDumper.swift",
+      "sha256": "bef8c23b65144662fecc1960e5223add81a77099f3fb19cc6de3a7816979e61e"
+    },
+    {
+      "path": "Sources/DICOMKit/ImageExport/DICOMImageExporter+Standard.swift",
+      "sha256": "e5f0ce0b50af4da0618b382d60a259f3005ef27eed6374343972f2884d0e0e1d"
+    },
+    {
+      "path": "Sources/DICOMKit/ImageExport/DICOMImageExporter.swift",
+      "sha256": "8817bb7bb13f9cd37cbede912b1b00d2f13c02aae22b8091051390b36b7cf936"
+    },
+    {
+      "path": "Sources/DICOMKit/ImagePreprocessor.swift",
+      "sha256": "a2fdfac68c33d144318791c5206bbbef4978cf1b12713b1d58871722d0002862"
+    },
+    {
+      "path": "Sources/DICOMKit/ImageResizer.swift",
+      "sha256": "47654d6d0d7e0736af59bc40cf51e8ae85c6037396659ddad8eccab734fbeb78"
+    },
+    {
+      "path": "Sources/DICOMKit/JP3DVolumeBridge.swift",
+      "sha256": "3dbeaa04c8ddebb73d81b67047d170bc2e31dce62be6ea88b185ebebbd577724"
+    },
+    {
+      "path": "Sources/DICOMKit/JP3DVolumeDocument.swift",
+      "sha256": "13ffa1ff0233f89365d175d49d3f91fddb5abaf3d07019f50eba2b74423723d7"
+    },
+    {
+      "path": "Sources/DICOMKit/Merging/FrameMerger.swift",
+      "sha256": "498d937101521831bded9aa9af68c3f89f6bacec6c5b6e113af61489428b3954"
+    },
+    {
+      "path": "Sources/DICOMKit/Merging/MergeConsole.swift",
+      "sha256": "9bebb626ca27f6a2fe5ae2cf9c59f0d6209dfc8acc08408197278cb2c8b18b91"
+    },
+    {
+      "path": "Sources/DICOMKit/Merging/Monochrome1Conversion.swift",
+      "sha256": "4dad4f8dd4ddb2a80524e7f0e8957e1309ebe5ceb40a84dd38f32ad92b6cc757"
+    },
+    {
+      "path": "Sources/DICOMKit/MetadataPresenter.swift",
+      "sha256": "b8de70ac3f26992de5f4fb467130938bf91d14e130f880d9523ada9997903f6d"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/FunctionalGroupBuilder.swift",
+      "sha256": "c5a8cde2abe19511a13134c99725877f9750d0051d5fd331c58381e43b86dca8"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/FunctionalGroupFlattener.swift",
+      "sha256": "97866e4a5cf025702597a6648b43861598c507e1384266aed5499d8aa8211895"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/LegacyVectorResolver.swift",
+      "sha256": "cfec19d19f7523f3620610f49dc5cd92dafaa87d9b10d68337fa2a19881e210a"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/MultiframeConcatenation.swift",
+      "sha256": "13951082b888c8f32b9c26bff7dd1552b60db25c2605626ed7412f2a64119881"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/MultiframePixelAssembler.swift",
+      "sha256": "235cb61e22a67b40b7fa568ace37e9e31f7a4c6ada7e799177cab7b7b9f20b9b"
+    },
+    {
+      "path": "Sources/DICOMKit/Multiframe/MultiframeSOPClassMap.swift",
+      "sha256": "c0ce24ba12f506dd63220537e0ab608315e5f42035a692d67ba773e53e5968f2"
+    },
+    {
+      "path": "Sources/DICOMKit/OutputPathResolver.swift",
+      "sha256": "44c619879bb2718fb87e434545c87d6e469a883baeae88e4edd041dd6143b51b"
+    },
+    {
+      "path": "Sources/DICOMKit/OverlayPlaneRenderer.swift",
+      "sha256": "8506082636b8f40fc8a40916412fa706b0fc3077ad9ff51635f9e6ff29d64b23"
+    },
+    {
+      "path": "Sources/DICOMKit/ParametricMap/ParametricMap.swift",
+      "sha256": "3b9d827ce12df5fb46f92b5e2e935ffcdf05b95a29625ac1dc284928738a2132"
+    },
+    {
+      "path": "Sources/DICOMKit/ParametricMap/ParametricMapParser.swift",
+      "sha256": "e6226060d042017c9c4ba4b03519699bc1e5d83c7dcf39d530c2a68b628a9b83"
+    },
+    {
+      "path": "Sources/DICOMKit/ParametricMap/ParametricMapPixelDataExtractor.swift",
+      "sha256": "0f79aa696ac18cb06e7eb752e6bbc665dc6bb5c20fb7dd4fc02f171f6ac3585b"
+    },
+    {
+      "path": "Sources/DICOMKit/ParametricMap/ParametricMapRenderer.swift",
+      "sha256": "ada035bf4aae3d2b1f36fe18ebab5c785e47d609dbd719250e07cce966395c49"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/BoundedDICOMFile.swift",
+      "sha256": "c8962a6b1d1cbeef6efc1f19197a555f5fa5e4f52e9195cee3972c30045ca9c6"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/BoundedParsingOptions.swift",
+      "sha256": "f157558749b96274f2ec913cd9b622ccd6a06df452951a6aad50599607c90453"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/BoundedSHA256.swift",
+      "sha256": "5076e23ef0ffe2ff142541a14edd9cea3a3766255a011ac8214c0456fefb4e08"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/DICOMBenchmark.swift",
+      "sha256": "23f5bad291ee91dceffccdc6c5f7f641d315034d6f54cfe7a2c8a03e37e37e9b"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/DICOMByteSource.swift",
+      "sha256": "62a6276dab4fd21a59957f82703b7507746c09c720616bec51a1904735f72c97"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/DICOMParserInput.swift",
+      "sha256": "b221f21f97145a1c64e8012755cf5178d15e42d2f6b49bc5d24b3697e066d8a0"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/DICOMStorageVector.swift",
+      "sha256": "d96a909c6ce91e6597117b9b06baeb4f7449aeb5ba214d98aeb630e78965b087"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/ImageCache.swift",
+      "sha256": "dd9c298fbdcb9934692eba74f92ae529df257dcdee46cc4ce4d17311472731e9"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/ParsingOptions.swift",
+      "sha256": "3602bde9fc9ae9a692dc7a904c373e5c0c9041bf8d6aa6672071fdc41ea60e93"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/SIMDImageProcessor.swift",
+      "sha256": "81a27b5beb5f0d881af0031cafb889c4e7af38291361c5fb0d9cc6740b4205d0"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/VR+EncodedBytes.swift",
+      "sha256": "e763cf7df60007aaf2ed8dcd966291775a9cb242986c05ef2faa8ebe48dda7d1"
+    },
+    {
+      "path": "Sources/DICOMKit/Performance/VerifiedFileByteSource.swift",
+      "sha256": "ba2946df2740247cdd94a6dcf9fa3ca272ddcd0b9b1383eb9dba4f315c318c7b"
+    },
+    {
+      "path": "Sources/DICOMKit/PixelDataRenderer.swift",
+      "sha256": "e0b7644fd8924c9fe6ab2f9e794b045da5ae4f81f2a13187ed9ce9f571bc5dd6"
+    },
+    {
+      "path": "Sources/DICOMKit/PixelEditing/PixelEditInputChecks.swift",
+      "sha256": "dcc7119e87e26070b8cca96c9f0bfad72b8d93949f8d23555b54baf681c91d38"
+    },
+    {
+      "path": "Sources/DICOMKit/PixelEditing/PixelEditor.swift",
+      "sha256": "42483cf567b11045077ecbb1a03bc91d3485d715ac064205f59fb5906f786c55"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/ColorManagement.swift",
+      "sha256": "5d67af68b3657932d228611e3e501789e47eb039d4d4b82a7e3c933756a048e8"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/ColorPresentationStateBuilder.swift",
+      "sha256": "92288c9031cbe55a44014caf0f9d8b817fda6a0e0dcd75c8344f74be88bd9561"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/ColorTransform.swift",
+      "sha256": "daeab04977ad7b4572c0fef91981b287b9ace6f8d95ad2fb2371e5af973a9dee"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/DisplayFeatures.swift",
+      "sha256": "374e0a0f038a99b570b5227273a4a2b634e615efe524b595b1a507377065b5f4"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/DisplayShutter.swift",
+      "sha256": "e14e0efcda92373b763c0acf98b6934a82bcf66011898f2e7cbe4914557f4449"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/GraphicAnnotation.swift",
+      "sha256": "cccda794f25323900d08c2d7b99278bc54ec96e318fab1de10a3851e3e8c4681"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/GraphicStyle.swift",
+      "sha256": "effa9dbb4abed59d8127fdace82806d326f2d6df953d9602fd056e3e61425547"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/GrayscalePresentationStateBuilder.swift",
+      "sha256": "0ff32d71512b161f13953c2518cfa0d207711a5a63fa47045ec83ed3a367c0a7"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/GrayscalePresentationStateParser.swift",
+      "sha256": "d3d868ab0a2ae9f1233a91ebc22d4858676a04616f86e8e56ecb9c42135318ae"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/ICCProfileParser.swift",
+      "sha256": "0719885607e60c21cf24a7d57df0b2e483272dbd884135bd443ae71683fc460c"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/LUTColorTransform.swift",
+      "sha256": "37826e36e20268820607b3ac5b21e353b6716d311b1b42f6473d5981775fe425"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/LUTTransformation.swift",
+      "sha256": "1c2532a72e2196542399429cda232b252b8b4d1af26eb704e8479438bb3a5ad4"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/PresentationState.swift",
+      "sha256": "65263781147f574605f1a4a3e59501e56fdd8d97df6a7325d839f201d63f8575"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/PresentationStateApplicator.swift",
+      "sha256": "a1bdd75fb7ae104e9fd7cd250a3adf8bdc48913b5634c99f03d313ae0ae6abe2"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/PseudoColorPresentationStateBuilder.swift",
+      "sha256": "2cd10f76459c46ed2424619e6967d557a8dbacdfa89ec334aaa2e35d092d3d52"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/SRGBICCProfileWriter.swift",
+      "sha256": "da5e494ac678534b79454939df9b72cde4a65d0e896085ff80555d5fec61dc45"
+    },
+    {
+      "path": "Sources/DICOMKit/PresentationState/SpatialTransformation.swift",
+      "sha256": "bbe413fbed8edf1e53bf250da1d9717953651d75066a89c241ad4e5542057fe4"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTBeam.swift",
+      "sha256": "4fca39dcfe151b5e59320a8e8de47d9fd53b75028bb3093614e963bd7bedb81e"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTDose.swift",
+      "sha256": "08ab06b932028ed4a1adcdf3e6b7dc0f5423aa916d4a4b83bc9a9bccf84c3c95"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTDoseParser.swift",
+      "sha256": "f3e80c5de9f392427a7cdaf675d140ef7dcccdee0b4be40ec476a6282a9ed6fd"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTPlan.swift",
+      "sha256": "a3efccb81a21b72ea7fbd549b43ebacc1f747b897b2dbe6c8926148094011b8b"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTPlanParser.swift",
+      "sha256": "d44c8403e95466abf005110318b7bb2d6e0c67111405664775998fc516466d8a"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTStructureSet.swift",
+      "sha256": "5e73b473e7f7ce6fed629e1a169c01584ed72a5492abb78ca93c2882492b159a"
+    },
+    {
+      "path": "Sources/DICOMKit/RadiationTherapy/RTStructureSetParser.swift",
+      "sha256": "befa2624b5f12156d46b8a7f51565dd680ef55e41f28dab25e96d6a8580dc71b"
+    },
+    {
+      "path": "Sources/DICOMKit/RealWorldValue/RealWorldValueLUT.swift",
+      "sha256": "a52124e90a513a0695517851d12fda0a7c5f68350d89dedaf1c6ab3ba6156d65"
+    },
+    {
+      "path": "Sources/DICOMKit/RealWorldValue/RealWorldValueLUTParser.swift",
+      "sha256": "68357071d6d44748cc7cd5cfe424a2441ce0dcd30700ca24f67d6dd462698daa"
+    },
+    {
+      "path": "Sources/DICOMKit/RealWorldValue/RealWorldValueRenderer.swift",
+      "sha256": "7bec12e9cfb12f65c4d5095ece9eb18d92c0bac7a5a711d77eb298e6af475ebc"
+    },
+    {
+      "path": "Sources/DICOMKit/RealWorldValue/SUVCalculator.swift",
+      "sha256": "10fc9638a1d27b6857f398ed2de29a1d738f8d0562fa0a67ac3c0c927f8c4867"
+    },
+    {
+      "path": "Sources/DICOMKit/Scripting/ScriptConsole.swift",
+      "sha256": "4a3563d9302710a73cab40f279da195c42edbd00c4cfa20d394fec74237e7283"
+    },
+    {
+      "path": "Sources/DICOMKit/Scripting/ScriptEngine.swift",
+      "sha256": "b96c75e2f49b846d8e6ca11f506aed76b9898efcaa437d6996ec5e704fedaa79"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/ImageConsole.swift",
+      "sha256": "e19210f4b7169853bc95944e01c0e2d4a971aa3c1f3c8b9dfa3fd1cf93dbab42"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/ImageConverter+OutputRules.swift",
+      "sha256": "193f162004fe41199fcbb182dc1d6c290df8802a287a5d8f07086503d946a85d"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/ImageConverter.swift",
+      "sha256": "145498ec498db912a690edc7b0995449e40d0f787afea43c8053dde5a61827cd"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/SecondaryCaptureBuilder.swift",
+      "sha256": "94ed9fcb0abb7c569c5bc0f03abd92775841a0fac2ced480b83cd9edb0875110"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/SecondaryCaptureImage.swift",
+      "sha256": "7db9039bf6e7a200655db3fd8909a83d148c4e2a6eff9fe990a009593f4c2854"
+    },
+    {
+      "path": "Sources/DICOMKit/SecondaryCapture/SecondaryCaptureParser.swift",
+      "sha256": "ba5a824131032cabf1e9e7eaa4152634a09b76db62357ba93cb12f041aa28702"
+    },
+    {
+      "path": "Sources/DICOMKit/Segmentation/Segmentation.swift",
+      "sha256": "391a7d10517fd22f2bf8774e2d5a91a1712ae98a78b9c10b0a8befe69cf911b7"
+    },
+    {
+      "path": "Sources/DICOMKit/Segmentation/SegmentationBuilder.swift",
+      "sha256": "80a40d8a3e218970f134c622885aa24b2c322103d76701779cdd1c12ead1c0a9"
+    },
+    {
+      "path": "Sources/DICOMKit/Segmentation/SegmentationParser.swift",
+      "sha256": "361ffed3f4d1ffeea655c18fa4a8d76dfed80f62138b7ea143cd816f89a89223"
+    },
+    {
+      "path": "Sources/DICOMKit/Segmentation/SegmentationPixelDataExtractor.swift",
+      "sha256": "aea8a565c815762951cd9d6d63f2459faad4458991b9203c4a1fd74003140b1d"
+    },
+    {
+      "path": "Sources/DICOMKit/Segmentation/SegmentationRenderer.swift",
+      "sha256": "35d21d23ed24db886a55b964a53e596c6708dde0bd8a9868f8b2b1996d4671f2"
+    },
+    {
+      "path": "Sources/DICOMKit/Splitting/FrameSplitter.swift",
+      "sha256": "849eb6610ff6323701062b6650f1e9d0f6c39e3674e9ce4da61390bd20afdf9e"
+    },
+    {
+      "path": "Sources/DICOMKit/Splitting/SplitConsole.swift",
+      "sha256": "ff6af2196e8382464fbe5061e228a9142871afd9b52dc0eb4dd1ab77b1afc912"
+    },
+    {
+      "path": "Sources/DICOMKit/StrictParsingError.swift",
+      "sha256": "d7f7da662b36731f6efb4715c055ce1a4a52eb4ea90c58e59d5958c1559d80dd"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/BasicTextSRBuilder.swift",
+      "sha256": "818de2e8286e45b6dbfd546232e0b60127ad9d2b162c0952fffde6493ab301d8"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/CADFindingsExtractor.swift",
+      "sha256": "c2648ff3d4a32c5ecc734350df467acf988315eacec164d66e51e989e7262118"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/ChestCADSRBuilder.swift",
+      "sha256": "e958d77873b96015017de8d2f3515675d9b041c310744d2bdb7f73ad2ea58f20"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/Comprehensive3DSRBuilder.swift",
+      "sha256": "cf839942f57cdc91a56fb1dec96e972b510478e74a6263482a5d1d198d0a5470"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/ComprehensiveSRBuilder.swift",
+      "sha256": "b58343b672de14508cdbfb56efb60b65fe46d7f85add0df0074a5f748f024078"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/ContentTreeNavigator.swift",
+      "sha256": "92ae8fa6c7ba2b40e69c83088ff39a3321b41833f805cf28f181e9ba0d5a51b3"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/EnhancedSRBuilder.swift",
+      "sha256": "6eaa68dec8edc47adcde025b24f79451f7345e54135c637afa2f049d713d1a06"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/KeyObjectExtractor.swift",
+      "sha256": "52cd1664e6d563dfe2caf8433213493cfb003f564b6b79c0110691ded9d24d95"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/KeyObjectSelectionBuilder.swift",
+      "sha256": "fa93fda2a6a0d7111ac6548be7fee9e80b4ef642b24ed98676a75b327df15b3f"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/MammographyCADSRBuilder.swift",
+      "sha256": "6cd1677cedf90f3bcdfd6b0d7b07360246153522364cbaebf4bee8433d21b8d6"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/MeasurementExtractor.swift",
+      "sha256": "afb923d2fdc05272fff8935382d2aa183747d8f5cc75fb2d4e260e74da606a25"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/MeasurementReportBuilder.swift",
+      "sha256": "77e0bcaebb11e3463c0bc9600803b52e810103f34259cba98154bafea87ac85d"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/MeasurementReportExtractor.swift",
+      "sha256": "35f638e6ef6541db0fda618d6f55055b5bd40b4fbde0e382adb99d9942f44c53"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/SRDocument.swift",
+      "sha256": "93e92bc060158a65c054f9b0025f3572557669f50f52236b9962143aa354c3b1"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/SRDocumentBuilder.swift",
+      "sha256": "615d49618cfb9172e69768192a355f0ddb9c3661e7f0e788a91eff5915a83b05"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/SRDocumentParser.swift",
+      "sha256": "d40680792c97af3e66cf6f6b2045ba9f61ccf1113fc79a4ea21e9164d7bbec88"
+    },
+    {
+      "path": "Sources/DICOMKit/StructuredReporting/SRDocumentSerializer.swift",
+      "sha256": "5c1762625707dedb5fad24c5abac467aa7e31fdc128ecb2b67595c6d56a7e853"
+    },
+    {
+      "path": "Sources/DICOMKit/Study/StudyManager.swift",
+      "sha256": "331a7c5ca90d462805ea2f710ba97156fe4fefebf658ede5cc2e3ae26b606849"
+    },
+    {
+      "path": "Sources/DICOMKit/Study/StudyOrganizer.swift",
+      "sha256": "e79361558423477aa66faa8e776174c106aa55a3ab24717512a95f7c0686a797"
+    },
+    {
+      "path": "Sources/DICOMKit/TagEditing/TagEditRules.swift",
+      "sha256": "6e0435122e4ae79416d0f8d16c62138cfff089ccb185e56b395af20b83157c8e"
+    },
+    {
+      "path": "Sources/DICOMKit/TagEditing/TagEditor.swift",
+      "sha256": "b742b368a078130f6387d49228a5581d558921841eaa78cbc8afc58d7c9679d1"
+    },
+    {
+      "path": "Sources/DICOMKit/UIDManagement/UIDManager.swift",
+      "sha256": "f0d7b9d5bf2a521068ad5c88eaee7772db18b0b483c2876271de56fc46e1d313"
+    },
+    {
+      "path": "Sources/DICOMKit/Validation/DICOMValidator.swift",
+      "sha256": "ee78d75b54b5ae30a844735a84f31052edc44d901c389b2084671e315518e4a8"
+    },
+    {
+      "path": "Sources/DICOMKit/Validation/ValidationReport.swift",
+      "sha256": "463510e925b1ba2ae1a28fb0398809447668ad31af70e8fe2a69523c9dd038b3"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/AudioChannelSourceOption.swift",
+      "sha256": "db7e6cd27df9894c7308e615a7c2ab53c6414cf2c0e8acb2c5ead957f9d7c666"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/BitstreamReader.swift",
+      "sha256": "3431c8ddc1ce0a37f822c1bf357852f57db212139fee4e63614ae05d0d0be5cf"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/H264Parser.swift",
+      "sha256": "d4bdad951768eb3f91f7b6bf0d741208cd8fe4e8d152a197c4dfa5edd705e0f8"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/HEVCParser.swift",
+      "sha256": "82acd994716073aee869d9ff14f33aba1e7560e80f8dbeb9765d143d6323944c"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/MP4ContainerParser.swift",
+      "sha256": "c3f85ae58db6cb95a66ee8f70e2977609b6be965a0c0f04f4e7a6dea57605eb9"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/MPEG2Parser.swift",
+      "sha256": "55dd4a3e90785f28b474fc4261ffde404865a9780d628b3bfde069cec2dbc861"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/MPEG2SystemsStream.swift",
+      "sha256": "672971f94c594a7d7f4e569f6fc88d2d456e4401a47658abe83eec0692904d29"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/TransportStreamScanner.swift",
+      "sha256": "8d5f6f5e82f59a1a76511415a1759f73eb974d17b2021183e17420d2fa8ca4f1"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/Video.swift",
+      "sha256": "dd21e00eab3346117ed7c2285e7ff994695ac1387ea8eb44f7cc3cb51d13837f"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoAudio.swift",
+      "sha256": "1a65adb9e9b55ac8e2ce9c2bc9ae27e666c3ce6597d6aeca6b53541614ad42a7"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoAudioStreamInfo.swift",
+      "sha256": "6c8f131a2b981c210cf85e1a10bbc6a7f87ac35dbc443fc082fdc389f3baefc7"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoBuilder.swift",
+      "sha256": "6ecc02d1e8af5bd0a6989651194ae52510229b4a5bd949b94b8b23623693ba6f"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoConformanceValidator.swift",
+      "sha256": "9bb97264be8bfd4628b588049c7d8be90bf8d464e875a958e5180c3e5f82681e"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoConsole.swift",
+      "sha256": "a271d62b8239057c1bdf3295ae1529e5859dc06af4b8de382a90d855c31ca7d8"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoExtractor.swift",
+      "sha256": "aa0a2291ed47f08a3f643affdeb53a67aced976006af63d4ecb82ecb8184d206"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoLevelLimits.swift",
+      "sha256": "88092fdbf94c46bc5152346740d41ec048fe75e8c4d61b6272c84ae651a3ad49"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoOptionConformance.swift",
+      "sha256": "1efade81fdc0f4d142a9fd7d4e9130817d1200d89a8e248c2d97be7bced19464"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoParser.swift",
+      "sha256": "f5eb1fad7b8f00afdbb9b6d7ab98ada86894f495de1d7cda3c2c93ff2e248d71"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoProbe.swift",
+      "sha256": "913d04087e31ca25742317dc516d3d5796dbf3b682ea1193e7a4016bf46a6420"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoStreamInfo.swift",
+      "sha256": "9072c1578ea9691756185572ff3ab2b4d5cb468eb3d431d6f0aff3e4e20785f7"
+    },
+    {
+      "path": "Sources/DICOMKit/Video/VideoWorkflow.swift",
+      "sha256": "363a710045431bc86cb4fd42618dfab1967ca1ca3f6b343b247a710bda9461a5"
+    },
+    {
+      "path": "Sources/DICOMKit/Waveform/Waveform.swift",
+      "sha256": "8cbc23fb32f4414297125c394e7ec1d633e14734dd2004a519a3b207e5a20ad5"
+    },
+    {
+      "path": "Sources/DICOMKit/Waveform/WaveformBuilder.swift",
+      "sha256": "6f59f0c27eda2a1c7c8247e37e1c82467140c11f8211b03bd590822bf4120d85"
+    },
+    {
+      "path": "Sources/DICOMKit/Waveform/WaveformParser.swift",
+      "sha256": "6e975395ea16d52d09de42e10ca43e6c5f6580f36668ae307e1ec559ad2ead61"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AETitle.swift",
+      "sha256": "ac603f43299db30cdc5f9a00877e780e46e88fe31950c4d3a1c22e6fc2a7c4c4"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AbortPDU.swift",
+      "sha256": "681cd4f1afdeaf986319083979e4c347a4065ba1aefcf02e67e40b5c3c80c651"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AssociateAcceptPDU.swift",
+      "sha256": "4c0b24b7759493db9073d512f15003c3be5b8d2c6483b5aa378a8c1421929ab2"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AssociateRejectPDU.swift",
+      "sha256": "4c908fa682c61dc535974cf40ef6908fd41105537b325ff7b8458118409776e6"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AssociateRequestPDU.swift",
+      "sha256": "0964d47eac555e41eb68e805280fbf027bb0e46f7c1de4aa3f0271f8405aa229"
+    },
+    {
+      "path": "Sources/DICOMNetwork/Association.swift",
+      "sha256": "1b176d1532864c735c61121cc64d237b86269700ee5644ded980b43eb8bba07b"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AssociationStateMachine.swift",
+      "sha256": "b8bef25caf18b5b294c9ca56aa17c379823f4efd1d8175ae92ae6da9a8b31148"
+    },
+    {
+      "path": "Sources/DICOMNetwork/AuditLogger.swift",
+      "sha256": "ba22ffe7d8428e6f0585332a41954e73566a3eb6abc705a07870f4bd19e08b60"
+    },
+    {
+      "path": "Sources/DICOMNetwork/BandwidthLimiter.swift",
+      "sha256": "d6c087bb9cddaaca9c7e94a58a71f86abb5362f18358833f7eb9a0c74b72c218"
+    },
+    {
+      "path": "Sources/DICOMNetwork/CircuitBreaker.swift",
+      "sha256": "35218c83e48b1ba20d4a29f3f73562f50d0bed791552254d2a58079ed3b33f91"
+    },
+    {
+      "path": "Sources/DICOMNetwork/CommandSet.swift",
+      "sha256": "2d21467e80d01aea83d1bb43491c967c56c2a8e8ef8c9e6aec4dd7a4585d5e86"
+    },
+    {
+      "path": "Sources/DICOMNetwork/CommandTag.swift",
+      "sha256": "bce9d2b5bc44b17928c758ae96d9ee13c0ba1ca612f0ee16220f5840e155cacc"
+    },
+    {
+      "path": "Sources/DICOMNetwork/ConnectionPool.swift",
+      "sha256": "31ddd1fefcf210a84276991c0153a2bc05c0f05c341d9c7d582119478b2c6cb8"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMClient.swift",
+      "sha256": "b060eb2f649b23b8996e689e1e1bbddda69bec9861f8aad7c21f64d40e3b30d4"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMConnection.swift",
+      "sha256": "ccc622544f74c81e90c8a8e26bcaea05be1b8d34daa651a3a0186fbe2e9057bc"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMLogger.swift",
+      "sha256": "d4b35af215715bd8a0d3172dd60fb4ffebc1cb4c598abda349c4c4a5313a2fb2"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMNetwork.swift",
+      "sha256": "1c426784f6a20e1494a5ae53af15eaeaeae0c8e7db090190968a1ca111c44aea"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMNetworkError.swift",
+      "sha256": "f307a4482d78a155bf28d818efcf4f99a2cfb8fcfc328dba3f77c04b0994b6b3"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMNetworkImplementation.swift",
+      "sha256": "36261d252632136b7745b6bf81e811fa92b2e36228044ef3be1c8c46fd6bea23"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMStorageClient.swift",
+      "sha256": "9785ebb70d9a04733dc5e52c853f3f21d04ec536de122760975e693cce1aecee"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DICOMValidator.swift",
+      "sha256": "65204c8eab0977ae8685400445d8bfea00908e4784006a94b0848e3731b44024"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSECharacterSet.swift",
+      "sha256": "8f2c8b7f2feecd40a6167a1c2d0b1cacfdcaaa36580a68f28e0cabcbccb6f3c1"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSECommand.swift",
+      "sha256": "989ba9855e8f7115daad5ee3caba4ca809f2c183c9d1adb834d2e8a9a966a6f3"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSEMessages.swift",
+      "sha256": "3ce2b023d8423807c5bed133f57f6ac12e2332e255657af8377afa0672f4202e"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSEPriority.swift",
+      "sha256": "03e5afde73ed7537184ce169a357b7a8ffbaa348bbbd8735b0b2d32657dbd29a"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSEServiceStatusText.swift",
+      "sha256": "cf32b58af8886f8932da12ec059529007de9e2738e14ffe041affc1a39b2bfc6"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DIMSEStatus.swift",
+      "sha256": "5454fe9d123fe4972be5b3e0ab5753d4aebc2fd8b9cd0c1f57c9797903cf43a2"
+    },
+    {
+      "path": "Sources/DICOMNetwork/DataTransferPDU.swift",
+      "sha256": "de08e9dd965c3c02f66ab073c21c1b322db449953e96611aa935e05b6205cbbe"
+    },
+    {
+      "path": "Sources/DICOMNetwork/MPPSService.swift",
+      "sha256": "34b4730fc8d9c99c0368b7aaedd76525004b8be8335b81fc2ebe1ab7be418219"
+    },
+    {
+      "path": "Sources/DICOMNetwork/MessageAssembler.swift",
+      "sha256": "d1e43552e5c748d69954e5e3422600c33708365a605b0921bd347bf0ba289f9f"
+    },
+    {
+      "path": "Sources/DICOMNetwork/ModalityWorklistService.swift",
+      "sha256": "cc5acf8662f87a3b60f86c0bad0fcf3f92d0c47c0e933b600d6ee5c5c5d8db53"
+    },
+    {
+      "path": "Sources/DICOMNetwork/NetworkConsoleFormatter.swift",
+      "sha256": "a6c2c5f67622518e3da7d933363a83a52704fb81fa5483162e3b91121d5619a8"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PDU.swift",
+      "sha256": "39519fe91504f8880d302137d3e5d0471ca94bf8070bd8cdc1f02ee2868f8bd5"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PDUDecoder.swift",
+      "sha256": "62f67f13231376a2076c84df94bef66fc5d0de5b3b23512532470bcab1a028e4"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PDUType.swift",
+      "sha256": "8f854ead758e3ea31529363f2dbcbb2c3d58da6b6d5f238f45ce56979460f298"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PresentationContext.swift",
+      "sha256": "5048a592cda79b2553adc42abdad7f36916b907716fec4f3ad6b46243ea9d5fd"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintDatasetReader.swift",
+      "sha256": "5ef7d2dc7233c1e428fc9fb9bacb5be8a18daf825028f33d2d749694d0194ff2"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintPixelDepthConformance.swift",
+      "sha256": "b08a12e0ef3dd3f50f198a2e6fe206b4a72e4a991d57903949498d97eb950fdb"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintPresentationContexts.swift",
+      "sha256": "c649fb4d6c9503c234dcfea55c7de9fed1470a1f0b72f2170a0555b1410458f9"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintSCP.swift",
+      "sha256": "90db041c619b7eb6f864d2f17e1e4da773bcac05a25db77aaf52bc171e12fd9d"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintSCPEncoder.swift",
+      "sha256": "33eb156e4f7195a47692625f81cc0fec1e57790cde1211d95ae38c708ca3c773"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintSCPParser.swift",
+      "sha256": "904a295d530c54efc8a9b8fb586cdd2ccb7af499a2e9d4e806d8c7ea87b23703"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintSCPTypes.swift",
+      "sha256": "0143f5ff4a6d8e3be765b07d49b0e762351be5f89784e636d958256e5012dafc"
+    },
+    {
+      "path": "Sources/DICOMNetwork/PrintService.swift",
+      "sha256": "359a81b67aa9a7dd3946ff0f5190550fac87bc2dbee208618bb90b7223d0796d"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QRSessionState.swift",
+      "sha256": "40851e6da92dd31645e3b192f71c788edbaf2f773c23c7397176e2441287d1fa"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryCancelledError.swift",
+      "sha256": "85f2e33f1b375986b5f1f0f94f23a2b52d8a464dbb86d72cd8e8305bd0c71236"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryKeys.swift",
+      "sha256": "f6fec827c9ce98809de7018018fa981bfb9802d64c9458f2fb518f65a90f88b7"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryLevel.swift",
+      "sha256": "fe28d5252c113118220eeabddcad59d33f55a5968937e526cb489cdc1ab146fa"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryResultFormatter.swift",
+      "sha256": "98b189a911f255e3fc36c0d9e3285f83970ea055c50e7fcb2f575a6057895cf9"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryResults.swift",
+      "sha256": "9fd5fae72b858b71efc8409bb2c7b660a21a5e63a674e66ee4a43de6b22bd581"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryRetrieveInformationModel.swift",
+      "sha256": "b153c921ad1bfc2ed12f9252a4037ad11c986ab9867a8d0d7bf0551a6f1828cd"
+    },
+    {
+      "path": "Sources/DICOMNetwork/QueryService.swift",
+      "sha256": "ecf264e3ff03d95183b72408de7af55f4d2def3fd37eccaaf0afc5166eaf92a1"
+    },
+    {
+      "path": "Sources/DICOMNetwork/ReleasePDU.swift",
+      "sha256": "92be83604f1a4349ade38699174619bc6a58afa5e740e4494ecc68263f6dd452"
+    },
+    {
+      "path": "Sources/DICOMNetwork/RetrieveService.swift",
+      "sha256": "3adac54653c1b5c9eb5e0c7cd93e79d0ce7dd31c1c822fd2c32ca6832107d9a9"
+    },
+    {
+      "path": "Sources/DICOMNetwork/RetryPolicy.swift",
+      "sha256": "f069a4ccef774d1168303222368cc4073cf24e832f2f827eb4e016bd2a493506"
+    },
+    {
+      "path": "Sources/DICOMNetwork/SCPSCURoleSelection.swift",
+      "sha256": "c19df048102e9bbf81c90d695818fc986633da8a1b6d16d3cdaedf7a0aafb629"
+    },
+    {
+      "path": "Sources/DICOMNetwork/SOPClassExtendedNegotiation.swift",
+      "sha256": "e348f70b0d9a3bdfb12b116e13cdba296b0124a1371e911c0c99de519bfa2b14"
+    },
+    {
+      "path": "Sources/DICOMNetwork/SendFileGatherer.swift",
+      "sha256": "2434fe1636a1657915967530649556330fa859f09b12e531664ed0590a460209"
+    },
+    {
+      "path": "Sources/DICOMNetwork/StorageCommitmentSCP.swift",
+      "sha256": "3fe59bcb84690e0ab359fb2ddbd1612ba11a853cbdd963b56ef4e06cdb4c2901"
+    },
+    {
+      "path": "Sources/DICOMNetwork/StorageCommitmentService.swift",
+      "sha256": "4f508276d4007fcc2f3a806163ac5b9d2b65982819a491c1014f09e6911c55d1"
+    },
+    {
+      "path": "Sources/DICOMNetwork/StorageSCP.swift",
+      "sha256": "89639e32231a129d91e976e40be828a31fbe190d23719c800538702263e42ce4"
+    },
+    {
+      "path": "Sources/DICOMNetwork/StorageService.swift",
+      "sha256": "fa24327811fd41f3f28ab9c92e7f336281b55ad2e0de919adc8b7bc7154995d2"
+    },
+    {
+      "path": "Sources/DICOMNetwork/StoreAndForwardQueue.swift",
+      "sha256": "e9affd403dd93b62812465f6f133e2387bedfaf964573a743dabd27dc9ef3c13"
+    },
+    {
+      "path": "Sources/DICOMNetwork/TLSConfiguration.swift",
+      "sha256": "b4312f35984797b334a389fd986a39797b6bb2c7ddf8c2fe618b3f18b43e2718"
+    },
+    {
+      "path": "Sources/DICOMNetwork/TransferPriorityQueue.swift",
+      "sha256": "8cd2441ce78b206c1f1fdef9e21f7b32733185e1a92bf3567f53475f666b8449"
+    },
+    {
+      "path": "Sources/DICOMNetwork/UserIdentity.swift",
+      "sha256": "05b839918fb6b9779aa42f7d4d059be877f9160c8b1e55560379951427be6c71"
+    },
+    {
+      "path": "Sources/DICOMNetwork/VerificationService.swift",
+      "sha256": "de5746b54013e5f3db34aa08017df5a1dd235293691fc03ed251e08449a239c0"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/PrintCommandContext.swift",
+      "sha256": "f789345c2906bbc637d9e8faa6e46a8844754ccab758a4439018a2b163df49c7"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPCommand.swift",
+      "sha256": "1f437f86b955a7bdc15ccc849844f372ac0e5a2dad57a50e967eecedaed58924"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPEmulatorOptions.swift",
+      "sha256": "39e3b9d9b2999870c59053da3e9a64b744e1dc58955589749889a3baa13ee8de"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPInfoCommands.swift",
+      "sha256": "50ec3510072db7565b117cc0361f976542f2ba47b1ec8ed09c25c6060b6c832f"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPServeCommand.swift",
+      "sha256": "15432e7c104d5ecf0fa6e80cbe434bea556b40f237e201a863f0b509da92c7c1"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPSettingsChecks.swift",
+      "sha256": "1ec799afcf8e9d15bc41c6cf746cf31b040156d3b3e9aed7e8a34074766a67be"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCPSimulateCommand.swift",
+      "sha256": "facdd8467bd165d9f98d1e8cbed1af3d098184ad656bfcbc6f8e17a32da2352d"
+    },
+    {
+      "path": "Sources/DICOMPrintCommandSupport/SCUCommands.swift",
+      "sha256": "a192a0e47cf3ebd7fcc197ff398167df75dd90fdd63c04dc687ea406d5a4fc51"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PresentationState/AnnotationSidecar.swift",
+      "sha256": "7e721380957ebfba246835627c9f89ee6b5c9bf7e1074844e906e8145b9a5994"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PresentationState/PresentationStateStore.swift",
+      "sha256": "b7c260147581821f1d1e2c2a63957a1bc29f746d5a4a94e63c7f6f52a7d3773c"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PresentationState/PrintOverlayAnnotationGSPS.swift",
+      "sha256": "8f41a60eec3c1a216aa43c52599c15fc46ba565e78bccd87c8329c06fa8fa1d2"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PresentationState/ViewerPresentationStateBridge.swift",
+      "sha256": "e66122bdffb7ecce78820f1cb6893081e4fc88a0033c657707cfe4b893fc069f"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintCellPlacement.swift",
+      "sha256": "6d294e97aab6199586aa736937cd76d5b18989d4cddf9366c42aa22fadbc7982"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintConsoleFormatter.swift",
+      "sha256": "43d6fbb39b1933c00bc0520d32ff6eed287ee2f662838886f200855162463521"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintImagePreparer.swift",
+      "sha256": "e233145d0d6d590226fd961be48e8cc983c465b01afc02914d4bad689943be8a"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintJobRequest.swift",
+      "sha256": "103a29758bd672d8daada877fbcf6aac6b9dbd6660d746f27ff59b8e18e7d212"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintOptionCatalog.swift",
+      "sha256": "315ed491eb610439e62a7302d7c9e0ccd2479523fc8156baceeeb064b9e30ce5"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintPresentationTransform.swift",
+      "sha256": "1fc1acaeeb8720af9f9bcbe07de3f9cecc366e215cec917db104541a5a68d1cc"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/PrintWorkflow.swift",
+      "sha256": "cd66a41a703477ad3633609968d3355017510221ed53c952c31ba85576cef03c"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/ComposedFilm.swift",
+      "sha256": "bb1b42ec6396b82ba4a357b81906a360978ef6159cf85ada69f364b6b2058842"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/FilmComposer.swift",
+      "sha256": "f39697709a9b887092c0a2b3dddf63a20fa45e17d5097f3cab6efbd5200b1a25"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/FilmComposingPrintHandler.swift",
+      "sha256": "765e51887e3955ea4f9662b0248e08eae1878d7135811698e3adb71fae32e10b"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/FilmGeometry.swift",
+      "sha256": "15ccf89a24d859fc818608328ab75714cc676dca88031fd8c6f13f5ad76360ed"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/FilmIdentification.swift",
+      "sha256": "2b80a7f65890a8a26c4158f989915e04e7477f309fd829475eb9877a9a8b299c"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/GrayscaleStandardDisplayFunction.swift",
+      "sha256": "4cb492d7041d874cb1d204c8f2fdfce0d6c059d1453472667f58590c63bf0d51"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/ImageAnnotationBurner.swift",
+      "sha256": "9683dc4a31d9372dcad6ee5c37fb8699b31c77e379b771e468312a753ebdc9bc"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PresentationLUTTransform.swift",
+      "sha256": "a729c9bf2f6868c8a6f8ee6aff20c186bacdeb6d86191413a0585d0b5eba709c"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintAnnotationLayout.swift",
+      "sha256": "0410645cb08584b245309985d4e6707c6208b00a8c10db621be866f7e0148cc7"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintArrowGeometry.swift",
+      "sha256": "436c253d7ee9975f29fdf29cf67869f6dc60a113bdd981611f7477c82b707cf7"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintCellPadding.swift",
+      "sha256": "30906303ee3ebb5fcb2a3881e1bd8a179f51ee0450ed9daa177200ea89c7fc84"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintCornerAnnotation.swift",
+      "sha256": "fa0a2ac12adfa74c096f0d930614e807e8c0d73ea3cb36aecc7c52984bcf244c"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintOutputSink.swift",
+      "sha256": "4763ea9d19129da1563f487e3763d03f2657b4ea8a78d6dc6215eda88a7db296"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintOverlayAnnotation.swift",
+      "sha256": "2ff5e11035a6d08a6e1cc3ff2801e742ab7a7cfb31af4888f8e5747c2e5498d3"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintOverlayOrientation.swift",
+      "sha256": "fdc1581fdc2a750984ecd9ca724214da9b7526ed3b9c9db0c1713302e84a68d8"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintSCPConsole.swift",
+      "sha256": "17728d82f585abe29236df4e565e3259b0957a8bc76265017e5344cb878590d4"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintSCPService.swift",
+      "sha256": "be4a7780854ec253146644380f875d8104016f321a3bac419e10ec0f318be4a6"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintSCPSettings.swift",
+      "sha256": "169deb13a1b356b29df2568043d7f17bbd0ef5774c90f53f339bd70ad281fa49"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/Printing/PrintSCPSimulator.swift",
+      "sha256": "912288d12874810530ab5e931df354d6cd8df1caec6f725488d8c139c59b9a78"
+    },
+    {
+      "path": "Sources/DICOMPrintKit/ViewerPresentation.swift",
+      "sha256": "5272000440afac812787ef4c3027ab6dfba74da68bc2e84b9c65b3a74fc8b40d"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/CPUFrameRenderer.swift",
+      "sha256": "0bd875037e799770ad6cfdf9925e1ba1aece79f14bca0e0eff1323745333a0e6"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/FrameRenderBackend.swift",
+      "sha256": "4f410e9a392ecb94bbb55426a74bdc4174f0b4639b91d14c72631cd69c81927d"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/FrameRenderService.swift",
+      "sha256": "40001fac0b56f82b0a40ac868c2d3d5037eff3259ecce785bf5f1e6da4f927fd"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/AnnotationOverlayTexture.swift",
+      "sha256": "87b325c04e395d87f0c0eae667bd73ea175da67336412d82f23f69545d1ce8dc"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/DisplayFrameTexture.swift",
+      "sha256": "33b10c071c279c672dfb0414170b74025c25b083ebf2c8f794d73a52a0b71792"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/MetalFrameRenderer.swift",
+      "sha256": "d949067f548083f0f72728d9fa7aef3ccf1ecee308ad461a7bc7492e23bad504"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/MetalImageView.swift",
+      "sha256": "85fe286dfbee72bb608f3c9b21739662687688b868a1baae383b5c06e99ca7b7"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/MetalRenderDevice.swift",
+      "sha256": "e7b55376cfb320b7441e1af92e7a8cdf88255534119837afb06b8e6b4e30d03c"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/Metal/UnifiedMemoryPool.swift",
+      "sha256": "4bab0fd324907c5d68e30eabcd1d90db4513bd5fd7ac84920847fb9e0a4f2de2"
+    },
+    {
+      "path": "Sources/DICOMRenderKit/RenderBackend.swift",
+      "sha256": "976c5e2e6a7963bd90f6fb154b371fafb51f49b2b57afd7ca0ff1249311d72ee"
+    },
+    {
+      "path": "Sources/DICOMStudio/App/StudioWindowCommands.swift",
+      "sha256": "5b5ff43368ca7d887e79cd10f9b2ede020de35b687d06f01ad132c4f1ca77e49"
+    },
+    {
+      "path": "Sources/DICOMStudio/App/ViewerCommands.swift",
+      "sha256": "c248d8600593a83d42f4b9ce74ca250dfa54d496099c6a6b1a27506584596c7f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/AnnotationHelpers.swift",
+      "sha256": "a61abeed88ad7ed17ac7820e5ab5cc4db38f7f74651b55fc486c46d7efb4728c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/AnonPS315Support.swift",
+      "sha256": "3e5f1623403724e3d04616a421c4bc78e921bb7167af7085b50e84f97bf17cf6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/BlendingHelpers.swift",
+      "sha256": "e66305c1a09db2dedb2df2c5e9aedd5cea1465d0285eabd89c4ed83e5da2f672"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/BrowserNavigationHelpers.swift",
+      "sha256": "4976205fd7259e1ad7ff61a63e753cb784f3a6a8fc855150d0de3eafd39188c6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CADVisualizationHelpers.swift",
+      "sha256": "a1de97da775378d173266221c815ce30aac701a62cfa898cbe3afaffe9f95a13"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIShellFoundationHelpers.swift",
+      "sha256": "d2fc6feced743b017b737222d4ce9f98dc31f89967f573f113835362fb3be1bb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIToolBuilder.swift",
+      "sha256": "7216186b413eb73fdbe2ee896fc1464c908ade137693a04fdd6815dab97c5fbd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIToolTerminalCompare.swift",
+      "sha256": "02eee036cbfc7374311e0b5204326330888abc91851a66e7fb83b8588331334c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift",
+      "sha256": "937f70a4eb665fd1d50b6976febeceaf0a14dd4781447c85a1aaa4f9aca40337"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIWorkshopPrintCatalog.swift",
+      "sha256": "4885029ee77a8b6a327a212481e9dbf2426114d0acfdebc55eea7f82955f1bcd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIWorkshopPrintCommandCodec.swift",
+      "sha256": "696247721380f4643d4f5fe2a22b014afa55904d09b93491760102180af9954c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CLIWorkshopPrintSCPCatalog.swift",
+      "sha256": "e80d58346351b077101a8c3bfeb7c50c8cbac7c935ded001245a108d61b4c9ac"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CalibrationHelpers.swift",
+      "sha256": "9ec84bb37b27668d85316d141e6cb3ea80e8a017c0ffedd39ac40d90eb7106ae"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CinePlaybackHelpers.swift",
+      "sha256": "105ba9807a44744f96372f5690c4be57ecdb59b9b963de21496502c817ae4c71"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ClipboardHelper.swift",
+      "sha256": "81e27a591bdb8d6f47c60ac26c9f2cd8f97fc727c69243679061d0352bc0de6f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/CodecInspectorHelpers.swift",
+      "sha256": "285f9d5a7f0d8395af90aa8acd427fd5d8fcbdc5352c1d8caeb7051baf9bff10"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ColorLUTHelpers.swift",
+      "sha256": "d7fb23d3106706894026d2b200af6bb93ef6c3818e4d0d9d0fb8c166ae1b73fa"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/DICOMDIRParser.swift",
+      "sha256": "7373a0970be884794aae7eacf40d6a3348aa03bb40ab06aebf95cf82c7202b4d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/DICOMTagView.swift",
+      "sha256": "44b48b0a259d7cbd1b86036b866352283bba35b16273a585daa7223e0a6f4d12"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/DICOMValueParser.swift",
+      "sha256": "a73ecf60b9c883c5f5b63d444cf80a8dcf34ea5e266e2cd038cefc17f35cdb6f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/DICOMwebHelpers.swift",
+      "sha256": "8237d7ce6216f422573ff14fb6d21fdadc3dc649477641408f8c492683424060"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/DataExchangeHelpers.swift",
+      "sha256": "ab69b4b36530df04d2a3cc888133886479085f4d26d5e347bb863666f737e0d1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/EncapsulatedDocumentHelpers.swift",
+      "sha256": "7ad828e5008e0a8494b6492e61796b9f2a887d30a18340bb0d4462ec91d56e8e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/EnterpriseRenderHelpers.swift",
+      "sha256": "ad0ae286c88471dfc7ab57a11463e25cac9ec9e73e4a5208a1bda39f0c07931a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/FileOperationsHelpers.swift",
+      "sha256": "54d8dbe2be693ae83c83d602ead9016e19c0e29095be8f337fb0555b035d2550"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/GestureHelpers.swift",
+      "sha256": "6660f8ec8339ad2a445b56f0fd46276813f0207de1cb3fa15be8a5eab098e869"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/HangingProtocolHelpers.swift",
+      "sha256": "2607251840fb2156cce2c21b5c85ab0a5aa4c843773a3ba5a76132e7e9300c15"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ICCProfileHelpers.swift",
+      "sha256": "16764e560a24e93f87f5e71bf54db700bbed67ff97a16f741b2ba4c5f8aeb500"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ImageCacheHelpers.swift",
+      "sha256": "4e2089a0fd3a63df9e9a6cdd101064ba051356156acbc17d9cd6961c9b2e497e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ImageInversion.swift",
+      "sha256": "786d0ce568148cb95cdfca5edcdcef41503a7b8566e234ecabe74303fe1d39af"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ImageMetadataHelpers.swift",
+      "sha256": "45582e23e47f7f9b5f35eba5aee651071045af3b98795cb124427ca63676549c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ImportValidation.swift",
+      "sha256": "42425c37e821a94d5a158d5a7fc57bc9320058bd0ea3348c8c3d39089ee78e34"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/IntegratedTerminalHelpers.swift",
+      "sha256": "bd1b6fa0e0390e090de43175911a2df59e8b37959be9814d16a946b1f0e64b82"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/IntegrationTestingHelpers.swift",
+      "sha256": "8d3d63cd6ad1b0159c7e938be1ab28949b576370b816787a24147896de9fef5f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/InteractiveSurface.swift",
+      "sha256": "db52581f51fc3513867656288b03b4f1655c5bdfedf5b678475d18068e926b59"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/J2KBenchImageRenderer.swift",
+      "sha256": "0848c68029d3a5c2ec595b601ccf9915008608e6dfda80f92b7592f9cde917b1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/J2KBenchmarkBaseline.swift",
+      "sha256": "c726c364f94be179bf748a5eab5c3e97dda057ea19c697339e50218849eec347"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/J2KTestBenchExporter.swift",
+      "sha256": "292587305b4376ea2981b58121c2b21d4fd29e8417ba1920e56485a2b9c70bd5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/JP3DMPRRenderHelpers.swift",
+      "sha256": "316c6b0ed94d73a1418db37897c399b7082775dc01287b5df18b6c3a932040a6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/JP3DMPRSliceExtractor.swift",
+      "sha256": "664bc17ac914a3ee8d72c38da17e75b32e72e493a01cc50204c6aa4900b1a7f1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/MPRHelpers.swift",
+      "sha256": "23bb2934e0358d44d20698895ffe4263b4815ca39e56aaf0e749105f77856086"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/MacOSEnhancementsHelpers.swift",
+      "sha256": "f1a003c16722e031ee35983ed4ff4946d72a9cbcbfd136c7d3c071d4d23b31bd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/MeasurementHelpers.swift",
+      "sha256": "abafedec4da693197306d47825722dc299f49bf9e8d3b193441da5d9226a023d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/MeasurementPersistenceHelpers.swift",
+      "sha256": "a02f52ee9e385b402efba8674e98eb34d126884f6f3f89941c849a040e2ad2d2"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ModalityIcon.swift",
+      "sha256": "1aa899636f70fa16bed62351d29acfb85fe3eeeffdec167eea27ce15f57c29be"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ModalityPicker.swift",
+      "sha256": "2bb37161dd732a33b35ea95244e69d7c72d7ba0f9440a3e719eef44670892a24"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/NetworkingHelpers.swift",
+      "sha256": "1a49b4d3bf3a4fba89e4e3be03f2e5ac6cd8f2a20d1433037496f5990ac9732e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/OutputAccess.swift",
+      "sha256": "a00396b70f3ca3e1b8aa2d73185cb632fc52b846c17e734b0d67ab632e0db59f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ParameterBuilderHelpers.swift",
+      "sha256": "6dce2da14861dcf5ff7c6ca8eec149f2ee7c41668636040cfbcec4c13287b3bd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ParametricMapHelpers.swift",
+      "sha256": "28cdac1502c212a1266b85940c95374fa640e5d881eeb85355fcde52d05c9710"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/PerformanceToolsHelpers.swift",
+      "sha256": "44a87ac7f6a125444290eefc39416af74dcfc1e1e85e933f36a9d41e825def59"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/PolishReleaseHelpers.swift",
+      "sha256": "9848a474b764c6b18d16451b93ea6713db8268ddb34ab512cd9e94e3e9a6dff3"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/PresentationStateHelpers.swift",
+      "sha256": "c2a985593ced3d3e8380cdf5c37b21950174f40b3626787b663153d6d93b12bb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/PrinterStatusPresentation.swift",
+      "sha256": "cc0667c3e76c3e0d372e5f6afc5609176ac47ff29c35d1c04e6cddb22025fc4f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/PrivateTagIdentifier.swift",
+      "sha256": "ce33a6483dc9a3233a0187999fae409a374896781f2d0ce56c22a41fdff942c5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ProjectionHelpers.swift",
+      "sha256": "023714f9e5de4101eac65abbaca1969fb39f3f315b79ce225065b9d364a38608"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ROIHelpers.swift",
+      "sha256": "c869839030985340fca4e94ddd2d4c57b9b4b4ba10f6971ab5e30f0696d939c0"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/RTHelpers.swift",
+      "sha256": "7f9cd00e74e657e9da94af8ee713711998fe3d007dbcb49e4c7d24d6c1b76c4f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SRBuilderHelpers.swift",
+      "sha256": "9876fedd1b6f65bf7bd18a4fb1df3d75c761619432436579342451e2f7fba2c9"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SRTreeHelpers.swift",
+      "sha256": "1d1294945fb7830b7ce956fe1304ed9e6d869218cfcc566973c424b703f225b6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ScrollWheelModifier.swift",
+      "sha256": "dee5c961d080451bbe7d114c0bb39888270fe7829072c35b6c3df8f4b6d33a32"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SecurityHelpers.swift",
+      "sha256": "2ca60b364bbbc5931418746fce7bb20a3402f0854e7bcc5f9f0b9531d6fba3e2"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SegmentationHelpers.swift",
+      "sha256": "9d1e6a02eb4c6db5766c276735082969db7e364f820106acbbb9594de151ed7e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SelectionCard.swift",
+      "sha256": "5f0ba10049243c3244fb6d3a907d30c7c6436af510a8384badef9c8626e17465"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ShellServerConfigHelpers.swift",
+      "sha256": "fbce0245cfdd2997c75b308cd79b29123ee080da6025a6e97794745c40dab41f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ShutterHelpers.swift",
+      "sha256": "80d220085b0c1fb0cb289c9a6476b924bbca134e643f3c1bbb8a6bb38b7f48af"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/StatusIndicator.swift",
+      "sha256": "cf8a9ab130e1407d2978cee4ca9b110de63d2602abc8d5fcb24048c8dcabfeaf"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/StudyBrowserHelpers.swift",
+      "sha256": "2a61dc265d3e3d68280a006c84df12e9c512aa88507b18c847b08ca82fd62fd7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/SurfaceExtractionHelpers.swift",
+      "sha256": "6d5080c53689a683a485942bd0951f26e97192194e222e5282ade940910dca3c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/TerminologyHelpers.swift",
+      "sha256": "0fa9bff7baa493e1d093beab589046f68ba70cb9a846753754f49679972933ef"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ThumbnailHelpers.swift",
+      "sha256": "62fa803d4a2e138561cd9012eabfe0c03d741bc91cb7ebde97061fbf34655bf1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/TooltipModifier.swift",
+      "sha256": "becc28893566a16baa0bfda4a59b148674ca8eab928764783e03268b4cc6e00f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/VRBadge.swift",
+      "sha256": "d311455fb3beed82ea3312dd4913c9388c8a1e5825463bc508af4e050b73325b"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/ViewportLayoutHelpers.swift",
+      "sha256": "4ef056792bf0a425e80d711369b2d7ec4d8f7a4e988d2ca271504dea67ab69ba"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/VolumeRenderingHelpers.swift",
+      "sha256": "6293e722d57f50437d32fef744741a5360988cffa32cf31952f32a5b7e6c112a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/WaveformHelpers.swift",
+      "sha256": "54b9d9d3ed883f67d4ce4015f9a68f35324a4d765dca0ae95241645213b83221"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/WholeSlideImagingHelpers.swift",
+      "sha256": "f826853048cd4fcd167b0ebdbf87faa89143a903f6ba0a3054e28223d71dee65"
+    },
+    {
+      "path": "Sources/DICOMStudio/Components/WindowLevelPresets.swift",
+      "sha256": "cc95987ca56db7f4b7e8d576687f0b8881e1640c83dcefde48ca207a7e2c90a7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/AIAnalysisModel.swift",
+      "sha256": "6910c8f3c2f6c1dbec13df291c9b687500011ec8cbe4ac934065c171945f30d3"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/AnnotationModel.swift",
+      "sha256": "de2252e5cae22fe36d49e55c5ce3f3bd08aca8e4cc3f3e0f2a3b73e3ec49c14c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ArchiveManagementModel.swift",
+      "sha256": "01014f19e8eecd839949d52c52616f061d0b89f6dd2d191a714789cbb342a408"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/BrowserNavigationModel.swift",
+      "sha256": "6015ef66ac28296278fe5abd8824c43c30e0d8be32bbe96f6c1112ca49eb263d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/CLIShellFoundationModel.swift",
+      "sha256": "f110625b4e919d28b8e7ed229301782a5e40c59e658f99f88c2d7de3766f5dfa"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/CLIWorkshopModel.swift",
+      "sha256": "7a8247d22c2356cb58080eadf1d20290a31ee1fd8bc4b984842810699ac0720c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/CloudIntegrationModel.swift",
+      "sha256": "23a78efa5f5b46fd42e2ce65594ac2b80aebb9866aae8974f7d147e3d6a67653"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/CodecInspectorModel.swift",
+      "sha256": "d44c43efc82d7839d8ba3fc4ead54377678408206b2e0042842b9964de960f68"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/DICOMwebModel.swift",
+      "sha256": "1d4768f51767eae8459859103daa8aba6ab5e4eb0fdc2e711f9718913624f336"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/DataExchangeModel.swift",
+      "sha256": "2faf80cce4c750e9c80c7b51b4cac4342b19eebb39f783610823f0567c3f46a5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/FileOperationsModel.swift",
+      "sha256": "df9b4432378ad998f8f32bad403e37973f16254a80ab30f966aa1b0c2266674d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/GatewayModel.swift",
+      "sha256": "146b7997a388a0abcf23e86ee3d17a7fe383e4ef9b6ff9321b5b475e2ba64fe6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/HangingProtocolModel.swift",
+      "sha256": "f4b1149e478910432d66c966c547cb503cf582686cab9f0d4ee14482afaee342"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ImportModels.swift",
+      "sha256": "6b3ab19a0e35ba08133e7ff8527a22b92ead341846727e8570f4e3c30c3257f6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/InstanceModel.swift",
+      "sha256": "4e7d73f6f5a31fde8dd75fbe048cde05d9cea463d34e617768d3950f2575ae99"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/IntegratedTerminalModel.swift",
+      "sha256": "f391ba160a6e3595cb5db4dbe626c1905a4e80ba80efd7aec4b95cfb4d0bb623"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/IntegrationTestingModel.swift",
+      "sha256": "25ad1ee8de4238393d8fe99a85ee0b7ed294fc01144c5b787b5ff12422d62564"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/J2KTestBenchModels.swift",
+      "sha256": "e6b80dc9e8935e83df30a9cbce9aee81dd907424daa891cd594757975c1485c7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/LibraryFilter.swift",
+      "sha256": "548623dc2e46814dd8b9e4122948b9bca0e4a9991c81d7821cb4290bd3247c6a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/LibraryModel.swift",
+      "sha256": "bf91f2bc049b0b3220dc42a35519391106e8557b844ba751590ea0b02a420187"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/MacOSEnhancementsModel.swift",
+      "sha256": "7eb4f31e7ae5fb39900a0a97096af4a286e44b8cf83ee8ea81f67ccd765973ea"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/MeasurementModel.swift",
+      "sha256": "1917e0e6e0d56a02381885c3d724b09ed6c32a2ec31a152d232c669a91f8f1b6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/MetadataTreeNode.swift",
+      "sha256": "efbc474043f2f3523d6c184674730c56675842c31190cd9a9cea979025aed5e9"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/NetworkUtilityModel.swift",
+      "sha256": "cdac5123f254c3712c8e6ea63b1f1ad7e8ed78a5d5defeb9fbb9de164a1e7361"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/NetworkingModel.swift",
+      "sha256": "70e92f6eb2d86ee67906d1d5be89c1d03dd80147fe9e67303b67dad6eaf10c4a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ParameterBuilderModel.swift",
+      "sha256": "5270b539de84a3b527bf4e17f1605f7f369f687dbdd70d495fc1c134bb29abb2"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PatientOverlayText.swift",
+      "sha256": "6bfe2160d9af788f8f5a17b5a8fdf1476d675e9e632331da12a28ccab19cfa94"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PerformanceToolsModel.swift",
+      "sha256": "43a6899289b5f94a85ad732b10620f3ea5dbc52e64b0d90baa5ea06cc99b39d2"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PolishReleaseModel.swift",
+      "sha256": "8d735b35a9f3d4cc127e9981f8f4b953f05f9596dd2fd5c1fe5ab93d682ad6de"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PresentationStateModel.swift",
+      "sha256": "94cfdc80401dc9f542a28dd97c25ce9ddca834e243cf850d87a4fa6f842b4791"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrintAuditEvent.swift",
+      "sha256": "b75d9f2be3809a3ec2db0d6c1cb43efc1949f3859fae96091a248ff33b90391a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrintJobHistoryEntry.swift",
+      "sha256": "1ab4ddd76bfaa1290e120b318e323221b323f2362cc751da1b77efa281a30503"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrintSCPModel.swift",
+      "sha256": "3e922df7c07c6384f39b5a048d307962cf7152ffcca60793acdd90fb9e5eed7e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrintSelectionModel+Annotations.swift",
+      "sha256": "00ffb84991658cc846b3c0d1d4e0379e77a354a3d2a27b59641a43b5008d0fbb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrintSelectionModel.swift",
+      "sha256": "1e3d397320f1f793cf12eeba1c6d2e03ff30d27464194bb870d0cf829b1320dc"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/PrinterProfile.swift",
+      "sha256": "ee40dfc4df20a84d35b3756a01317aced46c00c230bf9f918203ffc0dae8e8cc"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ProgressiveDecodeModel.swift",
+      "sha256": "de848b29e6d2a2767dc697115f5a9f8e4c5cda3e9ec4c42c6405ad7e671e2462"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ROIModel.swift",
+      "sha256": "adf7daab3f3ee43cf1d6820ec6bee8b493704753b60160e93a2d27267e084d9f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/SavedViewReference.swift",
+      "sha256": "514bfc5100494d221a207f430632e65ec080ad6985fcfdcb53c995e91b98379c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/SecurityModel.swift",
+      "sha256": "d1a630ed4305c1792bb19cd1f25405d4882da32e141202657d92f16ca729acce"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/SeriesModel.swift",
+      "sha256": "353e76ff49dad6d3d5ecf85a7d664ed5bcfdb5b2fc7c2b56ea64f5ee2a2f7e46"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ShellServerConfigModel.swift",
+      "sha256": "7095c887f45281f94da1d3e66d9445524fa04abed012e0138119b57705efc463"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ShutterModel.swift",
+      "sha256": "ed1c488be00dc174ddfba2ec56aeee4a05812670c686cac3124d05858aa743c6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/SpecializedModalityModel.swift",
+      "sha256": "14b014e73eb085c2abcd49b30d9ff7cf6623cc9a7316f24aa55c8d3b3e9928e1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/StructuredReportModel.swift",
+      "sha256": "7c6b0e8dc7ad1713af2aa847d4d4fe17344882780ea2ae3330b09745b1cf03d1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/StudioBuildInfo.swift",
+      "sha256": "a6d4108ce11859fa6e332af66c98018309bd74cc9b914141ccbb46fad34d9fe4"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/StudyModel.swift",
+      "sha256": "1391a779f77febdf094beb256bf801ccf87947ff0d08ee1f87f55261cdde856c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/StudyRowSummary.swift",
+      "sha256": "4d4023e507041bef5fd9d02dd3b6ce6c4cd92f8e86c67c4579bde3cb0e5b1394"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ValidationModel.swift",
+      "sha256": "d50d902215cbcaed442c1c14a5a134d03f650f33aec88b4ad6b549c5c475669e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerAnnotationCorners.swift",
+      "sha256": "2bf15523c997ef8d8b8d80d01075ede6c86372eb8dbd8f4b75be0ecf2af38bbd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerAnnotationText.swift",
+      "sha256": "cc38d4fae669c82d9b78eb931c8c6b1fd75b0fc7cb9113a8ff9e5241910a29fe"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerContentKind.swift",
+      "sha256": "bb6518f541f66ce65ee1067d662af16ee113cb1bf0f7535ec48312a2db15262a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerHoverGeometry.swift",
+      "sha256": "96498ae25a9ddea61b808fa7134889fe821a3ae408fc147b9750a0895e437b85"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerNonImageContent.swift",
+      "sha256": "6f8c4ac4334fc5dddcc7dd93b7003b65f37138c67c6cb36a8c7e87bf7763c341"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerSeriesEntry.swift",
+      "sha256": "fde470024f523f15dc720f866237c13a5b9895b17d6088fe1eb6f15628a0812e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewerTileLayout.swift",
+      "sha256": "86ff301f34f58dc872075b03295fd003d067959ed11f700ab35c229753e4fed9"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/ViewportModel.swift",
+      "sha256": "b020caacd2c0ed0224da93879bf9dbd84344d715fd66b5b0115f33fa8a0c25b7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/VolumeVisualizationModel.swift",
+      "sha256": "75eee1016989f1ac2b258496c347381722048bea9e0d2dd703d6814d0157bfd8"
+    },
+    {
+      "path": "Sources/DICOMStudio/Models/WebUPSState.swift",
+      "sha256": "2aeaef5e0a8f23630eeabff2d0424d637dc484b4d9044c532ad52f00dab19289"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/AIAnalysisService.swift",
+      "sha256": "f876d05ca5ebe1e3dab31be2c4ff9eb685e884ef6488c67bd2d96e89f38945ba"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/AnnotationOverlayTextureCache.swift",
+      "sha256": "55d7a14d67f39c96223bb6fe462d1a1382e9efa183c17de448647268040e4192"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/AnnotationTextureBuilder.swift",
+      "sha256": "9b7328e69118b414fffa0ce70e9ae097068d8cd9d783b44e335c6f7717323902"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ArchiveManagementService.swift",
+      "sha256": "45543ba85fe8c53ec593f8bf876cfa73c51533a41c46514a3223a4bccc4caff0"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/BrowserNavigationService.swift",
+      "sha256": "0686041c6162ec921764ecb461aecd30543deae6d9777b3ffdbf9d62ea71d566"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CLIShellFoundationService.swift",
+      "sha256": "c7cdabb69a8c749acc89bdb6ddc3a064f9f2dc36c6b8d8d987c2445858765a81"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CLIWorkshopPrintExecutor.swift",
+      "sha256": "7ae535a9903abf7509448cee1f7fd73b7bab4520f32ad6c08fce449517f6043e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CLIWorkshopPrintSCPExecutor.swift",
+      "sha256": "d607cf6fe159ce102cf74e2c7ad327c7537ea1127a2d1c076acea5b7c4b146b3"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CLIWorkshopService.swift",
+      "sha256": "5d79f305babe2f6378317bebd2bc36c75f9bcd13363d187af6d5316fbb381db1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CalibrationService.swift",
+      "sha256": "1525d03528a4222b014f66ea533133fd726827b6c8932d10f592050d0fc6c411"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CharLSCLICodec.swift",
+      "sha256": "b0c0e38a3713160eb6ef5f513be64d4748e9603cfba69109190c4b96e7a39291"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/CloudIntegrationService.swift",
+      "sha256": "c896677d98ccd23e79f57fa1d058e6b9cc1d9ac69480d048322e4d6aa2a085bb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/DICOMFileService.swift",
+      "sha256": "db6329844aceec8f61feaf9ecff23751163cb4f7b8e19820547a7c53c02871a5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/DICOMwebClientFactory.swift",
+      "sha256": "08c41d65021f6a42b393cccf727815366f41ecc333be4f51df449ae1bf643878"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/DICOMwebServerProfileStorageService.swift",
+      "sha256": "71cc288eb1bd59a9bc731902cb65d805e3b6b9ad69abd10897ae2598bb15960c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/DICOMwebService.swift",
+      "sha256": "c135b7e82e704f33fe81f3e5499da77594f960a7efab5d8534edb1b2dea4ef5a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/DataExchangeService.swift",
+      "sha256": "d0eb6e9e07e04ac76adcb0faf0ed748b76d8630d73a67b3a904e7c7025077b56"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/FileOperationsService.swift",
+      "sha256": "1d9a228cb1471c8454ace4aadd2c4f3ea3aa0b47a58263345131d5b5c28247b4"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/FrameImageStore.swift",
+      "sha256": "2f9b605c92612812ca2a4e4450c2b54fa638720f0e306a5e16e0b0f13a72ab91"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/FrameRenderer.swift",
+      "sha256": "eadc22a98331d80d9283c89b4313212a743a66a7bb9dfd9478b9f1ab089ce8db"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/FrameSourceCache.swift",
+      "sha256": "ff895df5a49c18e7bef938e1a67b4b01d49853faedbc82132bf0bebc6ec0e32f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/GatewayService.swift",
+      "sha256": "e23c3ec1c34e8e2dde75e4ef5d4fb76ae7e80bba7d8af1e65fa46929cd728ff4"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/HangingProtocolService.swift",
+      "sha256": "821bb728e21287ca2813c2d52c82f90fc7678125e7f408bd5450bdd06230ee04"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ImageCacheService.swift",
+      "sha256": "ec7b58f2a16ff62440a8db2154719775fd6b8d369bd0808cb1c37417e79a5c9d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ImageDecodingService.swift",
+      "sha256": "9453a13040abf442abb89d67226d46a147221b5561314adfa59c92510c911f73"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ImageRenderingService.swift",
+      "sha256": "2f74e7a09ebd52cb32f6c92c817ed72e3be262ac43039f7a9ff220b4bfc2d635"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ImportService.swift",
+      "sha256": "e1faf1d7826a7bdf9570632237ea52ec34369d4b45b2c4b62a51081bb223bf17"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/IntegratedTerminalService.swift",
+      "sha256": "af6a000413ae27bc8ab1652e6803306d736ea6d2f6377c52802acb35ddb9f6ca"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/IntegrationTestingService.swift",
+      "sha256": "9f9e4feefed65a8af699b43d75da54a928dc4ca6793ada168ef5b2dd89b6bd9f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/J2KTestBenchService.swift",
+      "sha256": "63ee6f7711773a9cacfb8e13da37343da9e69872074f63b80a7352730a5a4093"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/J2KTestBenchStore.swift",
+      "sha256": "e5c9fc14a8de60a77c74caeed0d970e05f93da6fb2464fa4343ae7d121d7ec2e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/LibraryStorageService.swift",
+      "sha256": "20439d900c7f2654c78dad917f740c41a4c21b39c4550206211289d98cedcbef"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/MacOSEnhancementsService.swift",
+      "sha256": "684751534d5029538cc4186db0ebc5a691eaf50e642913626928e7dcb3d8be82"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/MeasurementService.swift",
+      "sha256": "c971e8f96b17d3d760715d19beee8913138d3b81d18d9d63b6ccad0b74dd4439"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/NavigationService.swift",
+      "sha256": "021458afdae25990f8ad618a77578a8466cf11c9f82f197c35e2144751e21e1a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/NetworkUtilityService+Parsing.swift",
+      "sha256": "26bd6c0e409f075aa361e53ebc1b84a994790fe2526d14f0b4a813845f554f00"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/NetworkUtilityService.swift",
+      "sha256": "2ed24b6dad2c5e4384a30399ed9c7b9e5b2a50f71b5c11305fd6596eb6518e33"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/NetworkingService.swift",
+      "sha256": "e358afc99582f5f96951c8ed79a4ed7c5286ae51c4a6422ec2fbef8352df67b5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ParameterBuilderService.swift",
+      "sha256": "773e902e77e9471f2ffe27d643d58063e76d89f56607bd28690454164d352944"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PatientOverlayTextCache.swift",
+      "sha256": "a202e90fe7e64304a1f518c6273fdecf95d845945994bb3c0d47e7c7eec6c7f1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PerformanceToolsService.swift",
+      "sha256": "ad988af29d7cc2202ce9c6dff37319b71df475047e05a11b6b2eb2e51bf5f575"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PolishReleaseService.swift",
+      "sha256": "bd8942e06a733eecf01dc72e3b6f327b06abb9b84f1a63f577ce201dbf49a9c7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PresentationStateService.swift",
+      "sha256": "74a43dc1daf9b8dbac9730a3b7fb6c33e9cac14650d5afd84dd370b39ae3f46f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintCellTextureCache.swift",
+      "sha256": "3cfa174b6b22c044f790ddf3fa3119bf160993e90cfd8d9fb7974ec59aced7c6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintImageNumberCache.swift",
+      "sha256": "0b1eaef9200a0ebbf93b731b25280aacf71e77c0848d66a89051ed965d1698a6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintQueueService.swift",
+      "sha256": "375f7606b62f3a928fa29c645253cb143f5ec0f5e6f0bad27726a462a6863015"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintQueueStorageService.swift",
+      "sha256": "bc67d6a29febb0814e4be6c968dd3cd3c7f281b809f4392402c68ad477f45c08"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintReportPDF.swift",
+      "sha256": "484673dd365d932a13990d26bf5dd1bfdd565e0b94b5f4f1cbdc31a39d798f00"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintSCPSettingsStorageService.swift",
+      "sha256": "943ae65d5153a138027f3896faa90068e8eae643e61ec468099ea072bb741e7b"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintService.swift",
+      "sha256": "438068c860bdc3d3052e961c0f77e512ec08b63860d8fc6ad3df790b700f9c39"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrintThumbnailCache.swift",
+      "sha256": "23300daaddf308b82a5f77079015bbdfd8cbe717d8d9bb88ec35899c0de9b6ba"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrinterProfileStorageService.swift",
+      "sha256": "62a1b17e62bfe97afbfaa1bcfe19c9196935273c5644d3f6d8ea00e8b747aa7c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/PrinterStatusMonitor.swift",
+      "sha256": "1cf883bbe393e6c510b148af03c9e669b06e2a9447b48cf35986c903a7b7ecd6"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/SecurityService.swift",
+      "sha256": "c90c67bd09790d49c7c688d61e62fa0b5a34a7eb35135cdf8b6eaeac6e83b511"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ServerProfileStorageService.swift",
+      "sha256": "7c1be62e987023c9e0fe3a5fc8ce97e4740a4768f4826af9a0219427c0e67b06"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/SettingsService.swift",
+      "sha256": "8d7425f7da0193747b04201541e4d9ee4529c6011d430291c85605065d231075"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ShellServerConfigService.swift",
+      "sha256": "394eb42a7365c019362e297586b3af355480c752aebe17bd53d8cb9c18c1eb28"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/SpecializedModalityService.swift",
+      "sha256": "f1500673410ce2c130ea3f1f3cd9d6a8bb76eb55bb48b864db3fdf77c0dd0f81"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/StorageService.swift",
+      "sha256": "7984c822b9b950d4a29485c0ea7c06c59a81bd864e11ad66044bbe4bf0ad2619"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/StructuredReportService.swift",
+      "sha256": "d39225d1a591d30c9b67554b3be150639c7a5d138c027eef09b77c8e91b925c0"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/StudyFileCleanup.swift",
+      "sha256": "d61168ed97ecf10f521d42a10bcb37b1b35125cb4b603441e3d40946cfe2c59b"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/StudyPresentationStateAdoption.swift",
+      "sha256": "9efdc483062c0fe8a09e4d1c94dca71c918e474c6a1dc5585009114ac7e7bee1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ThumbnailService.swift",
+      "sha256": "90588d8f6e7b0f84d4b5b84d3b9883056d9aa49398c177417dac547a0d6cd0ab"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ValidationService.swift",
+      "sha256": "498151fa3b03d41418ea3da586755b8ab036a0b0b411969216a565541cff8a62"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ViewerAnnotationTextCache.swift",
+      "sha256": "17ed91f62745863c2f96f2b59a1795075b9e59729cb7350f24b8988277747e9d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ViewerSeriesCatalog.swift",
+      "sha256": "507e1bbc134c004885f8a43eac885ec85482c6c5a72ed72789813563425f89a5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ViewerTileImageCache.swift",
+      "sha256": "4b1b62bf06549076c43ae519bef7cfd970362a9f1c44e8b7aef75615e2fc0493"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/ViewerTileTextureCache.swift",
+      "sha256": "fbb06528ee969096b386692c8eec955438a3be63ced0c0a86b56f62e5bb390c4"
+    },
+    {
+      "path": "Sources/DICOMStudio/Services/VolumeVisualizationService.swift",
+      "sha256": "976b0a65dda70da7779e4634a7c1fbd3b2ba3c2b6c345cf35ee051f345ee7063"
+    },
+    {
+      "path": "Sources/DICOMStudio/Theme/StudioTheme.swift",
+      "sha256": "7da6648b6ac78b70563f7cb71796537eb5e57dafd3bb249aba715e7d6a3c5ffb"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/AIAnalysisViewModel.swift",
+      "sha256": "80b739105fd492087011ff2efcd973c9550eda684b4877fbce8890b006418240"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ArchiveManagementViewModel.swift",
+      "sha256": "bbd29028649a69a370a6a20af7ef3e8bb9435180064db0aa1eb1c3114c072e52"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/BrowserNavigationViewModel.swift",
+      "sha256": "ad896543c2c4bf3a61973d9d55b03a53cdfb8b32207369a1c3e317c4308b54b4"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/CLIShellFoundationViewModel.swift",
+      "sha256": "4f26abeb13f42ace1a14f837ef47255767b1116e635a57a18f0a4b3a9cd2d9da"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopPrintExecution.swift",
+      "sha256": "bffcbc387f46015c670debe3fa43fd463e674408b58fe4793781778cdd2780d2"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+      "sha256": "db9c0791b539b3491b6e7268d37c3777a22cb57173169eaaefd4e1ad5cfe4603"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/CloudIntegrationViewModel.swift",
+      "sha256": "86fa7f0ce877b348bce956d06d77b81f0f74c51d20a5da1c2742f25e0f114ff2"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/CodecInspectorViewModel.swift",
+      "sha256": "8a67ee45ca4a74e948de7850673e125ebec5503f93e12870553f24623a68a0df"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/DICOMVolumeViewerViewModel.swift",
+      "sha256": "b1fc25b628f3a87549ab4ce524c8d0d5800b8f8c5e7a9efc794257f478b5dbab"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/DICOMwebViewModel.swift",
+      "sha256": "12e39548567c2efd022de9d7b6f34f79aeb2f2cc6363c6f3788dcbb8684613c0"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/DataExchangeViewModel.swift",
+      "sha256": "0d550c5c677316163e43060071e564e0e0ced0cc3d512b60ea0671c24f3e7294"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/FileOperationsViewModel.swift",
+      "sha256": "f3b91fa08aff59ab9ff4a6031214bf9be58b42c7d5708d066bd42cdead57d8db"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/GatewayViewModel.swift",
+      "sha256": "11b3752b22bbe09fefc63be85177026fefd94504821c496fb0f4ce9b9a6f30c2"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/HangingProtocolViewModel.swift",
+      "sha256": "5e3fe801b2056c989c15da7f4149576ce2f44dce657910bef30978ca243bfc1d"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+Annotations.swift",
+      "sha256": "bace47e37ba425c44a1d1bbc7107a5501e7bf568b2ed5a17149382f201cbab54"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+DrawnAnnotationEditing.swift",
+      "sha256": "684d2ba325d33e7b56500185fc6d95d66dcd340b070df2c6055430c388c607fe"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+ImageNavigation.swift",
+      "sha256": "f744c85eee7d79d3237d16a8e1cf9e308f1752274040fb89f27cc1450700a9af"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+Layout.swift",
+      "sha256": "c0d6ab2bca2b8595a6d9828577d4aa5b296235f747551fcfe92d98a4f0b6573d"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+PatientOverlay.swift",
+      "sha256": "f2f32f331655c388e5d57b84d7840f392994570bbe64dcef9b4b823c5a8a8d25"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+PresentationStates.swift",
+      "sha256": "d4668b397a660f372a68fee44328c75e2afd6985d7db9eda8e9b59137a5ed04e"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+Print.swift",
+      "sha256": "3512915d9d457913172ff1094d928e6ec1aee22144982af67b12495817a69778"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+Series.swift",
+      "sha256": "46d509345225778736d08bf571c5396c680dcf2c2ba5d3d52a2dc28b3a211ef1"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel+StudyDownload.swift",
+      "sha256": "62330e483de3f1cfb0ff39272f1b679e5167d811e2cadb8f73b705c9c5a886a2"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ImageViewerViewModel.swift",
+      "sha256": "08dec0984e64cb0abacb9f96c02260021436eba1755e6a77b742a1c11cc4b336"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/IntegratedTerminalViewModel.swift",
+      "sha256": "fe43e5680d2cfd1fd0f3c527e0388df58a3e0da75e8c7770182836d0a33422f2"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/IntegrationTestingViewModel.swift",
+      "sha256": "94b26312aa56b0ddabac3f97c6aef9ace8e1b56d55206fc32f10f1ef0bad44c8"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/J2KTestBenchViewModel.swift",
+      "sha256": "51999601efab644c477bce88df3d65a2713f1e33d3e71d4026b54cb8b894460e"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/J2KTestingViewModel.swift",
+      "sha256": "d612e1bc55c011204719b3a7e0d82b5f4fddfb2add29989ff5a0b436c016e060"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/JP3DComparisonViewModel.swift",
+      "sha256": "9e00d325d8674b9b996c5c64c2f3a3dabc7383e1c5302cf37d46e22f4059ae30"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/JP3DMPRViewModel.swift",
+      "sha256": "a799cb3b748c5d90cba3271714341ae70567a71e22cb03b21cf27ba819e93344"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/JP3DVolumeComparisonViewModel.swift",
+      "sha256": "cd44bac5126cfb69370037ca9b4b4d43c9642b99e28e563edab594d5e727ed72"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/MacOSEnhancementsViewModel.swift",
+      "sha256": "afcbb2c918ad08072459be8304f0c6a61fb49342a2ff6f0797cce15dd3421698"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/MainViewModel.swift",
+      "sha256": "0c450c806c0022f7e4dbbd98f90c80b9278f4492c03e4d6e30a7eebb186d282f"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/MeasurementViewModel.swift",
+      "sha256": "4a03a47aa812f65856992e0d1c510b1a195adfd4629d4f6aea918cd949331972"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/MetadataViewModel.swift",
+      "sha256": "372e4eb92e451f69c85fa30d753f0db7e5b0df3770172b199f00cca51161cd0f"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/MultiViewportViewModel.swift",
+      "sha256": "65e9d37da0ba05038c7499fe1181d0203fbff82e8619432c433e2ef516f68001"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/NetworkUtilityViewModel.swift",
+      "sha256": "b582494a51aa510122f61978070730cc200483b7167b5b7c16174c5682f538b8"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/NetworkingViewModel.swift",
+      "sha256": "e4f2146bf017379d3675940e59902e85617781e4b96ff501ca0407679a6445f5"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ParameterBuilderViewModel.swift",
+      "sha256": "496f960992370b69eb9a972622bfa67ed271ed461981c437dc26c60645ea8f1a"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PerformanceToolsViewModel.swift",
+      "sha256": "65ada67a0efd114becf0da73b9f275d2308c6d5a3bb78eef291755b0a6ec34fb"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PolishReleaseViewModel.swift",
+      "sha256": "4ee11a78862eb57cd8ce31b5eaf77cfbdd75c121e3dd83a7564dbf350e00da05"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PresentationStateViewModel.swift",
+      "sha256": "dfe5de97f070c4e401d4bb2adbae3cb6606fe1148371101999ecbab85513913c"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintSCPViewModel.swift",
+      "sha256": "e406791d81922da74ad034eb8e4ca5f90fee6bfbeae3439f5399068a532d2b80"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+Annotations.swift",
+      "sha256": "bb531c19a18b67723c61414a0fed7a8c8962f34cb53b90b398b28e3e8ff8646d"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+CellEditing.swift",
+      "sha256": "399b2ef868f1dbf7f5d01f778f284b3c3022ae3b76f95628dac15403c1a45fbc"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+CellSelection.swift",
+      "sha256": "5e90402acc51d888cfcf66a1e7d8be1d9ee02a87cccb4ae5c9742b262654742c"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+CellSync.swift",
+      "sha256": "34ed94dc05ba425f97bf08b0b77eb4f013cf0ca8c701e966fc55af23843c66b5"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+ImageRange.swift",
+      "sha256": "b8a6736eddbefaa72d82f355d7854880780b56322ca11a6a6ac8192b574cad22"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel+PresentationStates.swift",
+      "sha256": "db5256b60dcb71f6e87d947afc1b57b057070dd231657143edc58a2da88eab9c"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/PrintViewModel.swift",
+      "sha256": "b7c63997fce6ebc2da16c07be2fa1165e282c80f4e605f72aae0935035ff3943"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/SecurityViewModel.swift",
+      "sha256": "0bc687f7e0b1014e020b7b9bb81291493c5925a6b8f0df10768c4d849cbfa4e4"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/SettingsViewModel.swift",
+      "sha256": "0cc8341654650a96fa63f5dc208e7dafc3f55a35af3b2ab8b83a752c4bdeec64"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ShellServerConfigViewModel.swift",
+      "sha256": "e52a6e782963d8fb310bc7660eada8608473b631a46d3db6fa8445552d7c3745"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/SpecializedModalityViewModel.swift",
+      "sha256": "ef4191a123273dd8d986a35fb3194e3829b52b2f4d2accb99393b0479e1f7878"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/StructuredReportViewModel.swift",
+      "sha256": "2bc19b6b7bd59afa747d79651b8fab8633cf57b3f54fd4663349b728b2f8656a"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/StudyBrowserViewModel.swift",
+      "sha256": "074158b945dcdba1c9c9dbaba6af43417fa6127a1cb2ac45f529b2362b06af30"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/ValidationViewModel.swift",
+      "sha256": "febc7abad3884eab1b2d2a49d260247002652337116b9b0570bb2973b9b02307"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/VolumeVisualizationViewModel.swift",
+      "sha256": "7efdf644691fa74849aafaafa5ba98e78416b0fb59ef920f43bc5eebbcb9f31b"
+    },
+    {
+      "path": "Sources/DICOMStudio/ViewModels/WorklistCreateViewModel.swift",
+      "sha256": "0c85d143346175850f56029ad09407e3f33e91646a916a55a5d08b9fabea6661"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/AIAnalysisView.swift",
+      "sha256": "9cda2d6b73d4ee27d8e3cb3c988076e9907618b492f5bba028fb997d88f1706a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/AnnotationOverlayView.swift",
+      "sha256": "e258e0d2acdc8ab966af360ea1f400992cea1bfb5287bd347abc7da69c433239"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ArchiveManagementView.swift",
+      "sha256": "ff5708d439797daeca9d43ea245a5e8cb5962c3e7ff0d3fc265303c12481b4ee"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CLIWorkshopPrintControls.swift",
+      "sha256": "fbedf6d7721473673f3fa2c3837a1eebc8c6cbcd2a272848e52a9adfc997dd23"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+      "sha256": "348a1b7d91e256618bd2199fa21ae26423cf4d8fa25b29bb506730be25aa566f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CineControlsView.swift",
+      "sha256": "c3ea4c3f89d184e1f15a88e094b457b2513c41fb5bcba2346cf50d6cf6137b14"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CloudIntegrationView.swift",
+      "sha256": "e0832f36e21bef2a43a847b643d907676be72f97f808b08040c09f33bc406866"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CodecImageComparisonView.swift",
+      "sha256": "2200aa9c69151fadff4d6cefa81077626f374f1b8e870b6f4533712ca6d989a5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/CodecInspectorView.swift",
+      "sha256": "20af365ed796fa57442c5194332383c1f4a28f179c2f697e0d575ee72316fedd"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/DICOMInspectorView.swift",
+      "sha256": "263dd812e4ebddb9335352096641801a9639d3e28ce7441d764fb585cd5bfbf5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/DICOMVolumeViewerView.swift",
+      "sha256": "1b2e8a50881245f95d6ad3756e15ec5289a8d9bf0bf911e82f0f5cfe7986f5fc"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/DICOMwebView.swift",
+      "sha256": "959d73ead1cbd3217caed4164e16871b719b455c7f244b9b0e48688d7f9c208e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/DataExchangeView.swift",
+      "sha256": "be7ec8f221a12f280968231e6999b4963958707a226da851616ac7fd8d028297"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/FileOperationsView.swift",
+      "sha256": "66f783fac44cacb00e4551b1d6ab8b9ab93f3efcd2e4651dfc404b9edec33733"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/GatewayView.swift",
+      "sha256": "f13e8566f7c2abaa4f512a29721f4ca5f825eca1ed555eaf3f0914d00d8fa438"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/HangingProtocolPanel.swift",
+      "sha256": "05291c911bc95c222c74f47d80611f81c400df96a8867052cf7dd9ca00af2a3e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ImageMetadataOverlayView.swift",
+      "sha256": "c6726a5bff74b212ef8ca4e2acdfbcb0ac7f0a8d94fdb5eba5a5b4d2f45fe11d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ImageMetadataPanelView.swift",
+      "sha256": "4bd72566c54535659a86b6da4aa99b7e0ddae4d242c6e1010ed3d53c69b34fed"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ImageViewerView.swift",
+      "sha256": "1b6b1f7e5b9939e2feb2f002edc944846dc0d620fb377333c8847f0f61bca283"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ImportedShapeView.swift",
+      "sha256": "a76833199f8cb3b4f0436d991770eba7b71704e570f0253d25bfe0656d5f1f7a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/IntegrationTestingView.swift",
+      "sha256": "c4d7e30ab5dfdc604713b0346a671682a2c4a6a27a06889f51d5ec6234c4731f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/J2KTestBenchView.swift",
+      "sha256": "d0a0c4412f6b613179f1351a77b37352f5eb65d1a751ac7aa205d45a0e59a811"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/J2KTestingView.swift",
+      "sha256": "aa8e0651d21564bc5bdb1bf86c8a991544a984149d2d1cfe6a0cec849a34ce34"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/JP3DComparisonView.swift",
+      "sha256": "5bff27653a453bd96916762fd03f87cefa645417d2baa6e33a20b67fb5b04f9e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/JP3DMPRView.swift",
+      "sha256": "38982df1823f5da29dce04fee8cfacef777772a2d36d5f78ac9622739fa280fe"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/JP3DVolumeComparisonView.swift",
+      "sha256": "12b4646fe703cc53954acd6f553b1b8758a9ba8050496cb5ba5702fd55943052"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/KeyboardShortcutsLegendView.swift",
+      "sha256": "c7c175cd0e8692871ff95a752673c38706931df79e05433123ba71eab1b16a2f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/LocalListenerView.swift",
+      "sha256": "c865b66a1c64142629833235fd81e88a34fb3239220b3726cfe4cd2657e85edb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/MacOSEnhancementsView.swift",
+      "sha256": "07abfc0f4e09f68d8afcb5353179ab244a182da9331e4604b72ed55add07b2af"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/MainView.swift",
+      "sha256": "eebc6e50c15bc0d50051af5378411e0f2cd7c2bb3e3b0390de66c52d7ba4da19"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/MetadataView.swift",
+      "sha256": "86da078a2accc8414ea51777d9c1d9205b4abdd884cefc2ae19abb9d37d2053d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/MultiViewportView.swift",
+      "sha256": "40270dd0bbfb7b4d807c11e1e42468220b943b67ea02253b64532d3eaa981054"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/NetworkUtilityView.swift",
+      "sha256": "7ab19be9f0abeb1ce61c180384dd55e9365cd0c8f37552065718dfa0f267d667"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Networking/WorklistCreateView.swift",
+      "sha256": "85ae66bbd2f507dd77ad29ce5c4d8921d188a92daed23c804b4fd3e63831fb61"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/NetworkingView.swift",
+      "sha256": "a8afdb28a5802b80ac9c4a121ec1f85b08c8f5c09797bbea6bb40c43d33fdb30"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/PatientIdentificationOverlayView.swift",
+      "sha256": "e0f154d3e2a1b8bb62d4b2c6b5240c3a7d7644323f54c182c7b5a981f2dc2afa"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/PerformanceToolsView.swift",
+      "sha256": "2384462d3b54bcf1a4c16ee0b480bf62d3659fd087d5e1b77a97a742d5b49780"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/PolishReleaseView.swift",
+      "sha256": "24c7fb7d331bf01b83745248e27c17c2684ef4a9b95d49054c54c963164deba1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/AuditTrailView.swift",
+      "sha256": "1557c0b4d0ea7c3f82ef4c4dc56d924d5d13f26d0b9f06dd9b0ad1ef7cbb6448"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/FilmCellAnnotationLayer.swift",
+      "sha256": "7b0679070a2129efa670c3b725d06bd60046a56452d7d18c8692c9514a100a7e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/FilmLayoutGalleryView.swift",
+      "sha256": "4cbf2b585dcb8375257ee12e6a63fd6be41a274081689079a60ed0f3e28c268f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/FilmPreviewView.swift",
+      "sha256": "a02d496ef2afa4710cbea507038e343ca0d5a6b8e9f7c846354559ac061d53c5"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintCenterView.swift",
+      "sha256": "7c68e8ef073be75f869e192ee16e8bf511d1a5fce2ee49b2f487fa991e4b22b8"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintOverlayColor+SwiftUI.swift",
+      "sha256": "bcec31da6badbb5122062ee9e3b609323fdc90c8bac7c9ab8125009ddbd04460"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintProgressView.swift",
+      "sha256": "b1f9c73a3dafe8ffe4f8122c0f6e4f9a3416735b8565a03ed922988fab9c0b7e"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintQueueView.swift",
+      "sha256": "7742b455f16676c404cfa0d8186e5361689088e6f81c21338b90a57bcb930160"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintSCPView.swift",
+      "sha256": "36dc156d804023f7bd239fd5caae8b1ff35234682c870cebc064234b7d1020b0"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintSCPWindow.swift",
+      "sha256": "d92ea00fb77a7d096fc0a6992ed55c5bcb2af85f05f53e0412b86c68ac84df3b"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrintSettingsView.swift",
+      "sha256": "e859abead3d10d4c1e0c913c11d83e3130f29add11bbe1c463d2b4c41cfcf9af"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Print/PrinterManagementView.swift",
+      "sha256": "c56cdae13eddc4aa1dc0c50261dcf3807740226eb3825cfd602ce885a4b90ec2"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ProgressiveImageView.swift",
+      "sha256": "2ca8ca18f0ab2098cc1214d29dd763fc0d54d704479d7a24ed0d61189cd39f58"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/SavedViewPickerView.swift",
+      "sha256": "3e72edcc8b3915925a8d9704a6be517091203456c488030705222bfd5bb54c12"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/SavedViewPromptView.swift",
+      "sha256": "a7b714b65b552d72f51cc59b1d6f0d3987d9cfb4b335073937fa55960df3f4ad"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ScrollWheelHandler.swift",
+      "sha256": "90d2efda8107651776a9e7f8674f7ffa59d2962cf9242519ca4ee164a8776d26"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/SecurityView.swift",
+      "sha256": "4af4127a7ff83da7546b940fac985a247d58bf7f4d9a06ad5a38cf3aa324a932"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Settings/AboutView.swift",
+      "sha256": "8afd4ac58c34b0f2cc1609ac40fc722215d47039e8cb624de09742a66b0355cb"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Settings/GeneralSettingsView.swift",
+      "sha256": "1eeb4ac8bfc87507674719d595062e65b05dc58329ea8f49070867234dfa0dae"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Settings/PerformanceSettingsView.swift",
+      "sha256": "fe0f7c6216bf6c5669293ee46684dcf8847e8950846368b81ed831feac5079f0"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Settings/PrivacySettingsView.swift",
+      "sha256": "f0b52078460486099c0908e459c30291f9ab57b2a67f7481d4fe0ea45b57b87c"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/Settings/SettingsView.swift",
+      "sha256": "631fb61ff80b02fcdffb32e61b69c6a9542fb547c1c08d704f588ae752aa865d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ShutterOverlayView.swift",
+      "sha256": "5d66e5ce078e0db081d21bafc401b285a7ed6afa84c48077d1cb9c9f25ff70a3"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/SidebarView.swift",
+      "sha256": "f0cd7ba5c62a0a598c21648d88d91541b419dc9ad836a74241aab09435ccffe7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/StructuredReportView.swift",
+      "sha256": "76cef8bfa2fe9662bf5bd6bc26be013f675c2f49a280fb86041a71b442dae7e7"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/StudyBrowserView.swift",
+      "sha256": "4daf469341aab4fd62879250d546fdc3859f2a007acf787d32bda4e3fa47e410"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ToolSymbolCursor.swift",
+      "sha256": "4d02471bf05615ccd2261b9efcb03054fc026131e2d4d56941977ffddf970956"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ValidationView.swift",
+      "sha256": "8bc5d004533e88f2c33318d696f817aa616b4ad7bf73afa0d997b2b3ed086d1f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerAnnotationEditLayer.swift",
+      "sha256": "bbbbde0e0168481e1cf302e00e0f849c9cdf910ada340f9087f7378b2db5a2ef"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerAnnotationOverlayView.swift",
+      "sha256": "7020966fd8ca10519a2fc9842fe735b8f6ddac4e97cc49aa79fb7b641b4184d1"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerImageSavedViewList.swift",
+      "sha256": "7947ed5d51a740c24da7b282377c8bbd4f8ee3c4a3934ea9f1b1b92395736d0a"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerNonImageContentView.swift",
+      "sha256": "87477df8b020467a20c2e0a3a4a6e9aefeb16797c8853b4f172d583bfa9406b3"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerPalettePickerView.swift",
+      "sha256": "1baf3087a83f0ac1db0743efa1b79ecba57fd93f13fe0027c789aae8a830559f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerPaneChrome.swift",
+      "sha256": "321d33d45c34a136d5017b911cdeb6b82508b2ea2957b2ca2b1b729e6912fe59"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerPrintTrayView.swift",
+      "sha256": "9dd236298e1b4ee797a61ddebd869426aed758fc077fd19ed5441b46686c56af"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerSeriesPaneView.swift",
+      "sha256": "538c2c742ec7a6e23aa7608943f54983596ec6fae59f6863e89d8dd1bc73216d"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerSeriesSavedViewList.swift",
+      "sha256": "604688bf1ac338674581c0891aba7f097b5afe2e74bc506775d892f022b1866f"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/ViewerTileGridView.swift",
+      "sha256": "6ba4f7f3ee4e40d34e573229f3d24a7945505b2f11eaff792358ffdd18b66dfc"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/WaveformChartView.swift",
+      "sha256": "aa0da040e616ff8373920df1f9ba9f57c013928f6cdbba905b9ef36346b1e30b"
+    },
+    {
+      "path": "Sources/DICOMStudio/Views/WindowLevelPanel.swift",
+      "sha256": "8376f1e74e71980e049e7d7b77e8b1c254a120392d324e3a639bd428b8f36931"
+    },
+    {
+      "path": "Sources/DICOMStudioApp/DICOMStudioApp.swift",
+      "sha256": "38166c8f0da22118d0ab42102911331b1701a462d08b7c43687d20d0b3eda69a"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/AppSettings.swift",
+      "sha256": "40d3be73663c8325815bdca7d22907ef46ac30debf38fa46fb41ef6954fd7eb2"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/CommandBuilder.swift",
+      "sha256": "16002030b7b94802dc662ac6588b959483fd0f6c417239f35c0b04db681c8184"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/CommandExecutor.swift",
+      "sha256": "81defcf32481f6abe2e9388252a7b862aa087cde73cbd11801f7141f08ff6e8e"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/CommandHistory.swift",
+      "sha256": "a5fc751af7a0a804ab1ee67f5a39b1dec11947bbcb49c8dc71218cb3134e9c01"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/DICOMGlossary.swift",
+      "sha256": "d3a37a012750872ea14c6bc6b11b635040a024fd5af353391cd7335724f4d5b1"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ExamplePresets.swift",
+      "sha256": "cc451f6e014865f0ab421db97452270571b95841ee68ade0f333645191ca26c0"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/NetworkConfig.swift",
+      "sha256": "7fdfeba84d69b50d889b89d20fe02f30268f12db8a47fbfc622d00edfda596f8"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ParameterDefinition.swift",
+      "sha256": "7739bf395507b2b4465e596941c1181f9eefc05114b7ac9e5327e190416ded4b"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ParameterType.swift",
+      "sha256": "811a3586f7f135929a4201155b479b812e7065a200532398af4af4c5c9488de9"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ServerProfile.swift",
+      "sha256": "4a82f4f559d3439f92363ae724aa605d9c6d5235be9d149f5fcbc8db123547b6"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ToolCategory.swift",
+      "sha256": "d82069299cd01bedac312a95779967527af7470984fef1e43b50cef7f54cbf4d"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ToolDefinition.swift",
+      "sha256": "063f3a972a80ad1b9cdb57f35a2219206044c010fd8e881d57117ee6797d8810"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ToolRegistry.swift",
+      "sha256": "160751fa883d0aba1b5f5a740a0bc9a9a55024a821fe1667a20e7c7de92c1050"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ToolboxCommandContract.swift",
+      "sha256": "cc1d98ff34ecec9949cd53f061fe442b4ee2790150c4b1cc71830dc459f75f38"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Models/ValidationRule.swift",
+      "sha256": "0f01ecc8b2e926eab22784534d9b050313ab0b08d7c7b4b2dc80e11de8e5b78b"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ConsoleView.swift",
+      "sha256": "2aaf8ca469dc9df429c2b1f676924cd3f4758cca44f2ce21c92b444b0dd4d418"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ContentView.swift",
+      "sha256": "e575d825ad2d1854f8e54b4a6cb0b069a4806ca898af0c9d48e39db5ea8bdc0d"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomAnonView.swift",
+      "sha256": "a0a1e2e7205f0b5effcfd80d4f39291b68e8e7f17deab321c362bbe96a49a359"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomArchiveView.swift",
+      "sha256": "6f2a0d2eb2a3977d2ab980525dfad10150f9b676244d4d003191bdda66644724"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomCompressView.swift",
+      "sha256": "185bd5c388ea6f64c67676ca9950a49f9e3af172992adfcadd93fcf9a7912722"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomConvertView.swift",
+      "sha256": "c09193fa15f07c5a7509087fc2ef563afdbe8a1aac87ac12aae46fd8d43c12e0"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomDcmdirView.swift",
+      "sha256": "3feb11778afba7a05f6a8638581275d261e842bc4887fe97cd7b8d715189bcfc"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomDiffView.swift",
+      "sha256": "4aeea4cc4fbb0ecceaaeda8caa8dacd01fbbff56d804fba23e989fd1fa8fb13e"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomDumpView.swift",
+      "sha256": "594e8fbe9bee96c82f058be895dcb8ef41032abb6344342397663d5be38628fc"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomEchoView.swift",
+      "sha256": "31d58a2ce0fec7c2293f5b04179e957644a1b7e8cc0730de027970ea0fab7f3b"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomExportView.swift",
+      "sha256": "9223f851a4c9fc4bd25d90a186f71860ab59787fc282c423b9aa9a962402dc50"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomImageView.swift",
+      "sha256": "da94cbd31d435087b4a735efb1016deae48ec0e746265e9db7376c80840e2415"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomInfoView.swift",
+      "sha256": "798e481cb52799951837f595beffe35cfb8b56cf975b2717534661e4ffc9a487"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomJsonView.swift",
+      "sha256": "426c295b9c4f3a5e1c82fe9364e742784e9f87446faa13f682a2be6eb0a786b6"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomMPPSView.swift",
+      "sha256": "60a12745cc7d5596e564ea11a00869342ec46d9ca6f9fe7724bba1c207b8cd6a"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomMWLView.swift",
+      "sha256": "c4d0d6c1e179bccdfba75ff2506cdf0676d2d96eb05345940ec1098f1892cafd"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomMergeView.swift",
+      "sha256": "afb2ba7956e21b11f88f0a3cccacd9486d463f734a35c7c6c18011112af94774"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomPdfView.swift",
+      "sha256": "0d0c305c474a705a5170940e221a01c0145eaabf08a60b29913374426f8f6332"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomPixeditView.swift",
+      "sha256": "44f5a178dfe0c6e433f52acd8d2c840f4cc30cedad6a168d371b9012492aa001"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomQRView.swift",
+      "sha256": "1e50b701e2ce01b5f45a8055520af90d4a651899a905d3b2bb4e909f57850380"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomQueryView.swift",
+      "sha256": "7d4603af4356d3aae7b326d7de0a4a0d0d1ef0c37662570bc930cc660a3d5ec6"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomReportView.swift",
+      "sha256": "78e134de25f764f412baee816eaacaffcb1af1508852a2268ba222eb0acaf3b0"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomRetrieveView.swift",
+      "sha256": "7a7ee0e8f2d4716ba0ffd713e5e38688112e165047cd4d84cc92eee96977b475"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomScriptView.swift",
+      "sha256": "6e5e82dde09c96fcef9c6357304758b621d522d1924d323b09942b6e512a08b7"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomSendView.swift",
+      "sha256": "101336a84dd6e2d0242ef19e33f3903ceaba119c6679c17f927cefe4feb4c913"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomSplitView.swift",
+      "sha256": "1546a461a7b9e36b2cf2eb73dcf46188ce746af7e662055bc94cd9d784486769"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomStudyView.swift",
+      "sha256": "88acdec74fcee040910270b6cd747764db227ee581d80811b46ea2c09598ae2f"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomTagsView.swift",
+      "sha256": "5a311831db28b3ce77dc1532848bfc28cd9259d3f7be46c1826392c39e693ccd"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomUIDView.swift",
+      "sha256": "96d3f7f65136a6d6bb313cfa9a5c76efffeaa979f689499701cd6cb16c425aa8"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomValidateView.swift",
+      "sha256": "08ecec262c7dd68c2721a09e8b7382cc02dad968993a0ed8330d230c0506d2a6"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomWadoView.swift",
+      "sha256": "28410adba8d54a79827ee757c45dc873136c1e76e84301670d7317be85441330"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/DicomXmlView.swift",
+      "sha256": "c612020de00771b5db09cde815fa95c587ab25d834e48af7d015480747b2f512"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/EnumPickerView.swift",
+      "sha256": "e7f89312c3442f9edb651a57ece4375cb4b3ae9cafb4cea5d787203e0234c61f"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ExamplePresetsView.swift",
+      "sha256": "e6b42c85b7102b8f560eb71fc5e2daa8212eed036b6d0fee3d9a457572774715"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/FileDropZoneView.swift",
+      "sha256": "3e047a64403b8077230d480ae5efc67d9d1601516545709a25129a14521e8070"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/GlossaryView.swift",
+      "sha256": "99608d4226eac018d599c4fedfe472ebd761a4a085965cf16de34cd3c026e870"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/NetworkConfigView.swift",
+      "sha256": "685faf858164f189fc8d17d193ead5d07c11fc1ab02407995bcba8c8c9cdeb00"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/OutputPathView.swift",
+      "sha256": "8a6f24d73e50317b9b574378729b5336a0bde65f14d8e8e5e9e2a7952c487f0b"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ParameterSectionView.swift",
+      "sha256": "a9a53b68f280656a88dbc4e80bdfe4cfacacfb4467612e62980d670a5b2df292"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/RepeatableOptionView.swift",
+      "sha256": "f2cfab1dd68e89b00b6905c438f85ebea2f66f0582443f80dbd7eaa542a2b6aa"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/SettingsView.swift",
+      "sha256": "18c1747fd5481f6632cd83c1111d66d087ee58f6bb0dcb4e2db34f108075ef6b"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ToastView.swift",
+      "sha256": "74a1ac267bb3f493f12e5fa587962fe565ae3b09cdf8df8af0f63c731a511b63"
+    },
+    {
+      "path": "Sources/DICOMToolbox/Views/ToolTabView.swift",
+      "sha256": "9dd5956f4421f64f2614b66a7317be654b6437c2543de4c6262f8bd2b7557504"
+    },
+    {
+      "path": "Sources/DICOMWeb/Caching/CacheConfiguration.swift",
+      "sha256": "799ccbde512cf191d161a11b023dabcab5e0cdb0465dd69366c3dad24c4e4f80"
+    },
+    {
+      "path": "Sources/DICOMWeb/Caching/InMemoryCache.swift",
+      "sha256": "5490a307337675bf9f9607b7d1be0ffd4c528aa00b1601a9804f1f4b9df8177e"
+    },
+    {
+      "path": "Sources/DICOMWeb/ConformanceStatement.swift",
+      "sha256": "519a7c0efa00df16ded22be0bc4532b65ec4fabff6bba4d943bf46529fb4fd1f"
+    },
+    {
+      "path": "Sources/DICOMWeb/ConformanceStatementGenerator.swift",
+      "sha256": "7b2c363b55f4fad74a726866f933161b1cd5f9716c1cd663f5e9afcf856e0c38"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMJSONDecoder.swift",
+      "sha256": "8fd60c225c50ed4209d33ec522c56030ca2d1a58137c706e82b8ea97de1ffd87"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMJSONEncoder.swift",
+      "sha256": "d0053cb0727c24ab01bddea5842eab461116d90f036472985be3242c8a6a0ee4"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMJSONModelFormatter.swift",
+      "sha256": "2ab310bc678cef0f44f2a7c0d2462f3c2912af399827eb52be5cac3b2c5f6d67"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMJSONWriter.swift",
+      "sha256": "372f067cb26ef95ea8716890181b7a84fb7734ffeec03a053223c3416cc485f5"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMMediaType.swift",
+      "sha256": "b3d42514dbbe7dcf79e2f9a59a5cb52c44863dcc4fa40d257e2bbcecd51d259b"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMWeb.swift",
+      "sha256": "8eac4d3d36db8fcb7bcbb4329f2fdc40bc7fc2d10f0ed87cbed08d1b4c83ba94"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMXMLDecoder.swift",
+      "sha256": "21c88f1f0bf739c937c5601a144e1b8fa6fa7b3a39cf75f1a76c7cb51c54c746"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMXMLEncoder.swift",
+      "sha256": "d8318745c6fcd51edea918e1ff2676aac6323783ab9de3ed02fa9435da43c8c2"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebCapabilities.swift",
+      "sha256": "66c370a822730c8912a19e1cab77e8fd33975cac59384b5d99887d333d73653f"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebClient.swift",
+      "sha256": "a29a8770f5fda2c9fc637d8eae2a5e41a154d1ed942975956840d49824faa1cc"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebConfiguration.swift",
+      "sha256": "333a817b50fcab2900dbf61066c75cfa73679a37de8679ad62f588fbb486e182"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebError.swift",
+      "sha256": "ed11c4b264ac5802fa7df8096b0814893910ee10f5350b010752e8f5f874281e"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebOptionRules+Values.swift",
+      "sha256": "c19abd3359aa646d10ff59b96b9e2e6907a150926b74d797b6e857a66bb769e2"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebOptionRules.swift",
+      "sha256": "392c74ec223c466a5cd3f15f31469ec423537dd0663e0da0d76fcef7fab2ac71"
+    },
+    {
+      "path": "Sources/DICOMWeb/DICOMwebURLBuilder.swift",
+      "sha256": "d241578fea7a00927c20286df4805340325726dd69f15b2d951bb0b685bfaa94"
+    },
+    {
+      "path": "Sources/DICOMWeb/DataExchangeWorkflow.swift",
+      "sha256": "9269e06b692fd7692dd40b1e66e010f31fb1c7333c99a8d7503191bb4cda4ba8"
+    },
+    {
+      "path": "Sources/DICOMWeb/HTTPClient.swift",
+      "sha256": "6a85491d9bff3a9c1f1937ac48c03b612556b340489ceb26480ec0e4e2562570"
+    },
+    {
+      "path": "Sources/DICOMWeb/HTTPConnectionPool.swift",
+      "sha256": "4b43044ac3616e3fd8eb1625806ec93542a3f86b9e6e5a489853e1dc22e4df5b"
+    },
+    {
+      "path": "Sources/DICOMWeb/HTTPPrefetchManager.swift",
+      "sha256": "56dce928b6fbfbe4494020a3269a40d45eb084780ce9dd6f929cd56ecde354da"
+    },
+    {
+      "path": "Sources/DICOMWeb/HTTPRequestPipeline.swift",
+      "sha256": "b3e3fc90d1a946528fc7d26ff7cedc1fe2b95ae16e90138618d5bd8f7dcb7364"
+    },
+    {
+      "path": "Sources/DICOMWeb/Logging/DICOMwebMetrics.swift",
+      "sha256": "cf00e377d930538e73df1eca4b7cf3cf637930510a39bd42cd2fee5f03c7c0bb"
+    },
+    {
+      "path": "Sources/DICOMWeb/Logging/DICOMwebRequestLogger.swift",
+      "sha256": "31caf776f0dbea9f89b4de30e90c2aca2d1d8d9ea39b0eddc4fdf28bfb678c53"
+    },
+    {
+      "path": "Sources/DICOMWeb/MultipartMIME.swift",
+      "sha256": "f33e514ab1db0deb1de35abf5f60c5371158677feaf0d4823ec152c6cb3cd389"
+    },
+    {
+      "path": "Sources/DICOMWeb/OAuth2/OAuth2Configuration.swift",
+      "sha256": "6b80c525235c822df11f99d5c4e2e0390080b2a74b8eed6557c67a6dd281f1ce"
+    },
+    {
+      "path": "Sources/DICOMWeb/OAuth2/OAuth2Token.swift",
+      "sha256": "3455538ae117a2c37538cbfe8c99c5d247a7e6f07fb711500240032ae2763d3b"
+    },
+    {
+      "path": "Sources/DICOMWeb/OAuth2/OAuth2TokenProvider.swift",
+      "sha256": "0b7ab2abca922f29faee943e96263e1577a10db66e8af0aee134dc921e5933cf"
+    },
+    {
+      "path": "Sources/DICOMWeb/QIDOQuery.swift",
+      "sha256": "c2b81e77082a35a9a004befde7c638a7e7b2dbcd69c6a9c94245ee612223ddba"
+    },
+    {
+      "path": "Sources/DICOMWeb/QIDOResourcePolicy.swift",
+      "sha256": "2dcdd507df9cc5dcb0ccdcc3f7385ad3c7c3387fbcab554d26e914cefbb36799"
+    },
+    {
+      "path": "Sources/DICOMWeb/QIDOResultFormatter.swift",
+      "sha256": "b62c0b297da226f0debdf776c39bc104869a8cba0816c5d943a32339062e8a11"
+    },
+    {
+      "path": "Sources/DICOMWeb/QIDOResults.swift",
+      "sha256": "d0153f3d73533f63a208d35c87540bf8b87d254e355d333832fa9537e8d18f95"
+    },
+    {
+      "path": "Sources/DICOMWeb/STOWResponse.swift",
+      "sha256": "2311266e418226821f37e7f0b8a29350847bdfdb08900fa1b3fd5fe6fe4a88c4"
+    },
+    {
+      "path": "Sources/DICOMWeb/STOWResultFormatter.swift",
+      "sha256": "1268707dfb341e09f5838f3ba79f98fd7bf0695c88b1e50fe96a5b9e96dc0823"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/AuthenticationMiddleware.swift",
+      "sha256": "65f116224caa16a13ee6c8b3d7e08c15fc81c65765b1e58eb9d3a1d0a9a38d0e"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/CompressionMiddleware.swift",
+      "sha256": "4f32357122c23185847192146ec3ad7c3e099ddfa52d643bfb0c3f73d8509dbd"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/DICOMwebCapabilitiesDescription.swift",
+      "sha256": "b7a7df03d4ce0ea2ae70c71309244f46f6f89ee66355d9533592decc25c8a757"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/DICOMwebRoutes.swift",
+      "sha256": "246f90f0e3fd18422720066ab2c1515ac2cb1447056ce6ea3c11b0baaacb9505"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/DICOMwebServer.swift",
+      "sha256": "0b1de94785ea9e7f5c16434118ccfa193f5dacc3c272c9c7177926af319f2b09"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/DICOMwebServerConfiguration.swift",
+      "sha256": "bde128ada1077ecf4a5e5014c8a932e7c5af0d987b0786921a6c4b3a5717dc67"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/DICOMwebStorageProvider.swift",
+      "sha256": "68a31fc6c7439acb7f5766f188ca102210ba267cd6bda4367b3c4ac263b81f79"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/InMemoryStorageProvider.swift",
+      "sha256": "d3cf6dcf515f976b94ee2851ec4d026324474b2acf61b5e876dcef774466d65c"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/QIDOQueryRules.swift",
+      "sha256": "825ee4f18753ce806a287f52d2a33daa985acc72396a84d194c0aade595f4d67"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/QIDOResponseProjection.swift",
+      "sha256": "e8ad4b45f8c7ee9d81e449858a5e76506ca2e92b46e12cee41fd4e9d9a2e8f3e"
+    },
+    {
+      "path": "Sources/DICOMWeb/Server/ServerCacheMiddleware.swift",
+      "sha256": "ac4441a619b7f22e0657208d677b04ba85d62dfc32c7a38e2bac7f512fc95d4d"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/EventDeliveryService.swift",
+      "sha256": "5acba61f242e6dac033a9f09de79b29a3e6e4aef9b20fe1c089c5abf8e1c7618"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/SubscriptionManager.swift",
+      "sha256": "41d5da851cfb44ec0013dedcab4cb3d7c70bbd6d0fb04674f02bca9b84ea6eff"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSClient.swift",
+      "sha256": "c2ab8a03c475ed7f24d4e8070fa81b4fb437f8946e30ee1154da9de843e799d3"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSEvent.swift",
+      "sha256": "bc839ce3cfeccd9f4e8e5a65300f846f28dcf4abf8eb9f090b63ed5bf0907b35"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSQuery.swift",
+      "sha256": "743982bc546fa4efa1a1d80e778d0911b1fe91f1edc84f7637b5257871326178"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSResults.swift",
+      "sha256": "c99facf3a1143c4a977a76e46cb206717e4f1ef99439fb65ae39ba75c80b0a32"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSStorageProvider.swift",
+      "sha256": "169b4dba95075a81e3726cc5bc3cdc0c554c0908cb563fce7c1cc235822570f9"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/UPSWebSocketClient.swift",
+      "sha256": "92d517fe0ad34baa5983221f31b6324cb2e3fb04eac57dd5c5ecf11c91519fcc"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/WebSocketEventDeliveryService.swift",
+      "sha256": "6d6f46a88a28bd75ca660880292867475ad91e8f9bc8ef32821af8753f793f56"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/Workitem.swift",
+      "sha256": "f0df6595e4f09d6fb159834385303f30c7e751eb81b61db563f74dbc0ef1264c"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPS/WorkitemBuilder.swift",
+      "sha256": "781de24555c39c57e74f3553fcb24449101342a8ab41aeeb7f1465b2e3e48391"
+    },
+    {
+      "path": "Sources/DICOMWeb/UPSResultFormatter.swift",
+      "sha256": "c04efff9ecbd653739dc06b7047006f208d693fd9ca48cb69c96d23cfd9cc4a6"
+    },
+    {
+      "path": "Sources/DICOMWeb/WADORetrieveConsoleFormatter.swift",
+      "sha256": "f253d961a0e03b321c26a3732a76a7b148bf7e74ca8a992e9432078c5bf8a111"
+    },
+    {
+      "path": "Sources/DICOMWeb/WADOURIClient.swift",
+      "sha256": "7fcf3ce351e3bffdb0198bd4218302198f733317751c34083fe32c1561b42585"
+    },
+    {
+      "path": "Sources/dicom-3d/DerivedSeries.swift",
+      "sha256": "4265c74780432df23dcee2d15b398669251bdb6ad89a69d093c9c791ad1b2177"
+    },
+    {
+      "path": "Sources/dicom-3d/MPRGenerator.swift",
+      "sha256": "2cde62aa4db716b4331794d07875a5e97a7620f0064bbd6f41386493597bda6e"
+    },
+    {
+      "path": "Sources/dicom-3d/SurfaceExtractor.swift",
+      "sha256": "adae007d5599cd01764b0d2ae04ce3e66adcfa076e627cc1f0ffb453e45558ce"
+    },
+    {
+      "path": "Sources/dicom-3d/VolumeData.swift",
+      "sha256": "c44c24e88a71b2501edb58d5f3e6ef41f5010d238491a94348b5bb0562e5f2ae"
+    },
+    {
+      "path": "Sources/dicom-3d/VolumeExport.swift",
+      "sha256": "3a2f2583d78759b7882a4b60ee9bcd931496e524934ba85cd130d654b68144cd"
+    },
+    {
+      "path": "Sources/dicom-3d/main.swift",
+      "sha256": "db3fdd94c7978bfd01f90eb79fa94051d03f48bb13e74e19bb52eec05f33fbe0"
+    },
+    {
+      "path": "Sources/dicom-ai/AIDICOMOutputGenerator.swift",
+      "sha256": "c3c5757852a3f4be600c82c235392a021e9887fc31fc4580caaab421fb2c6ebb"
+    },
+    {
+      "path": "Sources/dicom-ai/AIEngine.swift",
+      "sha256": "2961fa86e4149f5702909ce1c0d89f687a824e56b5a815087d4f4ccd1a5ffa8a"
+    },
+    {
+      "path": "Sources/dicom-ai/ModelRegistry.swift",
+      "sha256": "de433db705b5e3bfedde7190ba6a8d9ac19e9375a4a38cecc9856a1c3cbfd6b2"
+    },
+    {
+      "path": "Sources/dicom-ai/PerformanceMetrics.swift",
+      "sha256": "f7f4c3fc7c3010b67545605ab66bdb78527e15bc2740341812c0883bf5d55344"
+    },
+    {
+      "path": "Sources/dicom-ai/SegmentPropertyCodes.swift",
+      "sha256": "4d2a5dd11ccc34ce255f66f6e953be1e76e6db9182447547224cb7c7cb5a5364"
+    },
+    {
+      "path": "Sources/dicom-ai/main.swift",
+      "sha256": "7016895e0c68bec316646221e43a509e56ed8f97b9c32936bf9559687cb8740f"
+    },
+    {
+      "path": "Sources/dicom-anon/AnonCLISupport.swift",
+      "sha256": "2ea17d885f27f668c7d4181a33d4e62726c26d16c22d386a19e449c2efc01843"
+    },
+    {
+      "path": "Sources/dicom-anon/DICOMAnon.swift",
+      "sha256": "459f16da9ff3c9630a8150a5c752630349e5d01bb6e0a895876c4af43d73f0d8"
+    },
+    {
+      "path": "Sources/dicom-archive/QueryKeys.swift",
+      "sha256": "a386a98e29adf785e31a1c5e54c07bef619efa59f0e058a2d0491a884a8d0b72"
+    },
+    {
+      "path": "Sources/dicom-archive/main.swift",
+      "sha256": "cb92fd7e90f9d8c0a46328f066ff5e4ecb79d6d6b4d9c064bb730cf983345f14"
+    },
+    {
+      "path": "Sources/dicom-cloud/CloudOperations.swift",
+      "sha256": "6f491bf5a38674655fcc512fc4724ae144b26d54a6307bedeb2476ab437a2317"
+    },
+    {
+      "path": "Sources/dicom-cloud/CloudProvider.swift",
+      "sha256": "e7bf8c381c17d415c4d68a7e3291f1597eec7a4450aaf6a4121bedc114406a2d"
+    },
+    {
+      "path": "Sources/dicom-cloud/CloudTypes.swift",
+      "sha256": "438505f55a0a5a76fba2075024853a3ce252707245a44a8e8ca1dfc6f1a305c9"
+    },
+    {
+      "path": "Sources/dicom-cloud/DICOMCloud.swift",
+      "sha256": "1e8c1bfc7d15204d3eada3a5e52791f33c734a595ac2eb41a0a8aa9131aaec3f"
+    },
+    {
+      "path": "Sources/dicom-compress/main.swift",
+      "sha256": "1af309a60c7170479945ca258154610d362e48ced8cb9f9d42b836830250f11b"
+    },
+    {
+      "path": "Sources/dicom-convert/DICOMConvert.swift",
+      "sha256": "3fbf96a31b3651a8f54b6a72647d7d7b971ea41485db845adc5f23b19ff3df66"
+    },
+    {
+      "path": "Sources/dicom-convert/TransferSyntaxKeywords.swift",
+      "sha256": "44e975a16e546784f78815be00eab460c01c6e72fae581cc085ac47fdc001122"
+    },
+    {
+      "path": "Sources/dicom-dcmdir/FileSetRules.swift",
+      "sha256": "7ce858d1b60330004eb0619cc6836bfad155b2ed7f04b400ba8b6dabd7d421f3"
+    },
+    {
+      "path": "Sources/dicom-dcmdir/main.swift",
+      "sha256": "c7d191c5817fd879c64099f8313b7c7e63d4d2bd96e1ae82c2b0e2f935b4883a"
+    },
+    {
+      "path": "Sources/dicom-diff/main.swift",
+      "sha256": "5bc1edde5133ac17c1769e9f3f46e089b195e619afeca918faaefd96c69d4318"
+    },
+    {
+      "path": "Sources/dicom-dump/main.swift",
+      "sha256": "83cf785795abec5b162bcc5f94ffb64e6716ae1f5333546b95f8ac68926ceb65"
+    },
+    {
+      "path": "Sources/dicom-echo/DICOMEcho.swift",
+      "sha256": "8507449ec552a1d8d50d9f8fb47b182cb804ef417670cb98931554c2305a65bb"
+    },
+    {
+      "path": "Sources/dicom-export/ExportStandard.swift",
+      "sha256": "0004f54738e8b0f07711f13db6bb22518d598bad69a09dd17a2866d8ebf6a766"
+    },
+    {
+      "path": "Sources/dicom-export/main.swift",
+      "sha256": "565e6498725d5921bbe90d731c38e1a7efcf50808855cb3b71a8761f5f3c4a19"
+    },
+    {
+      "path": "Sources/dicom-gateway/DICOMGateway.swift",
+      "sha256": "89423d631bb6bef362e14b2e530ef3a736146e56841835140bda62b1313e3b6c"
+    },
+    {
+      "path": "Sources/dicom-gateway/DICOMToHL7Converter.swift",
+      "sha256": "7f01c63b72a95094dfa715fc6156fa8d956fa35a742577c8df9ad4ae4d749a18"
+    },
+    {
+      "path": "Sources/dicom-gateway/DICOMValueMapping.swift",
+      "sha256": "395dcac2cf922c632d0146c00efd9c8c818a0b7984628202bd47adf7e087787a"
+    },
+    {
+      "path": "Sources/dicom-gateway/FHIRConverter.swift",
+      "sha256": "45cb3a665dd08ab0d7b838385a054eac995fb27e6eeabdf959acb616ba5bc6eb"
+    },
+    {
+      "path": "Sources/dicom-gateway/GatewayListener.swift",
+      "sha256": "3bbcd852b5382b5d96e9f647d672ce73183f3d374de8b1eb5117d5c72d7db380"
+    },
+    {
+      "path": "Sources/dicom-gateway/GatewayOutputRules.swift",
+      "sha256": "0084072a22eaf04340b5d2012f240b7af8c91ae7d60113f4c34d167c8cb166e0"
+    },
+    {
+      "path": "Sources/dicom-gateway/GatewayTypes.swift",
+      "sha256": "9b573c4919ba97bd2ca0ab4f70d1d2ac2dd5b641f7dbff37b90569c62e9cc5a1"
+    },
+    {
+      "path": "Sources/dicom-gateway/HL7Parser.swift",
+      "sha256": "7a66d5be401a11f7d1ee29af68a495c585fbaf4a08d68dfcbe15eff437644c65"
+    },
+    {
+      "path": "Sources/dicom-gateway/HL7ToDICOMConverter.swift",
+      "sha256": "55ba860063d0e81b040e2ed99395e0fa5acd1dd3f44c085c9f36ec044a396cf9"
+    },
+    {
+      "path": "Sources/dicom-gateway/IHEProfiles.swift",
+      "sha256": "8ee5412ec27e5ef51808ebb3020d3d18bb43ae5815519226d2fc409db3179e22"
+    },
+    {
+      "path": "Sources/dicom-gateway/MappingEngine.swift",
+      "sha256": "d95059bed70de5d6620812cbe88b33762ec062afe7b3c0b73e7526b500ffc4d5"
+    },
+    {
+      "path": "Sources/dicom-image/SCOutput.swift",
+      "sha256": "609a992471b9e9a6780e13776e69c5c9544a451afbadd2880f465e10db3d4a24"
+    },
+    {
+      "path": "Sources/dicom-image/main.swift",
+      "sha256": "2c5bb5366aa0a6ca2ac543bf67cffdc864fbeccaacf14e3a9ae748f33df7c96c"
+    },
+    {
+      "path": "Sources/dicom-info/main.swift",
+      "sha256": "366e685562374420cdbb628d89c2e475f3e8cc49a6790a651d9e1726e75c637a"
+    },
+    {
+      "path": "Sources/dicom-j2k/J2KDICOMBoundary.swift",
+      "sha256": "d8947baca8327407897e09c7e220b69885de6b0fdb767575ec2c3b26df3bc476"
+    },
+    {
+      "path": "Sources/dicom-j2k/main.swift",
+      "sha256": "d78435e88b4d26ef32f1e5e13fb195d69eb24af68098b10d02cd36799ef01e0c"
+    },
+    {
+      "path": "Sources/dicom-jpip/JPIPSyntaxes.swift",
+      "sha256": "e354e281d6a7064114087bb6e8159314ab98017d1f58b60bf6688f04b85675af"
+    },
+    {
+      "path": "Sources/dicom-jpip/main.swift",
+      "sha256": "eb0a063673e5de617cd3ffa7ced1060d02776edbd50fdd7d0b9cdae81b129163"
+    },
+    {
+      "path": "Sources/dicom-json/main.swift",
+      "sha256": "6c409b63eef772a5891a251c2f42ca310fac5fd79a4874c5f2abe0d7597f814a"
+    },
+    {
+      "path": "Sources/dicom-measure/MeasurementEngine.swift",
+      "sha256": "9ec01a1f932ca9288ab7c632b58f200fbd6246f233ab75ce2d579e1c6f34ba39"
+    },
+    {
+      "path": "Sources/dicom-measure/main.swift",
+      "sha256": "89106f7cb4e80c095f2b24b3fe7be8c86bf37f4ee85388969d09ea0211799b3a"
+    },
+    {
+      "path": "Sources/dicom-merge/DICOMMerge.swift",
+      "sha256": "7d2f428daace9338ba7169db1916f05b1cc011dc417be4f7edc444965e73b6d1"
+    },
+    {
+      "path": "Sources/dicom-mpps/DICOMMPPSCommand.swift",
+      "sha256": "030b978bcd71d6270e7d1ed0d0445297add57e5727d330338caaf5095d3e1599"
+    },
+    {
+      "path": "Sources/dicom-mwl/DICOMMWLCommand.swift",
+      "sha256": "43a5e151febbc127cb09ae73795233aeeab02b5b989e416c3c5a3d221c3f4a58"
+    },
+    {
+      "path": "Sources/dicom-pdf/EncapsulationAttributes.swift",
+      "sha256": "fb02bb3f3c2e5541d52a1596947efffa75560af2f9a84b366c28737b78fc6f7c"
+    },
+    {
+      "path": "Sources/dicom-pdf/main.swift",
+      "sha256": "f8d035e597470e6652006580b59676370478fce03b0668c19989e12538a67544"
+    },
+    {
+      "path": "Sources/dicom-pixedit/DerivedImage.swift",
+      "sha256": "bbee0dd98da0feab821b7521d3e6b5cdbcb97cf3b7622bf264023c8fefbf285c"
+    },
+    {
+      "path": "Sources/dicom-pixedit/main.swift",
+      "sha256": "feb29a194e311672512c35d44f73398bcbfe3f59f51d9eb42fd97e85660a809a"
+    },
+    {
+      "path": "Sources/dicom-print/DICOMPrintCommand.swift",
+      "sha256": "0a6bb6a43742c9df0b5c2f880412cdac6e3b92a2f11ba2740d72db3be74dbdf8"
+    },
+    {
+      "path": "Sources/dicom-printscp/DICOMPrintSCPCommand.swift",
+      "sha256": "75e5a809b15d6b85c5799dd46700aca83d7bae2ee69c4e954fd9a9b4ad404532"
+    },
+    {
+      "path": "Sources/dicom-qr/DICOMQR.swift",
+      "sha256": "33d47063cc1263b6aad18c8a973cc412e2388471d948fa1a03a377fb41d057d0"
+    },
+    {
+      "path": "Sources/dicom-query/DICOMQuery.swift",
+      "sha256": "c6ade29999bf4e37f60037098cd187db30cb46ad6de36003d0390a3503b0484d"
+    },
+    {
+      "path": "Sources/dicom-query/QueryExecutor.swift",
+      "sha256": "c812b6ef805ca3d493905a41fb32839a5b04e47a5af4a872e3583c9bb1dd6d12"
+    },
+    {
+      "path": "Sources/dicom-report/ReportGenerator.swift",
+      "sha256": "665b8c73d164136b7afff5c8dd629d3778a3e8dab597503e0b10646f0d378c60"
+    },
+    {
+      "path": "Sources/dicom-report/main.swift",
+      "sha256": "5bcbd96406853c54246dba59accb4f3c2f59dd0e522f975edf9abd56cd9f26ed"
+    },
+    {
+      "path": "Sources/dicom-retrieve/DICOMRetrieve.swift",
+      "sha256": "dde22927c352637535f91a0db14f3d49797af1b2bc6825c8d2eb81d073b2a4cc"
+    },
+    {
+      "path": "Sources/dicom-retrieve/RetrieveExecutor.swift",
+      "sha256": "7ddf17a10d4cf82bbf7aae9dc7ca1843554c48ab7bd3ec1a0603cbabf2cd0158"
+    },
+    {
+      "path": "Sources/dicom-script/main.swift",
+      "sha256": "4a7e1b04653f90e1f87b6aa9e6d2e3ded934c48f92affe7165043f050ac3b979"
+    },
+    {
+      "path": "Sources/dicom-send/DICOMSend.swift",
+      "sha256": "32f97e17938189ecb1d8c6e7e9210534490393491734d8a7ddccdc33b7a660fc"
+    },
+    {
+      "path": "Sources/dicom-send/SendExecutor.swift",
+      "sha256": "1a8021779d37c31bad1b802e85c5764ffa2860b6ec1c1fbb28f1b692766ce742"
+    },
+    {
+      "path": "Sources/dicom-server/DICOMServer.swift",
+      "sha256": "48d524cbf996dabbbaddd975ed77499b0151808c32acb6ba8e09bac17edc9956"
+    },
+    {
+      "path": "Sources/dicom-server/DataSetExtensions.swift",
+      "sha256": "ca89ca16e3ac137d44285cc5d0e697c64d25bc3a0b2d3f5c052a7882232838d4"
+    },
+    {
+      "path": "Sources/dicom-server/DatabaseManager.swift",
+      "sha256": "719d98d15be8010238fb44278d33899d95b84f3f2c9cab5de0f9c535c298d52b"
+    },
+    {
+      "path": "Sources/dicom-server/PACSServer.swift",
+      "sha256": "28ae316f13a5d2894ff496a2368506e381fc3d74c5f82daec34f992166f53848"
+    },
+    {
+      "path": "Sources/dicom-server/ServerConfiguration.swift",
+      "sha256": "66d531ef05b224505d6953b24feffd494d29ce06049783bfcdfc326609a29852"
+    },
+    {
+      "path": "Sources/dicom-server/ServerLogger.swift",
+      "sha256": "c1951fda825c3de333f4768a7adbbc9295310868cf3c9a6b11b25b1095238436"
+    },
+    {
+      "path": "Sources/dicom-server/ServerProtocol.swift",
+      "sha256": "756799a8de46b680adcfc775dc32bd14ed0afc9ef91c340936d999f68ef1f7c5"
+    },
+    {
+      "path": "Sources/dicom-server/ServerSession.swift",
+      "sha256": "6fde1c90dab7c85800a3748ff7b257d06bbf3aea3e0c54b5fd2bb644bc13a18e"
+    },
+    {
+      "path": "Sources/dicom-server/ServerStatistics.swift",
+      "sha256": "7dd781c81717205eaad403a2513e8d14cf33a4a5f61af51174d98f29ac5a51cf"
+    },
+    {
+      "path": "Sources/dicom-server/StorageManager.swift",
+      "sha256": "214a852bc27a737803f1cd9d71f915ef0d7521d78c80a200b3114886b4e420f8"
+    },
+    {
+      "path": "Sources/dicom-server/StoredFileEnvelope.swift",
+      "sha256": "7f0900482ea30727ba04f5d7968eb45cf7582f62ab667d151b8095abb3733fc2"
+    },
+    {
+      "path": "Sources/dicom-split/DICOMSplit.swift",
+      "sha256": "cb01d327526d414331d6d5b1eb5a5859654dbde380cea78604c4105f613e42d5"
+    },
+    {
+      "path": "Sources/dicom-study/StudyManager.swift",
+      "sha256": "db1c7878a4cb6482e4dfd20889333c4b1155fc43f61780b01030bb58bfdc69af"
+    },
+    {
+      "path": "Sources/dicom-study/main.swift",
+      "sha256": "a667ad40a964507f2324c646ed752456b56e448cd49d013f6a5be2c0703ecf03"
+    },
+    {
+      "path": "Sources/dicom-tags/main.swift",
+      "sha256": "b719b32897dd1350dc02383ce166a58d0b54aff4349ff1c72bd9105a474e5580"
+    },
+    {
+      "path": "Sources/dicom-uid/UIDOptions.swift",
+      "sha256": "5775f8e052cced7eb0755473d1f55e1d4399700734e44dbd8531fe72ef337e28"
+    },
+    {
+      "path": "Sources/dicom-uid/main.swift",
+      "sha256": "b5b9561f8d00191176d95a5113a45a9f3685b1c24c34742beb4f1cf71a0c0af2"
+    },
+    {
+      "path": "Sources/dicom-validate/DICOMValidate.swift",
+      "sha256": "73e433b30827319d3f9848f54e688c1f57e8558b795ed9347522f17fd98d8117"
+    },
+    {
+      "path": "Sources/dicom-validate/IODOption.swift",
+      "sha256": "0e434ddeb3984d403bb8eea3d2c50f24ef255c4303decbe094d3dd57a6109fbb"
+    },
+    {
+      "path": "Sources/dicom-video/AudioChannelSourceOption.swift",
+      "sha256": "eb67613df44aed569b5a7920e7e1713296332d4088b33ebb7cc6f23400cd155f"
+    },
+    {
+      "path": "Sources/dicom-video/OptionConformance.swift",
+      "sha256": "64effda6e66a63a828f98e89518c1947e1bbf215ffedcb25aa13880865280b03"
+    },
+    {
+      "path": "Sources/dicom-video/main.swift",
+      "sha256": "2fd130baa8508c1f53f33b63b7490233992fbc8a1fa4b0fc254469d0f71b9f69"
+    },
+    {
+      "path": "Sources/dicom-viewer/TerminalRenderer.swift",
+      "sha256": "d07a695ec023fc56eb5294b180afe4f2af500aac41cfd577f1c403a402d9b046"
+    },
+    {
+      "path": "Sources/dicom-viewer/main.swift",
+      "sha256": "ba11e0335e08517821fa82e22fc62650db408d7b8e8c96c60c606f72858be10d"
+    },
+    {
+      "path": "Sources/dicom-wado/DICOMWado.swift",
+      "sha256": "6d7e5426ccac9422290789039aacff92f0616d34f827592d0dcb5f42b987ebd1"
+    },
+    {
+      "path": "Sources/dicom-wado/WADOOptionRules.swift",
+      "sha256": "865680eac8e052c7723c762c4edafcf1df6252d79e828629f5906d48012d70a2"
+    },
+    {
+      "path": "Sources/dicom-xml/main.swift",
+      "sha256": "a542295409e5a9ec6623b43e3b1f5ccda75e1799b7bd3bda13177352c2cbe4d5"
+    }
+  ]
+}

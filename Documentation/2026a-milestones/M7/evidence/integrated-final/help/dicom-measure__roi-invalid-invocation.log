@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-measure roi <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] [--rect <rect>] [--polygon <polygon> ...] [--circle <circle>] [--statistics] [--histogram] [--bins <bins>]
+  See 'dicom-measure roi --help' for more information.

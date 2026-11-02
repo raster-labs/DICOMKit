@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-measure hu <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] [--point <point>] [--rect <rect>] [--statistics]
+  See 'dicom-measure hu --help' for more information.

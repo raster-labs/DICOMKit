@@ -1,0 +1,17 @@
+{
+  "verified_utc": "2026-10-26T09:13:34.140131+00:00",
+  "owned_port": 62053,
+  "owned_pid": 69662,
+  "stop_marker_written": true,
+  "session_poll": "Unknown process id 66068",
+  "port_connect_result": 61,
+  "port_closed": true,
+  "pid_probe_exit": 1,
+  "pid_probe_output": "",
+  "finished_receipt_present": false,
+  "requests_retained": 4,
+  "native_requests": 0,
+  "CLI_actions_preserved": 5,
+  "shutdown_interpretation": "The owned session was already unavailable when polled; no finished.json exists. Port is closed and PID probe is retained. Graceful shutdown is not claimed.",
+  "preexisting_SCP_11112": "Not inspected or modified."
+}

@@ -1,0 +1,2 @@
+
+						32 text field (settable) Description: Input File, Placeholder: Path to DICOM file, Value: dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm --format json

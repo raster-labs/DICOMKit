@@ -53,8 +53,13 @@ tag list.
 ## CI enforcement
 
 The **PHI Guard** workflow (`.github/workflows/phi-guard.yml`) runs
-`Scripts/check_burned_in_phi.py` on every push and pull request. It scans every
-committed DICOM file in the repository and **fails the build** if any has
-`BurnedInAnnotation` (0028,0301) = `YES`. This is a backstop only — it catches the
-burned-in case; it cannot detect PHI in pixels of a file whose tag is missing or
-lies, so the manual verification above still applies.
+`Scripts/check_no_dicom.py`. **No DICOM files may be committed**, including
+synthetic and de-identified fixtures. The guard checks tracked filenames,
+Part 10 signatures, plausible preamble-free datasets and nested archive members.
+Opaque milestone wire captures and peer databases are also prohibited.
+Uninspectable archives, links and Git LFS pointers fail closed. Tests generate
+synthetic inputs in temporary directories; this corpus remains local and ignored.
+
+`check_burned_in_phi.py` remains a diagnostic for local inputs only. Neither
+scanner proves that arbitrary pixel text is free of identifiers. A clean branch
+tree does not erase files already present in Git history or other branches.

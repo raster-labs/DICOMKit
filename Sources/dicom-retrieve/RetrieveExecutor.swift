@@ -211,7 +211,7 @@ struct RetrieveExecutor {
         }
 
         // C-GET summary via the SHARED formatter (handles the 0-instances warning).
-        print(NetworkConsole.cGetSummary(received: filesReceived), terminator: "")
+        print(NetworkConsole.cGetSummary(received: filesReceived, status: finalResult?.status), terminator: "")
 
         // PS3.4 C.4.3.2.1: same success rule as C-MOVE.
         if let result = finalResult {

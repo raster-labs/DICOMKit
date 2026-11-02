@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-info <file-path> [--format <format>] [--tag <tag> ...] [--show-private] [--statistics] [--force] [--bounded-summary]
+  See 'dicom-info --help' for more information.

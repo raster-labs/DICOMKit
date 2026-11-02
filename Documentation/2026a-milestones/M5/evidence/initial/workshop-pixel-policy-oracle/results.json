@@ -1,0 +1,229 @@
+{
+  "passed": false,
+  "cli_cases": 20,
+  "workshop_cases": 19,
+  "records": [
+    {
+      "name": "template-workflow",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "workflow"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "template-pipeline",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "pipeline"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "template-query",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "query"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "template-archive",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "archive"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "template-anonymize",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "anonymize"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/valid.dcmscript"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "dry-run",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/valid.dcmscript",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "cli-live",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/valid.dcmscript",
+        "--verbose"
+      ],
+      "exit": 0,
+      "expected_success": true
+    },
+    {
+      "name": "unknown-root",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-root.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-root-cli.log"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-root-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-root.dcmscript"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-pipeline",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-pipeline.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-pipeline-cli.log"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-pipeline-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-pipeline.dcmscript"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-conditional",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-conditional.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-conditional-cli.log"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-conditional-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-conditional.dcmscript"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-option-equals",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-option-equals.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-option-equals-cli.log"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "unknown-option-equals-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/unknown-option-equals.dcmscript"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "conditional-pipeline",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/conditional-pipeline.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/conditional-pipeline-cli.log"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "conditional-pipeline-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/conditional-pipeline.dcmscript"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "phi-false",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/phi-false-cli.dcm"
+      ],
+      "exit": 1,
+      "expected_success": false
+    },
+    {
+      "name": "phi-true",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/workshop/phi-true-cli.dcm",
+        "--allow-burned-in-phi"
+      ],
+      "exit": 1,
+      "expected_success": true
+    }
+  ],
+  "fixture_sha256": "f1bf35d6bfccaf8367cc1c7ac14fc98ce2253ca13262b0803719d08e9189b451",
+  "scope": "Actual CLI and ViewModel runtime; synthetic loopback only. Packaged GUI is separately recorded."
+}

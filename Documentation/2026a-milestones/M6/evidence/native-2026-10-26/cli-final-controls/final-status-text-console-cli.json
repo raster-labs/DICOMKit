@@ -1,0 +1,25 @@
+{
+  "recordedUTC": "2026-10-26T06:32:47.794888+00:00",
+  "nativeSource": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/final-status-text-console.txt",
+  "nativeSHA256": "35307d78e391b36eec2d37af955737a67055ad4aa745154a491cef50eea6934d",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "status",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M7CLI",
+    "--timeout",
+    "5",
+    "--format",
+    "text",
+    "--",
+    "pacs://127.0.0.1:21113"
+  ],
+  "binarySHA256": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3",
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.207655084,
+  "stdout": "",
+  "stderr": "Printer Status\n==============\nPrinter Name: DICOMKIT-PRINTER\nPrinter Status: NORMAL\nPrinter Status Info: NORMAL\nManufacturer: DICOMKit\nManufacturer's Model Name: DICOM Print Emulator\nIs Normal: Yes\n"
+}

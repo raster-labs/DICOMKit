@@ -1,0 +1,21 @@
+OVERVIEW: List configured printers
+
+Lists printers configured in the local configuration file.
+
+Configuration file location:
+  macOS: ~/.config/dicomkit/printers.json
+  Linux: ~/.config/dicomkit/printers.json
+
+Examples:
+  dicom-print list-printers
+  dicom-print list-printers --format json
+
+USAGE: dicom-print list-printers [--format <format>] [--verbose]
+
+OPTIONS:
+  --format <format>       Output format: text, json (default: text) (default:
+                          text)
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

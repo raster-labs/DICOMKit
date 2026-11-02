@@ -1,0 +1,27 @@
+OVERVIEW: Batch process multiple DICOM files
+
+Process multiple DICOM files efficiently with batch inference.
+
+Example:
+  dicom-ai batch series/*.dcm --model classifier.mlmodel --output results.csv
+--format csv
+
+USAGE: dicom-ai batch [<files> ...] --model <model> --output <output> [--format <format>] [--batch-size <batch-size>] [--confidence <confidence>] [--force] [--verbose]
+
+ARGUMENTS:
+  <files>                 DICOM files to process
+
+OPTIONS:
+  -m, --model <model>     CoreML model file path
+  -o, --output <output>   Output file path
+  -f, --format <format>   Output format: json, csv (values: json, csv; default:
+                          csv)
+  --batch-size <batch-size>
+                          Batch size for inference (default: 1)
+  --confidence <confidence>
+                          Minimum confidence threshold (default: 0.5)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,11 @@
+OVERVIEW: List archive contents
+
+USAGE: dicom-archive list --archive <archive> [--format <format>] [--show-instances]
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  -f, --format <format>   Output format: tree, table, json (default: tree)
+  --show-instances        Show individual instances
+  --version               Show the version.
+  -h, --help              Show help information.
+

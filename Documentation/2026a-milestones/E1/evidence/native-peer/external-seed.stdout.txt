@@ -1,0 +1,10 @@
+Creating MPPS instance (N-CREATE)...
+✅ MPPS instance created
+  MPPS Instance UID: 1.2.826.0.1.3680043.10.511.4.1793015844668210.900797
+
+Use this UID for intermediate updates or to finish the procedure
+(both terminal statuses need a Performed Series item, PS3.4 Table F.7.2-1 Note 2):
+  dicom-mpps update 127.0.0.1 --port 65517 \
+    --aet E1WORKSHOP --mpps-uid 1.2.826.0.1.3680043.10.511.4.1793015844668210.900797 --status COMPLETED \
+    --study-uid 2.25.8202601.9 --series-uid <SeriesInstanceUID> \
+    --sop-class-uid <SOPClassUID> --image-uid <SOPInstanceUID>

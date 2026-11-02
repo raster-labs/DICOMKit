@@ -1,0 +1,2 @@
+
+						79 text field (settable) Description: Protocol Name, Placeholder: UNSPECIFIED, Value: dicom-mpps update 127.0.0.1:56245 --aet M7NATIVE --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.7 --protocol-name M7TEST --timeout 60

@@ -1,0 +1,65 @@
+{
+  "recorded_utc": "2026-10-26T12:09:08.906500+00:00",
+  "peers": [
+    {
+      "peer": "evidence/cli-peer-authorized",
+      "port": 65016,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/workshop-peer-final",
+      "port": 65186,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/workshop-peer-retained",
+      "port": 49268,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/native-peer",
+      "port": 65517,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/mpps-reference-capture",
+      "port": 56249,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/cli-peer-run2",
+      "port": 65053,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/cli-peer-qualified",
+      "port": 65467,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/mpps-reference-capture-final",
+      "port": 56254,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/workshop-peer-qualified",
+      "port": 65451,
+      "closed": true,
+      "connect_result": 61
+    },
+    {
+      "peer": "evidence/workshop-peer",
+      "port": 65011,
+      "closed": true,
+      "connect_result": 61
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+OVERVIEW: Add, modify, and delete tags in DICOM files
+
+Manipulate DICOM tags by setting values, deleting tags, removing private tags,
+or copying tags from another DICOM file. A tag is given by its PS3.6 keyword
+(e.g., PatientName, exact case) or as GGGG,EEEE (e.g., 0010,0010).
+
+--set writes the PS3.6 dictionary VR and refuses a value outside the PS3.5
+Table 6.2-1 limits for that VR (length, characters, numeric range). US, SS, UL,
+SL, FL and FD values are given as decimal numbers, multiple values separated
+by a backslash. File Meta Information (group 0002) cannot be edited here:
+PS3.10
+7.1 keeps it out of the Data Set and the file writer sets it.
+
+Examples:
+  dicom-tags file.dcm --set PatientName=DOE^JOHN
+  dicom-tags file.dcm --set 0010,0010=DOE^JOHN --output modified.dcm
+  dicom-tags file.dcm --delete PatientName --delete PatientBirthDate
+  dicom-tags file.dcm --delete-private --output clean.dcm
+  dicom-tags file.dcm --copy-from source.dcm --tags PatientName,PatientID
+  dicom-tags file.dcm --set StudyDescription=Research --delete AccessionNumber
+--dry-run
+  dicom-tags --list-modalities
+
+USAGE: dicom-tags [<input>] [--list-modalities] [--output <output>] [--set <set> ...] [--delete <delete> ...] [--delete-private] [--copy-from <copy-from>] [--tags <tags>] [--verbose] [--dry-run]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path (omit with --list-modalities)
+
+OPTIONS:
+  --list-modalities       Print every DICOM Modality (0008,0060) defined term
+                          and exit
+  -o, --output <output>   Output file path (defaults to overwrite input)
+  --set <set>             Tag values to set (format: Keyword=Value or
+                          GGGG,EEEE=Value)
+  --delete <delete>       Tags to delete (by keyword or GGGG,EEEE)
+  --delete-private        Delete all private tags (odd group numbers)
+  --copy-from <copy-from> Copy tags from another DICOM file
+  --tags <tags>           Keywords or GGGG,EEEE tags to copy, separated by
+                          commas or semicolons (used with --copy-from)
+  -v, --verbose           Show verbose output
+  --dry-run               Show what would be changed without writing
+  --version               Show the version.
+  -h, --help              Show help information.
+

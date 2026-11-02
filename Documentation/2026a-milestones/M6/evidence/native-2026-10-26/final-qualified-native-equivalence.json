@@ -1,0 +1,93 @@
+{
+  "reviewed_utc": "2026-10-26T07:21:54.755054+00:00",
+  "verdict": "Passed scoped source-equivalence for reuse of prior evidence, with original provenance retained.",
+  "checks": {
+    "exact_expected_delta_only": true,
+    "all_other_production_files_exact": true,
+    "print_picker_reversal_exactly_reconstructs_interim_view": true,
+    "current_view_matches_final_manifest": true,
+    "all_CLI_artifacts_identical": true,
+    "package_and_locks_identical": true
+  },
+  "source_delta": {
+    "changed": [
+      "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+      "Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift"
+    ],
+    "added": [],
+    "removed": []
+  },
+  "unchanged_production_files": 1078,
+  "groups": {
+    "general_Workshop_ViewModel": {
+      "files": 1,
+      "all_exact": true,
+      "changed": []
+    },
+    "Studio_viewers_and_models": {
+      "files": 80,
+      "all_exact": true,
+      "changed": []
+    },
+    "network_web_server": {
+      "files": 147,
+      "all_exact": true,
+      "changed": []
+    },
+    "shared_core_and_kit": {
+      "files": 330,
+      "all_exact": true,
+      "changed": []
+    },
+    "shared_print_commands_and_rendering": {
+      "files": 39,
+      "all_exact": true,
+      "changed": []
+    },
+    "Studio_print_catalog_and_executor": {
+      "files": 7,
+      "all_exact": true,
+      "changed": []
+    }
+  },
+  "manifest_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/interim-native-source-hashes.json": "effa7b41e8e919a0bb2aad1a4e26f188293d36d06f69abd2c7f015c90360d3b7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-source-hashes.json": "4de84b55264946df509b49f0df78d8c172363be2eb87898f4ad7b011632db827",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/interim-native-artifact-hashes.json": "e656a28636b22df7a57dde19158629106c83da356ec06fb7930cbba3cbd28a87",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-artifact-hashes.json": "55891412e9d7fa5ff28a36c123f92ddbffb46188a603b0d22741941c0d6ba461"
+  },
+  "prior_evidence": {
+    "native-attribute-verification.json": {
+      "sha256": "cfce777a5f0e345fcde4846030d9f9da8f346132676d62d147669dec0a7e15ec",
+      "status": "Existing evidence retained with its original execution/artifact attribution; this comparison does not modify its outcome."
+    },
+    "native-FINAL-02-verification.json": {
+      "sha256": "53f00ab75d41de6b18b659314e117f535a4674aced4158b79d88b172c2de7033",
+      "status": "Existing evidence retained with its original execution/artifact attribution; this comparison does not modify its outcome."
+    },
+    "ui-attributes/FINAL-02-native-actions.json": {
+      "sha256": "d6a2170f816ed4c47e214d64d216fc97a84641cc3b9a290b866ee70fcb7ae75f",
+      "status": "Existing evidence retained with its original execution/artifact attribution; this comparison does not modify its outcome."
+    },
+    "ui-attributes/FINAL-03-native-actions.json": {
+      "sha256": "6776edbdc2dfde1e0c05082f5433fa70154f6ed52f1a6419d41ea4abdcb90117",
+      "status": "Existing evidence retained with its original execution/artifact attribution; this comparison does not modify its outcome."
+    },
+    "viewer-native-verification.json": {
+      "sha256": "42b0875cbf192ed96d108d75a11d03045a1ef307171f5d88b39dcc7d47855b42",
+      "status": "Existing evidence retained with its original execution/artifact attribution; this comparison does not modify its outcome."
+    }
+  },
+  "reuse": {
+    "native_attribute_actions": "The parent-reported intermediate native20+14 attribute actions may retain their existing results because the entire generic Workshop ViewModel, shared libraries, relevant nonprint UI behavior and CLI artifacts are exact-equivalent. This receipt does not rerun or independently recount34 actions, and does not promote any partial or failed assertion.",
+    "viewer": "Prior viewer-native-verification.json was attributed to the first repair. Its four viewer/formatter sources remain identical through interim and final; retain the recorded sidebar truncation and copy/action attribution. No re-execution claim.",
+    "network": "All network/Web/server source identities are equal to interim. Future native network actions still require actual execution; equivalence does not turn pending FINAL05–13/15 into passes.",
+    "print": "Shared commands/catalog/executors are unchanged. The changed print subcommand control and hosted-layout test require their new native/testing evidence; do not substitute an older print layout capture."
+  },
+  "limits": [
+    "Only print-tool subcommand values are switched from segmented control to menu. Nonprint picker expression is restored when isPrintToolSelected is false; exact old-file reconstruction verifies the bounded change.",
+    "All historical captures keep their original app hashes, dates, limitations and statuses.",
+    "Source equivalence is not a claim that the new app has re-executed prior actions or that complete M6/M7 acceptance is achieved."
+  ],
+  "execution_boundary": "Saved-manifest/source/evidence hashing and comparison only; no builds, tests, product invocation, native UI or peers."
+}

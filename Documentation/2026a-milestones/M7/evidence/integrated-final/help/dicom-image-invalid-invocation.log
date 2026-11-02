@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input image file or directory
+Usage: dicom-image [<options>] <input>
+  See 'dicom-image --help' for more information.

@@ -51,7 +51,8 @@ public struct PrintSCPService: Sendable {
         settings: PrintSCPSettings,
         screen: ScreenSink,
         onFileWritten: FileWrittenHandler? = nil,
-        onSpool: SpoolHandler? = nil
+        onSpool: SpoolHandler? = nil,
+        onFailure: (@Sendable (String, String) -> Void)? = nil
     ) throws -> any PrintOutputSink {
         var sinks: [any PrintOutputSink] = [screen]
 
@@ -91,7 +92,7 @@ public struct PrintSCPService: Sendable {
         #endif
         #endif
 
-        return sinks.count == 1 ? screen : CompositePrintSink(sinks)
+        return sinks.count == 1 ? screen : CompositePrintSink(sinks, onFailure: onFailure)
     }
 
     // MARK: - Server

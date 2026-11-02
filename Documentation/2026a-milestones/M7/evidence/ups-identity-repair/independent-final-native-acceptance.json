@@ -1,0 +1,169 @@
+{
+  "recorded_utc": "2026-10-26T09:30:42.043237+00:00",
+  "passed": true,
+  "checks": {
+    "strict_54_recomputed_in_memory_matches_saved_except_timestamp": true,
+    "strict_54_pass": true,
+    "fresh_native_3_actions_exactly_2_HTTP": true,
+    "retained_CLI_5_actions_exactly_4_HTTP": true,
+    "four_UPS_source_test_files_equal_interim_final_current_review": true,
+    "all_2062_source_inputs_equal_final_freeze": true,
+    "all_14_app_files_equal_final_freeze": true,
+    "root_exact_app_relaunch_receipt_matches": true,
+    "owned_native_peer_stopped": true,
+    "retained_non_UPS_checks_pass": true
+  },
+  "verdict": "Approve bounded FINAL-13 closure and all28 original native groups. Exact-head remote CI and final documentation/push remain root-owned pending gates.",
+  "scope": {
+    "ledger_items": 68,
+    "active": 46,
+    "deferred": 22,
+    "native_groups_passed": 28,
+    "native_groups_partial": 0,
+    "deferred_scope_expansion": false
+  },
+  "network_counts": {
+    "original_phase": {
+      "native_actions": 43,
+      "CLI_actions": 43,
+      "assertions": 481,
+      "qualification": "Old24 UPS assertions established parity only and are superseded for standards acceptance."
+    },
+    "retained_non_UPS": {
+      "native_actions": 41,
+      "CLI_actions": 41,
+      "assertions": 457,
+      "receipts": {
+        "http": {
+          "assertions": 254,
+          "all_checks_pass": true,
+          "receipt_sha256": "b6366c4cba4c9ed34a4b7560aac20fb6d62bbaf58616b01ecd2962a5527c4eea",
+          "additional_assertions": 73,
+          "pairwise_assertions": 181
+        },
+        "mwl": {
+          "assertions": 42,
+          "all_checks_pass": true,
+          "receipt_sha256": "a97677dc24dd593f0d49b4cb444f0b6f1e87d86463c8f1c869b3e74c21cc6891"
+        },
+        "find": {
+          "assertions": 55,
+          "all_checks_pass": true,
+          "receipt_sha256": "0d323d8adb6029a380086e099a15395e3a86a6974e97bf3d918be4578c7dfda3"
+        },
+        "cancel": {
+          "assertions": 43,
+          "all_checks_pass": true,
+          "receipt_sha256": "e8f3669e46f21d22ace3163c2d06b72902b16b1513037ff7c888a12529a40cd0"
+        },
+        "server": {
+          "assertions": 28,
+          "all_checks_pass": true,
+          "receipt_sha256": "9d2e2e51b94ab669165b84940ebf928332f82ce93698ef125c284598e1dce58e"
+        },
+        "mpps": {
+          "assertions": 35,
+          "all_checks_pass": true,
+          "receipt_sha256": "c014c9bc2983938ca72b7126736e1551721c292673365c48c94183281557e0f4"
+        }
+      }
+    },
+    "repair_phase": {
+      "native_actions": 3,
+      "CLI_actions": 5,
+      "paired_actions": 3,
+      "extra_CLI_actions": 2,
+      "native_HTTP": 2,
+      "CLI_HTTP": 4,
+      "assertions": 54,
+      "includes_prior_strict_CLI_assertions": 38
+    },
+    "accepted_assertions": 511,
+    "counting_rule": "457 retained +54 repaired =511; do not add old24 UPS parity or prior38 strict CLI assertions again. Preserve distinct execution phases."
+  },
+  "UPS_acceptance": {
+    "identity": "Fresh native POST preserves the exact supplied00080018 UI VM1. Location and GET identity agree. Both surfaces preserve the entire fixture, including SCHEDULED and exact DT20261024103000.123456+0530.",
+    "datetime_UTC_oracle": "2026-10-24T05:00:00.123456+00:00",
+    "refusal": "Native ERROR matches CLI invalid-UID refusal; stopped fresh peer has exactly create+GET requests, with no third HTTP request.",
+    "source": "https://dicom.nema.org/medical/dicom/2026a/output/html/part18.html#sect_11.4.1.1"
+  },
+  "epoch_attribution": {
+    "strict_CLI_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+    "final_CLI_sha256": "225d63b4bc1717875e661a6a572394e4f750f29e57a7cc984073677ff793b2a0",
+    "CLI_reexecuted_on_final_binary": false,
+    "four_file_hash_proof": {
+      "Sources/DICOMWeb/UPS/UPSClient.swift": {
+        "implementation_epoch": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+        "final_freeze": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+        "current": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+        "independent_review": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1"
+      },
+      "Sources/DICOMWeb/DICOMwebClient.swift": {
+        "implementation_epoch": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+        "final_freeze": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+        "current": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+        "independent_review": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8"
+      },
+      "Sources/DICOMWeb/UPS/UPSCreateIdentity.swift": {
+        "implementation_epoch": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b",
+        "final_freeze": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b",
+        "current": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b",
+        "independent_review": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b"
+      },
+      "Tests/DICOMWebTests/UPSCreateIdentityTests.swift": {
+        "implementation_epoch": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4",
+        "final_freeze": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4",
+        "current": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4",
+        "independent_review": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4"
+      }
+    },
+    "basis": "All four UPS implementation/test files match across interim implementation receipt, final freeze, current source and independent review. Later production delta binds JSON decoder text context; UPS create/get use raw dictionaries or typed models and do not traverse it. Retain the earlier actual CLI binary identity.",
+    "native": "Root CUA quit→absence→exact-path relaunch receipt records PID72477; independently rehashed all14 app files equal the final manifest. Only the three repaired native actions are attributed to this new app.",
+    "retained_native": "Other27 groups retain original actual epochs plus scoped source/method equivalence, not rerun claims."
+  },
+  "retained_limits": [
+    "No native C-CANCEL button-origin claim: controlled peer FE00 checks client reporting; no C-STORE performed in cancellation peer.",
+    "Restart uses actual SIGTERM exit−15; no graceful-shutdown or power-loss claim.",
+    "MPPS terminal N-SET capture is not persisted lifecycle qualification; only generated PPS end date/time normalized.",
+    "Stale Interactive import has no supported native route and remains unexecuted; model refusal evidence is separately attributed.",
+    "UPS Basic auth header inspected against non-enforcing synthetic peer; CLI counterpart has no Basic flag. Bearer/none are preview-only.",
+    "UPS compact DT verified through create-json; native Scheduled Start field expects ISO8601. Generic UPS attribute update remains backend-only.",
+    "Identity, body preservation, duplicate handling and DT are scoped; this peer is not a complete UPS IOD/server.",
+    "CLI has no UPS --timeout flag; it uses configuration defaults30/60/300s. Native timeout60 was selected. Successful cases make no timeout-equivalence claim.",
+    "Initial recipe supplied unsupported --timeout and failed exit64 before HTTP; preserved separately, not counted among five corrected cases.",
+    "Native Basic and unauthenticated CLI intentionally differ; no credential-enforcement claim.",
+    "Earlier UPS permissive-peer acceptance is superseded only for these repaired identity cases; earlier failure/parity records remain.",
+    "Generic240px clipping and SR185px ellipsis remain bounded UI limits with observed operability and full semantic values.",
+    "Two opt-in XCTest harness skips remain unexecuted. No full server strict-identity/authentication/UPS-IOD, physical-printer, other-platform or full TLS-profile qualification."
+  ],
+  "supersedes": [
+    "independent-final-native-scope-review.json FINAL13-partial recommendation",
+    "independent-repair-build-acceptance.json native-pending status",
+    "independent-ups-json-repair-review.json native-pending status",
+    "Old native-ups-verification.json gap is repaired only in this new epoch; earlier failed request/parity evidence remains preserved."
+  ],
+  "pending": [
+    "Exact-head remote CI after final push",
+    "Canonical evidence/docs reconciliation and same-branch push; user retains merge authority"
+  ],
+  "evidence_sha256": {
+    "strict-ups-final-verification.json": "610317d4a9792269d1bdd27ff22d24b0fb0cf0ad693b7468b781ab1ee313766d",
+    "native-app-relaunch-verification.json": "e363a5a72c244ef813fd3ee63f27dd02171c9c0e017c4900698345793404f72e",
+    "owned-strict-native-peer-cleanup.json": "5f3b928ac93dd38659ddc6c50db3e5c0fe76699d7015fb813b46bd1f3ad2af54",
+    "implementation-test-receipt.json": "a857038944fd467d64adc0ad50b0ffe0e32132af82e93b8aa65d6013e82d3044",
+    "ups-native-identity.json": "235f81a2b17ad50d1a24ad7cc6ecad160b4bb2f87e8924a501fb1b3ad7da3f7f",
+    "ups-native-source-hashes.json": "74fcd858623de80d04832169878aecb1a9d77e747e740941f1efbb2d60f82efc",
+    "ups-native-artifact-hashes.json": "2e9e24ea3612857b7ae053ebc6c883380f683b533d734bdd0ed1394ad11d0f0e",
+    "independent-repair-build-acceptance.json": "141600e3cacba4a0b9bae3139d98984c80ed3af9760d522648531d41e3ae4e7e",
+    "independent-ups-json-repair-review.json": "48db733795d1866c06bbf3e1ad944e847c18de36ab618dcb8472652a5ea372bb",
+    "root-final-repair-verification.json": "081aa76726ff1714a60fd9b226e5409c3c9c9c75e80b8cb2a491fb10bb946d8d",
+    "ui/ups-identity-create.txt": "1362173db0fc0cf86a77dfdb48ff6e2fa1d9fbf12f0b78703a03ab8b0c62a777",
+    "ui/ups-identity-get.txt": "36a80f6b415694d128f58164ccc15216a8294ee422d1b9c4df9379be50dc63d9",
+    "ui/ups-identity-invalid.txt": "a9bec8cc1da8fcc8ff6ba0cbdcd351dc3f66bcac685211dcbb9516c19416c9ef",
+    "peer-native-resume-01/request-001.json": "18c918edf6b2c30a03c55ad838facae475a173d55337cff83262ff9308315378",
+    "peer-native-resume-01/request-002.json": "903e231388de110c6fee831de3ca61766bcb0e803e9315ffd69f864b93dc6cc1",
+    "peer-native-resume-01/state.json": "636875ec2a78b84f38479de58817fe94789627d9540ff8acd0aac37cec0044d4",
+    "peer-native-resume-01/finished.json": "73e3d27541426d3756df447e473d8785f7abd345917e404f879a177e470f6e56"
+  },
+  "execution_boundary": "Read-only hashes and audit recomputation with write interception. No product/network/UI rerun, source edit, signing change or Git mutation by this reviewer."
+}

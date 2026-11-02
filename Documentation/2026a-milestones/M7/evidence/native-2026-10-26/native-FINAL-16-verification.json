@@ -1,0 +1,199 @@
+{
+  "recorded_utc": "2026-10-26T07:48:24.089141+00:00",
+  "qualification_epoch": "final-qualified-native app-menu-rerun",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+  "identity_sha256": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+  "native_executions_observed": 2,
+  "preflight_only_observations": 0,
+  "checks": [
+    {
+      "case": "phi-false",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm"
+    },
+    {
+      "case": "phi-false",
+      "assertion": "exactly one visible PHI override control with intended state",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "pixel cleaning explicitly disabled",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "refused metadata-only PHI request creates no output",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "native status matches expected outcome",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "native actual argv equivalent to CLI including documented defaults",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "complete current native console equals paired CLI payload",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "source fixture unchanged",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm"
+    },
+    {
+      "case": "phi-true",
+      "assertion": "exactly one visible PHI override control with intended state",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "pixel cleaning explicitly disabled",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "PatientIdentityRemoved CS stays NO",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "uncleaned pixels remain identical to original and CLI",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "native file-meta and root identity synchronized",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "entire dataset semantics equal CLI except exactly three generated identity UIDs",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "three anonymized identity UIDs are regenerated and syntactically valid",
+      "passed": true
+    },
+    {
+      "case": "copied-command",
+      "assertion": "copied true override matches CLI and appears exactly once",
+      "passed": true,
+      "details": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/FINAL-16-copied-command.txt",
+        "sha256": "cbd2c936f65cb6a4e9c71649ad5f87c71a29ce2d052482eac6e5162cea7d9ab5"
+      }
+    },
+    {
+      "case": "phi-retention-final-advanced.txt",
+      "assertion": "mode change retains exactly one visible enabled binding",
+      "passed": true,
+      "details": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-retention-final-advanced.txt",
+        "sha256": "2c717ecd1fc9c1cfc457ae8ff37b5653436ebcb18bc442f8c2a3456913b7009a"
+      }
+    },
+    {
+      "case": "phi-retention-final-beginner-expanded.txt",
+      "assertion": "mode change retains exactly one visible enabled binding",
+      "passed": true,
+      "details": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-retention-final-beginner-expanded.txt",
+        "sha256": "18bd2b993d6c8a9aaf09204e3a518b85dba2ece2712963ad701ab25955540631"
+      }
+    },
+    {
+      "case": "phi-retention-final-beginner-expanded.txt",
+      "assertion": "Beginner advanced disclosure explicitly expanded",
+      "passed": true
+    }
+  ],
+  "passed": 22,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "phi-false",
+      "type": "execution",
+      "status": "ERROR",
+      "captured_argv": [
+        "dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm",
+        "--no-clean-pixel-data",
+        "--redact-style",
+        "blank",
+        "--redact-fill",
+        "black"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-false-before.txt": "b16d68e4fde889bd17c94f95ac92c12b7196512fd84a69a0e5a3813d3b8a617f",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-false-after.txt": "9627a3d6d3109b64408b087b7ef24b8b0d42585d3b2545efdc479eb07bf782e6"
+      },
+      "full_console_compared": true
+    },
+    {
+      "id": "phi-true",
+      "type": "execution",
+      "status": "SUCCESS",
+      "captured_argv": [
+        "dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm",
+        "--no-clean-pixel-data",
+        "--redact-style",
+        "blank",
+        "--redact-fill",
+        "black",
+        "--allow-burned-in-phi"
+      ],
+      "evidence": {
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-true-before.txt": "a1f3f0055394c7c4ea808878ce3362ac003a6d271c1b9ea1f12582e3a080d30c",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/phi-true-after.txt": "4c5b1abb0be08e16fc580f2a1f68d3e791c180e6963b6e8b8182da178bbf6f26"
+      },
+      "full_console_compared": true,
+      "output_sha256": "6bac1380f25d1949244fbffaa2e189226acff6d8a239421926012d53768aec4a",
+      "semantic_comparison_exclusions": [
+        "SOPInstanceUID",
+        "StudyInstanceUID",
+        "SeriesInstanceUID"
+      ],
+      "not_compared_as_bytes": "Generated UIDs intentionally differ between independent anonymization runs."
+    }
+  ],
+  "completion": "All scoped subcases substantiated; parent final acceptance remains separate.",
+  "execution_boundary": "Read-only saved artifacts, AX/clipboard captures, source and file hashes. No native UI, product run or build by this checker.",
+  "limits": [
+    "Earlier mode-B capture hid advanced options; it is not evidence of value loss. Final reexpanded Beginner and Advanced captures eachshow exactlyone enabledcontrol.",
+    "Generated identity UIDs differ intentionally; defined metadata/pixel semantics compared instead of whole-file bytes."
+  ],
+  "CLI_default_normalization": {
+    "redact-style": "blank",
+    "redact-fill": "black",
+    "source": "Sources/dicom-anon/DICOMAnon.swift:107-119 and Sources/DICOMKit/Anonymization/PixelCleaningWorkflow.swift:106-108"
+  }
+}

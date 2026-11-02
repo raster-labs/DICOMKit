@@ -1,0 +1,55 @@
+name: Studio contracts
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/DICOMToolbox/**'
+      - 'Sources/DICOMKit/Scripting/**'
+      - 'Sources/DICOMKit/Anonymization/**'
+      - 'Sources/DICOMCore/**'
+      - 'Sources/dicom-anon/**'
+      - 'Sources/dicom-script/**'
+      - 'Sources/dicom-info/**'
+      - 'Sources/dicom-qr/**'
+      - 'Sources/dicom-server/**'
+      - 'Sources/dicom-mwl/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m5*'
+      - 'Scripts/generate_m5_sr_precision_fixture.py'
+      - 'Scripts/verify_m2_attributes.py'
+      - 'Scripts/verify_m4_durability.py'
+      - 'Scripts/verify_m3_queries.py'
+      - '.github/scripts/select-swift-toolchain.sh'
+      - 'Package.*'
+      - '.github/workflows/studio-contracts.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  studio:
+    name: M5 Studio, Toolbox and script contracts
+    runs-on: xcode-27
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Verify Studio contracts against checked out sources
+        run: bash Scripts/verify_m5.sh m5-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-contracts-${{ github.sha }}
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m5-verification/**/*.log
+            m5-verification/**/*.json
+            m5-verification/**/*.txt

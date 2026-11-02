@@ -1,0 +1,40 @@
+OVERVIEW: Export multi-frame DICOM as animated GIF
+
+USAGE: dicom-export animate <input> --output <output> [--fps <fps>] [--loop-count <loop-count>] [--apply-window] [--window-center <window-center>] [--window-width <window-width>] [--start-frame-number <start-frame-number>] [--end-frame-number <end-frame-number>] [--start-frame <start-frame>] [--end-frame <end-frame>] [--scale <scale>]
+
+ARGUMENTS:
+  <input>                 Path to multi-frame DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output GIF file path
+  --fps <fps>             Frames per second. Default: the file's Recommended
+                          Display Frame Rate (0008,2144), else Cine Rate
+                          (0018,0040), else 1000 / Frame Time (0018,1063)
+                          (msec), else 10
+  --loop-count <loop-count>
+                          Number of loops (0 = infinite) (default: 0)
+  --apply-window          Use --window-center/--window-width (LINEAR, PS3.3
+                          C.11.2.1.2.1). Without it the file's VOI is applied:
+                          Window Center (0028,1050) and Window Width
+                          (0028,1051), else VOI LUT Sequence (0028,3010), else
+                          the full pixel range
+  --window-center <window-center>
+                          Window Center (0028,1050) in modality units (after
+                          Rescale Slope/Intercept); needs --apply-window and
+                          --window-width
+  --window-width <window-width>
+                          Window Width (0028,1051) in modality units, >= 1;
+                          needs --apply-window and --window-center
+  --start-frame-number <start-frame-number>
+                          First frame, Frame number from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --end-frame-number <end-frame-number>
+                          Last frame, Frame number from 1, inclusive (default:
+                          the last frame)
+  --start-frame <start-frame>
+                          deprecated: 0-based index; use --start-frame-number
+  --end-frame <end-frame> deprecated: 0-based index; use --end-frame-number
+  --scale <scale>         Scale factor (0.1-2.0) (default: 1.0)
+  --version               Show the version.
+  -h, --help              Show help information.
+

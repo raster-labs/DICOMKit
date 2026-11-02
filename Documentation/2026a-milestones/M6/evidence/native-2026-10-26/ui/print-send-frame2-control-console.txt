@@ -1,0 +1,34 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm
+
+{
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+  "success" : true
+}
+
+			5 scroll bar (disabled, settable, float) 1
+		6 button Cancel
+		7 button Import
+8 menu bar
+	9 DICOMStudio
+	10 File
+	11 Edit
+	12 View
+	13 Image
+	14 Window
+	15 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-print send --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json --copies 1 --film-size 14x17 --orientation portrait --priority medium --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --retries 0 -- pacs://127.0.0.1:21113 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/frame2.dcm
+
+{
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650367.49653",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.1792992575650053.818887",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.1792992575651299.634800",
+  "success" : true
+}

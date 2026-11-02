@@ -1,0 +1,33 @@
+{
+  "utc": "2026-10-24T15:45:26.605800+00:00",
+  "verdict": "No concrete pre-commit blocker identified",
+  "blockingFindings": [],
+  "productionScope": "Only qualification-discovered repairs: JPEG Extended mono8 SOF1, native PixelData OW/even padding, implicit eager PixelData OW, and explicit server TLS refusal before effects. No unrelated enhancement found.",
+  "regressionScope": "Focused codec/native attribute and TLS refusal tests; opt-in runtime TLS harness; synthetic/legal fixture repair, safe shell argv assertions, precision expectations and external binary-directory configuration. Existing assertions strengthened rather than weakened.",
+  "privacyInspection": {
+    "filesScanned": 3084,
+    "archiveMembersScanned": 27,
+    "privateKeyOrTokenOrCredentialURLHits": 0,
+    "sensitiveKeyFilenames": 0,
+    "DICOMFilesParsed": 366,
+    "expectedMalformedFixture": "evidence/integrated-final/m4/durability/corrupt-file/bad.dcm",
+    "DICOMMetadata": "All observed patient names/IDs and dates belong to synthetic milestone generators; no clinical identifying source observed.",
+    "pemHeaders": {
+      "evidence/tls-qualified/ca.pem": "-----BEGIN CERTIFICATE-----",
+      "evidence/tls-qualified/wrong-host.pem": "-----BEGIN CERTIFICATE-----",
+      "evidence/tls-qualified/localhost.pem": "-----BEGIN CERTIFICATE-----",
+      "evidence/tls-qualified/wrong-ca.pem": "-----BEGIN CERTIFICATE-----"
+    },
+    "notes": "Historical local workspace paths remain as intentional provenance; no private-key payloads are present. This is a bounded inspection, not a universal secret detector."
+  },
+  "frozenSource": "Product and Swift test hashes remain unchanged from the qualification manifest; source-overlay27members match it.",
+  "permittedPostBuildDrift": [
+    "Scripts/diff_studio_g1.py",
+    "Scripts/diff_studio_g6.py",
+    "Scripts/test_studio_audit_m7.py",
+    ".github/workflows/audit-tooling.yml"
+  ],
+  "postBuildDriftScope": "Parent explicitly confirmed allfour audit-only files. Workflow edit expands unittest discovery to include M7 audit regressions; it does not change product build inputs.",
+  "retainedEvidence": "work/m7/codec-final-review.json remains valid; no repeat codec campaign, build or product test was run.",
+  "acceptance": "M7 docs accurately keep native GUI acceptance blocked and M7 incomplete; 78codecpasses,10refusals,2limits remain separated."
+}

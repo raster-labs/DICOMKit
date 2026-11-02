@@ -1,0 +1,4 @@
+Error: Missing expected argument '--archive <archive>'
+Help:  --archive <archive>  Path to the archive
+Usage: dicom-archive export --archive <archive> --output <output> [--study-uid <study-uid>] [--series-uid <series-uid>] [--patient-id <patient-id>] [--flatten] [--verbose]
+  See 'dicom-archive export --help' for more information.

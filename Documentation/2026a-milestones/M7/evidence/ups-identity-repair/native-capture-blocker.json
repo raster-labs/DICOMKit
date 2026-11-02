@@ -1,0 +1,15 @@
+{
+  "recorded_utc": "2026-10-26T08:43:55.375191+00:00",
+  "status": "pending_native_access",
+  "observed": "ScreenCaptureKit SCStreamErrorDomain -3811: Failed to start stream due to audio/video capture failure",
+  "attempts": [
+    "Existing app binding AX",
+    "Rebind app",
+    "Fresh CUA runtime and app binding",
+    "Later retry"
+  ],
+  "inventory": "DICOMStudio reported running; this does not prove an accessible window",
+  "user_requested_action": "Keep Mac awake and bring DICOMStudio to front; asynchronous question pending",
+  "native_ups_repair_retest": "not executed; must not be marked passed",
+  "other_work": "UPS repair, automated tests and strict CLI peer checks continue"
+}

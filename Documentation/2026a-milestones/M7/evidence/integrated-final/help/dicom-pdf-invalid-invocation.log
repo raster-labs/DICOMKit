@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input file or directory (DICOM or document)
+Usage: dicom-pdf [<options>] <input>
+  See 'dicom-pdf --help' for more information.

@@ -1,0 +1,20 @@
+[
+  {
+    "console" : "$ dicom-query 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --level study --study-uid 1.2.826.0.1.3680043.10.543.301 --timeout 5 --format json\n\n[\n  {\n    \"(0008,0020)\" : \"20260115\",\n    \"(0008,0030)\" : \"101500\",\n    \"(0008,0050)\" : \"ACC-A\",\n    \"(0008,0052)\" : \"STUDY\",\n    \"(0008,0054)\" : \"M4SCP\",\n    \"(0008,0061)\" : \"CT\",\n    \"(0008,1030)\" : \"Chest synthetic\",\n    \"(0010,0010)\" : \"Müller^Synthetic\",\n    \"(0010,0020)\" : \"P1\",\n    \"(0010,0030)\" : \"19700101\",\n    \"(0020,000D)\" : \"1.2.826.0.1.3680043.10.543.301\",\n    \"(0020,0010)\" : \"ST-A\"\n  }\n]\n",
+    "exit" : 0,
+    "name" : "query",
+    "preview" : "dicom-query 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --level study --study-uid 1.2.826.0.1.3680043.10.543.301 --timeout 5 --format json"
+  },
+  {
+    "console" : "$ dicom-retrieve 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --method c-get --study-uid 1.2.826.0.1.3680043.10.543.301 --output \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get --parallel 1 --priority medium --timeout 5\n\nDICOM Retrieve (C-GET)\n======================\n  Server:            127.0.0.1:59027\n  Calling AE Title:  M4CLIENT\n  Called AE Title:   M4SCP\n  Method:            C-GET\n  Level:             STUDY\n  Study UID:         1.2.826.0.1.3680043.10.543.301\n  Output:            \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get\n  Organization:      Flat\n  Timeout:           5s\n\nExecuting C-GET...\n\n✅ C-GET completed — 1 file(s) received\n",
+    "exit" : 0,
+    "name" : "get",
+    "preview" : "dicom-retrieve 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --method c-get --study-uid 1.2.826.0.1.3680043.10.543.301 --output \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get --parallel 1 --priority medium --timeout 5"
+  },
+  {
+    "console" : "$ dicom-retrieve 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --method c-move --move-dest M4DEST --study-uid 1.2.826.0.1.3680043.10.543.301 --output \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get --parallel 1 --priority medium --timeout 5\n\nDICOM Retrieve (C-MOVE)\n=======================\n  Server:            127.0.0.1:59027\n  Calling AE Title:  M4CLIENT\n  Called AE Title:   M4SCP\n  Method:            C-MOVE\n  Move Destination:  M4DEST\n  Level:             STUDY\n  Study UID:         1.2.826.0.1.3680043.10.543.301\n  Output:            \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get\n  Organization:      Flat\n  Timeout:           5s\n\nExecuting C-MOVE...\nC-MOVE Result:\n  Status:            Success (0x0000): Sub-operations Complete - No Failures\n  Number of Completed Sub-operations: 1\n  Number of Failed Sub-operations: 0\n  Number of Warning Sub-operations: 0\n\n✅ Retrieval successful\n",
+    "exit" : 0,
+    "name" : "move",
+    "preview" : "dicom-retrieve 127.0.0.1:59027 --aet M4CLIENT --called-aet M4SCP --method c-move --move-dest M4DEST --study-uid 1.2.826.0.1.3680043.10.543.301 --output \/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m4\/durability\/workshop-get --parallel 1 --priority medium --timeout 5"
+  }
+]

@@ -1,0 +1,38 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 598]
+[Planning deferred tasks]
+[2 / 25] J2KCodecNEON
+[5 / 6] dicom-retrieveTests-product
+[7 / 7] dicom-retrieveTests-product
+Build complete! (1.19 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:53:12.731.
+Test Suite 'dicom-retrieveTests.xctest' started at 2026-10-24 20:53:12.736.
+Test Suite 'RetrieveOptionTests' started at 2026-10-24 20:53:12.736.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testBaselineStillNeedsAboveLevelUIDs]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testBaselineStillNeedsAboveLevelUIDs]' passed (0.006 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testExecutorConfigurationCarriesPriorityAndNegotiation]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testExecutorConfigurationCarriesPriorityAndNegotiation]' passed (0.000 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testFinalResponseWordingIsTheSharedReport]' started.
+Failed SOP Instance UID List (0008,0058), 1 UID(s):
+  1.2.3
+Final C-MOVE response: Warning (0xB000): Sub-operations Complete - One or more Failures — Number of Completed Sub-operations: 2, Number of Failed Sub-operations: 1, Number of Warning Sub-operations: 0
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testFinalResponseWordingIsTheSharedReport]' passed (0.000 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testHeaderShowsPriorityOnlyWhenNotDefault]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testHeaderShowsPriorityOnlyWhenNotDefault]' passed (0.000 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testHelpCitesTheStandardValues]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testHelpCitesTheStandardValues]' passed (0.002 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testPriorityDefaultsToMediumAndParses]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testPriorityDefaultsToMediumAndParses]' passed (0.005 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testPriorityValuesMatchPS37]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testPriorityValuesMatchPS37]' passed (0.000 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testRelationalRetrieveAcceptsTheLevelUIDAlone]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testRelationalRetrieveAcceptsTheLevelUIDAlone]' passed (0.008 seconds).
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testRetrieveKeysFromGivenUIDs]' started.
+Test Case '-[dicom_retrieveTests.RetrieveOptionTests testRetrieveKeysFromGivenUIDs]' passed (0.000 seconds).
+Test Suite 'RetrieveOptionTests' passed at 2026-10-24 20:53:12.759.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.023) seconds
+Test Suite 'dicom-retrieveTests.xctest' passed at 2026-10-24 20:53:12.759.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.023) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:12.759.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.023 (0.028) seconds

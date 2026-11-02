@@ -1,0 +1,33 @@
+OVERVIEW: DICOMDIR management tool for media storage directories
+
+Create, update, validate, and manage DICOMDIR files for CD/DVD/USB media.
+
+DICOMDIR is a special DICOM file that provides an index of all DICOM files
+on removable media, enabling efficient browsing without reading all files.
+
+Examples:
+  # Create DICOMDIR for a directory of DICOM files
+  dicom-dcmdir create study_folder/ --output DICOMDIR
+  
+  # Validate an existing DICOMDIR
+  dicom-dcmdir validate /media/cdrom/DICOMDIR
+  
+  # Display DICOMDIR structure
+  dicom-dcmdir dump DICOMDIR --format tree
+  
+  # Update DICOMDIR with new files
+  dicom-dcmdir update DICOMDIR --add new_series/
+
+USAGE: dicom-dcmdir <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  create                  Create a DICOMDIR from a directory of DICOM files
+  validate                Validate a DICOMDIR file
+  dump                    Display DICOMDIR structure
+  update                  Update an existing DICOMDIR with new files
+
+  See 'dicom-dcmdir help <subcommand>' for detailed help.

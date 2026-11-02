@@ -1,0 +1,268 @@
+{
+  "binary": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+  "sha256": "669fd8101413db95d73d58a503c6fcab05ab159b9b502b5d8b0352716181f37f",
+  "scriptSHA256": "e9f8d9b1272006f9f3d12b89dca650617de1acbd5841c2da5054bcf6e8a15fd7",
+  "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "machine": "arm64",
+  "pydicom": "3.0.1",
+  "pynetdicom": "3.0.4",
+  "Pillow": "13.0.0",
+  "fixtures": {
+    "gray8": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+    "gray12": "a91b61e304fc09edcb6529b6ba8bb7b7885427a0be83f3b746edc476d0042fd3",
+    "rgb8": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a"
+  },
+  "externalTools": {
+    "dcmcjpeg": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmcjpeg",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmcjpeg",
+      "sha256": "28707b3dd7dcbd0b2f710ae691602c07c460bf9917d9b944da7cfa052095b120",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmcjpeg",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmcjpeg v3.7.0 2025-12-15 $\n\ndcmcjpeg: Encode DICOM file to JPEG transfer syntax\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- IJG, Version 6b  27-Mar-1998 (modified)\n"
+    },
+    "dcmdjpeg": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmdjpeg",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmdjpeg",
+      "sha256": "e79c122a34c49c69b57e7e61d556589b9ea220e9fe478d39ef89f5ecc7f7a440",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmdjpeg",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmdjpeg v3.7.0 2025-12-15 $\n\ndcmdjpeg: Decode JPEG-compressed DICOM file\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- IJG, Version 6b  27-Mar-1998 (modified)\n"
+    },
+    "dcmcjpls": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmcjpls",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmcjpls",
+      "sha256": "8bd81fcf559cd98c93d9903eac5bef4145e15fc3a6a753c8bfc3ef5970fe018c",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmcjpls",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmcjpls v3.7.0 2025-12-15 $\n\ndcmcjpls: Encode DICOM file to JPEG-LS transfer syntax\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- CharLS, Version 1.0 (modified)\n"
+    },
+    "dcmdjpls": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmdjpls",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmdjpls",
+      "sha256": "c49a3bca50e2b4596794cb99106db3e0e20f81dc100b779ff82eee31130a047d",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmdjpls",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmdjpls v3.7.0 2025-12-15 $\n\ndcmdjpls: Decode JPEG-LS compressed DICOM file\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n- CharLS, Version 1.0 (modified)\n"
+    },
+    "dcmcrle": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmcrle",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmcrle",
+      "sha256": "6e3aa9c5c27c2a29cb504423822c1cb824f1fcc846087b519fc42c3cb92f9f1b",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmcrle",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmcrle v3.7.0 2025-12-15 $\n\ndcmcrle: Encode DICOM file to RLE transfer syntax\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n"
+    },
+    "dcmdrle": {
+      "available": true,
+      "path": "/opt/homebrew/bin/dcmdrle",
+      "resolvedPath": "/opt/homebrew/Cellar/dcmtk/3.7.0/bin/dcmdrle",
+      "sha256": "d63743af7ec1dc8f0af0dc7562e2c502e81c3af9f38a7b51de30e822de7c8daf",
+      "versionProbe": [
+        "/opt/homebrew/bin/dcmdrle",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "$dcmtk: dcmdrle v3.7.0 2025-12-15 $\n\ndcmdrle: Decode RLE-compressed DICOM file\n\nHost type: arm64-Darwin\nCharacter encoding: UTF-8\nBuild options: shared cxx11 threads lfs extern-dict dcmdictpath char-conv\n\nExternal libraries used:\n- ZLIB, Version 1.2.12\n"
+    },
+    "cjxl": {
+      "available": true,
+      "path": "/opt/homebrew/bin/cjxl",
+      "resolvedPath": "/opt/homebrew/Cellar/jpeg-xl/0.12.0/bin/cjxl",
+      "sha256": "582c6dea494b08639ce0aff765b7b6feae1a5d8f1f1a856685f107dac3304320",
+      "versionProbe": [
+        "/opt/homebrew/bin/cjxl",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "cjxl v0.12.0 0.12.0 [_NEON_BF16_,NEON] {AppleClang 21.0.0.21000099}\nCopyright (c) the JPEG XL Project\n"
+    },
+    "djxl": {
+      "available": true,
+      "path": "/opt/homebrew/bin/djxl",
+      "resolvedPath": "/opt/homebrew/Cellar/jpeg-xl/0.12.0/bin/djxl",
+      "sha256": "25e0a5a5ad107352f7e91a1a9c824576e56d2aca2d53708e5d3dc90eeb621566",
+      "versionProbe": [
+        "/opt/homebrew/bin/djxl",
+        "--version"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "djxl v0.12.0 0.12.0 [_NEON_BF16_,NEON] {AppleClang 21.0.0.21000099}\nCopyright (c) the JPEG XL Project\n"
+    },
+    "opj_compress": {
+      "available": true,
+      "path": "/opt/homebrew/bin/opj_compress",
+      "resolvedPath": "/opt/homebrew/Cellar/openjpeg/2.5.4/bin/opj_compress",
+      "sha256": "faaaf7fb212b40f07989ff12c5a9e8a6a30b917b7a54c3603dad0be36d9f98f9",
+      "versionProbe": [
+        "/opt/homebrew/bin/opj_compress",
+        "-h"
+      ],
+      "versionProbeExit": 1,
+      "versionOrHelp": "\nThis is the opj_compress utility from the OpenJPEG project.\nIt compresses various image formats with the JPEG 2000 algorithm.\nIt has been compiled against openjp2 library v2.5.4.\n\nDefault encoding options:\n-------------------------\n\n * Lossless\n * 1 tile\n * RGB->YCC conversion if at least 3 components\n * Size of precinct : 2^15 x 2^15 (means 1 precinct)\n * Size of code-block : 64 x 64\n * Number of resolutions: 6\n * No SOP marker in the codestream\n * No EPH marker in the codestream\n * No sub-sampling in x or y direction\n * No mode switch activated\n * Progression order: LRCP\n * No ROI upshifted\n * No offset of the origin of the image\n * No offset of the origin of the tiles\n * Reversible DWT 5-3\n\nNote:\n-----\n\nThe markers written to the main_header are : SOC SIZ COD QCD COM.\nCOD and QCD never appear in the tile_header.\n\nParameters:\n-----------\n\nRequired Parameters (except with -h):\nOne of the two options -ImgDir or -i must be used\n\n-i <file>\n    Input file\n    Known extensions are <PBM|PGM|PPM|PNM|PAM|PGX|PNG|BMP|TIF|TIFF|RAW|YUV|RAWL|TGA>\n    If used, '-o <file>' must be provided\n-o <compressed file>\n    Output file (accepted extensions are j2k or jp2).\n-ImgDir <dir>\n    Image file Directory path (example ../Images) \n    When using this option -OutFor must be used\n-OutFor <J2K|J2C|JP2>\n    Output format for compressed files.\n    Required only if -ImgDir is used\n-F <width>,<height>,<ncomp>,<bitdepth>,{s,u}@<dx1>x<dy1>:...:<dxn>x<dyn>\n    Characteristics of the raw or yuv input image\n    If subsampling is omitted, 1x1 is assumed for all components\n     Example: -F 512,512,3,8,u@1x1:2x2:2x2\n              for raw or yuv 512x512 size with 4:2:0 subsampling\n    Required only if RAW or RAWL input file is provided.\n\nOptional Parameters:\n\n-h\n    Display the help information.\n-r <compression ratio>,<compression ratio>,...\n    Different compression ratios for successive layers.\n    The rate specified for each quality level is the desired\n    compression factor (use 1 for lossless)\n    Decreasing ratios required.\n      Example: -r 20,10,1 means \n            quality layer 1: compress 20x, \n            quality layer 2: compress 10x \n            quality layer 3: compress lossless\n    Options -r and -q cannot be used together.\n-q <psnr value>,<psnr value>,<psnr value>,...\n    Different psnr for successive layers (-q 30,40,50).\n    Increasing PSNR values required, except 0 which can\n    be used for the last layer to indicate it is lossless.\n    Options -r and -q cannot be used together.\n-n <number of resolutions>\n    Number of resolutions.\n    It corresponds to the number of DWT decompositions +1. \n    Default: 6.\n-TargetBitDepth <target bit depth>\n    Target bit depth.\n    Number of bits per component to use from input image\n    if all bits are unwanted.\n    (Currently only implemented for TIF.)\n-b <cblk width>,<cblk height>\n    Code-block size. The dimension must respect the constraint \n    defined in the JPEG-2000 standard (no dimension smaller than 4 \n    or greater than 1024, no code-block with more than 4096 coefficients).\n    The maximum value authorized is 64x64. \n    Default: 64x64.\n-c [<prec width>,<prec height>],[<prec width>,<prec height>],...\n    Precinct size. Values specified must be power of 2. \n    Multiple records may be supplied, in which case the first record refers\n    to the highest resolution level and subsequent records to lower \n    resolution levels. The last specified record is halved successively for each \n    remaining lower resolution levels.\n    Default: 2^15x2^15 at each resolution.\n-t <tile width>,<tile height>\n    Tile size.\n    Default: the dimension of the whole image, thus only one tile.\n-p <LRCP|RLCP|RPCL|PCRL|CPRL>\n    Progression order.\n    Default: LRCP.\n-s  <subX,subY>\n    Subsampling factor.\n    Subsampling bigger than 2 can produce error\n    Default: no subsampling.\n-POC <progression order change>/<progression order change>/...\n    Progression order change.\n    The syntax of a progression order change is the following:\n    T<tile>=<resStart>,<compStart>,<layerEnd>,<resEnd>,<compEnd>,<progOrder>\n      Example: -POC T1=0,0,1,5,3,CPRL/T1=5,0,1,6,3,CPRL\n-SOP\n    Write SOP marker before each packet.\n-EPH\n    Write EPH marker after each header packet.\n-PLT\n    Write PLT marker in tile-part header.\n-TLM\n    Write TLM marker in main header.\n-M <key value>\n    Mode switch.\n    [1=BYPASS(LAZY) 2=RESET 4=RESTART(TERMALL)\n    8=VSC 16=ERTERM(SEGTERM) 32=SEGMARK(SEGSYM)]\n    Indicate multiple modes by adding their values.\n      Example: RESTART(4) + RESET(2) + SEGMARK(32) => -M 38\n-TP <R|L|C>\n    Divide packets of every tile into tile-parts.\n    Division is made by grouping Resolutions (R), Layers (L)\n    or Components (C).\n-ROI c=<component index>,U=<upshifting value>\n    Quantization indices upshifted for a component. \n    Warning: This option does not implement the usual ROI (Region of Interest).\n    It should be understood as a 'Component of Interest'. It offers the \n    possibility to upshift the value of a component during quantization step.\n    The value after c= is the component number [0, 1, 2, ...] and the value \n    after U= is the value of upshifting. U must be in the range [0, 37].\n-d <image offset X,image offset Y>\n    Offset of the origin of the image.\n-T <tile offset X,tile offset Y>\n    Offset of the origin of the tiles.\n-I\n    Use the irreversible DWT 9-7.\n-mct <0|1|2>\n    Explicitly specifies if a Multiple Component Transform has to be used.\n    0: no MCT ; 1: RGB->YCC conversion ; 2: custom MCT.\n    If custom MCT, \"-m\" option has to be used (see hereunder).\n    By default, RGB->YCC conversion is used if there are 3 components or more,\n    no conversion otherwise.\n-m <file>\n    Use array-based MCT, values are coma separated, line by line\n    No specific separators between lines, no space allowed between values.\n    If this option is used, it automatically sets \"-mct\" option to 2.\n-cinema2K <24|48>\n    Digital Cinema 2K profile compliant codestream.\n\tNeed to specify the frames per second for a 2K resolution.\n    Only 24 or 48 fps are currently allowed.\n-cinema4K\n    Digital Cinema 4K profile compliant codestream.\n\tFrames per second not required. Default value is 24fps.\n-IMF <PROFILE>[,mainlevel=X][,sublevel=Y][,framerate=FPS]\n    Interoperable Master Format compliant codestream.\n    <PROFILE>=2K, 4K, 8K, 2K_R, 4K_R or 8K_R.\n    X >= 0 and X <= 11.\n    Y >= 0 and Y <= 9.\n    framerate > 0 may be specified to enhance checks and set maximum bit rate when Y > 0.\n-GuardBits value\n    Number of guard bits in [0,7] range. Usually 1 or 2 (default value).\n-jpip\n    Write jpip codestream index box in JP2 output file.\n    Currently supports only RPCL order.\n-C <comment>\n    Add <comment> in the comment marker segment.\n-threads <num_threads|ALL_CPUS>\n    Number of threads to use for encoding or ALL_CPUS for all available cores.\n\n"
+    },
+    "opj_decompress": {
+      "available": true,
+      "path": "/opt/homebrew/bin/opj_decompress",
+      "resolvedPath": "/opt/homebrew/Cellar/openjpeg/2.5.4/bin/opj_decompress",
+      "sha256": "29f46b837c299a9001d73ec07ec39f157d80c3fa482c3b91121189302ce0282a",
+      "versionProbe": [
+        "/opt/homebrew/bin/opj_decompress",
+        "-h"
+      ],
+      "versionProbeExit": 1,
+      "versionOrHelp": "\nThis is the opj_decompress utility from the OpenJPEG project.\nIt decompresses JPEG 2000 codestreams to various image formats.\nIt has been compiled against openjp2 library v2.5.4.\n\nParameters:\n-----------\n\n  -ImgDir <directory> \n\tImage file Directory path \n  -OutFor <PBM|PGM|PPM|PNM|PAM|PGX|PNG|BMP|TIF|TIFF|RAW|YUV|RAWL|TGA>\n    REQUIRED only if -ImgDir is used\n\tOutput format for decompressed images.\n  -i <compressed file>\n    REQUIRED only if an Input image directory is not specified\n    Currently accepts J2K-files, JP2-files and JPT-files. The file type\n    is identified based on its suffix.\n  -o <decompressed file>\n    REQUIRED\n    Currently accepts formats specified above (see OutFor option)\n    Binary data is written to the file (not ascii). If a PGX\n    filename is given, there will be as many output files as there are\n    components: an indice starting from 0 will then be appended to the\n    output filename, just before the \"pgx\" extension. If a PGM filename\n    is given and there are more than one component, only the first component\n    will be written to the file.\n  -r <reduce factor>\n    Set the number of highest resolution levels to be discarded. The\n    image resolution is effectively divided by 2 to the power of the\n    number of discarded levels. The reduce factor is limited by the\n    smallest total number of decomposition levels among tiles.\n  -l <number of quality layers to decode>\n    Set the maximum number of quality layers to decode. If there are\n    less quality layers than the specified number, all the quality layers\n    are decoded.\n  -x  \n    Create an index file *.Idx (-x index_name.Idx) \n  -d <x0,y0,x1,y1>\n    OPTIONAL\n    Decoding area\n    By default all the image is decoded.\n  -t <tile_number>\n    OPTIONAL\n    Set the tile number of the decoded tile. Follow the JPEG2000 convention from left-up to bottom-up\n    By default all tiles are decoded.\n  -p <comp 0 precision>[C|S][,<comp 1 precision>[C|S][,...]]\n    OPTIONAL\n    Force the precision (bit depth) of components.\n    There shall be at least 1 value. There is no limit on the number of values (comma separated, last values ignored if too much values).\n    If there are less values than components, the last value is used for remaining components.\n    If 'C' is specified (default), values are clipped.\n    If 'S' is specified, values are scaled.\n    A 0 value can be specified (meaning original bit depth).\n  -c first_comp_index[,second_comp_index][,...]\n    OPTIONAL\n    To limit the number of components to decoded.\n    Component indices are numbered starting at 0.\n  -force-rgb\n    Force output image colorspace to RGB\n  -upsample\n    Downsampled components will be upsampled to image size\n  -split-pnm\n    Split output components to different files when writing to PNM\n  -threads <num_threads|ALL_CPUS>\n    Number of threads to use for decoding or ALL_CPUS for all available cores.\n  -allow-partial\n    Disable strict mode to allow decoding partial codestreams.\n  -quiet\n    Disable output from the library and other output.\n\n"
+    },
+    "ojph_compress": {
+      "available": true,
+      "path": "/opt/homebrew/bin/ojph_compress",
+      "resolvedPath": "/opt/homebrew/Cellar/openjph/0.30.1/bin/ojph_compress",
+      "sha256": "0b0cf790e106cbcfe1e16ab6e7a607328b0c286c428cb1cbdec9ddde3a27a3e4",
+      "versionProbe": [
+        "/opt/homebrew/bin/ojph_compress",
+        "-h"
+      ],
+      "versionProbeExit": 255,
+      "versionOrHelp": "The following arguments were not interpreted:\n-h\n"
+    },
+    "ojph_expand": {
+      "available": true,
+      "path": "/opt/homebrew/bin/ojph_expand",
+      "resolvedPath": "/opt/homebrew/Cellar/openjph/0.30.1/bin/ojph_expand",
+      "sha256": "c6831b19f29824edfa36acb8110bdd4d3cdfecb4acc98f08842d8ea620bbdf3f",
+      "versionProbe": [
+        "/opt/homebrew/bin/ojph_expand",
+        "-h"
+      ],
+      "versionProbeExit": 255,
+      "versionOrHelp": "The following arguments were not interpreted:\n-h\n"
+    },
+    "jxlinfo": {
+      "available": true,
+      "path": "/opt/homebrew/bin/jxlinfo",
+      "resolvedPath": "/opt/homebrew/Cellar/jpeg-xl/0.12.0/bin/jxlinfo",
+      "sha256": "b2380ab9ee8d5b06482a1e48e69ca5ce60ace325ae8ebf36e79bbac8d30c288f",
+      "versionProbe": [
+        "/opt/homebrew/bin/jxlinfo",
+        "--help"
+      ],
+      "versionProbeExit": 0,
+      "versionOrHelp": "Usage: /opt/homebrew/bin/jxlinfo [-v] [-h] INPUT\n  INPUT                  input JPEG XL image filename(s)\n  -v (or --verbose)      more verbose output\n  -h (or --help or -?)   this help)\n"
+    }
+  },
+  "plannedCases": 90,
+  "selectedCases": [
+    "forward-DEFLATE-gray12",
+    "forward-DEFLATE-gray8",
+    "forward-DEFLATE-rgb8",
+    "forward-ExplicitVRBigEndian-gray12",
+    "forward-ExplicitVRBigEndian-gray8",
+    "forward-ExplicitVRBigEndian-rgb8",
+    "forward-ExplicitVRLittleEndian-gray12",
+    "forward-ExplicitVRLittleEndian-gray8",
+    "forward-ExplicitVRLittleEndian-rgb8",
+    "forward-HTJ2KLosslessOnly-gray12",
+    "forward-HTJ2KLosslessOnly-gray8",
+    "forward-HTJ2KLosslessOnly-rgb8",
+    "forward-HTJ2KLossy-gray12",
+    "forward-HTJ2KLossy-gray8",
+    "forward-HTJ2KLossy-rgb8",
+    "forward-HTJ2KRPCLLosslessOnly-gray12",
+    "forward-HTJ2KRPCLLosslessOnly-gray8",
+    "forward-HTJ2KRPCLLosslessOnly-rgb8",
+    "forward-HTJ2KReversible-gray12",
+    "forward-HTJ2KReversible-gray8",
+    "forward-HTJ2KReversible-rgb8",
+    "forward-ImplicitVRLittleEndian-gray12",
+    "forward-ImplicitVRLittleEndian-gray8",
+    "forward-ImplicitVRLittleEndian-rgb8",
+    "forward-JPEG2000LosslessOnly-gray12",
+    "forward-JPEG2000LosslessOnly-gray8",
+    "forward-JPEG2000LosslessOnly-rgb8",
+    "forward-JPEG2000Lossy-gray12",
+    "forward-JPEG2000Lossy-gray8",
+    "forward-JPEG2000Lossy-rgb8",
+    "forward-JPEG2000Part2Lossless-gray12",
+    "forward-JPEG2000Part2Lossless-gray8",
+    "forward-JPEG2000Part2Lossless-rgb8",
+    "forward-JPEG2000Part2LosslessOnly-gray12",
+    "forward-JPEG2000Part2LosslessOnly-gray8",
+    "forward-JPEG2000Part2LosslessOnly-rgb8",
+    "forward-JPEG2000Part2Lossy-gray12",
+    "forward-JPEG2000Part2Lossy-gray8",
+    "forward-JPEG2000Part2Lossy-rgb8",
+    "forward-JPEG2000Reversible-gray12",
+    "forward-JPEG2000Reversible-gray8",
+    "forward-JPEG2000Reversible-rgb8",
+    "forward-JPEGBaseline-gray8",
+    "forward-JPEGBaseline-rgb8",
+    "forward-JPEGExtended-gray12",
+    "forward-JPEGExtended-gray8",
+    "forward-JPEGExtended-rgb8",
+    "forward-JPEGLSLossless-gray12",
+    "forward-JPEGLSLossless-gray8",
+    "forward-JPEGLSLossless-rgb8",
+    "forward-JPEGLSNearLossless-gray12",
+    "forward-JPEGLSNearLossless-gray8",
+    "forward-JPEGLSNearLossless-rgb8",
+    "forward-JPEGLossless-gray12",
+    "forward-JPEGLossless-gray8",
+    "forward-JPEGLossless-rgb8",
+    "forward-JPEGLosslessSV1-gray12",
+    "forward-JPEGLosslessSV1-gray8",
+    "forward-JPEGLosslessSV1-rgb8",
+    "forward-JPEGXLLosslessOnly-gray12",
+    "forward-JPEGXLLosslessOnly-gray8",
+    "forward-JPEGXLLosslessOnly-rgb8",
+    "forward-JPEGXLLossy-gray12",
+    "forward-JPEGXLLossy-gray8",
+    "forward-JPEGXLLossy-rgb8",
+    "forward-JPEGXLRecompression-gray8",
+    "forward-JPEGXLReversible-gray12",
+    "forward-JPEGXLReversible-gray8",
+    "forward-JPEGXLReversible-rgb8",
+    "forward-RLELossless-gray12",
+    "forward-RLELossless-gray8",
+    "forward-RLELossless-rgb8",
+    "reverse-htj-gray12",
+    "reverse-htj-gray8",
+    "reverse-htj-rgb8",
+    "reverse-j2k-gray12",
+    "reverse-j2k-gray8",
+    "reverse-j2k-rgb8",
+    "reverse-jls-gray12",
+    "reverse-jls-gray8",
+    "reverse-jls-rgb8",
+    "reverse-jpeg-gray12",
+    "reverse-jpeg-gray8",
+    "reverse-jpeg-rgb8",
+    "reverse-jxl-gray12",
+    "reverse-jxl-gray8",
+    "reverse-jxl-rgb8",
+    "reverse-rle-gray12",
+    "reverse-rle-gray8",
+    "reverse-rle-rgb8"
+  ],
+  "platform_scope": "Synthetic unsigned 8/12-bit monochrome and RGB8 on the recorded host; no signed/16-bit-stored/multiframe/other-platform or physical-output qualification"
+}

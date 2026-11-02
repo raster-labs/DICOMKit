@@ -1,0 +1,1785 @@
+{
+  "schema_version": 1,
+  "inspected_utc": "2026-10-24T11:04:11.698273+00:00",
+  "scope": "Bounded GUI-created files, 13 level-2 reports, six File Meta level-1/2 reports, and four wrong-VR console captures; artifact checks only.",
+  "inspector": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/inspect-gui-outputs.py",
+  "inspector_sha256": "b2b3969960da24ea2eb1b4ed4919080af21b9ed8b16da23281944a40496e25d4",
+  "validator": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+  "validator_sha256": "11a703ef91fde4c632bb57c80b065bcd4a01a899165449b3d226d7185c2bfe3e",
+  "gui_dir": "/private/tmp/dicomkit-m2-ui",
+  "input_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ui-input-manifest.json",
+  "input_manifest_sha256": "1f5bc08c70bf3c70f36c5088731a9a81784df1c81cd17e389b7c759cfa1970e1",
+  "original_fixture_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/audit_fixtures/m0/fixtures.json",
+  "input_hash_checks": [
+    {
+      "name": "base.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398",
+      "actual_sha256": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398",
+      "passed": true
+    },
+    {
+      "name": "cli-workitem.json",
+      "original_m0_fixture": false,
+      "expected_sha256": "596f4b4a2dbbd9a12811283dd9441fdc56cdf8e245177c2fe40ddd4de55c59dd",
+      "actual_sha256": "596f4b4a2dbbd9a12811283dd9441fdc56cdf8e245177c2fe40ddd4de55c59dd",
+      "passed": true
+    },
+    {
+      "name": "empty-required-meta.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4",
+      "actual_sha256": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4",
+      "passed": true
+    },
+    {
+      "name": "invalid_AS.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "1874a849698cc1a776dbdf6d9a69eeafd105f723aaa65ba175dcfc533874086f",
+      "actual_sha256": "1874a849698cc1a776dbdf6d9a69eeafd105f723aaa65ba175dcfc533874086f",
+      "passed": true
+    },
+    {
+      "name": "invalid_DT.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "80ef30c98da1b5f2d38324f92f61f16e3ae7505ef2580420f6db2f5fc5d81a6c",
+      "actual_sha256": "80ef30c98da1b5f2d38324f92f61f16e3ae7505ef2580420f6db2f5fc5d81a6c",
+      "passed": true
+    },
+    {
+      "name": "invalid_VM.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "a2c9f4beed29541449e7bbfbd6db55cb20b93ef41ece0279154cf11820d2e151",
+      "actual_sha256": "a2c9f4beed29541449e7bbfbd6db55cb20b93ef41ece0279154cf11820d2e151",
+      "passed": true
+    },
+    {
+      "name": "invalid_calendar_date.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "59469d4b5be0155558ed2804ed336d7000faac16b42de7ba1f22cae0777cc2fc",
+      "actual_sha256": "59469d4b5be0155558ed2804ed336d7000faac16b42de7ba1f22cae0777cc2fc",
+      "passed": true
+    },
+    {
+      "name": "japanese.dcm",
+      "original_m0_fixture": false,
+      "expected_sha256": "c855ab2dd0da17e22ecc295a06be97764d08eeaf3561c705b545e2f3180d8729",
+      "actual_sha256": "c855ab2dd0da17e22ecc295a06be97764d08eeaf3561c705b545e2f3180d8729",
+      "passed": true
+    },
+    {
+      "name": "latin1-patient.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7",
+      "actual_sha256": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7",
+      "passed": true
+    },
+    {
+      "name": "nested-invalid-AS.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "0947cf432cbe8ea5c95df9a4894dcde493e2cbb1743ab98f0f4c289d801aa96d",
+      "actual_sha256": "0947cf432cbe8ea5c95df9a4894dcde493e2cbb1743ab98f0f4c289d801aa96d",
+      "passed": true
+    },
+    {
+      "name": "nested-invalid-date.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "65244c54effa97ce439f14a4481f103704c0e723fda9c930e446864f562706a2",
+      "actual_sha256": "65244c54effa97ce439f14a4481f103704c0e723fda9c930e446864f562706a2",
+      "passed": true
+    },
+    {
+      "name": "odd_numeric_length.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "f73e372b797852896555a3094af72b7552d9b74953cc2908ab3244be494e2fc2",
+      "actual_sha256": "f73e372b797852896555a3094af72b7552d9b74953cc2908ab3244be494e2fc2",
+      "passed": true
+    },
+    {
+      "name": "signed.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "4a609c0b8caa34b140c3e0c4661cadb174264fb24ce116c10608b36c5de73634",
+      "actual_sha256": "4a609c0b8caa34b140c3e0c4661cadb174264fb24ce116c10608b36c5de73634",
+      "passed": true
+    },
+    {
+      "name": "studio-workitem.json",
+      "original_m0_fixture": false,
+      "expected_sha256": "5039226c75a62b484718df699a6287976baa885cd3cf48ce9d5bc0df245dca40",
+      "actual_sha256": "5039226c75a62b484718df699a6287976baa885cd3cf48ce9d5bc0df245dca40",
+      "passed": true
+    },
+    {
+      "name": "uid-changed.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a",
+      "actual_sha256": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a",
+      "passed": true
+    },
+    {
+      "name": "unicode-tag-edit.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "92a7abf7413619349ef8e2f4e7b5bda808ac3ee602af2848a7deef2d7cdf4757",
+      "actual_sha256": "92a7abf7413619349ef8e2f4e7b5bda808ac3ee602af2848a7deef2d7cdf4757",
+      "passed": true
+    },
+    {
+      "name": "valid-fraction-DT.dcm",
+      "original_m0_fixture": false,
+      "expected_sha256": "b3ea42638556a435afb563eb6d7271efa1ca1b4ae95e6cdddd7ebf5551c7e9b7",
+      "actual_sha256": "b3ea42638556a435afb563eb6d7271efa1ca1b4ae95e6cdddd7ebf5551c7e9b7",
+      "passed": true
+    },
+    {
+      "name": "valid-leap.dcm",
+      "original_m0_fixture": false,
+      "expected_sha256": "5fec44c3a1169556fcf76d7017e714d58e56517210eab89a2a76f019e6f2f7d7",
+      "actual_sha256": "5fec44c3a1169556fcf76d7017e714d58e56517210eab89a2a76f019e6f2f7d7",
+      "passed": true
+    },
+    {
+      "name": "valid-partial-DT.dcm",
+      "original_m0_fixture": false,
+      "expected_sha256": "af8fb6be0c6ca36e69d3a0867eacb32697f0b6a931414bf0f4f37210ac60fd56",
+      "actual_sha256": "af8fb6be0c6ca36e69d3a0867eacb32697f0b6a931414bf0f4f37210ac60fd56",
+      "passed": true
+    },
+    {
+      "name": "wrong_VR.dcm",
+      "original_m0_fixture": true,
+      "expected_sha256": "4cec66d6e5a94715dea609c0e9a787bf5c9759a9ad8c470bc12524d74e740961",
+      "actual_sha256": "4cec66d6e5a94715dea609c0e9a787bf5c9759a9ad8c470bc12524d74e740961",
+      "passed": true
+    }
+  ],
+  "gui_output_sha256": {
+    "gui-identity-class.dcm": "6392a0bca10363bb9f578c8a8f300fe27de9359d0ff7a0fecc79a9732f78c845",
+    "gui-identity-instance.dcm": "9901f73b52aee0b8175d695f41f45650cb5de230cbfadee6cdfb12713727d641",
+    "gui-signed.dcm": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+    "gui-signed-update.dcm": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f",
+    "gui-unicode.dcm": "fa3c8faed6bec7aec39ff60f0efd5fd2ad5c820e97d7098cde957e3e5810b9ed",
+    "gui-latin-edited.dcm": "93a1eedd5e00f0b915abc99bea01f63138660370514aa2a1407ce3d117435a89",
+    "gui-japanese.dcm": "4c5727b97eb92fb553969a6585b3b69da8b4c3f7dce11a42620caec1bbd1610e",
+    "gui-copy-numeric.dcm": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+    "gui-copy-parenthesized.dcm": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+    "gui-copy-hex.dcm": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+    "gui-copy-keyword.dcm": "e46f69013c0c92de4e2532521ee2b5106a65c626d1fe3dba4bbaa1234d6eb8e0",
+    "gui-copy-compatible.dcm": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7"
+  },
+  "identity_checks": [
+    {
+      "file": "gui-identity-class.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.2",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.2",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-identity-instance.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.222222222",
+      "dataset_instance": "2.25.222222222",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-signed.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-signed-update.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-unicode.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-latin-edited.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-japanese.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-copy-numeric.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-copy-parenthesized.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-copy-hex.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-copy-keyword.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    },
+    {
+      "file": "gui-copy-compatible.dcm",
+      "meta_class": "1.2.840.10008.5.1.4.1.1.7",
+      "dataset_class": "1.2.840.10008.5.1.4.1.1.7",
+      "meta_instance": "2.25.123456789",
+      "dataset_instance": "2.25.123456789",
+      "stored_group_length": 120,
+      "actual_encoded_group_length": 120,
+      "passed": true
+    }
+  ],
+  "checks": [
+    {
+      "check": "all_initial_inputs_unchanged",
+      "passed": true,
+      "count": 20
+    },
+    {
+      "check": "all_14_original_fixtures_unchanged",
+      "passed": true,
+      "count": 14
+    },
+    {
+      "check": "rejected_edit_has_no_output",
+      "passed": true,
+      "file": "gui-invalid.dcm"
+    },
+    {
+      "check": "all_inspected_outputs_identity_and_group_length",
+      "passed": true,
+      "count": 12
+    },
+    {
+      "check": "changed_sop_class",
+      "passed": true,
+      "expected": "1.2.840.10008.5.1.4.1.1.2"
+    },
+    {
+      "check": "changed_sop_instance",
+      "passed": true,
+      "expected": "2.25.222222222"
+    },
+    {
+      "check": "signed_minus_one",
+      "passed": true,
+      "element": {
+        "vr": "SS",
+        "bytes_hex": "ffff",
+        "length": 2
+      },
+      "decoded_signed_value": -1,
+      "pixel_representation": {
+        "vr": "US",
+        "bytes_hex": "0100",
+        "length": 2
+      }
+    },
+    {
+      "check": "existing_signed_value_updated_to_minus_two",
+      "passed": true,
+      "element": {
+        "vr": "SS",
+        "bytes_hex": "feff",
+        "length": 2
+      },
+      "decoded_signed_value": -2
+    },
+    {
+      "check": "existing_signed_update_cli_gui_byte_for_byte_equal",
+      "passed": true,
+      "command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/private/tmp/dicomkit-m2-ui/gui-signed.dcm",
+        "--set",
+        "SmallestImagePixelValue=-2",
+        "--output",
+        "/private/tmp/dicomkit-m2-ui/cli-signed-update.dcm"
+      ],
+      "executed_this_run": true,
+      "exit": 0,
+      "stdout": "Output written to: /private/tmp/dicomkit-m2-ui/cli-signed-update.dcm\n",
+      "stderr": "",
+      "executable_sha256": "a4d729c31203912a6a67dd64106cab11734f1e83ec933166ef8a9b0a0323b058",
+      "input_sha256": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+      "output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f",
+      "gui_output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f"
+    },
+    {
+      "check": "unicode_utf8_declaration_and_bytes",
+      "passed": true,
+      "declaration": "ISO_IR 192",
+      "decoded_patient_name": "Müller^患者",
+      "element": {
+        "vr": "PN",
+        "bytes_hex": "4dc3bc6c6c65725ee682a3e88085",
+        "length": 14
+      }
+    },
+    {
+      "check": "latin1_name_and_leading_whitespace",
+      "passed": true,
+      "declaration": "ISO_IR 100",
+      "decoded_patient_name": "Müller^Jörg",
+      "decoded_description": "  Leading text",
+      "description": {
+        "vr": "LO",
+        "bytes_hex": "20204c656164696e672074657874",
+        "length": 14
+      }
+    },
+    {
+      "check": "japanese_independent_codec_and_unchanged_bytes",
+      "passed": true,
+      "independent_decoder": "Python standard library iso2022_jp (strict)",
+      "declaration": "\\ISO 2022 IR 87",
+      "decoded_patient_name": "Yamada^Tarou=山田^太郎",
+      "element": {
+        "vr": "PN",
+        "bytes_hex": "59616d6164615e5461726f753d1b24423b3345441b28425e1b244242404f3a1b2842",
+        "length": 34
+      }
+    },
+    {
+      "check": "four_selectors_equal_name_and_bytes",
+      "passed": true,
+      "count": 4,
+      "outputs": [
+        {
+          "file": "gui-copy-numeric.dcm",
+          "selector_form": "numeric",
+          "declaration": "ISO_IR 192",
+          "decoded_patient_name": "Müller^Jörg",
+          "element": {
+            "vr": "PN",
+            "bytes_hex": "4dc3bc6c6c65725e4ac3b6726720",
+            "length": 14
+          }
+        },
+        {
+          "file": "gui-copy-parenthesized.dcm",
+          "selector_form": "parenthesized",
+          "declaration": "ISO_IR 192",
+          "decoded_patient_name": "Müller^Jörg",
+          "element": {
+            "vr": "PN",
+            "bytes_hex": "4dc3bc6c6c65725e4ac3b6726720",
+            "length": 14
+          }
+        },
+        {
+          "file": "gui-copy-hex.dcm",
+          "selector_form": "hex",
+          "declaration": "ISO_IR 192",
+          "decoded_patient_name": "Müller^Jörg",
+          "element": {
+            "vr": "PN",
+            "bytes_hex": "4dc3bc6c6c65725e4ac3b6726720",
+            "length": 14
+          }
+        },
+        {
+          "file": "gui-copy-keyword.dcm",
+          "selector_form": "keyword",
+          "declaration": "ISO_IR 192",
+          "decoded_patient_name": "Müller^Jörg",
+          "element": {
+            "vr": "PN",
+            "bytes_hex": "4dc3bc6c6c65725e4ac3b6726720",
+            "length": 14
+          }
+        }
+      ]
+    },
+    {
+      "check": "compatible_copy_preserves_vr_raw_bytes",
+      "passed": true,
+      "destination": {
+        "vr": "PN",
+        "bytes_hex": "4dfc6c6c65725e4af6726720",
+        "length": 12
+      },
+      "source": {
+        "vr": "PN",
+        "bytes_hex": "4dfc6c6c65725e4af6726720",
+        "length": 12
+      },
+      "declaration": "ISO_IR 100"
+    },
+    {
+      "check": "all_report_fields_and_statuses_match_cli_at_same_level",
+      "passed": true,
+      "count": 19,
+      "levels": [
+        1,
+        2
+      ]
+    },
+    {
+      "check": "wrong_vr_console_error_in_all_four_format_strict_combinations",
+      "passed": true,
+      "count": 4
+    },
+    {
+      "check": "inputs_still_unchanged_after_inspection",
+      "passed": true,
+      "count": 20
+    }
+  ],
+  "signed_update_cli_execution": {
+    "command": [
+      "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+      "/private/tmp/dicomkit-m2-ui/gui-signed.dcm",
+      "--set",
+      "SmallestImagePixelValue=-2",
+      "--output",
+      "/private/tmp/dicomkit-m2-ui/cli-signed-update.dcm"
+    ],
+    "executed_this_run": true,
+    "exit": 0,
+    "stdout": "Output written to: /private/tmp/dicomkit-m2-ui/cli-signed-update.dcm\n",
+    "stderr": "",
+    "executable_sha256": "a4d729c31203912a6a67dd64106cab11734f1e83ec933166ef8a9b0a0323b058",
+    "input_sha256": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+    "output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f",
+    "gui_output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f"
+  },
+  "report_comparisons": [
+    {
+      "report": "report-gui-identity-class.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "3bf2ae5e03b7aae2c71dae24929af37f95b2441ab902778c43ce4e7aafce31a5",
+      "input_sha256": "6392a0bca10363bb9f578c8a8f300fe27de9359d0ff7a0fecc79a9732f78c845",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/gui-identity-class.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-gui-identity-instance.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "874eca25cb849c79a79319ee15e370b6d116fdff7d89353677f392e786a421ca",
+      "input_sha256": "9901f73b52aee0b8175d695f41f45650cb5de230cbfadee6cdfb12713727d641",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-gui-signed.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "82bd628f83039d28cc193206fc191fa73ef8b4f210004beb01fe1ad9a9051a38",
+      "input_sha256": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/gui-signed.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-gui-unicode.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "b0d36fa25029619c4523aba6820c46806878c812b1d2b51b9cfa87bc9ae90314",
+      "input_sha256": "fa3c8faed6bec7aec39ff60f0efd5fd2ad5c820e97d7098cde957e3e5810b9ed",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/gui-unicode.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-invalid_AS.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "7b004f78c1c2bee99f849d50228451d00888717c3e9f58052406c752181490c8",
+      "input_sha256": "1874a849698cc1a776dbdf6d9a69eeafd105f723aaa65ba175dcfc533874086f",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/invalid_AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]",
+                "tag": "(0010,1010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]",
+                "tag": "(0010,1010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-invalid_DT.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "40c6a68a67c9103b70a42079f0b9844f44548feecd4327e13b34750d8f2eb465",
+      "input_sha256": "80ef30c98da1b5f2d38324f92f61f16e3ae7505ef2580420f6db2f5fc5d81a6c",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/invalid_DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Invalid date/time format for Acquisition DateTime (expected compact DICOM DT with valid calendar components)",
+                "tag": "(0008,002A)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Invalid date/time format for Acquisition DateTime (expected compact DICOM DT with valid calendar components)",
+                "tag": "(0008,002A)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-invalid_calendar_date.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "2cf1da9efd201ee0cb5e21edbadf40de54dca2c075f9dcd7364284a195f4007d",
+      "input_sha256": "59469d4b5be0155558ed2804ed336d7000faac16b42de7ba1f22cae0777cc2fc",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/invalid_calendar_date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+                "tag": "(0010,0030)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+                "tag": "(0010,0030)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-nested-invalid-AS.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "3659c9ad9d1ccf30b2f54a28d37926c960ac38ad3b3d9658ab989773e23b712f",
+      "input_sha256": "0947cf432cbe8ea5c95df9a4894dcde493e2cbb1743ab98f0f4c289d801aa96d",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "(0008,1110)[1]: Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]",
+                "tag": "(0010,1010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "(0008,1110)[1]: Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1]",
+                "tag": "(0010,1010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-nested-invalid-date.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "4b8f41faa427ab457c436163b5fa05c552d0acefe1927597fbfa3bc0392416ec",
+      "input_sha256": "65244c54effa97ce439f14a4481f103704c0e723fda9c930e446864f562706a2",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/nested-invalid-date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "(0008,1110)[1]: Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+                "tag": "(0010,0030)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "(0008,1110)[1]: Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+                "tag": "(0010,0030)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-valid-fraction-DT.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "7cc07840219c1fb9e800c943ef0a7eb2a7abcc778de8810e3c7eb92f077e3330",
+      "input_sha256": "b3ea42638556a435afb563eb6d7271efa1ca1b4ae95e6cdddd7ebf5551c7e9b7",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/valid-fraction-DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-valid-leap.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "632b7ebead8a6e6b5d496b25d236393bacd3ea189a4987fabb7cde9980326a2a",
+      "input_sha256": "5fec44c3a1169556fcf76d7017e714d58e56517210eab89a2a76f019e6f2f7d7",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/valid-leap.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-valid-partial-DT.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "17a52538d5d31bd017bc08186cc5ef26e7fff8e6b526f6697ae7b801cfeb4e90",
+      "input_sha256": "af8fb6be0c6ca36e69d3a0867eacb32697f0b6a931414bf0f4f37210ac60fd56",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/valid-partial-DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "report-wrong_VR.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "1ef733cab7719c230ad5394bcfe736226d454eb92a2d71c0a66d555277ea8341",
+      "input_sha256": "4cec66d6e5a94715dea609c0e9a787bf5c9759a9ad8c470bc12524d74e740961",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+                "tag": "(0028,0010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+                "tag": "(0028,0010)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-1-empty-required-meta.dcm.json",
+      "level": 1,
+      "gui_report_sha256": "14d6589607602819e61f8e03b92c4b75a0559e4bdd5896be8d7f75b174dec245",
+      "input_sha256": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/empty-required-meta.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 5,
+            "errors": [
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Class UID is empty",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Instance UID is empty",
+                "tag": "(0002,0003)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Implementation Class UID is empty",
+                "tag": "(0002,0012)"
+              },
+              {
+                "message": "File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 5,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 5,
+            "errors": [
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Class UID is empty",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Instance UID is empty",
+                "tag": "(0002,0003)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Implementation Class UID is empty",
+                "tag": "(0002,0012)"
+              },
+              {
+                "message": "File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 5,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-1-uid-changed.dcm.json",
+      "level": 1,
+      "gui_report_sha256": "8c86ef2352bb6ba4c26617a6b3f49e968924c3bd244210d93d5022d30319d278",
+      "input_sha256": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/uid-changed.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-1-base.dcm.json",
+      "level": 1,
+      "gui_report_sha256": "fe0989bef4707233464af242dfe41f03ec71e071bdf42853b9e7bdfb30bd0991",
+      "input_sha256": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/base.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-2-empty-required-meta.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "14d6589607602819e61f8e03b92c4b75a0559e4bdd5896be8d7f75b174dec245",
+      "input_sha256": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/empty-required-meta.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 5,
+            "errors": [
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Class UID is empty",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Instance UID is empty",
+                "tag": "(0002,0003)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Implementation Class UID is empty",
+                "tag": "(0002,0012)"
+              },
+              {
+                "message": "File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 5,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 5,
+            "errors": [
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Class UID is empty",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Media Storage SOP Instance UID is empty",
+                "tag": "(0002,0003)"
+              },
+              {
+                "message": "Type 1 File Meta Information element Implementation Class UID is empty",
+                "tag": "(0002,0012)"
+              },
+              {
+                "message": "File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'",
+                "tag": "(0002,0002)"
+              },
+              {
+                "message": "File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 5,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-2-uid-changed.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "8c86ef2352bb6ba4c26617a6b3f49e968924c3bd244210d93d5022d30319d278",
+      "input_sha256": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/uid-changed.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 1,
+      "expected_exit": 1,
+      "gui_is_valid": false,
+      "cli_is_valid": false,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 1,
+            "errors": [
+              {
+                "message": "File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'",
+                "tag": "(0002,0003)"
+              }
+            ],
+            "isValid": false,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 1,
+        "totalErrors": 1,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 0
+      },
+      "cli_stderr": "",
+      "passed": true
+    },
+    {
+      "report": "meta-2-base.dcm.json",
+      "level": 2,
+      "gui_report_sha256": "fe0989bef4707233464af242dfe41f03ec71e071bdf42853b9e7bdfb30bd0991",
+      "input_sha256": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398",
+      "cli_command": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/private/tmp/dicomkit-m2-ui/base.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json"
+      ],
+      "cli_exit": 0,
+      "expected_exit": 0,
+      "gui_is_valid": true,
+      "cli_is_valid": true,
+      "all_emitted_fields_match_except_path_duration": true,
+      "normalized_gui": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "normalized_cli": {
+        "files": [
+          {
+            "errorCount": 0,
+            "errors": [],
+            "isValid": true,
+            "warningCount": 0,
+            "warnings": []
+          }
+        ],
+        "invalidFiles": 0,
+        "totalErrors": 0,
+        "totalFiles": 1,
+        "totalWarnings": 0,
+        "validFiles": 1
+      },
+      "cli_stderr": "",
+      "passed": true
+    }
+  ],
+  "report_count": 19,
+  "wrong_vr_console_checks": [
+    {
+      "capture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ui/wrong-vr-console-false-json.txt",
+      "sha256": "b42fae80fc2d936e67476283ddebd5b3fbd9d1bc69e7abb931511b8fda33af14",
+      "strict": false,
+      "format": "json",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json",
+      "command_found": true,
+      "settings_match": true,
+      "save_report_field_empty": true,
+      "save_report_field_evidence": [
+        "54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path",
+        "The focused UI element is 54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path"
+      ],
+      "expected_vr_error": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+      "expected_error_in_this_command_output": true,
+      "invalid_status_visible": true,
+      "error_severity_visible": true,
+      "console_error_indicator_visible": true,
+      "output_excerpt": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json\n\n{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/private\\/tmp\\/dicomkit-m2-ui\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"t",
+      "passed": true
+    },
+    {
+      "capture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ui/wrong-vr-console-false-text.txt",
+      "sha256": "3fa113c4e830c44cf5eefb945f400fae35efd357f2d10bd67fcf7a720e5d8a78",
+      "strict": false,
+      "format": "text",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format text",
+      "command_found": true,
+      "settings_match": true,
+      "save_report_field_empty": true,
+      "save_report_field_evidence": [
+        "54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path",
+        "The focused UI element is 54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path"
+      ],
+      "expected_vr_error": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+      "expected_error_in_this_command_output": true,
+      "invalid_status_visible": true,
+      "error_severity_visible": true,
+      "console_error_indicator_visible": true,
+      "output_excerpt": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format text\n\nDICOM Validation Report\n=======================\n\nFile: /private/tmp/dicomkit-m2-ui/wrong_VR.dcm\nStatus: ✗ INVALID\n\nErrors (1):\n  • Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n",
+      "passed": true
+    },
+    {
+      "capture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ui/wrong-vr-console-true-json.txt",
+      "sha256": "822fc79403874d675916e01ed8ddbe61a42b998a665f590b62ebdc2170ae5294",
+      "strict": true,
+      "format": "json",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format json",
+      "command_found": true,
+      "settings_match": true,
+      "save_report_field_empty": true,
+      "save_report_field_evidence": [
+        "54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path",
+        "The focused UI element is 54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path"
+      ],
+      "expected_vr_error": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+      "expected_error_in_this_command_output": true,
+      "invalid_status_visible": true,
+      "error_severity_visible": true,
+      "console_error_indicator_visible": true,
+      "output_excerpt": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format json\n\n{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/private\\/tmp\\/dicomkit-m2-ui\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" ",
+      "passed": true
+    },
+    {
+      "capture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/ui/wrong-vr-console-true-text.txt",
+      "sha256": "00efb6b8d237fe66bb902f1ccfc79dab5dac90a33c80260889422d2a1803b45f",
+      "strict": true,
+      "format": "text",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format text",
+      "command_found": true,
+      "settings_match": true,
+      "save_report_field_empty": true,
+      "save_report_field_evidence": [
+        "54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path",
+        "The focused UI element is 54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path"
+      ],
+      "expected_vr_error": "Unexpected VR LO for tag (0028,0010) (expected: US)",
+      "expected_error_in_this_command_output": true,
+      "invalid_status_visible": true,
+      "error_severity_visible": true,
+      "console_error_indicator_visible": true,
+      "output_excerpt": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format text\n\nDICOM Validation Report\n=======================\n\nFile: /private/tmp/dicomkit-m2-ui/wrong_VR.dcm\nStatus: ✗ INVALID\n\nErrors (1):\n  • Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "passed": true,
+    "checks_passed": 17,
+    "checks_total": 17,
+    "original_fixtures_unchanged": 14,
+    "initial_inputs_unchanged": 20,
+    "reports_matched": 19,
+    "valid_reports": 9,
+    "invalid_reports": 10,
+    "meta_reports_matched": 6,
+    "wrong_vr_console_combinations_passed": 4
+  },
+  "limitations": [
+    "Does not independently prove GUI interaction sequence or displayed messages; parent owns UI evidence.",
+    "Synthetic attribute fixtures are not complete clinical IODs; no whole-standard, peer, device or clinical qualification implied.",
+    "The independent byte inspector is intentionally limited to these flat Explicit VR Little Endian output datasets.",
+    "Only the fixed 19 reports named in this script are compared; later report files are outside this snapshot.",
+    "The console AX captures truncate JSON near its final summary fields: their four-way check verifies visible error severity, message, invalid status and settings, not full console JSON serialization. Saved JSON reports receive full-field comparisons."
+  ]
+}

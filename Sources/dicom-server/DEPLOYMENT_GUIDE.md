@@ -1,6 +1,13 @@
 # dicom-server Production Deployment Guide
 
-This guide covers deploying `dicom-server` in production environments for small to medium-scale PACS deployments.
+> M4 implementation status (24 October 2026): the supported indexed mode is
+> `--database filesystem`, with durable Part 10 files and complete startup reindex.
+> SQLite and PostgreSQL options/URLs are refused. SQL deployment examples below
+> are historical proposals, not executable supported configurations. Use the
+> [current server README](README.md) for startup and migration instructions.
+
+This historical deployment guide includes proposed production configurations;
+M4 qualifies local process restart behavior, not production-scale deployment.
 
 ## Table of Contents
 

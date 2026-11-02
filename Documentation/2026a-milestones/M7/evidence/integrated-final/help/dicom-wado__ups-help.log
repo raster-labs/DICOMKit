@@ -1,0 +1,107 @@
+OVERVIEW: Unified Procedure Step Worklist operations (UPS-RS)
+
+Manages worklist items using UPS-RS protocol.
+
+Examples:
+  dicom-wado ups https://server/dicom-web --search
+  dicom-wado ups https://server/dicom-web --get <workitem-uid>
+  dicom-wado ups https://server/dicom-web --create worklist.json
+  dicom-wado ups https://server/dicom-web --create-workitem --label "CT Scan"
+--patient-name "Doe^Jane" --patient-id PAT001
+  dicom-wado ups https://server/dicom-web --change-state <uid> --state "IN
+PROGRESS" --aet MY_AE
+  dicom-wado ups https://server/dicom-web --change-state <uid> --state
+COMPLETED --aet MY_AE --transaction-uid <txuid>
+  dicom-wado ups https://server/dicom-web --search --format dicom-json
+
+--change-state performs Change Workitem State (PS3.18 11.7); --update is its
+deprecated alias. A change to SCHEDULED is refused (PS3.18 11.7.1.4; PS3.4
+Table CC.1.1-2, C303H). --format dicom-json prints the PS3.18 F.2 DICOM JSON
+Model the server returned; --format json is a tool summary with camelCase keys.
+  dicom-wado ups https://server/dicom-web --subscribe --workitem-uid <uid>
+--aet MY_AE
+  dicom-wado ups https://server/dicom-web --unsubscribe --workitem-uid <uid>
+--aet MY_AE
+
+USAGE: dicom-wado ups [<options>] <base-url>
+
+ARGUMENTS:
+  <base-url>              DICOMweb server base URL
+
+OPTIONS:
+  --search                Search for worklist items
+  --get <get>             Get specific worklist item by UID
+  --create <create>       Create worklist item from JSON file
+  --create-workitem       Create a new worklist item from command-line options
+  --change-state <change-state>
+                          Change Workitem State (PS3.18 11.7) of the workitem
+                          with this UID; use with --state
+  --update <update>       Deprecated alias of --change-state (it performs
+                          Change Workitem State, PS3.18 11.7, not Update
+                          Workitem, 11.6)
+  --subscribe             Subscribe to workitem events (requires --workitem-uid
+                          and --aet)
+  --unsubscribe           Unsubscribe from workitem events (requires
+                          --workitem-uid and --aet)
+  --aet <aet>             Local Application Entity Title for
+                          subscribe/unsubscribe
+  --state <state>         New Procedure Step State for --change-state: IN
+                          PROGRESS, COMPLETED, CANCELED (PS3.18 11.7.1.4);
+                          IN_PROGRESS is accepted for IN PROGRESS
+  --transaction-uid <transaction-uid>
+                          Transaction UID (0008,1195) for state changes
+                          (required for COMPLETED/CANCELED; auto-generated for
+                          IN PROGRESS, PS3.18 11.7.1.4)
+  --filter-state <filter-state>
+                          Filter by Procedure Step State (0074,1000):
+                          SCHEDULED, IN PROGRESS, COMPLETED, CANCELED (PS3.3
+                          Table C.30.1-1); IN_PROGRESS is accepted
+  --scheduled-station <scheduled-station>
+                          Filter by scheduled station AE
+  --workitem-uid <workitem-uid>
+                          Workitem UID (auto-generated if omitted)
+  --label <label>         Procedure step label (e.g. 'CT Scan Chest')
+  --patient-name <patient-name>
+                          Patient name in DICOM format (e.g. 'Doe^Jane')
+  --patient-id <patient-id>
+                          Patient ID
+  --priority <priority>   Scheduled Procedure Step Priority (0074,1200): HIGH,
+                          MEDIUM, LOW (PS3.3 Table C.30.2-1; default: MEDIUM).
+                          STAT is accepted and sent as HIGH
+  --patient-birth-date <patient-birth-date>
+                          Patient birth date (YYYYMMDD)
+  --patient-sex <patient-sex>
+                          Patient's Sex (0010,0040): M, F, O (PS3.3 Table C.7-1)
+  --study-uid <study-uid> Study Instance UID to reference
+  --accession-number <accession-number>
+                          Accession number
+  --referring-physician <referring-physician>
+                          Referring physician name
+  --procedure-id <procedure-id>
+                          Requested procedure ID
+  --step-id <step-id>     Scheduled procedure step ID
+  --worklist-label <worklist-label>
+                          Worklist label
+  --comments <comments>   Comments on the procedure step
+  --scheduled-start <scheduled-start>
+                          Scheduled start date/time (ISO 8601, e.g.
+                          '2026-03-20T14:00:00')
+  --expected-completion <expected-completion>
+                          Expected completion date/time (ISO 8601)
+  --station-name <station-name>
+                          Scheduled station name
+  --performer-name <performer-name>
+                          Performer name
+  --performer-organization <performer-organization>
+                          Performer organization
+  --admission-id <admission-id>
+                          Admission ID
+  --token <token>         OAuth2 bearer token for authentication
+  -f, --format <format>   Output format: table, json, csv, dicom-json (default:
+                          table). dicom-json is the PS3.18 F.2 DICOM JSON
+                          Model; json is a tool summary (camelCase keys)
+                          (default: table)
+  --verbose               Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

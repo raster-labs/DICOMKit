@@ -1,0 +1,29 @@
+{
+  "case": "find-study-ct",
+  "peer": "find",
+  "native_capture": 1,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-study-ct.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+    "127.0.0.1:60702",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "ANY-SCP",
+    "--level",
+    "study",
+    "--patient-name",
+    "AUDIT*",
+    "--study-date",
+    "20260101-20261231",
+    "--modality",
+    "CT",
+    "--study-description",
+    "M3*",
+    "--timeout",
+    "60",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 0
+}

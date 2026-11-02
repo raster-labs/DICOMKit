@@ -1,0 +1,37 @@
+{
+  "association": 3,
+  "context": 1,
+  "keys": {
+    "00080052": {
+      "value": "SERIES",
+      "vr": "CS"
+    },
+    "00080060": {
+      "value": "CT",
+      "vr": "CS"
+    },
+    "0008103E": {
+      "value": "",
+      "vr": "LO"
+    },
+    "0020000D": {
+      "value": "2.25.301",
+      "vr": "UI"
+    },
+    "0020000E": {
+      "value": "",
+      "vr": "UI"
+    },
+    "00200011": {
+      "value": "",
+      "vr": "IS"
+    },
+    "00201209": {
+      "value": "",
+      "vr": "IS"
+    }
+  },
+  "queryLevel": "SERIES",
+  "resultCount": 1,
+  "transferSyntax": "1.2.840.10008.1.2.1"
+}

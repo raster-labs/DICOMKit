@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  DICOM file path
+Usage: dicom-jpip uri <input> [--json]
+  See 'dicom-jpip uri --help' for more information.

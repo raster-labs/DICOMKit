@@ -125,11 +125,15 @@ public enum DICOMMetadataDiscovery {
                     || (syntax.isEncapsulated && syntax.isExplicitVR && syntax.byteOrder == .littleEndian) else {
                 throw Failure.unsupportedTransferSyntax
             }
-            let root = try dataset(end: size, undefined: false, depth: 0, keep: rootTags,
+            let root = try dataset(end: size, undefined: false, depth: 0, keep: rootTags.union([.specificCharacterSet]),
                                    explicit: syntax.isExplicitVR, order: syntax.byteOrder,
                                    encapsulated: syntax.isEncapsulated, root: true)
             guard offset == size else { throw Failure.invalidStructure }
-            return Result(fileMetaInformation: fileMeta, selectedRootElements: DataSet(elements: root),
+            // A selected text attribute still needs its declaration for decoding,
+            // even when the caller did not ask to retain (0008,0005) itself.
+            var selected = DataSet(elements: root)
+            if !rootTags.contains(.specificCharacterSet) { selected.remove(tag: .specificCharacterSet) }
+            return Result(fileMetaInformation: fileMeta, selectedRootElements: selected,
                           directoryRecords: records, sourceByteCount: size, bytesRead: bytesRead,
                           skippedValueBytes: skippedBytes)
         }

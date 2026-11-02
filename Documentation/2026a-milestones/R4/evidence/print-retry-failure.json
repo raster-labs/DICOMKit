@@ -1,0 +1,15 @@
+{
+  "run_id": 41192585026,
+  "attempt": 2,
+  "job_id": 125113543763,
+  "source_commit": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+  "result": "failed",
+  "artifact_id": 13119395880,
+  "artifact_sha256": "e2715e00b28eebd9d12f3af8dff467340bb86f122144497d108ab3e437540a92",
+  "test": "PrintConformanceLoopbackTests.testColorImageRoundTripsThroughThePlanarWireLayout",
+  "error": "ARTIM timer expired: remote peer did not respond in time",
+  "elapsed_seconds": 32.583,
+  "network_reported_tests": 410,
+  "failures": 1,
+  "handling": "Recurring timeout in another colour-print path; add phase diagnostics and continue investigation. No further blind retry."
+}

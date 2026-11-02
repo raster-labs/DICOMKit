@@ -1,0 +1,4 @@
+Error: Missing expected argument '<base-url>'
+Help:  <base-url>  DICOMweb server base URL
+Usage: dicom-wado ups [<options>] <base-url>
+  See 'dicom-wado ups --help' for more information.

@@ -1,0 +1,83 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button (selected) Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button (selected) Description: dicom-info, Help: Display DICOM file metadata, tags, and statistics
+			24 button Description: dicom-dump, Help: Hexadecimal dump with DICOM structure annotations
+			25 button Description: dicom-tags, Help: Tag dictionary lookup, set, and delete operations
+			26 button Description: dicom-diff, Help: Compare two DICOM files and show differences
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text DICOM Info. Displays all DICOM tags, pixel statistics, and file metadata from a DICOM file or directory. Parameters Input Input File
+						32 text field (settable) Description: Input File, Placeholder: Path to DICOM file, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm
+						33 button Description: Browse for Input File, Help: Opens a file picker dialog
+						34 text DICOM file to inspect Parameters Output Format --format
+						35 Output Format
+							36 radio button Description: text, Value: 0
+							37 radio button Description: json, Value: 1
+							38 radio button Description: csv, Value: 0
+						39 text Output format: text (default), json, or csv Filter Tag(s) --tag
+						40 text field (settable) Description: Filter Tag(s), Placeholder: e.g. Patient's Name; 0008,0060
+						41 text Show only these tags (name or number). Separate with “ ; ”. Default: all tags. Options
+						42 checkbox Description: Show Private Tags, Value: 0
+						43 checkbox Description: File Statistics, Value: 0
+						44 disclosure triangle Description: Advanced options (1), Help: Shows additional flags for this tool, Value: off
+						45 scroll bar (settable, float) 1
+							46 value indicator (settable, float) 1
+							47 increment arrow button
+							48 decrement arrow button
+							49 increment page button
+							50 decrement page button
+					51 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					52 button Description: Run command, Help: Runs the selected Workshop action
+				53 splitter (disabled, settable, float) 460
+				54 container
+					55 text Command Preview Valid $ Select a tool to build a command
+					56 button Description: Copy command, Help: Copies the command to the clipboard
+					57 text Console IDLE
+					58 button (disabled) Clear console output
+					59 image Description: Terminal Command Prompt, ID: terminal
+					60 text Console output will appear here History
+					61 button Clear
+					62 scroll area
+						63 text dicom-print dicom-printscp dicom-info
+	64 toolbar
+		65 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		66 search text field (settable) Search features
+			67 button Search
+	68 close button
+	69 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	70 minimize button
+	71 text DICOM Studio
+72 menu bar
+	73 DICOMStudio
+	74 File
+	75 Edit
+	76 View
+	77 Image
+	78 Window
+	79 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

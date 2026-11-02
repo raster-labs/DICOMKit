@@ -1,5 +1,9 @@
 # DICOMKit — DICOM Standard Implementation Report
 
+> Current implementation follow-up: [DICOM 2026a milestone status](Documentation/2026a-milestones/STATUS.md).
+> This report is historical evidence from the dates below. Its earlier “complete” status does not
+> close the 24 October 2026 behavioral findings; M0 repairs audit tooling only.
+
 Generated 2026-09-29, last updated 2026-09-30 (deferred findings D31–D69 and the verification gaps). Covers all 162 Swift files in `Sources/DICOMKit/`
 (about 78,600 lines): the file reader and writer, DICOMDIR, the Structured Reporting builders,
 parsers and extractors, presentation states, hanging protocols, segmentation, parametric maps,

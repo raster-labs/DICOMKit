@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/opt/homebrew/bin/dcmprscp",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/DC-F05/dcmtk.cfg",
+    "--printer",
+    "M6",
+    "--dump",
+    "--log-level",
+    "trace"
+  ],
+  "pid": 27153,
+  "exit_code": -15,
+  "elapsed_seconds": 0.2909037910000003,
+  "timed_out": false,
+  "stopped_by_harness": true
+}

@@ -1,0 +1,333 @@
+{
+  "passed": true,
+  "failure": null,
+  "workshopRequests": 7,
+  "cliControls": 7,
+  "comparisons": [
+    {
+      "name": "native",
+      "CLIWorkshopJSONEqual": true,
+      "images": 1
+    },
+    {
+      "name": "rle",
+      "CLIWorkshopJSONEqual": true,
+      "images": 1
+    },
+    {
+      "name": "jpeg",
+      "CLIWorkshopJSONEqual": true,
+      "images": 1
+    },
+    {
+      "name": "three-files",
+      "CLIWorkshopJSONEqual": true,
+      "images": 3
+    },
+    {
+      "name": "all-frames",
+      "CLIWorkshopJSONEqual": true,
+      "images": 3
+    },
+    {
+      "name": "single-frame2",
+      "CLIWorkshopJSONEqual": true,
+      "images": 1
+    },
+    {
+      "name": "selected-frame2",
+      "CLIWorkshopJSONEqual": true,
+      "images": 1
+    }
+  ],
+  "artifacts": {
+    "cli": {
+      "native": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "rle": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-002.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "jpeg": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-003.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "three-files": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-004.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b"
+      },
+      "all-frames": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-005.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b"
+      },
+      "single-frame2": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-006.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c"
+      },
+      "selected-frame2": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/cli/film-007.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c"
+      }
+    },
+    "workshop": {
+      "native": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-001.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "rle": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-002.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "jpeg": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-003.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "f49f8c97aaa54078fce63ae7c7cab234e98818cdd79a566877ad4e0cdaece804"
+      },
+      "three-files": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-004.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b"
+      },
+      "all-frames": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-005.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "86329745aa948325f279c59340a266e442b27d87b457d1a0598604d4abef253b"
+      },
+      "single-frame2": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-006.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c"
+      },
+      "selected-frame2": {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/workshop/film-007.png",
+        "size": [
+          504,
+          612
+        ],
+        "sha256": "d072232f43b84898a82429015a600ad1180fb97b88face533261cdc99212c72c"
+      }
+    }
+  },
+  "records": [
+    {
+      "name": "native",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/native.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709072381.92513\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709071958.993931\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709073084.34351\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "rle",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/rle.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709100602.417674\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709100307.837611\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709101120.605408\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "jpeg",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/jpeg.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128419.1735\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128121.554405\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709128933.283150\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "three-files",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame1.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame3.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--layout",
+        "STANDARD\\2,2"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709154183.80700\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709153903.839135\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709155179.651029\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "all-frames",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--all-frames",
+        "--layout",
+        "STANDARD\\2,2"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709180409.991738\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709180101.894983\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709181454.990082\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "single-frame2",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/frame2.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709206943.175306\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709206639.904044\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709207430.473706\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "selected-frame2",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59355",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-images-qualified/fixtures/multi.dcm",
+        "--called-aet",
+        "M6PIXELS",
+        "--aet",
+        "M6WORKSHOP",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--frame",
+        "2"
+      ],
+      "exit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709233062.644087\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709232751.554018\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855709233628.721102\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    }
+  ],
+  "fixtureSHA256": {
+    "native.dcm": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+    "rle.dcm": "89f8d8a562568385f4ae84dae5004945680f526d6bd891438b1d5bb28b362ee8",
+    "multi.dcm": "32b199a6e1411e3816df759ac802bb0344378953e11e6cb56172a5eb2fcbccb3",
+    "jpeg.dcm": "a9f4f6cd04590474cd1b9bc67ecebe12e36121c1046923e5380654c0c7d0802a",
+    "frame1.dcm": "8a7c08d070947cb0a47b5d1c5a2ed706fa744febe9e6834799af65d57c772ec6",
+    "frame2.dcm": "1939c993e69a94d745ac7213aabd1bfbe5f59205a1957f9c705bebf67bebd8ad",
+    "frame3.dcm": "653c07b7809a3f1ad8e84b2a1a0524b88615c6d83656e238707fc320840173a2"
+  },
+  "binarySHA256": {
+    "dicom-print": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+    "dicom-printscp": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c"
+  },
+  "scope": "Existing-binary CLI and actual Workshop ViewModel send actions to same-library synthetic receiver. PNG decoded pixel equality with independent native controls; no GUI or hardware claim. RLE and JPEG files originated in independent DCMTK M7 campaign."
+}

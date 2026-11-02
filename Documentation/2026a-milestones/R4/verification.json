@@ -1,0 +1,60 @@
+{
+  "result": "REPORTING_REPAIRED_DIAGNOSTIC_PRINT_PASSED_PR_CHECKS_PENDING",
+  "recorded_utc": "2026-11-02T05:52:18.274352+00:00",
+  "base_head": "88edcc7b788a99b23e5847156bbc61707bd70ba4",
+  "comprehensive": "Passed at 31d7609b; see evidence/comprehensive-test-report.json",
+  "print_retry": "Failed again on another colour-print test; see evidence/print-retry-failure.json",
+  "local_print": {
+    "reported": 937,
+    "skips": 1,
+    "failures": 0,
+    "audit_controls_passed": 58
+  },
+  "local_repetitions": {
+    "executions": 140,
+    "failures": 0
+  },
+  "constrained_task_pool": {
+    "network_tests": 3,
+    "emulator_tests": 7,
+    "failures": 0
+  },
+  "next_gate": "Remaining PR workflows queued/in progress at documentation checkpoint; exact publication head must be checked separately. Historical timeout root cause remains unconfirmed.",
+  "remote_data_scan": "evidence/remote-dicom-verification.json",
+  "main_merged": false,
+  "history_rewritten": false,
+  "pages": "deferred",
+  "diagnostic_source": "09db627d7294b3d5a893824be803d2131d723c0a",
+  "diagnostic_push": {
+    "run": 41396662562,
+    "job": 125119343915,
+    "result": "passed",
+    "reported": 937,
+    "skips": 4,
+    "audit_controls": 58,
+    "receipt": "evidence/remote-print-success-report.json"
+  },
+  "print_timeout_cause": "Unresolved; two earlier timeouts remain recorded. A passing diagnostic run is not a demonstrated transport repair.",
+  "broader_local_repetitions": {
+    "runs": 10,
+    "reported": 4365,
+    "skips": 0,
+    "failures": 0,
+    "receipt": "evidence/product-repetition-verification.json"
+  },
+  "remote_data_scan_all_branch_heads": {
+    "heads": 417,
+    "heads_with_dicom": 55,
+    "dicom_file_occurrences": 403,
+    "unique_blobs": 25,
+    "latest_milestone_findings": 0,
+    "receipt": "evidence/remote-all-branches-dicom-summary.json",
+    "tags_other_repositories_and_actions": "outside scope"
+  },
+  "diagnostic_pr_print": {
+    "run": 41396668863,
+    "job": 125119362407,
+    "result": "passed"
+  },
+  "remote_snapshot": "evidence/remote-diagnostic-results.json"
+}

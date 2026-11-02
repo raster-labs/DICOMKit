@@ -26,6 +26,11 @@ public enum DeletionMode: String, Sendable, Codable {
 ///
 /// Reference: PS3.18 - Web Services
 public protocol DICOMwebStorageProvider: Sendable {
+    /// Opt in only after implementing canonical `StorageQuery.matchingAttributes`
+    /// (including nested same-item, UID-list and combined DA/TM matching). The
+    /// default refuses filtered HTTP searches rather than silently ignoring them.
+    var supportsCanonicalQIDOMatching: Bool { get }
+
     
     // MARK: - Instance Operations
     
@@ -131,6 +136,10 @@ public protocol DICOMwebStorageProvider: Sendable {
         query: StorageQuery
     ) async throws -> [InstanceRecord]
     
+    /// Filtered totals before pagination. Default implementations preserve existing providers.
+    func countSeries(studyUID: String?, query: StorageQuery) async throws -> Int
+    func countInstances(studyUID: String?, seriesUID: String?, query: StorageQuery) async throws -> Int
+
     // MARK: - Metadata Operations
     
     /// Retrieves metadata for an instance (without pixel data)
@@ -205,6 +214,9 @@ public struct InstanceInfo: Sendable {
     /// The raw DICOM data
     public let data: Data
     
+    /// Indexed metadata available for supported matching and response projection.
+    public let attributes: [DataElement]
+
     public init(
         studyUID: String,
         seriesUID: String,
@@ -212,8 +224,10 @@ public struct InstanceInfo: Sendable {
         sopClassUID: String? = nil,
         transferSyntaxUID: String? = nil,
         size: Int64,
-        data: Data
+        data: Data,
+        attributes: [DataElement] = []
     ) {
+        self.attributes = attributes
         self.studyUID = studyUID
         self.seriesUID = seriesUID
         self.instanceUID = instanceUID
@@ -292,6 +306,11 @@ public struct StorageQuery: Sendable {
     /// Additional custom query parameters
     public var customParameters: [String: String]
     
+    /// Canonical matching paths from the validated HTTP query.
+    public var matchingAttributes: [String: String] = [:]
+    public var includeFields: [String] = []
+    public var includeAll: Bool = false
+
     public init(
         patientName: String? = nil,
         patientID: String? = nil,
@@ -445,6 +464,9 @@ public struct StudyRecord: Sendable {
     /// SOP Classes in study
     public let sopClassesInStudy: [String]
     
+    /// Indexed metadata available for supported matching and response projection.
+    public let attributes: [DataElement]
+
     public init(
         studyInstanceUID: String,
         patientName: String? = nil,
@@ -460,8 +482,10 @@ public struct StudyRecord: Sendable {
         modalitiesInStudy: [String] = [],
         numberOfStudyRelatedSeries: Int = 0,
         numberOfStudyRelatedInstances: Int = 0,
-        sopClassesInStudy: [String] = []
+        sopClassesInStudy: [String] = [],
+        attributes: [DataElement] = []
     ) {
+        self.attributes = attributes
         self.studyInstanceUID = studyInstanceUID
         self.patientName = patientName
         self.patientID = patientID
@@ -512,6 +536,9 @@ public struct SeriesRecord: Sendable {
     /// Number of instances
     public let numberOfSeriesRelatedInstances: Int
     
+    /// Indexed metadata available for supported matching and response projection.
+    public let attributes: [DataElement]
+
     public init(
         studyInstanceUID: String,
         seriesInstanceUID: String,
@@ -522,8 +549,10 @@ public struct SeriesRecord: Sendable {
         seriesDate: String? = nil,
         seriesTime: String? = nil,
         performingPhysicianName: String? = nil,
-        numberOfSeriesRelatedInstances: Int = 0
+        numberOfSeriesRelatedInstances: Int = 0,
+        attributes: [DataElement] = []
     ) {
+        self.attributes = attributes
         self.studyInstanceUID = studyInstanceUID
         self.seriesInstanceUID = seriesInstanceUID
         self.modality = modality
@@ -569,6 +598,9 @@ public struct InstanceRecord: Sendable {
     /// Transfer Syntax UID
     public let transferSyntaxUID: String?
     
+    /// Indexed metadata available for supported matching and response projection.
+    public let attributes: [DataElement]
+
     public init(
         studyInstanceUID: String,
         seriesInstanceUID: String,
@@ -579,8 +611,10 @@ public struct InstanceRecord: Sendable {
         rows: Int? = nil,
         columns: Int? = nil,
         bitsAllocated: Int? = nil,
-        transferSyntaxUID: String? = nil
+        transferSyntaxUID: String? = nil,
+        attributes: [DataElement] = []
     ) {
+        self.attributes = attributes
         self.studyInstanceUID = studyInstanceUID
         self.seriesInstanceUID = seriesInstanceUID
         self.sopInstanceUID = sopInstanceUID
@@ -591,5 +625,19 @@ public struct InstanceRecord: Sendable {
         self.columns = columns
         self.bitsAllocated = bitsAllocated
         self.transferSyntaxUID = transferSyntaxUID
+    }
+}
+
+// Filtered totals use overflow-safe unbounded queries; providers may optimize these.
+extension DICOMwebStorageProvider {
+    public var supportsCanonicalQIDOMatching: Bool { false }
+
+    public func countSeries(studyUID: String?, query: StorageQuery) async throws -> Int {
+        var all = query; all.offset = 0; all.limit = Int.max
+        return try await searchSeries(studyUID: studyUID, query: all).count
+    }
+    public func countInstances(studyUID: String?, seriesUID: String?, query: StorageQuery) async throws -> Int {
+        var all = query; all.offset = 0; all.limit = Int.max
+        return try await searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: all).count
     }
 }

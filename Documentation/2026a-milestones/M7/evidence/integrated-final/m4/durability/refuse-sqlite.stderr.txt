@@ -1,0 +1,1 @@
+Error: Invalid configuration: sqlite is not implemented. Use --database filesystem for durable startup reindex, or --database none for unindexed storage.

@@ -1,0 +1,83 @@
+{
+  "recorded_utc": "2026-10-26T09:07:57.815866+00:00",
+  "status": "Independent production/test review passed; full DICOMWeb and strict UPS CLI evidence passed. Native UPS and final identity capture pending.",
+  "baseline_commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "checks": {
+    "all_three_modified_production_files_confined_to_reviewed_methods": true,
+    "full_swift_tests_pass": true,
+    "UPS_identity_suite_pass": true,
+    "actual_Part10_workflow_test_pass": true,
+    "no_test_failure_in_final_run": true,
+    "git_diff_check_clean": true,
+    "strict_CLI_receipt_pass": true
+  },
+  "passed_completed_checks": true,
+  "reviewed_source_sha256": {
+    ".github/workflows/final-qualification.yml": "4d6b811398549aceaa1b598b850a721e7435a52f1cac17c3c93a0faae90a7807",
+    "Scripts/verify_m7.sh": "8fd8b466c41ed0ad0d14fd021f7150a93cae27c960514713770aa9cb6af516fd",
+    "Sources/DICOMWeb/DICOMJSONDecoder.swift": "599bc6949a372e973267c05fe3dc7f775cfe4116df0a38130f63c5420d5cf938",
+    "Sources/DICOMWeb/DICOMwebClient.swift": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+    "Sources/DICOMWeb/UPS/UPSClient.swift": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+    "Sources/DICOMWeb/UPS/UPSCreateIdentity.swift": "fa771d7bb6c63a981394446138c36ce573b06e44b8d2499524736f19f6e9378b",
+    "Tests/DICOMWebTests/DICOMJSONDecoderTests.swift": "fa5f74f50e6358602860f87cf6c8d3226e182a906b29d6783367b44e99cf7004",
+    "Tests/DICOMWebTests/DICOMJSONModelConformanceTests.swift": "bb2ce08577fbe9dd1528791ad98a1ac3ae5404bebd7e6525b7e8392cd2b944ba",
+    "Tests/DICOMWebTests/IntegrationValidationTests.swift": "c7bf5f59f57855324f6ac46cf81357922ed99ac63049ca8de6bf042309950f13",
+    "Tests/DICOMWebTests/UPSCreateIdentityTests.swift": "afbabe2edc74ced0920e0c5404519df0c8ebf895c1161b98a1fa97f9663153e4"
+  },
+  "method_scope": {
+    "Sources/DICOMWeb/DICOMJSONDecoder.swift": {
+      "reviewed_sha256": "599bc6949a372e973267c05fe3dc7f775cfe4116df0a38130f63c5420d5cf938",
+      "outside_reviewed_methods_unchanged": true
+    },
+    "Sources/DICOMWeb/DICOMwebClient.swift": {
+      "reviewed_sha256": "f99404922e708c59fad8051315c7c946590b8e14110455bb5999f3481e0319c8",
+      "outside_reviewed_methods_unchanged": true
+    },
+    "Sources/DICOMWeb/UPS/UPSClient.swift": {
+      "reviewed_sha256": "81e8776d6bc1bb43eef7bc91589a1fdc29b868cfcbb3e8646699690755cc7bc1",
+      "outside_reviewed_methods_unchanged": true
+    }
+  },
+  "UPS_review": {
+    "collection": "Preserves and validates present body identity. Generates a valid client UID only when both identity inputs are absent.",
+    "query": "Validates explicit UID, rejects invalid/conflicting body identity before HTTP, and removes matching body identity only for the explicit query form.",
+    "error_response": "Actual HTTPClient .conflict and generic 409 both map to workitemAlreadyExists with the resolved UID. Missing Location fallback uses that same identity; this client tolerance does not establish a conformant server response.",
+    "tests": "5 declarations, 9 invocations across both public facades; 18 wire requests and 90 invalid/conflicting local refusal attempts. Identity cases include 64-byte boundary, all body/query forms, duplicate409 and missing-Location fallback.",
+    "strict_CLI": "Independent in-memory recomputation of audit-strict-ups.py matched all 38 saved assertions after excluding timestamp; 5 CLI executions, 4 requests, 0 native executions at review time.",
+    "server_limit": "Production server strict missing/malformed/conflicting identity rejection is not qualified by this repair. Strict external peer is independent of the product server and rejects missing identity.",
+    "normative_source": "https://dicom.nema.org/medical/dicom/2026a/output/html/part18.html#sect_11.4.1.1"
+  },
+  "JSON_review": {
+    "production": "Only PN/string constructors bind actual UTF-8 context. Character-set-independent VRs, binary, InlineBinary, BulkData and numeric paths are unchanged. Source 00080005 metadata is preserved at JSON model level.",
+    "binary_workflow": "Actual JSON→DataExchangeWorkflow→DICOMFile.write→read test passes root Latin1 metadata, nested inherited text and explicit UTF8/Latin1 overrides. All text/declarations normalize consistently, including exact padded bytes and lengths. No writer/Core API changes were needed.",
+    "oracle_correction": "First new PN test incorrectly expected three parsed names. Existing compactMap API returns two nonempty parsed names. Corrected test retains exact three raw string positions and reencoded JSON NSNull at index1. Failed repaired-v1 log retained.",
+    "normative_source": "https://dicom.nema.org/medical/dicom/2026a/output/html/part18.html#sect_F.2"
+  },
+  "full_DICOMWeb_result": {
+    "XCTest_reported": 504,
+    "XCTest_executed_non_skipped": 502,
+    "XCTest_opt_in_skips": 2,
+    "XCTest_failures": 0,
+    "SwiftTesting_tests": 649,
+    "SwiftTesting_suites": 63,
+    "SwiftTesting_issues": 0,
+    "not_claimed": "Two opt-in harness skips remain unexecuted; this does not qualify their external runtime gates."
+  },
+  "CI_integration": "Both final-qualification.yml and Scripts/verify_m7.sh now execute the full DICOMWeb test product and require the UPS suite and overall SwiftTesting success. Root owns exact-head CI after push.",
+  "evidence_sha256": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/identity-focused-v3.log": "4e43ae2bf058633441054d42fa575c907d9bb147c2cba7a4e05664634ca0f4dc",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all.log": "29f7842aea961a2c40459c77233247ea407f67b1f66a28cd288c84c2ff74d22e",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all-repaired-v1.log": "8ef98819a7308e33bff106a924b483b3ccf934e11310a035940f6a7c70695e23",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all-repaired-v2.log": "3a118739ad39f1b3fad3497fbc5af606cdbbae4984722f2df8bb7a1615dcf3f5",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/strict-ups-cli-verification.json": "bf6ddfc037fa7e452b0bccaed082fe151adec34b432d9a90f275619c8a5f007a",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/independent-dicomweb-failure-classification.json": "4892a57847ae814086b1d52086ace93dedb51e743871c4129f9b197cca777d2a"
+  },
+  "native_reuse": "Completed native campaigns retain original identities. The changed JSON decoder is used by JSON reverse and WADO XML metadata; original 28-group native campaign includes neither path. Binary WADO, QIDO, UPS typed/raw data, attributes, print and other recorded paths remain outside the decoder method changes. Source equivalence must be attached before reuse; no re-execution claim.",
+  "pending": [
+    "Root finish of all-products and affected Studio tests",
+    "Root-approved artifact identity capture and signing/source checks",
+    "Fresh native UPS create/get/malformed refusal against strict independent peer",
+    "Exact-head CI and documentation/push reconciliation by root/checkpoint reviewer"
+  ],
+  "execution_boundary": "This reviewer read source, tests, logs and official standard, recomputed CLI oracles in memory without writes, and wrote only independent scratch receipts/helpers. No source/UI/product/Git mutation."
+}

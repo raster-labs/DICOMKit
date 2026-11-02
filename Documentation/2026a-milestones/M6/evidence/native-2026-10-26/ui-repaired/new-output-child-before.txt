@@ -1,0 +1,166 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button (selected) Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down (showing 28-128 of 166 items)
+						40 text Image Display Format (2010,0010): a grid 1x1, 1x2, 1x3, 1x4, 2x1, 2x2, 2x3, 2x4, 3x1, 3x2, 3x3, 3x4, 4x1, 4x2, 4x3, 4x4, 4x5 (R rows by C columns, sent as STANDARD\\C,R) or any PS3.3 Table C.13-3 form — STANDARD\\C,R, ROW\\R1,R2,..., COL\\C1,C2,..., SLIDE, SUPERSLIDE, CUSTOM\\i (auto if omitted) Film Size --film-size
+						41 text field (settable) Film Size
+						42 text Film Size ID (2010,0050): 8x10, 8.5x11, 10x12, 10x14, 11x14, 11x17, 14x14, 14x17, 24x24cm, 24x30cm, a4, a3 (default: 14x17) Format --format
+						43 Format
+							44 radio button Description: text, Value: 0
+							45 radio button Description: json, Value: 1
+						46 text Output format: text, json Options
+						47 checkbox --save-config  Save Config, Description: Save Config, Help: Write the resolved settings back to the configuration file and exit, Value: 0, ID: print-option-scp.ConfigOptions.saveConfig
+						48 text Write the resolved settings back to the configuration file and exit Output Output Dir --output-dir
+						49 text field (settable) Description: Output Dir, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/new-output-child
+						50 button Description: Browse for Output Dir, Help: Opens a file picker dialog
+						51 text Directory written films are saved to (default: ~/Downloads/DICOMKit Films) Parameters Dpi --dpi
+						52 text field (settable) Description: Dpi, Help: Shows additional flags for this tool, Value: 36
+						53 text Help: Shows additional flags for this tool, Value: Rasterization resolution of the composed sheet (default: 600) Density --density
+						54 text field (settable) Description: Density, Help: Shows additional flags for this tool
+						55 text Help: Shows additional flags for this tool, Value: Density interpretation: paper, film, gsdf (default: paper) Margin Mm --margin-mm
+						56 text field (settable) Description: Margin Mm, Help: Shows additional flags for this tool
+						57 text Help: Shows additional flags for this tool, Value: Sheet margin in millimetres (default: 5) Cell Spacing Mm --cell-spacing-mm
+						58 text field (settable) Description: Cell Spacing Mm, Help: Shows additional flags for this tool
+						59 text Help: Shows additional flags for this tool, Value: Gap between image cells in millimetres (default: 2) Annotations --annotations
+						60 Description: Annotations, Help: Shows additional flags for this tool
+							61 radio button Description: inherit, Value: 1
+							62 radio button Description: enabled, Value: 0
+							63 radio button Description: disabled, Value: 0
+						64 text Help: Shows additional flags for this tool, Value: Draw Basic Annotation Box text on the sheet (default: yes) Omitted/inherit preserves the saved or default setting. Trim Marks --trim-marks
+						65 Description: Trim Marks, Help: Shows additional flags for this tool
+							66 radio button Description: inherit, Value: 1
+							67 radio button Description: enabled, Value: 0
+							68 radio button Description: disabled, Value: 0
+						69 text Help: Shows additional flags for this tool, Value: Print a trim box around each image when Trim (2010,0140) is YES, PS3.3 Table C.13-3 (default: yes) Omitted/inherit preserves the saved or default setting. Max Pixels --max-pixels
+						70 text field (settable) Description: Max Pixels, Help: Shows additional flags for this tool, Value: 1024
+						71 text Help: Shows additional flags for this tool, Value: Cap on the composed bitmap's longest side, in pixels (default: 12000) Name Pattern --name-pattern
+						72 text field (settable) Description: Name Pattern, Help: Shows additional flags for this tool, Value: created-{timestamp}-{index}
+						73 text Help: Shows additional flags for this tool, Value: File-name pattern; tokens {job} {session} {film} {ae} {index} {timestamp} Paper Queue --paper-queue
+						74 text field (settable) Description: Paper Queue, Help: Shows additional flags for this tool
+						75 text Help: Shows additional flags for this tool, Value: Spool film to this CUPS queue (requires --allow-paper; empty uses the system default queue) Orientation --orientation
+						76 text field (settable) Description: Orientation, Help: Shows additional flags for this tool
+						77 text Help: Shows additional flags for this tool, Value: Film Orientation (2010,0040): portrait, landscape (default: portrait) Magnification --magnification
+						78 text field (settable) Description: Magnification, Help: Shows additional flags for this tool
+						79 text Help: Shows additional flags for this tool, Value: Magnification Type (2010,0060): replicate, bilinear, cubic, none (default: replicate) Medium --medium
+						80 text field (settable) Description: Medium, Help: Shows additional flags for this tool
+						81 text Help: Shows additional flags for this tool, Value: Medium Type (2000,0030): paper, clear-film, blue-film, mammo-clear-film, mammo-blue-film (default: paper) Copies --copies
+						82 text field (settable) Description: Copies, Help: Shows additional flags for this tool, Value: 1
+						83 text Help: Shows additional flags for this tool, Value: Number of Copies (2000,0010) recorded on the film (default: 1) Polarity --polarity
+						84 text field (settable) Description: Polarity, Help: Shows additional flags for this tool
+						85 text Help: Shows additional flags for this tool, Value: Polarity (2020,0020): normal, reverse (default: normal; PS3.3 Table C.13-5: NORMAL when absent) Presentation Lut --presentation-lut
+						86 text field (settable) Description: Presentation Lut, Help: Shows additional flags for this tool
+						87 text Help: Shows additional flags for this tool, Value: Presentation LUT Shape (2050,0020): identity, lin-od, inverse (default: none) Border Density --border-density
+						88 text field (settable) Description: Border Density, Help: Shows additional flags for this tool
+						89 text Help: Shows additional flags for this tool, Value: Border Density (2010,0100): BLACK, WHITE, or i hundredths of OD (150 = 1.5 OD) (default: BLACK) Empty Density --empty-density
+						90 text field (settable) Description: Empty Density, Help: Shows additional flags for this tool
+						91 text Help: Shows additional flags for this tool, Value: Empty Image Density (2010,0110): BLACK, WHITE, or i hundredths of OD (default: BLACK) Annotate --annotate
+						92 button Shows additional flags for this tool
+						93 text Help: Shows additional flags for this tool, Value: Text String (2030,0020) of a Basic Annotation Box (repeatable; requires --annotation-format) Add one value per row. Annotation Format --annotation-format
+						94 text field (settable) Description: Annotation Format, Help: Shows additional flags for this tool
+						95 text Help: Shows additional flags for this tool, Value: Annotation Display Format ID (2010,0030) (required with --annotate) Color --color
+						96 text field (settable) Description: Color, Help: Shows additional flags for this tool
+						97 text Help: Shows additional flags for this tool, Value: Image box class: grayscale = Basic Grayscale Image Box SOP Class, color = Basic Color Image Box SOP Class (default: grayscale) Frame
+					98 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					99 button Description: Run command, Help: Runs the selected Workshop action
+				100 splitter (disabled, settable, float) 840
+				101 container
+					102 text Command Preview Valid $ Select a tool to build a command
+					103 button Description: Copy command, Help: Copies the command to the clipboard
+					104 text Console ERROR
+					105 button Description: Copy console output, Help: Copies the console output to the clipboard
+					106 button Clear console output
+					107 scroll area
+						108 text $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/denied-output --name-pattern 'denied-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm
+
+Output failed (png): The operation couldn’t be completed. (DICOMPrintKit.PrintSinkError error 0.)
+{
+  "annotations" : [
+
+  ],
+  "borderDensity" : "BLACK",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 1,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "BLACK",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792996386489055.573459",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792996386488943.652966",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 1,
+  "imageDisplayFormat" : "STANDARD\\1,1",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 1,
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792996386489111.515126",
+  "receivedAt" : "2026-10-26T06:33:06Z",
+  "rows" : 1,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "NO"
+}
+
+							109 text $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/sink-is-file --name-pattern 'denied-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --copies 1 --frame 1 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-2
+					110 text History
+					111 button Clear
+					112 scroll area
+						113 text dicom-printscp dicom-tags dicom-printscp dicom-printscp dicom-printscp dicom-print dicom-print dicom-print dicom-printscp dicom-printscp
+	114 toolbar
+		115 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		116 search text field (settable) Search features
+			117 button Search
+	118 close button
+	119 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	120 minimize button
+	121 text DICOM Studio
+122 menu bar
+	123 DICOMStudio
+	124 File
+	125 Edit
+	126 View
+	127 Image
+	128 Window
+	129 Help
+
+The focused UI element is 72 text field (settable) Description: Name Pattern, Help: Shows additional flags for this tool, Value: created-{timestamp}-{index}

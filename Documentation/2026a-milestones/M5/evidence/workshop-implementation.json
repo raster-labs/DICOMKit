@@ -1,0 +1,71 @@
+{
+  "items": [
+    "WS-FIX-04",
+    "WS-FIX-06",
+    "WS-FIX-08"
+  ],
+  "status": "Implemented and frozen; no builds or runtime tests executed by owner",
+  "files": [
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+    "Sources/DICOMStudio/Views/CLIWorkshopView.swift",
+    "Sources/DICOMKit/Scripting/ScriptEngine.swift",
+    "Tests/DICOMStudioTests/M5WorkshopContractTests.swift",
+    "Tests/DICOMStudioTests/M5WorkshopActionHarnessTests.swift"
+  ],
+  "behavior": {
+    "WS-FIX-04": "Workshop defaults to Dry Run. Unsupported live execution disables action with visible explanation and direct execution refuses before Running/history/output preparation. Template/Validate/Dry Run have accurate action labels. Shared executor dryrun validates all parsed nested command names before logger creation; validation recurses pipelines; CLI/live custom runner contract retained. Name catalog matches41active package executables; cloud explicitly unavailable. Assignment detection no longer swallows --option=value commands. Unquoted pipelines in conditional bodies are explicitly unsupported and rejected with a line-numbered parse error before logging or execution; quoted literal pipes remain arguments.",
+    "WS-FIX-06": "Only Auto and Review choices; default explicit Auto retains all-match retrieval. Stale Interactive/automatic/unknown refuse before dispatch. Preview and execution use same accepted raw mode.",
+    "WS-FIX-08": "One Allow Burned-in PHI definition/binding; both visible form projections expose one control; true emits one flag,falseomits; shared AnonymizationWorkflow untouched."
+  },
+  "test_methods": [
+    "testEveryCatalogDefinitionHasUniqueParameterIdentity",
+    "testBurnedInPHIHasOneBindingAndOneFlagInBothExperienceModes",
+    "testLiveScriptRefusesBeforeExecutionAndOutputPreparation",
+    "testTemplateValidateAndDryRunUseSharedSupportedEngines",
+    "testUnknownNestedToolsFailValidationAndDryRunDeterministically",
+    "testRecognizedScriptToolsMatchActivePackageProducts",
+    "testSharedLiveRunnerContractAndFailurePropagationRemainIntact",
+    "testDryRunNameCheckPreservesOptionAndVariableValues",
+    "testQRHasExplicitAutoAndReviewAndRefusesStaleInteractiveBeforeDispatch",
+    "testSinglePHIControlPreservesSharedAnonymizationRefusalAndIdentityMarking"
+  ],
+  "harness": {
+    "selector": "DICOMStudioTests.M5WorkshopActionHarnessTests/testConfiguredWorkshopActions",
+    "request_env": "DICOMKIT_M5_WORKSHOP_REQUESTS",
+    "output_env": "DICOMKIT_M5_WORKSHOP_OUTPUT",
+    "request_shape": [
+      {
+        "name": "case",
+        "tool": "dicom-script|dicom-qr|dicom-anon",
+        "values": {
+          "parameterID": "string"
+        },
+        "expectedStatus": "SUCCESS|ERROR",
+        "expectedExit": "optional Int",
+        "advanced": "optional Bool"
+      }
+    ]
+  },
+  "gui_steps": [
+    "Automation > Scripting: select valid script; default Dry Run button enabled. Disable Dry Run: visible live-unavailable explanation and disabledRun. Reenable: runpreview; zero nested effects.",
+    "Scripting: Template workflow, Validate valid/unknown script, Dry Run valid/unknown pipeline/conditional. Inspect success/error and preview; compare actual CLI dryrun/validation outputs.",
+    "Query-Retrieve: only Auto/Review displayed; default Auto explicit. Review same synthetic successful query without retrieval; Auto retrieves allmatches. Compare preview flags and actual captured operations/outputs.",
+    "Anonymization: Beginner advanced-options and Advanced experience modes each show one Allow Burned-in PHI control. Toggle on/off and count previewflag. With synthetic BIA=YES and pixelcleaningoff,offrefuses/nooutput;onwrites with PatientIdentityRemoved=NO."
+  ],
+  "applicability": {
+    "WS-FIX-04-AC01": "Not applicable: live dispatcher excluded; supported CLI live execution still requires root process gate.",
+    "WS-FIX-06-AC02": "Not applicable: no selection implemented; no cancellation selection affordance added."
+  },
+  "limits": [
+    "Validation recognizes command names and script grammar, not installation or every option value.",
+    "No new live script dispatcher or interactive retrieve selection.",
+    "Packaged UI and actual CLI process verification are parent-owned and pending at this note.",
+    "Source-only inventory found no remaining duplicate parameter IDs; focused regression verifies full runtimecatalog."
+  ],
+  "static_checks": [
+    "git diff --check on owned modified files passed",
+    "Readonly source inventory found no duplicate parameterIDs"
+  ],
+  "frozen_at_utc": "2026-10-24 13:48:24 UTC"
+}

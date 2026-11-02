@@ -1,0 +1,14 @@
+OVERVIEW: Export volume in various formats (NIfTI, MetaImage)
+
+USAGE: dicom-3d export <input-paths> ... --output <output> [--formats <formats>] [--verbose]
+
+ARGUMENTS:
+  <input-paths>           Input DICOM files (multi-slice series)
+
+OPTIONS:
+  -o, --output <output>   Output file prefix
+  --formats <formats>     Export formats: nifti, metaimage (default: nifti)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

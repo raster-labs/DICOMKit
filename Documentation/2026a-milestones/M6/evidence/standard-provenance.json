@@ -1,0 +1,53 @@
+{
+  "edition": "2026a",
+  "sources": [
+    {
+      "file": "part03_2026a.xml",
+      "subtitle": "DICOM PS3.3 2026a - Information Object Definitions",
+      "bytes": 25389801,
+      "sha256": "525d7a0662ba5f33ee9ec820ba760c3741597443c940ae182285af9d400d4c33",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part03/part03.xml"
+    },
+    {
+      "file": "part04_2026a.xml",
+      "subtitle": "DICOM PS3.4 2026a - Service Class Specifications",
+      "bytes": 4630945,
+      "sha256": "b336161947b45ad6be292164c101a013ac66134fe92179877501c4441bc36791",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part04/part04.xml"
+    },
+    {
+      "file": "part05_2026a.xml",
+      "subtitle": "DICOM PS3.5 2026a - Data Structures and Encoding",
+      "bytes": 1021712,
+      "sha256": "500c924014e3f61665516418097c2a97d245fd974d4e4e536529aa9c938ca5fb",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part05/part05.xml"
+    },
+    {
+      "file": "part06_2026a.xml",
+      "subtitle": "DICOM PS3.6 2026a - Data Dictionary",
+      "bytes": 9652007,
+      "sha256": "f7faefef90476debba670a240c798dcef7360d2fa968d6e1e47fcd2cc18fe710",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part06/part06.xml"
+    },
+    {
+      "file": "part07_2026a.xml",
+      "subtitle": "DICOM PS3.7 2026a - Message Exchange",
+      "bytes": 796996,
+      "sha256": "94d44551214d1f6370acd5e2845dd6acf5d3feb78836e569f26f272e0154cb3e",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part07/part07.xml"
+    },
+    {
+      "file": "part08_2026a.xml",
+      "subtitle": "DICOM PS3.8 2026a - Network Communication Support for Message Exchange",
+      "bytes": 407521,
+      "sha256": "7fd0f41a4104295986a60fd3183a6c5577039ab11f02df7951d2d28e96aca26e",
+      "url": "https://dicom.nema.org/medical/dicom/2026a/source/docbook/part08/part08.xml"
+    }
+  ],
+  "clauses": [
+    "PS3.4 H.3 optional context membership; H.4.1/H.4.2 Action Reply (2100,0500); H.4.5.2.1.2 terminal confirmation lifetime; H.4.9 LUT lifetime; H.5 association cleanup",
+    "PS3.7 10.1.1\u201310.1.6 normalized DIMSE and response optional fields",
+    "PS3.3 C.13 print pixel/annotation/job/printer modules and C.11.4 LUT",
+    "PS3.5/PS3.8 negotiated encoding and PDU/PDV framing"
+  ]
+}

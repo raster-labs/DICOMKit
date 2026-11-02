@@ -1,0 +1,38 @@
+						53 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						55 text field (settable) Description: Port, Value: 60872, Placeholder: 11112
+						57 text field (settable) Description: AE Title, Value: M7NATIVE, Placeholder: DICOMSTUDIO
+						59 text field (settable) Description: Called AE Title, Value: M4PEER, Placeholder: ANY-SCP
+							62 radio button Description: patient, Value: 0
+							63 radio button Description: study, Value: 1
+							64 radio button Description: series, Value: 0
+							65 radio button Description: image, Value: 0
+						67 text field (settable) Description: Patient ID, Value: M4ZERO, Placeholder: e.g. PAT001
+						69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						71 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						73 pop up button Description: Modality, Value: Any
+						75 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						77 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						79 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						81 pop up button Description: Timeout (s), Value: 60
+							84 radio button Description: table, Value: 0
+							85 radio button Description: json, Value: 1
+							86 radio button Description: csv, Value: 0
+							87 radio button Description: compact, Value: 0
+							88 radio button Description: dicom-json, Value: 0
+						90 checkbox Description: Verbose, Value: 0
+						92 text field (settable) Description: Study Description, Help: Shows additional flags for this tool, Placeholder: e.g. CHEST* or *ABDOMEN*
+						94 text field (settable) Description: Referring Physician, Help: Shows additional flags for this tool, Placeholder: e.g. SMITH^JANE
+						96 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						97 disclosure triangle Description: Advanced options (3), Help: Shows additional flags for this tool, Value: on
+					104 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					105 button Description: Run command, Help: Runs the selected Workshop action
+					108 text Command Preview Valid $ Select a tool to build a command
+					110 text Console ERROR
+		123 search text field (settable) Search features
+Complete console:
+$ dicom-query 127.0.0.1:60872 --aet M7NATIVE --called-aet M4PEER --level study --patient-id M4ZERO --timeout 60 --format json
+
+[
+
+]
+Error: C-FIND cancelled (FE00); 0 partial result(s) received. Query results are incomplete.

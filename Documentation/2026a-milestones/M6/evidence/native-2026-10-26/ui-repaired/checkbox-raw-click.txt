@@ -1,0 +1,169 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button (selected) Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down (showing 19-119 of 119 items)
+						40 text field (settable) Description: Calling AE Title, Value: M7NATIVE
+						41 text Called AE Title --called-aet
+						42 text field (settable) Description: Called AE Title, Value: ANY-SCP
+						43 text Connection Timeout (seconds) --timeout
+						44 text field (settable) Description: Connection Timeout (seconds), Value: 60
+						45 text Output Format --format
+						46 Output Format
+							47 radio button Description: text, Value: 1
+							48 radio button Description: json, Value: 0
+						49 text JSON is result output; diagnostics remain separate in the CLI. Number of Copies --copies
+						50 text field (settable) Description: Number of Copies, Value: 1
+						51 text Number of Copies (2000,0010), at least 1. Film Size ID --film-size
+						52 text field (settable) Description: Film Size ID, Value: 14x17
+						53 text 8x10 = 8INX10IN, 8.5x11 = 8_5INX11IN, 10x12 = 10INX12IN, 10x14 = 10INX14IN, 11x14 = 11INX14IN, 11x17 = 11INX17IN, 14x14 = 14INX14IN, 14x17 = 14INX17IN, 24x24cm = 24CMX24CM, 24x30cm = 24CMX30CM, a4 = A4, a3 = A3 Film Orientation --orientation
+						54 text field (settable) Description: Film Orientation, Value: portrait
+						55 text portrait = PORTRAIT, landscape = LANDSCAPE Print Priority --priority
+						56 text field (settable) Description: Print Priority, Value: medium
+						57 text low = LOW, medium = MED, high = HIGH Image Display Format --layout
+						58 text field (settable) Image Display Format
+						59 text Grid RxC, STANDARD\C,R, ROW\R1,R2,..., COL\C1,C2,..., SLIDE, SUPERSLIDE or CUSTOM\i. Empty selects automatic layout. Conflicts with Template. Layout Template --template
+						60 pop up button Description: Layout Template, Value: Any
+						61 text Sets layout, film size and orientation. Leave empty for automatic layout or explicit Layout. Medium Type --medium
+						62 text field (settable) Description: Medium Type, Value: paper
+						63 text paper = PAPER, clear-film = CLEAR FILM, blue-film = BLUE FILM, mammo-clear-film = MAMMO CLEAR FILM, mammo-blue-film = MAMMO BLUE FILM Magnification Type --magnification
+						64 text field (settable) Description: Magnification Type, Value: replicate
+						65 text replicate = REPLICATE, bilinear = BILINEAR, cubic = CUBIC, none = NONE Film Destination --film-destination
+						66 text field (settable) Description: Film Destination, Value: processor
+						67 text processor / PROCESSOR, magazine / MAGAZINE, or bin-N / BIN_N for N >= 1 with no leading zeros. Color Mode --color
+						68 Color Mode
+							69 radio button Description: grayscale, Value: 1
+							70 radio button Description: color, Value: 0
+						71 text Basic Grayscale or Basic Color Print Management Meta SOP Class. Frame (1-based) --frame
+						72 text field (settable) Description: Frame (1-based), Value: 1
+						73 text Window Center --window-center
+						74 text field (settable) Window Center
+						75 text Decimal value; requires Window Width. Negative values are preserved. Window Width --window-width
+						76 text field (settable) Window Width
+						77 text Decimal width; requires Window Center. Grayscale Bit Depth --bit-depth
+						78 text field (settable) Description: Grayscale Bit Depth, Value: 8
+						79 text Bits Stored: 8 or 12. Existing CLI clamps higher values; 12 uses 12-in-16 P-Values. Presentation LUT --presentation-lut
+						80 text field (settable) Presentation LUT
+						81 text identity = IDENTITY, inverse, lin-od = LIN OD; empty creates no Presentation LUT. Pixel Palette --palette
+						82 text field (settable) Pixel Palette
+						83 text Grayscale: grayscale, grayscale-inverse
+DICOM Standard: hot-iron, pet, hot-metal-blue, pet-20-step, spring, summer, fall, winter
+Perceptually Uniform: viridis, inferno, magma, plasma
+Spectrum: jet, rainbow, gray-rainbow, spectrum
+Single Hue & Flow: hot-green, hue-1, hue-2, flow, ratio
+
+Colour is baked into 8-bit RGB before sending: DICOM Print Management cannot name a palette to a printer (PS3.3 Table C.13-5 allows only RGB in a Basic Color Image Sequence). --bit-depth and a lin-od presentation LUT therefor Annotations --annotate
+						84 button Add Annotations entry
+						85 text One annotation per row; position starts at 1. Text, spaces, semicolons and backslashes are preserved. Requires Annotation Format. Annotation Display Format ID --annotation-format
+						86 text field (settable) Annotation Display Format ID
+						87 text Use the format identifier supported by the printer's Conformance Statement. Connection Retries --retries
+						88 text field (settable) Description: Connection Retries, Value: 2
+						89 text Retry connection/setup failures with exponential backoff. Options
+						90 checkbox --verbose  Verbose, Description: Verbose, Value: 1, ID: print-option-verbose
+						91 checkbox --check-status  Check Printer Status, Description: Check Printer Status, Help: N-GET before printing: refuse FAILURE and report WARNING., Value: 1, ID: print-option-checkStatus
+						92 text N-GET before printing: refuse FAILURE and report WARNING.
+						93 checkbox --verify  Verify Connection, Description: Verify Connection, Help: Perform C-ECHO before printing., Value: 1, ID: print-option-verify
+						94 text Perform C-ECHO before printing.
+						95 checkbox --all-frames  All Frames, Description: All Frames, Help: Print every frame. Conflicts with a Frame other than 1., Value: 0, ID: print-option-allFrames
+						96 text Print every frame. Conflicts with a Frame other than 1.
+						97 checkbox --raw  Stored Pixel Values, Description: Stored Pixel Values, Value: 1, ID: print-option-raw, Help: Skip rescale, windowing and inversion. Compressed sources are still decoded. Off means preprocessing; no --no-raw option exists.
+						98 text Skip rescale, windowing and inversion. Compressed sources are still decoded. Off means preprocessing; no --no-raw option exists.
+						99 checkbox --recursive  Scan Directories Recursively, Description: Scan Directories Recursively, Value: 1, ID: print-option-recursive
+						100 checkbox --dry-run  Dry Run, Description: Dry Run, Value: 1, ID: print-option-dryRun, Help: Validate options and discover files without connecting or printing; does not qualify image decoding or printer support.
+						101 text Validate options and discover files without connecting or printing; does not qualify image decoding or printer support.
+						102 scroll bar (settable, float) 1
+							103 value indicator (settable, float) 1
+							104 increment arrow button
+							105 decrement arrow button
+							106 increment page button
+							107 decrement page button
+					108 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					109 button Description: Run command, Help: Runs the selected Workshop action
+				110 splitter (disabled, settable, float) 460
+				111 container
+					112 text Command Preview Valid $ Select a tool to build a command
+					113 button Description: Copy command, Help: Copies the command to the clipboard
+					114 text Console SUCCESS
+					115 button Description: Copy console output, Help: Copies the console output to the clipboard
+					116 button Clear console output
+					117 scroll area
+						118 text $ dicom-print list-printers --format json --verbose
+
+[
+  {
+    "calledAETitle" : "M7CLI",
+    "callingAETitle" : "M7NATIVE",
+    "colorMode" : "color",
+    "host" : "127.0.0.1",
+    "isDefault" : true,
+    "name" : "Native; O'Neil 雪",
+    "port" : 21113
+  }
+]
+
+							119 text $ dicom-print list-printers --format text --verbose
+
+No printers configured.
+
+Add a printer with:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+					120 text History
+					121 button Clear
+					122 scroll area
+						123 text dicom-print dicom-print dicom-print dicom-print dicom-print
+	124 toolbar
+		125 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		126 search text field (settable) Search features
+			127 button Search
+	128 close button
+	129 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	130 minimize button
+	131 text DICOM Studio
+132 menu bar
+	133 DICOMStudio
+	134 File
+	135 Edit
+	136 View
+	137 Image
+	138 Window
+	139 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

@@ -96,7 +96,9 @@ final class TagEditRulesTests: XCTestCase {
         XCTAssertThrowsError(try checked(sets: ["TransferSyntaxUID=1.2.840.10008.1.2"], into: &ds))
         XCTAssertThrowsError(try checked(deletes: ["0002,0013"], into: &ds))
         XCTAssertThrowsError(try checked(copyTags: ["MediaStorageSOPInstanceUID"], into: &ds))
-        XCTAssertNoThrow(try checked(deletes: ["PatientName"], copyTags: ["PatientID"], sets: ["StudyDate=20200101"], into: &ds))
+        var source = DataSet()
+        source.setString("SOURCE-ID", for: .patientID, vr: .LO)
+        XCTAssertNoThrow(try checked(deletes: ["PatientName"], copyTags: ["PatientID"], sets: ["StudyDate=20200101"], source: source, into: &ds))
     }
 
     // PS3.6 dictionary VR; Private Creator is LO (PS3.5 7.8.1).
@@ -120,7 +122,13 @@ final class TagEditRulesTests: XCTestCase {
 
     func testSetKeepsOrderAndSkipLinesAndHonoursDryRun() throws {
         var ds = DataSet()
-        let lines = try checked(sets: ["Foo=1", "bad", "PatientName=DOE^JOHN"], dryRun: true, into: &ds)
+        // The optional best-effort API retains skip lines; checked CLI/app edits
+        // must refuse unresolved selectors and malformed operations transactionally.
+        XCTAssertThrowsError(try checked(sets: ["Foo=1", "PatientName=DOE^JOHN"], dryRun: true, into: &ds))
+        XCTAssertThrowsError(try checked(sets: ["bad", "PatientName=DOE^JOHN"], dryRun: true, into: &ds))
+        let lines = TagEditor().applyChanges(to: &ds, sets: ["Foo=1", "bad", "PatientName=DOE^JOHN"],
+                                            deletes: [], deletePrivate: false, sourceDataSet: nil,
+                                            copyTags: [], verbose: false, dryRun: true)
         XCTAssertEqual(lines, [
             "SET Foo (unknown tag, skipped)",
             "SET bad (invalid format, expected TagName=Value)",

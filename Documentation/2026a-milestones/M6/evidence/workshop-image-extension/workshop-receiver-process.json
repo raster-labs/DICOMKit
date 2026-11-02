@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "serve",
+    "--port",
+    "57192",
+    "--ae-title",
+    "M6PIXELS",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/workshop-absent.json",
+    "--output",
+    "png",
+    "--output-dir",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/workshop-image-extension/workshop",
+    "--name-pattern",
+    "film-{index}",
+    "--dpi",
+    "36",
+    "--max-pixels",
+    "1024",
+    "--max-films",
+    "7",
+    "--duration",
+    "120",
+    "--format",
+    "json"
+  ],
+  "pid": 28449
+}

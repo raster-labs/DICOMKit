@@ -1,0 +1,91 @@
+{
+  "recorded_utc": "2026-10-26T09:11:30.649352+00:00",
+  "status": "Automated repair and built-artifact acceptance passed. FINAL-13 repaired native UPS remains unexecuted; M7 is not accepted.",
+  "completed": {
+    "independent_source_review": true,
+    "source_equivalence_checks": 15,
+    "source_equivalence_all_pass": true,
+    "nested_build_receipt_log_hashes_and_success_markers": {
+      "dicomweb-all-repaired-v2.log": true,
+      "studio-affected-workflows-confirmed.log": true,
+      "all-products-repaired.log": true,
+      "app-build/build.log": true
+    },
+    "full_DICOMWeb": {
+      "SwiftTesting_tests": 649,
+      "suites": 63,
+      "XCTest_reported": 504,
+      "XCTest_executed_non_skipped": 502,
+      "opt_in_skips": 2,
+      "failures": 0
+    },
+    "affected_Studio": {
+      "unique_tests": 60,
+      "suites": 3,
+      "failures": 0,
+      "rerun_not_double_counted": true
+    },
+    "strict_UPS_CLI": {
+      "actions": 5,
+      "HTTP_requests": 4,
+      "assertions": 38,
+      "independent_recomputation_matches": true
+    },
+    "source_manifest_files": 2062,
+    "CLIs_hashed": 41,
+    "test_executables_hashed": 16,
+    "app_files_hashed": 14,
+    "normal_entitlements_exact": true,
+    "strict_signature_verified": true
+  },
+  "artifact_delta": {
+    "CLI": {
+      "matched": 37,
+      "changed": [
+        "dicom-json",
+        "dicom-query",
+        "dicom-wado",
+        "dicom-xml"
+      ]
+    },
+    "test_executables": {
+      "matched": 14,
+      "changed": [
+        "DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests",
+        "DICOMWebTests.xctest/Contents/MacOS/DICOMWebTests"
+      ]
+    },
+    "application": {
+      "matched": 11,
+      "changed": [
+        "Contents/MacOS/DICOMStudio",
+        "Contents/MacOS/DICOMStudio.debug.dylib",
+        "Contents/_CodeSignature/CodeResources"
+      ]
+    }
+  },
+  "pending": [
+    "Actual repaired native UPS create/get/malformed refusal against strict independent peer",
+    "Final native/CLI pair reconciliation and FINAL-13 acceptance",
+    "Exact-head remote CI and documentation/push closure owned by root/checkpoint reviewer"
+  ],
+  "preserved_limits": [
+    "Native Mac lock is an environment blocker; successful build/signing is not native execution.",
+    "Original 27 unaffected native groups retain original actual source/artifact epochs and all prior limits using scoped method equivalence.",
+    "Two XCTest harness skips remain unexecuted.",
+    "No full UPS IOD/server authentication/strict server-identity qualification.",
+    "Original incorrect runner framework grep retained; successful no-build repeat confirms the same 60 tests, not 120 unique tests."
+  ],
+  "supersedes_pending_build_fields_in": "independent-ups-json-repair-review.json; its source assessment and historical limits remain valid.",
+  "evidence_sha256": {
+    "ups-native-identity.json": "235f81a2b17ad50d1a24ad7cc6ecad160b4bb2f87e8924a501fb1b3ad7da3f7f",
+    "ups-native-source-hashes.json": "74fcd858623de80d04832169878aecb1a9d77e747e740941f1efbb2d60f82efc",
+    "ups-native-artifact-hashes.json": "2e9e24ea3612857b7ae053ebc6c883380f683b533d734bdd0ed1394ad11d0f0e",
+    "ups-native-signature-verification.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ups-native-signed-entitlements.plist": "13aab78543709982570268d59f7b059d7e1b24a0cadffb8baae36dd425819067",
+    "root-final-repair-verification.json": "081aa76726ff1714a60fd9b226e5409c3c9c9c75e80b8cb2a491fb10bb946d8d",
+    "independent-ups-json-repair-review.json": "48db733795d1866c06bbf3e1ad944e847c18de36ab618dcb8472652a5ea372bb",
+    "independent-dicomweb-failure-classification.json": "4892a57847ae814086b1d52086ace93dedb51e743871c4129f9b197cca777d2a"
+  },
+  "execution_boundary": "Read-only identity and signing inspection after explicit root build-complete signal. Only new audit receipts created; all historical identity snapshots preserved."
+}

@@ -1,0 +1,196 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[13 / 68]
+[20 / 31] DICOMRoundTripTests-product
+[31 / 42] DICOMRoundTripTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:474:43: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+472 | 
+473 |         for item in items {
+474 |             let path = DICOMImageExporter.buildOrganizedPath(
+    |                                           `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+475 |                 baseOutput: dir.path, scheme: .patient,
+476 |                 patientName: item.name, studyUID: nil, seriesUID: nil, filename: item.filename)
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[32 / 42] DICOMRoundTripTests-product
+[36 / 42] DICOMRoundTripTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/EnhancedMultiframeRoundTripTests.swift:802:37: warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+800 |         // frame's own rescale pair.
+801 |         let pixels = try XCTUnwrap(file.pixelData())
+802 |         let w0 = DICOMImageExporter.determineWindowSettings(from: file, pixelData: pixels, frameIndex: 0,
+    |                                     |- warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+    |                                     `- note: use 'determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)' instead
+803 |                                                             windowCenter: nil, windowWidth: nil)
+804 |         let w2 = DICOMImageExporter.determineWindowSettings(from: file, pixelData: pixels, frameIndex: 2,
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/EnhancedMultiframeRoundTripTests.swift:804:37: warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+802 |         let w0 = DICOMImageExporter.determineWindowSettings(from: file, pixelData: pixels, frameIndex: 0,
+803 |                                                             windowCenter: nil, windowWidth: nil)
+804 |         let w2 = DICOMImageExporter.determineWindowSettings(from: file, pixelData: pixels, frameIndex: 2,
+    |                                     |- warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+    |                                     `- note: use 'determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)' instead
+805 |                                                             windowCenter: nil, windowWidth: nil)
+806 |         XCTAssertEqual(w0.center, 100 + 1000)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:107:32: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+105 |         // flat = base + filename, no subdirs.
+106 |         XCTAssertEqual(
+107 |             DICOMImageExporter.buildOrganizedPath(
+    |                                `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+108 |                 baseOutput: "/out", scheme: .flat,
+109 |                 patientName: "Anyone", studyUID: nil, seriesUID: nil, filename: "a.png"),
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:113:45: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+111 | 
+112 |         // patient scheme with nil name -> UNKNOWN directory.
+113 |         let nilPatient = DICOMImageExporter.buildOrganizedPath(
+    |                                             `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+114 |             baseOutput: "/out", scheme: .patient,
+115 |             patientName: nil, studyUID: nil, seriesUID: nil, filename: "a.png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:119:47: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+117 | 
+118 |         // Empty string sanitizes to UNKNOWN.
+119 |         let emptyPatient = DICOMImageExporter.buildOrganizedPath(
+    |                                               `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+120 |             baseOutput: "/out", scheme: .patient,
+121 |             patientName: "", studyUID: nil, seriesUID: nil, filename: "a.png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:125:40: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+123 | 
+124 |         // Path separators / illegal chars replaced by underscore.
+125 |         let dirty = DICOMImageExporter.buildOrganizedPath(
+    |                                        `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+126 |             baseOutput: "/out", scheme: .patient,
+127 |             patientName: "Doe^John", studyUID: nil, seriesUID: nil, filename: "a.png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:131:41: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+129 | 
+130 |         // series scheme nests patient/study/series.
+131 |         let series = DICOMImageExporter.buildOrganizedPath(
+    |                                         `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+132 |             baseOutput: "/out", scheme: .series,
+133 |             patientName: "P1", studyUID: "S1", seriesUID: "Q1", filename: "a.png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:139:44: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+137 |     // Oracle: --organize-by study nests patient/study (but NOT series) in the output path.
+138 |     func testBuildOrganizedPathStudyScheme() {
+139 |         let studyPath = DICOMImageExporter.buildOrganizedPath(
+    |                                            `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+140 |             baseOutput: "/out", scheme: .study,
+141 |             patientName: "P1", studyUID: "S1", seriesUID: "Q1", filename: "a.png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:195:37: warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+193 | 
+194 |         // Explicit HU window 40/400 -> stored center (40 - (-1024))/1 = 1064, width 400.
+195 |         let ws = DICOMImageExporter.determineWindowSettings(
+    |                                     |- warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+    |                                     `- note: use 'determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)' instead
+196 |             from: file, pixelData: pd, frameIndex: 0, windowCenter: 40, windowWidth: 400)
+197 |         XCTAssertEqual(ws.center, (40.0 - intercept) / slope, accuracy: 1e-9)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:213:37: warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+211 |         // PS3.3 C.11.2.1.2.1: center = (x1+x2+1)/2, width = x2-x1+1 (D66).
+212 |         XCTAssertNil(file.windowSettings())
+213 |         let ws = DICOMImageExporter.determineWindowSettings(
+    |                                     |- warning: 'determineWindowSettings(from:pixelData:frameIndex:windowCenter:windowWidth:)' is deprecated: returns a stored-unit window that is exact only for Rescale Slope 1 and no Modality LUT Sequence; the renderers apply the window in modality units [#DeprecatedDeclaration]
+    |                                     `- note: use 'determineModalityWindow(from:pixelData:frameIndex:windowCenter:windowWidth:)' instead
+214 |             from: file, pixelData: pd, frameIndex: 0, windowCenter: nil, windowWidth: nil)
+215 |         XCTAssertEqual(ws.center, Double(range.min + range.max + 1) / 2.0, accuracy: 1e-9)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:404:13: warning: initialization of immutable value 'pd' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+402 |         let fills: [UInt8] = [0, 85, 170, 255]
+403 |         let file = makeMultiFrame(rows: 24, cols: 24, frames: frameCount, fill: { fills[$0] })
+404 |         let pd = try XCTUnwrap(file.pixelData())
+    |             `- warning: initialization of immutable value 'pd' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+405 | 
+406 |         var frames: [CGImage] = []
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:441:43: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+439 |                 file: file, pixelData: pd, frameIndex: 0,
+440 |                 applyWindow: false, windowCenter: nil, windowWidth: nil)
+441 |             let path = DICOMImageExporter.buildOrganizedPath(
+    |                                           `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+442 |                 baseOutput: dir.path, scheme: .flat,
+443 |                 patientName: nil, studyUID: nil, seriesUID: nil, filename: "img\(i).png")
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMRoundTripTest/ExportRoundTripTests.swift:474:43: warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+472 | 
+473 |         for item in items {
+474 |             let path = DICOMImageExporter.buildOrganizedPath(
+    |                                           `- warning: 'buildOrganizedPath(baseOutput:scheme:patientName:studyUID:seriesUID:filename:)' is deprecated: P-EXPORT-2: the patient folder is keyed on Patient ID (0010,0020) and Issuer of Patient ID (0010,0021) (PS3.3 Table C.7-1); use buildOrganizedPath(baseOutput:scheme:patientID:issuerOfPatientID:studyUID:seriesUID:filename:) [#DeprecatedDeclaration]
+475 |                 baseOutput: dir.path, scheme: .patient,
+476 |                 patientName: item.name, studyUID: nil, seriesUID: nil, filename: item.filename)
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[38 / 42] DICOMRoundTripTests-product
+[40 / 42] DICOMRoundTripTests-product
+Build complete! (3.95 sec)
+Test Suite 'Selected tests' started at 2026-10-24 19:22:36.340.
+Test Suite 'DICOMRoundTripTests.xctest' started at 2026-10-24 19:22:36.345.
+Test Suite 'ScriptRoundTripTests' started at 2026-10-24 19:22:36.345.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testCommentsAndBlankLinesSkipped]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testCommentsAndBlankLinesSkipped]' passed (0.003 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsFalseRunsElseBranch]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsFalseRunsElseBranch]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsTrueRunsThenBranch]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testConditionalEqualsTrueRunsThenBranch]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testDryRunExecutesNoCommands]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testDryRunExecutesNoCommands]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testLogPathWritesExecutionLog]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testLogPathWritesExecutionLog]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelFlagExecutesEveryStepOnce]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelFlagExecutesEveryStepOnce]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineFailurePropagates]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineFailurePropagates]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineRunsConcurrentlyWithOrderedOutput]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testParallelPipelineRunsConcurrentlyWithOrderedOutput]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testPipelineExecutesEachStage]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testPipelineExecutesEachStage]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testQuotedArgumentsReachTheToolWithoutQuotes]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testQuotedArgumentsReachTheToolWithoutQuotes]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptExamplesValidateCleanly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptExamplesValidateCleanly]' passed (0.002 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptLinesCallDicomToolsOnly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testReadmeScriptLinesCallDicomToolsOnly]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testRunnerThrowHalts]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testRunnerThrowHalts]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testSetVariableLineSubstitutedInLaterCommand]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testSetVariableLineSubstitutedInLaterCommand]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepFailureStopsExecution]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepFailureStopsExecution]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepsExecuteInOrder]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testStepsExecuteInOrder]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateDirectoryInputsCarryRecursive]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateDirectoryInputsCarryRecursive]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateGeneratesAndRevalidatesCleanly]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateGeneratesAndRevalidatesCleanly]' passed (0.003 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateNameCaseInsensitive]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateNameCaseInsensitive]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateOptionsExistInTheCalledTools]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplateOptionsExistInTheCalledTools]' passed (0.012 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplatesUseNoGlobsOrRedirection]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testTemplatesUseNoGlobsOrRedirection]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testUnknownTemplateThrows]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testUnknownTemplateThrows]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateEmptyVariableValueFlagged]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateEmptyVariableValueFlagged]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateUnknownToolFlagged]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateUnknownToolFlagged]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateWellFormedScriptNoIssues]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidateWellFormedScriptNoIssues]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidatorFlagsGlobsAndRedirection]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testValidatorFlagsGlobsAndRedirection]' passed (0.001 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableOverrideShortFormExpands]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableOverrideShortFormExpands]' passed (0.000 seconds).
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableSubstitutionExpandsInjectedVariable]' started.
+Test Case '-[DICOMRoundTripTests.ScriptRoundTripTests testVariableSubstitutionExpandsInjectedVariable]' passed (0.000 seconds).
+Test Suite 'ScriptRoundTripTests' passed at 2026-10-24 19:22:36.377.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.031 (0.033) seconds
+Test Suite 'DICOMRoundTripTests.xctest' passed at 2026-10-24 19:22:36.377.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.031 (0.033) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 19:22:36.377.
+	 Executed 28 tests, with 0 failures (0 unexpected) in 0.031 (0.037) seconds

@@ -1,0 +1,21 @@
+DICOM Retrieve (C-MOVE)
+=======================
+  Server:            127.0.0.1:59027
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4SCP
+  Method:            C-MOVE
+  Move Destination:  M4DEST
+  Level:             STUDY
+  Study UID:         1.2.826.0.1.3680043.10.543.301
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/durability/unused
+  Organization:      Flat
+  Timeout:           5s
+
+Executing C-MOVE...
+C-MOVE Result:
+  Status:            Success (0x0000): Sub-operations Complete - No Failures
+  Number of Completed Sub-operations: 1
+  Number of Failed Sub-operations: 0
+  Number of Warning Sub-operations: 0
+
+✅ Retrieval successful

@@ -1,0 +1,14 @@
+{
+  "result": "Passed",
+  "actions": 17,
+  "requests": 11,
+  "assertions": 45,
+  "references": [
+    "PS3.4 2026a Table F.7.2-1 and Notes 1-2",
+    "PS3.4 2026a F.7.2.1.2 (create before set)",
+    "PS3.4 2026a F.7.2.2.1 (same character set as N-CREATE)",
+    "PS3.4 2026a F.7.2.2.2 (partial attributes, full sequence replacement, terminal state)",
+    "PS3.4 2026a F.7.2.2.3 and Table F.7.2-2 (SCP terminal refusal)"
+  ],
+  "scope": "Actual CLIWorkshop ViewModel execution and independent decoded wire; native UI acceptance is separate"
+}

@@ -1,0 +1,10 @@
+{
+  "status": "Blocked",
+  "reason": "The parent observed the Mac locked; native packaged Workshop interactions await user unlock.",
+  "source": "Parent coordination message at M6 checkpoint",
+  "executed_native_M6_actions": 0,
+  "limitations": [
+    "Successful app compilation and ViewModel tests are not native GUI evidence.",
+    "No existing Print Center action is substituted for Workshop qualification."
+  ]
+}

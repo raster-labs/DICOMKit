@@ -1,0 +1,15 @@
+OVERVIEW: Import DICOM files into the archive
+
+USAGE: dicom-archive import <files> ... --archive <archive> [--recursive] [--skip-duplicates] [--verbose]
+
+ARGUMENTS:
+  <files>                 DICOM files or directories to import
+
+OPTIONS:
+  -a, --archive <archive> Path to the archive
+  --recursive             Recursive import from directories
+  --skip-duplicates       Skip duplicate SOP Instance UIDs without error
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

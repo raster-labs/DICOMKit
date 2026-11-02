@@ -1,0 +1,9 @@
+{
+  "script_sha256": "e1c393cacada3adff544c8da787f5946dfbce92ff444fc3a1a25fb7927966131",
+  "fixture_roundtrips": 3,
+  "independent_fixture_uids_valid": true,
+  "synthetic_capture_messages_decoded": 2,
+  "VR_decoded": "CS",
+  "correlation_and_release_checks": "passed",
+  "no_network_or_DICOMKit_process": true
+}

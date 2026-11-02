@@ -1,0 +1,19 @@
+{
+  "name": "status-reloaded",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "status",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/saved-scp.json",
+    "--format",
+    "json",
+    "--verbose"
+  ],
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.07797666600000008,
+  "stdout": "{\n  \"acceptAnnotationBox\" : false,\n  \"acceptPresentationLUT\" : true,\n  \"aeTitle\" : \"DCMPRINT\",\n  \"allowedCallingAETitles\" : \"\",\n  \"annotationBoxesPerFilm\" : 6,\n  \"annotationEdge\" : \"bottom\",\n  \"associationIdleTimeoutSeconds\" : 300,\n  \"cellSpacingMillimeters\" : 2,\n  \"deniedCallingAETitles\" : \"\",\n  \"densityMapping\" : \"PAPER\",\n  \"deviceSerialNumber\" : \"1\",\n  \"dpi\" : 36,\n  \"drawAnnotations\" : false,\n  \"drawTrimMarks\" : false,\n  \"fileNamePattern\" : \"film-{timestamp}-{index}\",\n  \"imageFormat\" : \"png\",\n  \"manufacturer\" : \"DICOMKit\",\n  \"manufacturerModelName\" : \"DICOM Print Emulator\",\n  \"marginMillimeters\" : 5,\n  \"maxConcurrentAssociations\" : 10,\n  \"maxImageBoxPixelDimension\" : 10000,\n  \"maxImageBoxesPerFilm\" : 64,\n  \"maxPDUSize\" : 65536,\n  \"maximumPixelDimension\" : 1024,\n  \"outputDirectory\" : \"\\/Users\\/raster\\/Documents\\/Codex\\/2026-10-24\\/we-have-a-project-in-users-3\\/work\\/m7\\/native-2026-10-26\\/gui-simulated\",\n  \"paperQueue\" : \"\",\n  \"port\" : 11113,\n  \"printerName\" : \"Saved Native\",\n  \"printerStatus\" : \"NORMAL\",\n  \"printerStatusInfo\" : \"\",\n  \"pushPrintJobEvents\" : false,\n  \"retainedFilmLimit\" : 20,\n  \"retainedMemoryBudgetMB\" : 256,\n  \"saveImage\" : false,\n  \"savePDF\" : false,\n  \"sendToPaperQueue\" : false,\n  \"softwareVersion\" : \"1.0\",\n  \"supportedFilmSizeTokens\" : [\n\n  ],\n  \"supportedMediumTokens\" : [\n\n  ],\n  \"supportsColor\" : false\n}\n",
+  "stderr": "",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "recordedUTC": "2026-10-26T06:01:05.977787+00:00"
+}

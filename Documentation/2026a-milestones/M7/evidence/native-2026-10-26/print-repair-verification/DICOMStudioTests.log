@@ -1,0 +1,1028 @@
+Building for debugging...
+[Computing dependencies]
+[Provisioning 23 / 42]
+[Pre-planning 1 / 919]
+[Planning deferred tasks]
+[2 / 98] J2KSwift_J2KMetal
+[8 / 89]
+[9 / 32] DICOMStudio
+[12 / 35] DICOMStudio
+[13 / 36] DICOMStudio
+[19 / 37] DICOMStudio
+[20 / 37] DICOMStudio
+[22 / 33] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/MacOSEnhancementsServiceTests.swift:77:13: warning: variable 'actions' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 75 |     func testUpdateMenuAction() {
+ 76 |         let service = MacOSEnhancementsService()
+ 77 |         var actions = service.getMenuActions()
+    |             `- warning: variable 'actions' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 78 |         guard var first = actions.first else { return }
+ 79 |         let originalEnabled = first.isEnabled
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[32 / 44] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ThemeTests.swift:52:17: warning: immutable value 'g' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 50 |     @Test("Modality color for MRI alias")
+ 51 |     func testModalityColorMRI() {
+ 52 |         let (r, g, b) = StudioColors.modalityColor(for: "MRI")
+    |                 `- warning: immutable value 'g' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 53 |         #expect(r == StudioColors.mrRed)
+ 54 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ThemeTests.swift:52:20: warning: immutable value 'b' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 50 |     @Test("Modality color for MRI alias")
+ 51 |     func testModalityColorMRI() {
+ 52 |         let (r, g, b) = StudioColors.modalityColor(for: "MRI")
+    |                    `- warning: immutable value 'b' was never used; consider replacing with '_' or removing it [#NoUsage]
+ 53 |         #expect(r == StudioColors.mrRed)
+ 54 |     }
+
+macro expansion #expect:1:62: warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerContentKindTests.swift:211:101: note: expanded code originates here
+206 |     @Test("Every PS3.3 Table C.17.3-7 value type reads as something, TABLE included")
+207 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+208 |     func testTableValueType() {
+    |          `- note: add '@MainActor' to make instance method 'testTableValueType()' part of global actor 'MainActor'
+209 |         // PS3.3 2026a Table C.17.3-7 lists 16 Value Types; TABLE (CP-2174) had no branch.
+210 |         let table = TableContentItem(rows: 2, columns: 3, cells: [])
+211 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(table)) == "(table, 2 × 3)")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(StructuredReportNarrativeView.value(of: AnyContentItem(table)),{ $0 == $1() },"(table, 2 × 3)",expression: .__fromBinaryOperation(.__fromSyntaxNode("StructuredReportNarrativeView.value(of: AnyContentItem(table))"),"==",.__fromStringLiteral(#""(table, 2 × 3)""#, "(table, 2 × 3)")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                              `- warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+212 |         let text = TextContentItem(conceptName: nil, textValue: "Normal study")
+213 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(text)) == "Normal study")
+
+DICOMStudio.StructuredReportNarrativeView.value:2:33: note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+1 | struct StructuredReportNarrativeView {
+2 | @MainActor internal static func value(of item: DICOMCore.AnyContentItem) -> String?}
+  |                                 `- note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:62: warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerContentKindTests.swift:213:97: note: expanded code originates here
+206 |     @Test("Every PS3.3 Table C.17.3-7 value type reads as something, TABLE included")
+207 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+208 |     func testTableValueType() {
+    |          `- note: add '@MainActor' to make instance method 'testTableValueType()' part of global actor 'MainActor'
+209 |         // PS3.3 2026a Table C.17.3-7 lists 16 Value Types; TABLE (CP-2174) had no branch.
+210 |         let table = TableContentItem(rows: 2, columns: 3, cells: [])
+211 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(table)) == "(table, 2 × 3)")
+212 |         let text = TextContentItem(conceptName: nil, textValue: "Normal study")
+213 |         #expect(StructuredReportNarrativeView.value(of: AnyContentItem(text)) == "Normal study")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(StructuredReportNarrativeView.value(of: AnyContentItem(text)),{ $0 == $1() },"Normal study",expression: .__fromBinaryOperation(.__fromSyntaxNode("StructuredReportNarrativeView.value(of: AnyContentItem(text))"),"==",.__fromStringLiteral(#""Normal study""#, "Normal study")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                              `- warning: call to main actor-isolated static method 'value(of:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+214 |     }
+215 | }
+
+DICOMStudio.StructuredReportNarrativeView.value:2:33: note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+1 | struct StructuredReportNarrativeView {
+2 | @MainActor internal static func value(of item: DICOMCore.AnyContentItem) -> String?}
+  |                                 `- note: calls to static method 'value(of:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:311:79: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+310 |         // alike and look nothing alike — were told apart by gradient alone.
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .hotIron),{ $0 == $1() },"Hot Iron",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .hotIron)"),"==",.__fromStringLiteral(#""Hot Iron""#, "Hot Iron")),comments: [.__line("// The name is the point of the change: the face showed a ramp and no"),.__line(#"// word, so "Hot Metal Blue" and "Hot Iron" — two names that sound"#),.__line("// alike and look nothing alike — were told apart by gradient alone.")],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:312:90: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+310 |         // alike and look nothing alike — were told apart by gradient alone.
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .hotMetalBlue),{ $0 == $1() },"Hot Metal Blue",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .hotMetalBlue)"),"==",.__fromStringLiteral(#""Hot Metal Blue""#, "Hot Metal Blue")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+314 |     }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:313:88: note: expanded code originates here
+305 | 
+306 |     @Test("A chosen palette is named on the toolbar")
+307 |     func testChosenPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testChosenPaletteIsNamed()' part of global actor 'MainActor'
+308 |         // The name is the point of the change: the face showed a ramp and no
+309 |         // word, so "Hot Metal Blue" and "Hot Iron" — two names that sound
+    :
+311 |         #expect(ViewerPalettePickerView.faceText(for: .hotIron) == "Hot Iron")
+312 |         #expect(ViewerPalettePickerView.faceText(for: .hotMetalBlue) == "Hot Metal Blue")
+313 |         #expect(ViewerPalettePickerView.faceText(for: .petTwentyStep) == "PET 20 Step")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: .petTwentyStep),{ $0 == $1() },"PET 20 Step",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: .petTwentyStep)"),"==",.__fromStringLiteral(#""PET 20 Step""#, "PET 20 Step")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+314 |     }
+315 | 
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:321:73: note: expanded code originates here
+315 | 
+316 |     @Test("No palette says so rather than showing a bare glyph")
+317 |     func testNoPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testNoPaletteIsNamed()' part of global actor 'MainActor'
+318 |         // A bare paintpalette glyph says "there is a palette control here",
+319 |         // not "and it is off" — which is what a reader who has coloured an
+320 |         // image by accident is looking for.
+321 |         #expect(ViewerPalettePickerView.faceText(for: nil) == "No CLUT")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: nil),{ $0 == $1() },"No CLUT",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: nil)"),"==",.__fromStringLiteral(#""No CLUT""#, "No CLUT")),comments: [.__line(#"// A bare paintpalette glyph says "there is a palette control here","#),.__line(#"// not "and it is off" — which is what a reader who has coloured an"#),.__line("// image by accident is looking for.")],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+322 |         #expect(ViewerPalettePickerView.noPaletteLabel == "No CLUT")
+323 |     }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:322:69: note: expanded code originates here
+315 | 
+316 |     @Test("No palette says so rather than showing a bare glyph")
+317 |     func testNoPaletteIsNamed() {
+    |          `- note: add '@MainActor' to make instance method 'testNoPaletteIsNamed()' part of global actor 'MainActor'
+318 |         // A bare paintpalette glyph says "there is a palette control here",
+319 |         // not "and it is off" — which is what a reader who has coloured an
+320 |         // image by accident is looking for.
+321 |         #expect(ViewerPalettePickerView.faceText(for: nil) == "No CLUT")
+322 |         #expect(ViewerPalettePickerView.noPaletteLabel == "No CLUT")
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel,{ $0 == $1() },"No CLUT",expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel"),"==",.__fromStringLiteral(#""No CLUT""#, "No CLUT")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+    +-------------------------------------------------------------------
+323 |     }
+324 | 
+
+DICOMStudio.ViewerPalettePickerView.noPaletteLabel:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let noPaletteLabel: String}
+  |                                `- note: static property declared here
+3 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:364:52: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+355 | 
+356 |     @Test("Every catalogue name fits the toolbar face whole")
+357 |     func everyCatalogueNameFitsTheToolbarFace() {
+    |          `- note: add '@MainActor' to make instance method 'everyCatalogueNameFitsTheToolbarFace()' part of global actor 'MainActor'
+358 |         // The cap exists for a name longer than anything shipped. If a new
+359 |         // palette pushes past it, this fails here rather than quietly putting
+    :
+362 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+363 |             for palette in entry.palettes {
+364 |                 let face = ViewerPalettePickerView.faceText(for: palette)
+    |                                                    `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+365 |                 #expect(face == palette.displayName,
+366 |                         "\(palette.displayName) does not fit the toolbar face")
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:56: warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:382:60: note: expanded code originates here
+371 | 
+372 |     @Test("The cap is the width the face is allowed, ellipsis included")
+373 |     func testCapIsTheFaceWidth() {
+    |          `- note: add '@MainActor' to make instance method 'testCapIsTheFaceWidth()' part of global actor 'MainActor'
+374 |         // No catalogue palette exercises the shortening, so what is pinned
+375 |         // here is the contract the cap has to keep: the face never exceeds it.
+    :
+379 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+380 |             for palette in entry.palettes {
+381 |                 #expect(ViewerPalettePickerView.faceText(for: palette).count
+    |                 `- note: in expansion of macro 'expect' here
+382 |                         <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: palette).count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: palette).count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: call to main actor-isolated static method 'faceText(for:)' in a synchronous nonisolated context [#ActorIsolatedCall]
+    +-------------------------------------------------------------------
+383 |             }
+384 |         }
+
+DICOMStudio.ViewerPalettePickerView.faceText:2:33: note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static func faceText(for palette: DICOMCore.PseudoColorPalette?) -> String}
+  |                                 `- note: calls to static method 'faceText(for:)' from outside of its actor context are implicitly asynchronous
+3 | 
+
+macro expansion #expect:1:124: warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:382:60: note: expanded code originates here
+379 |         for entry in DICOMCore.PseudoColorPalette.catalog {
+380 |             for palette in entry.palettes {
+381 |                 #expect(ViewerPalettePickerView.faceText(for: palette).count
+    |                 `- note: in expansion of macro 'expect' here
+382 |                         <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.faceText(for: palette).count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.faceText(for: palette).count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                                                                            `- warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+    +-------------------------------------------------------------------
+383 |             }
+384 |         }
+
+DICOMStudio.ViewerPalettePickerView.nameCap:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let nameCap: Int}
+  |                                `- note: static property declared here
+3 | 
+
+macro expansion #expect:1:56: warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:386:52: note: expanded code originates here
+371 | 
+372 |     @Test("The cap is the width the face is allowed, ellipsis included")
+373 |     func testCapIsTheFaceWidth() {
+    |          `- note: add '@MainActor' to make instance method 'testCapIsTheFaceWidth()' part of global actor 'MainActor'
+374 |         // No catalogue palette exercises the shortening, so what is pinned
+375 |         // here is the contract the cap has to keep: the face never exceeds it.
+    :
+383 |             }
+384 |         }
+385 |         #expect(ViewerPalettePickerView.noPaletteLabel.count
+    |         `- note: in expansion of macro 'expect' here
+386 |                 <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel.count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel.count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                        `- warning: main actor-isolated static property 'noPaletteLabel' can not be referenced from a nonisolated context
+    +-------------------------------------------------------------------
+387 |     }
+388 | }
+
+DICOMStudio.ViewerPalettePickerView.noPaletteLabel:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let noPaletteLabel: String}
+  |                                `- note: static property declared here
+3 | 
+
+macro expansion #expect:1:116: warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ViewerPaletteTests.swift:386:52: note: expanded code originates here
+383 |             }
+384 |         }
+385 |         #expect(ViewerPalettePickerView.noPaletteLabel.count
+    |         `- note: in expansion of macro 'expect' here
+386 |                 <= ViewerPalettePickerView.nameCap)
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(ViewerPalettePickerView.noPaletteLabel.count,{ $0 <= $1() },ViewerPalettePickerView.nameCap,expression: .__fromBinaryOperation(.__fromSyntaxNode("ViewerPalettePickerView.noPaletteLabel.count"),"<=",.__fromSyntaxNode("ViewerPalettePickerView.nameCap")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                                                                    `- warning: main actor-isolated static property 'nameCap' can not be referenced from a nonisolated autoclosure
+    +-------------------------------------------------------------------
+387 |     }
+388 | }
+
+DICOMStudio.ViewerPalettePickerView.nameCap:2:32: note: static property declared here
+1 | struct ViewerPalettePickerView {
+2 | @MainActor internal static let nameCap: Int}
+  |                                `- note: static property declared here
+3 | 
+
+[#ActorIsolatedCall]: <https://docs.swift.org/compiler/documentation/diagnostics/actor-isolated-call>
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[33 / 44] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:140:49: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+138 |         let selection = PrintSelectionModel()
+139 |         selection.add(contentsOf: (1...12).map {
+140 |             PrintSelectionItem(filePath: "/ax/\($0).dcm", frameIndex: 0,
+    |                                                 |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                                 |- note: use a default value parameter to avoid this warning
+    |                                                 |- note: provide a default value to avoid this warning
+    |                                                 `- note: use 'String(describing:)' to silence this warning
+141 |                                seriesDescription: "AXIAL",
+142 |                                seriesInstanceUID: "1.1", instanceNumber: $0)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:145:49: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+143 |         })
+144 |         selection.add(contentsOf: (1...5).map {
+145 |             PrintSelectionItem(filePath: "/sc/\($0).dcm", frameIndex: 0,
+    |                                                 |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                                 |- note: use a default value parameter to avoid this warning
+    |                                                 |- note: provide a default value to avoid this warning
+    |                                                 `- note: use 'String(describing:)' to silence this warning
+146 |                                seriesDescription: "SCOUT",
+147 |                                seriesInstanceUID: "2.2", instanceNumber: $0)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:241:46: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+239 |         let selection = PrintSelectionModel()
+240 |         selection.add(contentsOf: (100...120).map { number in
+241 |             PrintSelectionItem(filePath: "/\(number).dcm", frameIndex: 0,
+    |                                              |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                              |- note: use a default value parameter to avoid this warning
+    |                                              |- note: provide a default value to avoid this warning
+    |                                              `- note: use 'String(describing:)' to silence this warning
+242 |                                seriesInstanceUID: "1.2.3", instanceNumber: number)
+243 |         })
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintImageRangeTests.swift:255:46: warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+253 |         let selection = PrintSelectionModel()
+254 |         selection.add(contentsOf: [3, 6, 9, 12, 15].map { number in
+255 |             PrintSelectionItem(filePath: "/\(number).dcm", frameIndex: 0,
+    |                                              |- warning: string interpolation produces a debug description for an optional value; did you mean to make this explicit?
+    |                                              |- note: use a default value parameter to avoid this warning
+    |                                              |- note: provide a default value to avoid this warning
+    |                                              `- note: use 'String(describing:)' to silence this warning
+256 |                                seriesInstanceUID: "1.2.3", instanceNumber: number)
+257 |         })
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:16:25: warning: comparing non-optional value of type 'ImageRenderingService' to 'nil' always returns true
+14 |     func testServiceCreation() {
+15 |         let service = ImageRenderingService()
+16 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageRenderingService' to 'nil' always returns true
+17 |     }
+18 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:42:25: warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+40 |     func testServiceCreationDefault() {
+41 |         let service = ImageCacheService()
+42 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+43 |     }
+44 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImageRenderingServiceTests.swift:48:25: warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+46 |     func testServiceCreationCustom() {
+47 |         let service = ImageCacheService(maxMemoryMB: 100)
+48 |         #expect(service != nil)
+   |                         `- warning: comparing non-optional value of type 'ImageCacheService' to 'nil' always returns true
+49 |     }
+50 | }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/ImportServiceTests.swift:16:37: warning: 'is' test is always true
+ 14 |     func testInitDefault() {
+ 15 |         let service = ImportService()
+ 16 |         #expect(service.fileService is DICOMFileService)
+    |                                     `- warning: 'is' test is always true
+ 17 |     }
+ 18 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:57:13: warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 55 |     func test_appendOutputLine_beyondMaxLines_doesNotExceedMaxLines() {
+ 56 |         let service = IntegratedTerminalService()
+ 57 |         var buffer = TerminalOutputBuffer(maxLines: 3)
+    |             `- warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 58 |         service.setOutputBuffer(buffer)
+ 59 |         _ = buffer  // suppress unused warning
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:81:13: warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 79 |     func test_clearOutput_preservesMaxLines() {
+ 80 |         let service = IntegratedTerminalService()
+ 81 |         var buffer = TerminalOutputBuffer(maxLines: 500)
+    |             `- warning: variable 'buffer' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 82 |         service.setOutputBuffer(buffer)
+ 83 |         _ = buffer
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/IntegratedTerminalServiceTests.swift:111:13: warning: variable 'state' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+109 |     func test_clearHistory_preservesMaxEntries() {
+110 |         let service = IntegratedTerminalService()
+111 |         var state = CommandHistoryState(maxEntries: 50)
+    |             `- warning: variable 'state' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+112 |         service.setHistoryState(state)
+113 |         _ = state
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrinterStatusWiringTests.swift:160:14: warning: immutable value 'model' was never used; consider replacing with '_' or removing it [#NoUsage]
+158 |     @Test("Saving a monitored printer starts polling it")
+159 |     func savingEnabledPrinterStartsMonitoring() async throws {
+160 |         let (model, directory) = try makeViewModel()
+    |              `- warning: immutable value 'model' was never used; consider replacing with '_' or removing it [#NoUsage]
+161 |         defer { try? FileManager.default.removeItem(at: directory) }
+162 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/PrintQueueAuditTests.swift:448:21: warning: 'printerIsUp' mutated after capture by sendable closure
+434 |     func offlineJobWaits() async throws {
+435 |         let (queue, _, _) = makeQueue()
+436 |         var printerIsUp = false
+    |             `- note: variable defined here
+437 |         queue.isPrinterReady = { _ in printerIsUp }
+    |                                |      `- note: capturing use
+    |                                `- note: variable captured by sendable closure
+438 |         queue.maxAutoRetries = 0
+439 |         let id = enqueue(queue)
+    :
+446 | 
+447 |         // The printer comes back; reevaluate is the monitor's signal.
+448 |         printerIsUp = true
+    |                     `- warning: 'printerIsUp' mutated after capture by sendable closure
+449 |         queue.reevaluate()
+450 |         var waited = 0
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/NetworkingHelpersTests.swift:263:13: warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+261 |     @Test("SendQueueHelpers retryLabel shows retry count")
+262 |     func testSendQueueRetryCount() {
+263 |         var item = SendItem(label: "CT.dcm", sourceIdentifier: "UID",
+    |             `- warning: variable 'item' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+264 |                             serverProfileID: UUID(), retryCount: 2)
+265 |         let config = SendRetryConfig(maxRetries: 3)
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[37 / 43] DICOMStudioTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/DICOMwebViewModelTests.swift:149:13: warning: initialization of immutable value 'vm' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+147 |     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+148 |     func testRunQIDOQueryClearsPreviousResults() async {
+149 |         let vm = DICOMwebViewModel()
+    |             `- warning: initialization of immutable value 'vm' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+150 |         // Seed the service directly to simulate pre-existing results
+151 |         let service = DICOMwebService()
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[39 / 43] DICOMStudioTests-product
+[40 / 43] DICOMStudioTests-product
+[41 / 43] DICOMStudioTests-product
+Build complete! (84.45 sec)
+Test Suite 'Selected tests' started at 2026-10-26 11:26:22.270.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-26 11:26:22.275.
+Test Suite 'M6PrintCommandCodecTests' started at 2026-10-26 11:26:22.275.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testHiddenValuesNeverLeakAcrossOperationsAndImportStartsFresh]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testHiddenValuesNeverLeakAcrossOperationsAndImportStartsFresh]' passed (0.014 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testImportDefaultsAndBothShortAliasesRoundTrip]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testImportDefaultsAndBothShortAliasesRoundTrip]' passed (0.023 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testInvalidVisibleListOrBooleanFailsBeforeArgumentPublication]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testInvalidVisibleListOrBooleanFailsBeforeArgumentPublication]' passed (0.001 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testJSONListsAreLosslessAndMalformedInputIsRefused]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testJSONListsAreLosslessAndMalformedInputIsRefused]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPInheritAndExplicitInversionsRemainDifferent]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPInheritAndExplicitInversionsRemainDifferent]' passed (0.105 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPSimulateVariadicPathsAndRepeatedOutputsRemainOrdered]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCPSimulateVariadicPathsAndRepeatedOutputsRemainOrdered]' passed (0.059 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUArgumentSnapshotPreservesRepeatedValuesAndLeadingDashPaths]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUArgumentSnapshotPreservesRepeatedValuesAndLeadingDashPaths]' passed (0.028 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUStandardAliasesAndExactScalarStringsSurviveImport]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testSCUStandardAliasesAndExactScalarStringsSurviveImport]' passed (0.043 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testShellOperatorsExpansionsAndBrokenQuotesAreRejectedWithoutEffects]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testShellOperatorsExpansionsAndBrokenQuotesAreRejectedWithoutEffects]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testStrictTokenizerPreservesPOSIXQuotingAndEscapedLiteralCharacters]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testStrictTokenizerPreservesPOSIXQuotingAndEscapedLiteralCharacters]' passed (0.043 seconds).
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testWrongToolUnknownHiddenFlagsAndDuplicateScalarsRefuseAtomically]' started.
+Test Case '-[DICOMStudioTests.M6PrintCommandCodecTests testWrongToolUnknownHiddenFlagsAndDuplicateScalarsRefuseAtomically]' passed (0.071 seconds).
+Test Suite 'M6PrintCommandCodecTests' passed at 2026-10-26 11:26:22.663.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.386 (0.387) seconds
+Test Suite 'M6PrintSCUCatalogTests' started at 2026-10-26 11:26:22.663.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testEveryFrozenSCUDeclarationHasAnApplicableControl]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testEveryFrozenSCUDeclarationHasAnApplicableControl]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testRepeatableAndAliasFieldsDoNotLoseImportedMeaning]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testRepeatableAndAliasFieldsDoNotLoseImportedMeaning]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterMutatesOnlyExplicitRegistryLocation]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterMutatesOnlyExplicitRegistryLocation]' passed (0.011 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterUsesSameParserRefusals]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopAdapterUsesSameParserRefusals]' passed (0.073 seconds).
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopEmptyRegistryJSONPreservesSharedOutputContract]' started.
+Test Case '-[DICOMStudioTests.M6PrintSCUCatalogTests testWorkshopEmptyRegistryJSONPreservesSharedOutputContract]' passed (0.021 seconds).
+Test Suite 'M6PrintSCUCatalogTests' passed at 2026-10-26 11:26:22.768.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.105 (0.105) seconds
+Test Suite 'M6WorkshopExecutionTests' started at 2026-10-26 11:26:22.768.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M6WorkshopExecutionTests.swift:173: -[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions] : Test skipped - Set M6 Workshop request/output paths and an isolated print settings directory to run the external campaign
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testConfiguredWorkshopActions]' skipped (0.002 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testInvalidPreflightDoesNotRunOrCreateHistory]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testInvalidPreflightDoesNotRunOrCreateHistory]' passed (0.055 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testPaperQueueWithoutExplicitConsentRefusesBeforeAnyOutput]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testPaperQueueWithoutExplicitConsentRefusesBeforeAnyOutput]' passed (0.216 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testQuietServePublishesBoundStateBlocksSwitchingAndStopReleasesPortForRestart]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testQuietServePublishesBoundStateBlocksSwitchingAndStopReleasesPortForRestart]' passed (0.404 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testSuccessfulImportPersistsAndFailedImportPreservesAllCurrentState]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopExecutionTests testSuccessfulImportPersistsAndFailedImportPreservesAllCurrentState]' passed (0.038 seconds).
+Test Suite 'M6WorkshopExecutionTests' passed at 2026-10-26 11:26:23.483.
+	 Executed 5 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.715 (0.715) seconds
+Test Suite 'M6WorkshopSCPCatalogTests' started at 2026-10-26 11:26:23.483.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPDeclarationsAreRepresentedOnceAndScopedToActualCommands]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPDeclarationsAreRepresentedOnceAndScopedToActualCommands]' passed (0.003 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPRepeatablesUseLosslessArrayFields]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testAllSCPRepeatablesUseLosslessArrayFields]' passed (0.000 seconds).
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testSCPOptionalFlagsExposeInheritAndBothActualParserSpellings]' started.
+Test Case '-[DICOMStudioTests.M6WorkshopSCPCatalogTests testSCPOptionalFlagsExposeInheritAndBothActualParserSpellings]' passed (0.415 seconds).
+Test Suite 'M6WorkshopSCPCatalogTests' passed at 2026-10-26 11:26:23.902.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.419 (0.419) seconds
+Test Suite 'M7PrintNativeCheckboxTests' started at 2026-10-26 11:26:23.902.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - verbose
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - checkStatus
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - verify
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - allFrames
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - raw
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - recursive
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - dryRun
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - default
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.TransportOptions.pushJobEvents
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.FilmOutputOptions.allowPaper
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.FilmOutputOptions.open
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.ConfigOptions.saveConfig
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.StatusCommand.verbose
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.ServeCommand.verbose
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.ServeCommand.quiet
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.trim
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.allFrames
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.raw
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.recursive
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.verbose
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMStudioTests/M7PrintNativeCheckboxTests.swift:17: error: -[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState] : XCTAssertEqual failed: ("Optional(__C.NSAccessibilityRole(_rawValue: AXUnknown))") is not equal to ("Optional(__C.NSAccessibilityRole(_rawValue: AXCheckBox))") - scp.SimulateCommand.quiet
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testEveryPrintFlagHasNativeCheckboxNameHelpIdentifierAndState]' failed (7.242 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testNativePressChangesOnlyTheSelectedPrintArgumentAndPreview]' passed (0.202 seconds).
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' started.
+Test Case '-[DICOMStudioTests.M7PrintNativeCheckboxTests testReusedCheckboxUpdatesBindingAndHonorsDisabledState]' passed (0.000 seconds).
+Test Suite 'M7PrintNativeCheckboxTests' failed at 2026-10-26 11:26:31.346.
+	 Executed 3 tests, with 21 failures (0 unexpected) in 7.444 (7.444) seconds
+Test Suite 'DICOMStudioTests.xctest' failed at 2026-10-26 11:26:31.346.
+	 Executed 27 tests, with 1 test skipped and 21 failures (0 unexpected) in 9.069 (9.071) seconds
+Test Suite 'Selected tests' failed at 2026-10-26 11:26:31.346.
+	 Executed 27 tests, with 1 test skipped and 21 failures (0 unexpected) in 9.069 (9.076) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "CLI Workshop ViewModel Tests" started.
+◇ Suite "CLI Workshop Service Tests" started.
+◇ Suite "CLI Workshop Helpers Tests" started.
+◇ Test "--modality runs through the shared ModalityOptionValidator: alias noted only with --verbose, unknown warned and sent, rejected under --strict-modality" started.
+◇ Test "dicom-retrieve / dicom-qr --priority words → Priority (0000,0700) LOW 0002H / MEDIUM 0000H / HIGH 0001H (PS3.7 Tables 9.3-9 / 9.3-6)" started.
+◇ Test "updateParameterValue updates existing entry" started.
+◇ Test "updateOutputPath stores path" started.
+◇ Test "removeInputFile resets drop state when empty" started.
+◇ Test "dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)" started.
+◇ Test "rebuildCommandPreview is empty when no tool selected" started.
+◇ Test "clearCommandHistory removes all entries" started.
+◇ Test "selectedTool returns matching tool" started.
+◇ Test "parameterDefinitions defaults to empty" started.
+◇ Test "removeInputFile removes by ID" started.
+◇ Test "consoleStatus defaults to idle" started.
+◇ Test "appendConsoleOutput accumulates text" started.
+◇ Test "DICOMDIRFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)" started.
+◇ Test "clearHistory removes all entries" started.
+◇ Test "dicom-mwl --sps-status: a PS3.3 Table C.4-10 Defined Term is silent; a PPS word (Table C.4-14) gets the CLI's warning" started.
+◇ Test "selectedTool returns nil when no tool selected" started.
+◇ Test "updateFileDropState changes state" started.
+◇ Test "outputPath defaults to empty string" started.
+◇ Test "addProfile appends a profile" started.
+◇ Test "consoleOutput defaults to empty" started.
+◇ Test "setExperienceMode updates mode" started.
+◇ Test "updateParameterValue creates or updates value" started.
+◇ Test "activeProfileID defaults to nil" started.
+◇ Test "getTools returns 35 tools" started.
+◇ Test "setSelectedToolID stores and retrieves" started.
+◇ Test "connectionTestStatus defaults to untested" started.
+◇ Test "selectedToolID defaults to nil" started.
+◇ Test "glossaryEntries defaults to non-empty" started.
+◇ Test "setParameterDefinitions stores and retrieves" started.
+◇ Test "setConnectionTestStatus updates status" started.
+◇ Test "updateProfile updates matching profile" started.
+◇ Test "glossarySearchQuery defaults to empty" started.
+◇ Test "setGlossarySearchQuery stores and retrieves" started.
+◇ Test "appendConsoleOutput appends text" started.
+◇ Test "experienceMode defaults to beginner" started.
+◇ Test "addCommandHistoryEntry appends entry" started.
+◇ Test "setActiveProfileID stores and retrieves" started.
+◇ Test "inputFiles defaults to empty" started.
+◇ Test "setConsoleStatus updates status" started.
+◇ Test "commandHistory defaults to empty" started.
+◇ Test "removeProfile removes by ID" started.
+◇ Test "addCommandHistoryEntry trims to 50 entries" started.
+◇ Test "fileDropState defaults to empty" started.
+◇ Test "setOutputPath stores and retrieves" started.
+◇ Test "setFileDropState updates state" started.
+◇ Test "addInputFile appends a file" started.
+◇ Test "dicom-export animate rate: --fps, else Recommended Display Frame Rate, Cine Rate, 1000 / Frame Time, else 10 (PS3.3 Table C.7-13)" started.
+◇ Test "dicom-query --format dicom-json renders the PS3.18 F.2 DICOM JSON Model through DICOMWeb's encoder; --csv-keywords names columns by PS3.6 keyword" started.
+◇ Test "toolsForActiveTab returns tools for current tab" started.
+◇ Test "addToHistory sets completed state on exit code 0" started.
+◇ Test "commandPreview defaults to empty" started.
+◇ Test "isCommandValid returns false when required params are missing" started.
+◇ Test "getNetworkProfiles returns default profile on init" started.
+◇ Test "dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1" started.
+◇ Test "DICOMDIRFileSetRules (the Workshop's dcmdir rules, D253): File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)" started.
+◇ Test "Workshop dicom-anon presets never send --profile basic and lead with ps315" started.
+◇ Test "isDICOMFile recognizes DICOM extensions" started.
+◇ Test "dicom-dcmdir create: File-set ID rule (PS3.10 8.1, 8.5) in help, --copy-to offered" started.
+◇ Test "buildCommand handles flagPicker by emitting --value" started.
+◇ Test "selectTool updates selectedToolID" started.
+◇ Test "buildCommand expands repeatable empty-flag definition into variadic positional tokens" started.
+◇ Test "activeProfile returns first profile when no activeProfileID set" started.
+◇ Test "connectionSummary formats correctly" started.
+◇ Test "visibleParameters in beginner mode hides advanced params" started.
+◇ Test "all glossary entries have non-empty term and definition" started.
+◇ Test "removeProfile decreases profile count" started.
+◇ Test "buildCommand handles boolean toggles correctly" started.
+◇ Test "validatePort rejects invalid ports" started.
+◇ Test "addToHistory sets failed state on non-zero exit code" started.
+◇ Test "addToHistory creates entry with PHI redaction" started.
+◇ Test "isDICOMFile recognizes extensionless files as potential DICOM" started.
+◇ Test "visibleParameters in advanced mode shows all params" started.
+◇ Test "dicom-json / dicom-xml --filter-tag forms and deprecation notes (PS3.18 F.2.2; PS3.19 Table A.1.5-2)" started.
+◇ Test "updateConnectionTestStatus changes status" started.
+◇ Test "fileProcessingTools returns 4 tools" started.
+◇ Test "ViewModel initializes with default state" started.
+◇ Test "validateRequired returns false when required param is empty" started.
+◇ Test "dicom-export texts the Workshop prints are DICOMImageExporter's (D252) (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))" started.
+◇ Test "updateParameterValue creates new entry if missing" started.
+◇ Test "dicom-video offers --strict-modality and --audio-channel-source (PS3.16 CID 3000 keywords, D56); the refusal help suffixes are the CLI's" started.
+◇ Test "toggleExperienceMode switches between modes" started.
+◇ Test "buildCommand omits UPS output format for non-retrieval operations" started.
+◇ Test "buildCommand keeps non-repeatable comma values as a single flag" started.
+◇ Test "dicom-image / dicom-pdf / dicom-pixedit refusal rules are the engines' (D274, D272, D270) (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)" started.
+◇ Test "dicom-convert validateRequired detects missing required fields" started.
+◇ Test "dicom-qido does not expose subcommand parameter" started.
+◇ Test "dicom-query validate(): SERIES needs --study-uid, IMAGE needs both (PS3.4 C.4.1.2.1) with the CLI's texts" started.
+◇ Test "filteredGlossaryEntries filters by query" started.
+◇ Test "dicom-ups: --change-state with deprecated --update, --state offers only the PS3.18 11.7.1.4 targets, states spelled per PS3.3 Table C.30.1-1, priorities per Table C.30.2-1, --format csv / dicom-json" started.
+◇ Test "dicom-anon executor rules (DICOMKit AnonCLI, D275): the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)" started.
+◇ Test "dicom-retrieve UID rules: baseline needs the Unique Keys of the levels above (PS3.4 C.4.2.2.1); --relational-retrieve relaxes them (C.4.2.2.2.1) — the CLI's texts" started.
+◇ Test "dicom-export selects frames by Frame number from 1 (PS3.3 Table 10-3); the 0-based options are deprecated (D127)" started.
+◇ Test "setExperienceMode directly sets mode" started.
+◇ Test "dicom-archive --study-date warning: a DA value or DA range (PS3.4 C.2.2.2.5.1) is silent" started.
+◇ Test "dicom-convert windowing params visible only for image formats" started.
+◇ Test "ValidationHelpers.knownIODs are PS3.6 2026a Table A-1 UID Keywords; level texts carry dicom-validate's --level help" started.
+◇ Test "dicom-mpps value rules: status words (PS3.3 Table C.4-14), Patient's Sex M/F/O (Table C.2-3), birth date DA (PS3.5 Table 6.2-1), warning wording via DIMSEServiceStatusText" started.
+◇ Test "addProfile increases profile count" started.
+◇ Test "DIMSE group contains 7 tools" started.
+◇ Test "dicom-convert buildCommand handles boolean flags" started.
+◇ Test "dicom-dump tag argument: 0010,0010, (0010,0010), 00100010 or a PS3.6 keyword" started.
+◇ Test "commandTokens returns tokens for current preview" started.
+◇ Test "defaultGlossaryEntries returns 15 entries" started.
+◇ Test "addInputFile updates files and drop state" started.
+◇ Test "dicom-uid --root: PS3.5 9.1 syntax (digits, single dots, no leading zero) and room for the generated suffix" started.
+◇ Test "examplePresets returns entries for known tools" started.
+◇ Test "dicom-diff ignore-tag emits repeated flags for two hex tags" started.
+◇ Test "dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD" started.
+◇ Test "shellEscape handles paths with spaces" started.
+◇ Test "totalToolCount is 33" started.
+◇ Test "groupedNetworkOperationsTools returns DIMSE and DICOMweb sections" started.
+◇ Test "rebuildCommandPreview generates correct preview" started.
+◇ Test "buildCommand expands repeatable options into repeated flags" started.
+◇ Test "dicom-convert has parameter definitions" started.
+◇ Test "clearConsoleOutput resets output and status" started.
+◇ Test "buildCommand emits cliMapping tokens for internal parameters" started.
+◇ Test "buildCommand flagPicker emits --auto for auto value" started.
+◇ Test "filteredGlossaryEntries returns all for empty query" started.
+◇ Test "dicom-send classes a C-STORE response per PS3.4 Table B.2-1 (NetworkConsole.CStoreOutcome, D261): 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored" started.
+◇ Test "removeProfile resets activeProfileID if removed profile was active" started.
+◇ Test "dicom-retrieve / dicom-qr offer --priority (PS3.7 Tables 9.3-9 / 9.3-6), --relational-retrieve (PS3.4 C.5.2.1), --strict-modality and --include-parent-keys" started.
+◇ Test "DICOMweb group contains 4 tools" started.
+◇ Test "updateProfile updates matching profile fields" started.
+◇ Test "dicom-wado retrieve offers the WADO-URI parameters of PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, gated on --uri; --content-type is the shared Table 8.7.4-1 list; --format is the metadata json | xml" started.
+◇ Test "dicom-validate --iod: PS3.6 Table A-1 keyword or UID resolves to the engine IOD name" started.
+◇ Test "selectTool resets parameters and console" started.
+◇ Test "dicom-split --frame-numbers (from 1, PS3.3 C.7.6.16.1.2) and the deprecated 0-based --frames (D154)" started.
+◇ Test "dicom-compress --syntax offers only the native targets of CompressionConsole.NativeTargetSyntax (D267) (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text" started.
+◇ Test "activeConnectionSummary returns formatted string" started.
+◇ Test "dicom-convert buildCommand produces correct output for DICOM conversion" started.
+◇ Test "defaultProfile returns a valid profile" started.
+◇ Test "examplePresetsForSelectedTool returns empty when no tool selected" started.
+◇ Test "redactPHI redacts patient IDs" started.
+◇ Test "examplePresetsForSelectedTool returns presets for known tool" started.
+◇ Test "isCommandValid returns true when required params are satisfied" started.
+◇ Test "buildCommand with no parameters returns tool name only" started.
+◇ Test "dicom-wado retrieve --uri rules: contentType per PS3.18 9.1.2.2.1 / Table 8.7.4-1, frameNumber a positive integer (9.5.1.2.1), limit / offset unsigned (8.3.4.4) — the CLI's texts" started.
+◇ Test "buildCommand includes parameters without visibleWhen (always visible)" started.
+◇ Test "validateAETitle rejects invalid AE titles" started.
+◇ Test "tools(for:) filters correctly by tab" started.
+◇ Test "C-MOVE / C-GET final response: success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1); failures worded by DIMSEServiceStatusText (Tables C.4-2 / C.4-3) with the PS3.7 counters" started.
+◇ Test "dicom-qido offers --strict-modality, --fuzzy-matching (PS3.18 8.3.4.2) and --format dicom-json (PS3.18 F.2); --limit may be 0 (8.3.4.4)" started.
+◇ Test "dicom-convert --transfer-syntax offers DICOMConverter.cliTokens (P-CONVERT-TS-KEYWORDS), old spellings canonicalise, --frame-number from 1 with --frame deprecated (P-CONVERT-FRAME)" started.
+◇ Test "isDICOMFile rejects non-DICOM extensions" started.
+◇ Test "maxHistoryCount is 50" started.
+◇ Test "filterGlossary returns all entries for empty query" started.
+◇ Test "dicom-dcmdir --profile offers only the PS3.11 2026a identifiers of DICOMDIRProfile.allStandard (D29)" started.
+◇ Test "validateRequired returns true when all required params have values" started.
+◇ Test "dicom-study defaults mirror the CLI: organize moves unless --copy; summary table, stats / compare text" started.
+◇ Test "validateHost accepts valid hosts" started.
+◇ Test "Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)" started.
+◇ Test "dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)" started.
+◇ Test "validateHost rejects empty or whitespace-only hosts" started.
+◇ Test "buildCommand includes parameters whose visibleWhen condition IS met" started.
+◇ Test "maxAETitleLength is 16" started.
+◇ Test "dicom-export --fps has no fixed default: the file's Cine Module rate (PS3.3 Table C.7-13)" started.
+◇ Test "tokenize correctly identifies tool name, flags, values, and paths" started.
+◇ Test "formatFileSize formats bytes correctly" started.
+◇ Test "validateTimeout rejects invalid timeouts" started.
+◇ Test "dicom-query --format offers dicom-json (PS3.18 F.2), --csv-keywords and --strict-modality are offered; --modality help is the shared text" started.
+◇ Test "validateRequired returns false when required param is missing" started.
+◇ Test "buildCommand repeatable option keeps a hex tag's comma intact" started.
+◇ Test "dicom-anon offers every PS3.15 2026a E.3 Option flag of dicom-anon (CID 7050 names in the help), --retain-dates deprecated, the pixel-cleaning options" started.
+◇ Test "allTools returns exactly 35 tools" started.
+◇ Test "buildCommand uses default value for visibleWhen check when parameter value is empty" started.
+◇ Test "defaultGlossaryCount matches array count" started.
+◇ Test "buildCommand with subcommand includes it" started.
+◇ Test "filterGlossary filters by term" started.
+◇ Test "filterGlossary is case-insensitive" started.
+◇ Test "tokenize handles empty command" started.
+◇ Test "dicom-convert transfer-syntax visible only for DICOM format" started.
+◇ Test "dicom-send offers --transfer-syntax (PS3.8 7.1.1.13; DICOMCore.TransferSyntax tokens) and the PS3.7 Table 9.3-1 priority values" started.
+◇ Test "dicom-json / dicom-xml keep empty attributes by default with --no-include-empty (PS3.18 F.2.5; D114)" started.
+◇ Test "buildCommand cliMapping emits multi-token values" started.
+◇ Test "dicom-export pickers are the shared ExportImageFormat / OrganizationScheme with the CLI's per-subcommand defaults" started.
+◇ Test "dicom-mwl --sps-status offers the PS3.3 2026a Table C.4-10 Defined Terms; --specific-character-set and --strict-modality are offered" started.
+◇ Test "all network tools have a networkToolGroup assigned" started.
+◇ Test "dicom-pixedit help texts are the CLI's; --fill-value carries no default (P-PIXEDIT-RANGE refusals in the executor)" started.
+◇ Test "dicom-dump / dicom-tags / dicom-uid / dicom-merge forms mirror the CLI surface" started.
+◇ Test "network tools require network" started.
+◇ Test "dicom-convert requires inputPath and output" started.
+◇ Test "buildCommand booleanToggle with negatedFlag emits inverted token when off" started.
+◇ Test "buildCommand includes flag and value parameters" started.
+◇ Test "fileOrganizationTools returns 4 tools" started.
+◇ Test "tools with subcommands are identified correctly" started.
+◇ Test "splitMultiValue splits on semicolons and preserves commas/spaces in values" started.
+◇ Test "buildCommand uses positional host port for dicom-echo" started.
+◇ Test "fileInspectionTools returns 4 tools" started.
+◇ Test "trimHistory preserves history under limit" started.
+◇ Test "automationTools returns 3 tools" started.
+◇ Test "dicom-convert example presets exist" started.
+◇ Test "NetworkToolGroup has correct display names" started.
+◇ Test "dicom-convert advanced params are flagged correctly" started.
+◇ Test "trimHistory keeps at most 50 entries" started.
+◇ Test "missingRequiredParameters lists missing params" started.
+◇ Test "all tools have unique IDs" started.
+◇ Test "dicom-convert format parameter has enum values" started.
+◇ Test "all tools have non-empty names and descriptions" started.
+◇ Test "buildCommand excludes parameters whose visibleWhen condition is not met" started.
+◇ Test "validateAETitle accepts valid AE titles" started.
+◇ Test "redactPHI redacts OAuth tokens" started.
+◇ Test "dicom-convert quality visible only for JPEG format" started.
+◇ Test "validateTimeout accepts valid timeouts" started.
+◇ Test "dicom-convert buildCommand produces correct output for image export" started.
+◇ Test "dicom-convert has expected parameter count (14: --frame-number joined the deprecated --frame)" started.
+◇ Test "networkOperationsTools returns 11 tools" started.
+◇ Test "redactPHI redacts patient names" started.
+◇ Test "filterGlossary filters by definition content" started.
+◇ Test "formatTimestamp produces non-empty string" started.
+◇ Test "dataExportTools returns 7 tools" started.
+◇ Test "shellEscape handles single quotes" started.
+◇ Test "examplePresets returns empty for unknown tool" started.
+◇ Test "fileSummary describes file count correctly" started.
+◇ Test "buildCommand handles file path with spaces" started.
+◇ Test "redactPHI preserves non-PHI command parts" started.
+◇ Test "validatePort accepts valid ports" started.
+◇ Test "dicom-export --apply-window is deprecated on contact-sheet and bulk only (P-EXPORT-3)" started.
+◇ Test "dicom-query --level offers the PS3.4 2026a Table C.6.1-1 / C.6.2-1 values (patient, study, series, image), not 'instance'" started.
+◇ Test "dicom-archive query offers --strict-modality and the shared modality help (PS3.3 C.7.3.1.1.1)" started.
+✔ Test "addProfile appends a profile" passed after 0.002 seconds.
+✔ Test "parameterDefinitions defaults to empty" passed after 0.002 seconds.
+✔ Test "clearCommandHistory removes all entries" passed after 0.002 seconds.
+✔ Test "setExperienceMode updates mode" passed after 0.002 seconds.
+✔ Test "consoleStatus defaults to idle" passed after 0.002 seconds.
+✔ Test "removeInputFile removes by ID" passed after 0.002 seconds.
+✔ Test "consoleOutput defaults to empty" passed after 0.002 seconds.
+✔ Test "outputPath defaults to empty string" passed after 0.002 seconds.
+✔ Test "getTools returns 35 tools" passed after 0.002 seconds.
+✔ Test "activeProfileID defaults to nil" passed after 0.002 seconds.
+✔ Test "setSelectedToolID stores and retrieves" passed after 0.002 seconds.
+✔ Test "connectionTestStatus defaults to untested" passed after 0.002 seconds.
+✔ Test "updateParameterValue creates or updates value" passed after 0.002 seconds.
+✔ Test "selectedToolID defaults to nil" passed after 0.002 seconds.
+✔ Test "setParameterDefinitions stores and retrieves" passed after 0.002 seconds.
+✔ Test "glossaryEntries defaults to non-empty" passed after 0.002 seconds.
+✔ Test "setConnectionTestStatus updates status" passed after 0.002 seconds.
+✔ Test "updateProfile updates matching profile" passed after 0.002 seconds.
+✔ Test "setGlossarySearchQuery stores and retrieves" passed after 0.002 seconds.
+✔ Test "experienceMode defaults to beginner" passed after 0.002 seconds.
+✔ Test "glossarySearchQuery defaults to empty" passed after 0.002 seconds.
+✔ Test "addCommandHistoryEntry appends entry" passed after 0.002 seconds.
+✔ Test "commandHistory defaults to empty" passed after 0.003 seconds.
+✔ Test "appendConsoleOutput appends text" passed after 0.002 seconds.
+✔ Test "setActiveProfileID stores and retrieves" passed after 0.003 seconds.
+✔ Test "setConsoleStatus updates status" passed after 0.003 seconds.
+✔ Test "inputFiles defaults to empty" passed after 0.003 seconds.
+✔ Test "removeProfile removes by ID" passed after 0.003 seconds.
+✔ Test "fileDropState defaults to empty" passed after 0.003 seconds.
+✔ Test "addInputFile appends a file" passed after 0.003 seconds.
+✔ Test "setOutputPath stores and retrieves" passed after 0.003 seconds.
+✔ Test "setFileDropState updates state" passed after 0.003 seconds.
+✔ Test "addCommandHistoryEntry trims to 50 entries" passed after 0.003 seconds.
+✔ Test "getNetworkProfiles returns default profile on init" passed after 0.003 seconds.
+✔ Test "commandPreview defaults to empty" passed after 0.003 seconds.
+✔ Test "Workshop dicom-anon presets never send --profile basic and lead with ps315" passed after 0.004 seconds.
+✔ Test "connectionSummary formats correctly" passed after 0.004 seconds.
+✔ Test "validatePort rejects invalid ports" passed after 0.004 seconds.
+✔ Test "all glossary entries have non-empty term and definition" passed after 0.004 seconds.
+✔ Test "isDICOMFile recognizes extensionless files as potential DICOM" passed after 0.004 seconds.
+✔ Test "buildCommand handles boolean toggles correctly" passed after 0.004 seconds.
+✔ Test "buildCommand handles flagPicker by emitting --value" passed after 0.004 seconds.
+✔ Test "fileProcessingTools returns 4 tools" passed after 0.004 seconds.
+✔ Test "validateRequired returns false when required param is empty" passed after 0.004 seconds.
+✔ Test "dicom-dcmdir create: File-set ID rule (PS3.10 8.1, 8.5) in help, --copy-to offered" passed after 0.004 seconds.
+✔ Test "buildCommand keeps non-repeatable comma values as a single flag" passed after 0.004 seconds.
+✔ Test "buildCommand omits UPS output format for non-retrieval operations" passed after 0.004 seconds.
+✔ Test "buildCommand expands repeatable empty-flag definition into variadic positional tokens" passed after 0.004 seconds.
+✔ Test "examplePresets returns entries for known tools" passed after 0.004 seconds.
+✔ Test "DIMSE group contains 7 tools" passed after 0.004 seconds.
+✔ Test "defaultGlossaryEntries returns 15 entries" passed after 0.004 seconds.
+✔ Test "shellEscape handles paths with spaces" passed after 0.004 seconds.
+✔ Test "dicom-qido does not expose subcommand parameter" passed after 0.004 seconds.
+✔ Test "isDICOMFile recognizes DICOM extensions" passed after 0.004 seconds.
+✔ Test "dicom-convert windowing params visible only for image formats" passed after 0.004 seconds.
+✔ Test "dicom-diff ignore-tag emits repeated flags for two hex tags" passed after 0.004 seconds.
+✔ Test "groupedNetworkOperationsTools returns DIMSE and DICOMweb sections" passed after 0.004 seconds.
+✔ Test "buildCommand expands repeatable options into repeated flags" passed after 0.004 seconds.
+✔ Test "dicom-convert validateRequired detects missing required fields" passed after 0.004 seconds.
+✔ Test "dicom-ups: --change-state with deprecated --update, --state offers only the PS3.18 11.7.1.4 targets, states spelled per PS3.3 Table C.30.1-1, priorities per Table C.30.2-1, --format csv / dicom-json" passed after 0.004 seconds.
+✔ Test "buildCommand flagPicker emits --auto for auto value" passed after 0.004 seconds.
+✔ Test "buildCommand emits cliMapping tokens for internal parameters" passed after 0.004 seconds.
+✔ Test "dicom-convert has parameter definitions" passed after 0.004 seconds.
+✔ Test "dicom-image / dicom-pdf --conversion-type offer the 8 PS3.3 2026a Table C.8-24 Defined Terms (ConversionType.definedTerms), empty = the CLI's WSD" passed after 0.004 seconds.
+✔ Test "dicom-retrieve / dicom-qr offer --priority (PS3.7 Tables 9.3-9 / 9.3-6), --relational-retrieve (PS3.4 C.5.2.1), --strict-modality and --include-parent-keys" passed after 0.004 seconds.
+✔ Test "DICOMweb group contains 4 tools" passed after 0.004 seconds.
+✔ Test "ValidationHelpers.knownIODs are PS3.6 2026a Table A-1 UID Keywords; level texts carry dicom-validate's --level help" passed after 0.004 seconds.
+✔ Test "defaultProfile returns a valid profile" passed after 0.004 seconds.
+✔ Test "dicom-split --frame-numbers (from 1, PS3.3 C.7.6.16.1.2) and the deprecated 0-based --frames (D154)" passed after 0.004 seconds.
+✔ Test "buildCommand with no parameters returns tool name only" passed after 0.003 seconds.
+✔ Test "dicom-convert buildCommand handles boolean flags" passed after 0.004 seconds.
+✔ Test "dicom-wado retrieve offers the WADO-URI parameters of PS3.18 Tables 9.1.2-2 / 9.4.1-1 / 9.5.1-1, gated on --uri; --content-type is the shared Table 8.7.4-1 list; --format is the metadata json | xml" passed after 0.004 seconds.
+✔ Test "buildCommand includes parameters without visibleWhen (always visible)" passed after 0.003 seconds.
+✔ Test "dicom-export selects frames by Frame number from 1 (PS3.3 Table 10-3); the 0-based options are deprecated (D127)" passed after 0.004 seconds.
+✔ Test "isDICOMFile rejects non-DICOM extensions" passed after 0.003 seconds.
+✔ Test "validateAETitle rejects invalid AE titles" passed after 0.003 seconds.
+✔ Test "validateRequired returns true when all required params have values" passed after 0.003 seconds.
+✔ Test "filterGlossary returns all entries for empty query" passed after 0.003 seconds.
+✔ Test "dicom-convert buildCommand produces correct output for DICOM conversion" passed after 0.004 seconds.
+✔ Test "dicom-dcmdir --profile offers only the PS3.11 2026a identifiers of DICOMDIRProfile.allStandard (D29)" passed after 0.003 seconds.
+✔ Test "Workshop dicom-anon --profile offers ps315 (the CLI default), its alias basic and the legacy lists (P-STUDIO-ANON-PS315)" passed after 0.003 seconds.
+✔ Test "dicom-convert --transfer-syntax offers DICOMConverter.cliTokens (P-CONVERT-TS-KEYWORDS), old spellings canonicalise, --frame-number from 1 with --frame deprecated (P-CONVERT-FRAME)" passed after 0.004 seconds.
+✔ Test "validateHost accepts valid hosts" passed after 0.003 seconds.
+✔ Test "dicom-study defaults mirror the CLI: organize moves unless --copy; summary table, stats / compare text" passed after 0.003 seconds.
+✔ Test "maxHistoryCount is 50" passed after 0.003 seconds.
+✔ Test "dicom-export --fps has no fixed default: the file's Cine Module rate (PS3.3 Table C.7-13)" passed after 0.004 seconds.
+✔ Test "dicom-compress --syntax offers only the native targets of CompressionConsole.NativeTargetSyntax (D267) (P-COMPRESS-SYNTAX); codec names are refused with the CLI's text" passed after 0.004 seconds.
+✔ Test "tools(for:) filters correctly by tab" passed after 0.004 seconds.
+✔ Test "totalToolCount is 33" passed after 0.004 seconds.
+✔ Test "tokenize correctly identifies tool name, flags, values, and paths" passed after 0.003 seconds.
+✔ Test "buildCommand includes parameters whose visibleWhen condition IS met" passed after 0.003 seconds.
+✔ Test "validateRequired returns false when required param is missing" passed after 0.003 seconds.
+✔ Test "dicom-mpps create requires --modality (PS3.4 Table F.7.2-1 Type 1); the discontinuation reason examples are PS3.16 CID 9301 pairs (D85)" passed after 0.004 seconds.
+✔ Test "buildCommand repeatable option keeps a hex tag's comma intact" passed after 0.003 seconds.
+✔ Test "buildCommand uses default value for visibleWhen check when parameter value is empty" passed after 0.003 seconds.
+✔ Test "dicom-qido offers --strict-modality, --fuzzy-matching (PS3.18 8.3.4.2) and --format dicom-json (PS3.18 F.2); --limit may be 0 (8.3.4.4)" passed after 0.004 seconds.
+✔ Test "maxAETitleLength is 16" passed after 0.003 seconds.
+✔ Test "allTools returns exactly 35 tools" passed after 0.003 seconds.
+✔ Test "dicom-query --format offers dicom-json (PS3.18 F.2), --csv-keywords and --strict-modality are offered; --modality help is the shared text" passed after 0.003 seconds.
+✔ Test "defaultGlossaryCount matches array count" passed after 0.004 seconds.
+✔ Test "validateHost rejects empty or whitespace-only hosts" passed after 0.003 seconds.
+✔ Test "tokenize handles empty command" passed after 0.003 seconds.
+✔ Test "buildCommand with subcommand includes it" passed after 0.003 seconds.
+✔ Test "validateTimeout rejects invalid timeouts" passed after 0.003 seconds.
+✔ Test "dicom-video offers --strict-modality and --audio-channel-source (PS3.16 CID 3000 keywords, D56); the refusal help suffixes are the CLI's" passed after 0.004 seconds.
+✔ Test "filterGlossary filters by term" passed after 0.003 seconds.
+✔ Test "dicom-json / dicom-xml keep empty attributes by default with --no-include-empty (PS3.18 F.2.5; D114)" passed after 0.003 seconds.
+✔ Test "formatFileSize formats bytes correctly" passed after 0.003 seconds.
+✔ Test "dicom-convert transfer-syntax visible only for DICOM format" passed after 0.003 seconds.
+✔ Test "all network tools have a networkToolGroup assigned" passed after 0.003 seconds.
+✔ Test "dicom-export pickers are the shared ExportImageFormat / OrganizationScheme with the CLI's per-subcommand defaults" passed after 0.003 seconds.
+✔ Test "buildCommand cliMapping emits multi-token values" passed after 0.003 seconds.
+✔ Test "network tools require network" passed after 0.003 seconds.
+✔ Test "redactPHI redacts patient IDs" passed after 0.004 seconds.
+✔ Test "fileOrganizationTools returns 4 tools" passed after 0.003 seconds.
+✔ Test "buildCommand booleanToggle with negatedFlag emits inverted token when off" passed after 0.003 seconds.
+✔ Test "splitMultiValue splits on semicolons and preserves commas/spaces in values" passed after 0.003 seconds.
+✔ Test "dicom-convert requires inputPath and output" passed after 0.003 seconds.
+✔ Test "trimHistory preserves history under limit" passed after 0.003 seconds.
+✔ Test "automationTools returns 3 tools" passed after 0.003 seconds.
+✔ Test "dicom-mwl --sps-status offers the PS3.3 2026a Table C.4-10 Defined Terms; --specific-character-set and --strict-modality are offered" passed after 0.003 seconds.
+✔ Test "dicom-convert example presets exist" passed after 0.003 seconds.
+✔ Test "NetworkToolGroup has correct display names" passed after 0.003 seconds.
+✔ Test "dicom-pixedit help texts are the CLI's; --fill-value carries no default (P-PIXEDIT-RANGE refusals in the executor)" passed after 0.003 seconds.
+✔ Test "buildCommand uses positional host port for dicom-echo" passed after 0.003 seconds.
+✔ Test "dicom-convert advanced params are flagged correctly" passed after 0.003 seconds.
+✔ Test "all tools have unique IDs" passed after 0.003 seconds.
+✔ Test "dicom-send offers --transfer-syntax (PS3.8 7.1.1.13; DICOMCore.TransferSyntax tokens) and the PS3.7 Table 9.3-1 priority values" passed after 0.004 seconds.
+✔ Test "dicom-convert format parameter has enum values" passed after 0.003 seconds.
+✔ Test "dicom-dump / dicom-tags / dicom-uid / dicom-merge forms mirror the CLI surface" passed after 0.003 seconds.
+✔ Test "validateAETitle accepts valid AE titles" passed after 0.003 seconds.
+✔ Test "buildCommand includes flag and value parameters" passed after 0.003 seconds.
+✔ Test "fileInspectionTools returns 4 tools" passed after 0.003 seconds.
+✔ Test "filterGlossary is case-insensitive" passed after 0.004 seconds.
+✔ Test "all tools have non-empty names and descriptions" passed after 0.003 seconds.
+✔ Test "validateTimeout accepts valid timeouts" passed after 0.003 seconds.
+✔ Test "dicom-convert quality visible only for JPEG format" passed after 0.003 seconds.
+✔ Test "networkOperationsTools returns 11 tools" passed after 0.003 seconds.
+✔ Test "redactPHI redacts OAuth tokens" passed after 0.003 seconds.
+✔ Test "buildCommand excludes parameters whose visibleWhen condition is not met" passed after 0.003 seconds.
+✔ Test "dicom-convert has expected parameter count (14: --frame-number joined the deprecated --frame)" passed after 0.003 seconds.
+✔ Test "tools with subcommands are identified correctly" passed after 0.003 seconds.
+✔ Test "trimHistory keeps at most 50 entries" passed after 0.003 seconds.
+✔ Test "shellEscape handles single quotes" passed after 0.003 seconds.
+✔ Test "redactPHI redacts patient names" passed after 0.003 seconds.
+✔ Test "missingRequiredParameters lists missing params" passed after 0.003 seconds.
+✔ Test "filterGlossary filters by definition content" passed after 0.003 seconds.
+✔ Test "dataExportTools returns 7 tools" passed after 0.003 seconds.
+✔ Test "validatePort accepts valid ports" passed after 0.003 seconds.
+✔ Test "redactPHI preserves non-PHI command parts" passed after 0.003 seconds.
+✔ Test "buildCommand handles file path with spaces" passed after 0.003 seconds.
+✔ Test "dicom-anon offers every PS3.15 2026a E.3 Option flag of dicom-anon (CID 7050 names in the help), --retain-dates deprecated, the pixel-cleaning options" passed after 0.004 seconds.
+✔ Test "examplePresets returns empty for unknown tool" passed after 0.003 seconds.
+✔ Test "fileSummary describes file count correctly" passed after 0.003 seconds.
+✔ Test "dicom-archive query offers --strict-modality and the shared modality help (PS3.3 C.7.3.1.1.1)" passed after 0.003 seconds.
+✔ Test "dicom-export --apply-window is deprecated on contact-sheet and bulk only (P-EXPORT-3)" passed after 0.003 seconds.
+✔ Test "dicom-convert buildCommand produces correct output for image export" passed after 0.003 seconds.
+✔ Test "dicom-query --level offers the PS3.4 2026a Table C.6.1-1 / C.6.2-1 values (patient, study, series, image), not 'instance'" passed after 0.003 seconds.
+✔ Suite "CLI Workshop Service Tests" passed after 0.006 seconds.
+✔ Test "formatTimestamp produces non-empty string" passed after 0.009 seconds.
+✔ Suite "CLI Workshop Helpers Tests" passed after 0.012 seconds.
+✔ Test "--modality runs through the shared ModalityOptionValidator: alias noted only with --verbose, unknown warned and sent, rejected under --strict-modality" passed after 0.075 seconds.
+✔ Test "dicom-retrieve / dicom-qr --priority words → Priority (0000,0700) LOW 0002H / MEDIUM 0000H / HIGH 0001H (PS3.7 Tables 9.3-9 / 9.3-6)" passed after 0.089 seconds.
+✔ Test "updateOutputPath stores path" passed after 0.089 seconds.
+✔ Test "updateParameterValue updates existing entry" passed after 0.089 seconds.
+✔ Test "dicom-query --level: patient/study/series/image → Query/Retrieve Level (0008,0052); 'instance' is the CLI alias of IMAGE (PS3.4 Table C.6.1-1)" passed after 0.089 seconds.
+✔ Test "removeInputFile resets drop state when empty" passed after 0.089 seconds.
+✔ Test "selectedTool returns matching tool" passed after 0.096 seconds.
+✔ Test "rebuildCommandPreview is empty when no tool selected" passed after 0.096 seconds.
+✔ Test "appendConsoleOutput accumulates text" passed after 0.110 seconds.
+✔ Test "DICOMDIRFileSetRules: a deprecated --profile spelling gets the CLI's note; a PS3.11 identifier none (D29)" passed after 0.117 seconds.
+✔ Test "clearHistory removes all entries" passed after 0.124 seconds.
+✔ Test "dicom-mwl --sps-status: a PS3.3 Table C.4-10 Defined Term is silent; a PPS word (Table C.4-14) gets the CLI's warning" passed after 0.124 seconds.
+✔ Test "updateFileDropState changes state" passed after 0.130 seconds.
+✔ Test "selectedTool returns nil when no tool selected" passed after 0.130 seconds.
+✔ Test "dicom-export animate rate: --fps, else Recommended Display Frame Rate, Cine Rate, 1000 / Frame Time, else 10 (PS3.3 Table C.7-13)" passed after 0.297 seconds.
+✔ Test "isCommandValid returns false when required params are missing" passed after 0.297 seconds.
+✔ Test "visibleParameters in advanced mode shows all params" passed after 0.296 seconds.
+✔ Test "removeProfile decreases profile count" passed after 0.297 seconds.
+✔ Test "DICOMDIRFileSetRules (the Workshop's dcmdir rules, D253): File-set ID default and refusal follow PS3.10 8.1 / 8.5 (D132)" passed after 0.297 seconds.
+✔ Test "visibleParameters in beginner mode hides advanced params" passed after 0.297 seconds.
+✔ Test "dicom-wado ups --state: IN PROGRESS / COMPLETED / CANCELED are Change State targets (PS3.18 11.7.1.4); SCHEDULED is refused with the CLI's text (PS3.4 Table CC.1.1-2, C303H), exit 1" passed after 0.297 seconds.
+✔ Test "activeProfile returns first profile when no activeProfileID set" passed after 0.297 seconds.
+✔ Test "selectTool updates selectedToolID" passed after 0.297 seconds.
+✔ Test "updateConnectionTestStatus changes status" passed after 0.296 seconds.
+✔ Test "dicom-query --format dicom-json renders the PS3.18 F.2 DICOM JSON Model through DICOMWeb's encoder; --csv-keywords names columns by PS3.6 keyword" passed after 0.297 seconds.
+✔ Test "addToHistory sets failed state on non-zero exit code" passed after 0.297 seconds.
+✔ Test "addToHistory sets completed state on exit code 0" passed after 0.297 seconds.
+✔ Test "toolsForActiveTab returns tools for current tab" passed after 0.297 seconds.
+✔ Test "dicom-json / dicom-xml --filter-tag forms and deprecation notes (PS3.18 F.2.2; PS3.19 Table A.1.5-2)" passed after 0.296 seconds.
+✔ Test "ViewModel initializes with default state" passed after 0.296 seconds.
+✔ Test "dicom-anon executor rules (DICOMKit AnonCLI, D275): the CLI's legacy profile notice, the 'apply only to --profile ps315' refusal, the E.1-1a action report (PS3.15 2026a Annex E)" passed after 0.296 seconds.
+✔ Test "addToHistory creates entry with PHI redaction" passed after 0.296 seconds.
+✔ Test "toggleExperienceMode switches between modes" passed after 0.296 seconds.
+✔ Test "filteredGlossaryEntries filters by query" passed after 0.296 seconds.
+✔ Test "dicom-query validate(): SERIES needs --study-uid, IMAGE needs both (PS3.4 C.4.1.2.1) with the CLI's texts" passed after 0.296 seconds.
+✔ Test "updateParameterValue creates new entry if missing" passed after 0.296 seconds.
+✔ Test "setExperienceMode directly sets mode" passed after 0.296 seconds.
+✔ Test "dicom-image / dicom-pdf / dicom-pixedit refusal rules are the engines' (D274, D272, D270) (PS3.5 Table 6.2-1 / 9.1, PS3.3 Tables C.8-24 / C.24-2, C.7.6.3.1, C.11.2.1.2)" passed after 0.296 seconds.
+✔ Test "addProfile increases profile count" passed after 0.296 seconds.
+✔ Test "dicom-mpps value rules: status words (PS3.3 Table C.4-14), Patient's Sex M/F/O (Table C.2-3), birth date DA (PS3.5 Table 6.2-1), warning wording via DIMSEServiceStatusText" passed after 0.296 seconds.
+✔ Test "dicom-retrieve UID rules: baseline needs the Unique Keys of the levels above (PS3.4 C.4.2.2.1); --relational-retrieve relaxes them (C.4.2.2.2.1) — the CLI's texts" passed after 0.296 seconds.
+✔ Test "dicom-export texts the Workshop prints are DICOMImageExporter's (D252) (P-EXPORT-1, P-EXPORT-3, Burned In Annotation (0028,0301))" passed after 0.296 seconds.
+✔ Test "dicom-uid --root: PS3.5 9.1 syntax (digits, single dots, no leading zero) and room for the generated suffix" passed after 0.296 seconds.
+✔ Test "dicom-dump tag argument: 0010,0010, (0010,0010), 00100010 or a PS3.6 keyword" passed after 0.296 seconds.
+✔ Test "addInputFile updates files and drop state" passed after 0.296 seconds.
+✔ Test "rebuildCommandPreview generates correct preview" passed after 0.296 seconds.
+✔ Test "filteredGlossaryEntries returns all for empty query" passed after 0.296 seconds.
+✔ Test "removeProfile resets activeProfileID if removed profile was active" passed after 0.296 seconds.
+✔ Test "clearConsoleOutput resets output and status" passed after 0.296 seconds.
+✔ Test "selectTool resets parameters and console" passed after 0.296 seconds.
+✔ Test "commandTokens returns tokens for current preview" passed after 0.296 seconds.
+✔ Test "dicom-archive --study-date warning: a DA value or DA range (PS3.4 C.2.2.2.5.1) is silent" passed after 0.296 seconds.
+✔ Test "updateProfile updates matching profile fields" passed after 0.296 seconds.
+✔ Test "isCommandValid returns true when required params are satisfied" passed after 0.296 seconds.
+✔ Test "activeConnectionSummary returns formatted string" passed after 0.296 seconds.
+✔ Test "examplePresetsForSelectedTool returns presets for known tool" passed after 0.296 seconds.
+✔ Test "examplePresetsForSelectedTool returns empty when no tool selected" passed after 0.296 seconds.
+✔ Test "dicom-send classes a C-STORE response per PS3.4 Table B.2-1 (NetworkConsole.CStoreOutcome, D261): 0000 stored, B000/B006/B007 stored with warning, A7xx/A9xx/Cxxx/0122 not stored" passed after 0.296 seconds.
+✔ Test "C-MOVE / C-GET final response: success only for 0000 with no failed sub-operations (PS3.4 C.4.2.2.1); failures worded by DIMSEServiceStatusText (Tables C.4-2 / C.4-3) with the PS3.7 counters" passed after 0.296 seconds.
+✔ Test "dicom-validate --iod: PS3.6 Table A-1 keyword or UID resolves to the engine IOD name" passed after 0.296 seconds.
+✔ Test "dicom-wado retrieve --uri rules: contentType per PS3.18 9.1.2.2.1 / Table 8.7.4-1, frameNumber a positive integer (9.5.1.2.1), limit / offset unsigned (8.3.4.4) — the CLI's texts" passed after 0.296 seconds.
+✔ Suite "CLI Workshop ViewModel Tests" passed after 0.299 seconds.
+✔ Test run with 220 tests in 3 suites passed after 0.299 seconds.
+Note: Some test targets reported failures:
+  - DICOMStudioTests (XCTest)

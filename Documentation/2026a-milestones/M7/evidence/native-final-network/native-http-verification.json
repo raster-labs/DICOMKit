@@ -1,0 +1,390 @@
+{
+  "cases": [
+    "FINAL-06 QIDO/WADO/STOW portions",
+    "FINAL-07",
+    "FINAL-08",
+    "FINAL-11"
+  ],
+  "native_actions": 18,
+  "CLI_actions": 18,
+  "pairwise_assertions": 181,
+  "additional_assertions": 73,
+  "checks": [
+    {
+      "name": "exact native and CLI HTTP request total",
+      "passed": true,
+      "detail": 36
+    },
+    {
+      "name": "qido-basic replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-bearer replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-bearer actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-bearer full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-none replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-none actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-none full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-series replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-series actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-series full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-scoped-series replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-scoped-series actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-scoped-series full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-instances replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-instances actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-all-instances full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-instances replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-instances actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-instances full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-instances replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-instances actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-instances full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-pps-parent replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-pps-parent actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-pps-parent full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-hidden-parent replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-hidden-parent actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-hidden-parent full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-instance-hidden-series replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-instance-hidden-series actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-instance-hidden-series full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-ct replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-ct actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-series-ct full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-ct replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-ct actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-study-ct full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-list replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-list actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-list full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-unicode replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-unicode actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-uid-unicode full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-after-tool-reset replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-after-tool-reset actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-after-tool-reset full native summary equals CLI JSON",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "wado-basic-instance replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "wado-basic-instance actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stow-basic replay checks all pass",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stow-basic actual native SUCCESS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "parent and PPS filters on unscoped series",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "scoped series hides parent date and retains PPS",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "fully scoped instances hide parent and series filters",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "SERIES modality uses 00080060",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "STUDY modality uses 00080061",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UID alternatives remain literal matching query",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UTF-8 patient-name intersects UID alternatives",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "changed tool executes fresh query without old filters",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "return to series restores preserved hidden UI filters",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "changed tool clears old UI state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic-copied-command all copied lines are comments",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic-copied-command explicitly app-only and omits credentials",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "wado-basic-copied-command all copied lines are comments",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "wado-basic-copied-command explicitly app-only and omits credentials",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stow-basic-copied-command all copied lines are comments",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "stow-basic-copied-command explicitly app-only and omits credentials",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic-multiline-copied-command all copied lines are comments",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "qido-basic-multiline-copied-command explicitly app-only and omits credentials",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "STOW native and CLI success summary parity",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "HTTP peer process harness completed cleanly",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": true,
+  "limits": [
+    "FINAL06 UPS portion remains separate.",
+    "Native Basic header handling is verified; CLI has no Basic authentication flag and equivalent CLI requests omit Basic explicitly.",
+    "Synthetic capture server does not enforce credentials.",
+    "One native full-instance WADO action covers FINAL11; no additional metadata or bulkdata runtime claim.",
+    "Multiline Basic case checks copied preview only; no request was executed.",
+    "Filter return capture is a UI observation, not a new request.",
+    "Initial CT keyboard-selection attempt left Any; the first three hidden-filter cases therefore prove date/PPS behavior only. Actual later CT requests prove the modality tags."
+  ],
+  "verified_utc": "2026-10-26T08:10:32.423672+00:00"
+}

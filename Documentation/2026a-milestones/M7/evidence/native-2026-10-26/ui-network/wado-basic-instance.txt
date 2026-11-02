@@ -1,0 +1,29 @@
+							49 radio button Description: wado-rs, Value: 1
+							50 radio button Description: wado-uri, Value: 0
+						52 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+						54 text field (settable) Description: Study Instance UID, Value: 1.2.826.0.1.3680043.10.543.301, Placeholder: e.g. 1.2.840.113619...
+						56 text field (settable) Description: Series Instance UID, Value: 1.2.826.0.1.3680043.10.543.301.1, Placeholder: e.g. 1.2.840.113619...
+						58 text field (settable) Description: SOP Instance UID, Value: 1.2.826.0.1.3680043.10.543.301.1.1, Placeholder: e.g. 1.2.840.113619...
+							61 radio button Description: json, Value: 1
+							62 radio button Description: xml, Value: 0
+							65 radio button Description: none, Value: 0
+							66 radio button Description: basic, Value: 1
+							67 radio button Description: bearer, Value: 0
+						69 text field (settable) Description: Username, Value: m7-native, Placeholder: e.g. admin
+						71 text field (settable) Description: Password, Value: only-test:pass
+						73 checkbox Description: Metadata Only, Value: 0
+						74 checkbox Description: Rendered Image, Value: 0
+						75 checkbox Description: Thumbnail, Value: 0
+						76 checkbox Description: Verbose, Value: 0
+						78 text field (settable) Description: Output Directory, Placeholder: e.g. ~/Downloads/studies, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui
+						81 text field (settable) Description: Frame Numbers, Help: Shows additional flags for this tool, Placeholder: e.g. 1,2,3
+						83 text field (settable) Description: Timeout (s), Help: Shows additional flags for this tool, Value: 60
+						85 disclosure triangle Description: Advanced options (2), Help: Shows additional flags for this tool, Value: on
+					92 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					93 button Description: Run command, Help: Runs the selected Workshop action
+					96 text Command Preview Valid $ Select a tool to build a command
+					98 text Console SUCCESS
+		111 search text field (settable) Search features
+Complete console:
+$ # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado retrieve http://127.0.0.1:60241/dicom-web --study 1.2.826.0.1.3680043.10.543.301 --series 1.2.826.0.1.3680043.10.543.301.1 --instance 1.2.826.0.1.3680043.10.543.301.1.1 -o /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui --format json --timeout 60

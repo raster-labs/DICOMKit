@@ -104,6 +104,14 @@ public struct PatientName: Sendable {
 
 ## Testing
 
+Do not commit DICOM files, even synthetic or de-identified ones. Generate test
+inputs in temporary directories (see `StudioTestFixtures.swift`) and retain
+textual assertions and hashes as evidence. The PHI Guard runs
+`python3 Scripts/check_no_dicom.py .` to reject DICOM filenames, renamed files,
+plausible raw datasets and archived payloads. It also refuses uninspectable
+archives/links and opaque milestone wire captures or peer databases. The guard
+scans the tracked working tree; historical Git objects require separate cleanup.
+
 - All new features must include tests
 - Use Swift Testing framework (`@Test`, `#expect`)
 - Organize tests by module (DICOMCoreTests, DICOMDictionaryTests, DICOMKitTests)

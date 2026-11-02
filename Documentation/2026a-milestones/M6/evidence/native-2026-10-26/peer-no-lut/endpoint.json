@@ -1,0 +1,7 @@
+{
+  "url": "pacs://127.0.0.1:56650",
+  "calledAE": "PYM6",
+  "mode": "no-lut",
+  "scope": "Independent software peer; one image box per film; no verification C-ECHO context",
+  "pid": 52519
+}

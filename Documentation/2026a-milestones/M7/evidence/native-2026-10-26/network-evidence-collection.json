@@ -1,0 +1,850 @@
+{
+  "schema_version": 1,
+  "policy": "Every explicit m7_native_network_evidence JSON object within marked response_item function_call_output text blocks is collected. No other transcript content or automatic AX wrapper is exported.",
+  "state_encoding": "UTF-8 of the exact JSON-decoded state string; no newline, escape, whitespace or value normalization.",
+  "observations": [
+    {
+      "call_id": "call_b5d2654e69bd4a87b05ddb9fd200a327",
+      "name": "qido-basic-before",
+      "source_timestamp": "2026-10-26T07:57:14.294Z",
+      "path": "ui-network/qido-basic-before.txt",
+      "bytes": 7912,
+      "sha256": "d9e20dfe0aed87d025439feef75fb672aa6994a00254eca91f9884dd4adc9bd6",
+      "initial_parser_remaining_text_chars": 10404
+    },
+    {
+      "call_id": "call_44fea77d93d642eab369a56747512e90",
+      "name": "qido-bearer",
+      "source_timestamp": "2026-10-26T07:58:18.620Z",
+      "path": "ui-network/qido-bearer.txt",
+      "bytes": 2845,
+      "sha256": "a77f5933b001c41031b0598258f94c8d7a58080f8ffb33a90256a7978cdf7576",
+      "initial_parser_remaining_text_chars": 6276
+    },
+    {
+      "call_id": "call_8e1a569461b043b5b9068d9de678b2a9",
+      "name": "qido-scoped-series",
+      "source_timestamp": "2026-10-26T07:58:45.552Z",
+      "path": "ui-network/qido-scoped-series.txt",
+      "bytes": 2481,
+      "sha256": "8ffd93f55b3fc95643dd2e2444bbf6344106da91c047961bac0b01ff2bc65d3b",
+      "initial_parser_remaining_text_chars": 9580
+    },
+    {
+      "call_id": "call_9e62acb1ce6347018ec852773cd47430",
+      "name": "qido-filter-returned",
+      "source_timestamp": "2026-10-26T07:59:54.536Z",
+      "path": "ui-network/qido-filter-returned.txt",
+      "bytes": 3698,
+      "sha256": "61052fef753534ebf89d5c8e5af2cfb98998818ca50188d17c98b94cd8e85403",
+      "initial_parser_remaining_text_chars": 55
+    },
+    {
+      "call_id": "call_48e5302ff313461898529cdc2e8da9a2",
+      "name": "qido-series-ct",
+      "source_timestamp": "2026-10-26T08:00:26.303Z",
+      "path": "ui-network/qido-series-ct.txt",
+      "bytes": 3584,
+      "sha256": "f7259eb4541697b614fb8a9d3bbc27ab58f7f14df9e2322fadaa7c1358dc3d65",
+      "initial_parser_remaining_text_chars": 10541
+    },
+    {
+      "call_id": "call_b5d2654e69bd4a87b05ddb9fd200a327",
+      "name": "qido-basic-after",
+      "source_timestamp": "2026-10-26T07:57:14.294Z",
+      "path": "ui-network/qido-basic-after.txt",
+      "bytes": 9530,
+      "marker_character_range": [
+        8608,
+        19012
+      ],
+      "sha256": "affc6220b5074c3405c2f097128208f65353beecdde86e3f8daab617295b7b3d"
+    },
+    {
+      "call_id": "call_44fea77d93d642eab369a56747512e90",
+      "name": "qido-none",
+      "source_timestamp": "2026-10-26T07:58:18.620Z",
+      "path": "ui-network/qido-none.txt",
+      "bytes": 2713,
+      "marker_character_range": [
+        3214,
+        6287
+      ],
+      "sha256": "392669e6421ab33fb14d48c3a2bc5d43b40cbd94fa8e1bd220bbd9df0e06bdd2"
+    },
+    {
+      "call_id": "call_44fea77d93d642eab369a56747512e90",
+      "name": "qido-all-series",
+      "source_timestamp": "2026-10-26T07:58:18.620Z",
+      "path": "ui-network/qido-all-series.txt",
+      "bytes": 2848,
+      "marker_character_range": [
+        6287,
+        9490
+      ],
+      "sha256": "f6a6207e1f8843b7bb47aa74831e41b3b8c3b15fd08f7d50fac6511cd6d99a40"
+    },
+    {
+      "call_id": "call_8e1a569461b043b5b9068d9de678b2a9",
+      "name": "qido-all-instances",
+      "source_timestamp": "2026-10-26T07:58:45.552Z",
+      "path": "ui-network/qido-all-instances.txt",
+      "bytes": 3379,
+      "marker_character_range": [
+        2797,
+        6577
+      ],
+      "sha256": "d85ee54fbe5d75f0c33987025f650695c16f852d9b465823c3f18feab0e4d07b"
+    },
+    {
+      "call_id": "call_8e1a569461b043b5b9068d9de678b2a9",
+      "name": "qido-study-instances",
+      "source_timestamp": "2026-10-26T07:58:45.552Z",
+      "path": "ui-network/qido-study-instances.txt",
+      "bytes": 2698,
+      "marker_character_range": [
+        6577,
+        9608
+      ],
+      "sha256": "ef8f31fb2c8ec37590b2bdfc3fc85c2ed9c84ab16c917dbb6c624ffa8a560279"
+    },
+    {
+      "call_id": "call_8e1a569461b043b5b9068d9de678b2a9",
+      "name": "qido-series-instances",
+      "source_timestamp": "2026-10-26T07:58:45.552Z",
+      "path": "ui-network/qido-series-instances.txt",
+      "bytes": 2467,
+      "marker_character_range": [
+        9608,
+        12377
+      ],
+      "sha256": "2067f8eba92f7655206591fe100e9c77bf8632deb8912e9391c758be85ec9338"
+    },
+    {
+      "call_id": "call_78accc7adc4b4c84a8db1da308adf31d",
+      "name": "qido-series-pps-parent",
+      "source_timestamp": "2026-10-26T07:59:35.586Z",
+      "path": "ui-network/qido-series-pps-parent.txt",
+      "bytes": 3401,
+      "marker_character_range": [
+        56,
+        3814
+      ],
+      "sha256": "a3aec6f5bb0f15d1c34aa6d89fbb1e2a97a27b2063236e51d5476c99ef7be007"
+    },
+    {
+      "call_id": "call_78accc7adc4b4c84a8db1da308adf31d",
+      "name": "qido-series-hidden-parent",
+      "source_timestamp": "2026-10-26T07:59:35.586Z",
+      "path": "ui-network/qido-series-hidden-parent.txt",
+      "bytes": 3102,
+      "marker_character_range": [
+        3814,
+        7255
+      ],
+      "sha256": "eb639ab75c9b6f4791dd9b4b5721f445b7cb38e48973e99244f27e2bf8e24a85"
+    },
+    {
+      "call_id": "call_78accc7adc4b4c84a8db1da308adf31d",
+      "name": "qido-instance-hidden-series",
+      "source_timestamp": "2026-10-26T07:59:35.586Z",
+      "path": "ui-network/qido-instance-hidden-series.txt",
+      "bytes": 2671,
+      "marker_character_range": [
+        7255,
+        10248
+      ],
+      "sha256": "6a13a5a657267fa53df01808f167b27701764b8597aa55bac7e84bdfc1959a5d"
+    },
+    {
+      "call_id": "call_48e5302ff313461898529cdc2e8da9a2",
+      "name": "qido-study-ct",
+      "source_timestamp": "2026-10-26T08:00:26.303Z",
+      "path": "ui-network/qido-study-ct.txt",
+      "bytes": 3176,
+      "marker_character_range": [
+        3961,
+        7529
+      ],
+      "sha256": "23a6ca2216bbe2d486e5850f0f7219e1ea4b1a6bc93da55865dcfa95ed9ad970"
+    },
+    {
+      "call_id": "call_48e5302ff313461898529cdc2e8da9a2",
+      "name": "qido-uid-list",
+      "source_timestamp": "2026-10-26T08:00:26.303Z",
+      "path": "ui-network/qido-uid-list.txt",
+      "bytes": 3303,
+      "marker_character_range": [
+        7529,
+        11224
+      ],
+      "sha256": "f460e384a1266e0f57f85736fc2bcbe72a673dce1b9808a71fa96a90a693ee55"
+    },
+    {
+      "call_id": "call_48e5302ff313461898529cdc2e8da9a2",
+      "name": "qido-uid-unicode",
+      "source_timestamp": "2026-10-26T08:00:26.303Z",
+      "path": "ui-network/qido-uid-unicode.txt",
+      "bytes": 2940,
+      "marker_character_range": [
+        11224,
+        14502
+      ],
+      "sha256": "1cfd6bf2bdf6ec40ea7c431102cdab48f25f928ed82021f9c8d1a039f4563611"
+    },
+    {
+      "call_id": "call_9f4ece1a883341e6bbdbf435b81cb980",
+      "name": "qido-basic-multiline-copied-command",
+      "source_timestamp": "2026-10-26T08:01:01.044Z",
+      "path": "ui-network/qido-basic-multiline-copied-command.txt",
+      "bytes": 390,
+      "marker_character_range": [
+        0,
+        488
+      ],
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c"
+    },
+    {
+      "call_id": "call_9f4ece1a883341e6bbdbf435b81cb980",
+      "name": "qido-basic-copied-command",
+      "source_timestamp": "2026-10-26T08:01:01.044Z",
+      "path": "ui-network/qido-basic-copied-command.txt",
+      "bytes": 390,
+      "marker_character_range": [
+        488,
+        966
+      ],
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c"
+    },
+    {
+      "call_id": "call_9f4ece1a883341e6bbdbf435b81cb980",
+      "name": "qido-changed-tool-reset",
+      "source_timestamp": "2026-10-26T08:01:01.044Z",
+      "path": "ui-network/qido-changed-tool-reset.txt",
+      "bytes": 2131,
+      "marker_character_range": [
+        966,
+        3382
+      ],
+      "sha256": "10284aadcc000249639c726284a5a73d039d87b0acc5fe3e4ce666cadee86655"
+    },
+    {
+      "call_id": "call_9f4ece1a883341e6bbdbf435b81cb980",
+      "name": "qido-after-tool-reset",
+      "source_timestamp": "2026-10-26T08:01:01.044Z",
+      "path": "ui-network/qido-after-tool-reset.txt",
+      "bytes": 3163,
+      "marker_character_range": [
+        3382,
+        6945
+      ],
+      "sha256": "85bdac95209b3483f8b510c58159046fad6fde14f65e80e3c62c925abe31668d"
+    },
+    {
+      "call_id": "call_662eedfb73764229a0771d4a6d711924",
+      "name": "wado-basic-instance",
+      "source_timestamp": "2026-10-26T08:03:38.117Z",
+      "path": "ui-network/wado-basic-instance.txt",
+      "bytes": 2663,
+      "marker_character_range": [
+        0,
+        2921
+      ],
+      "sha256": "f73b97f3e2a343c0a30f114ee7e5c5a311609a3bce9f77c01644986ec4d14b62"
+    },
+    {
+      "call_id": "call_662eedfb73764229a0771d4a6d711924",
+      "name": "wado-basic-copied-command",
+      "source_timestamp": "2026-10-26T08:03:38.117Z",
+      "path": "ui-network/wado-basic-copied-command.txt",
+      "bytes": 534,
+      "marker_character_range": [
+        2921,
+        3544
+      ],
+      "sha256": "dd9eee876e2a4c2eca312e651c9b3493ae6b813f301550f2dc2ae9fc1ef32f3f"
+    },
+    {
+      "call_id": "call_6ff622c1609746a69cfcca64cf95304b",
+      "name": "stow-basic",
+      "source_timestamp": "2026-10-26T08:04:32.550Z",
+      "path": "ui-network/stow-basic.txt",
+      "bytes": 1911,
+      "marker_character_range": [
+        0,
+        2106
+      ],
+      "sha256": "ba3a99a81457e3ba2d7e177dcc6442b452daec77da36d7d72d36a015509fcb48"
+    },
+    {
+      "call_id": "call_6ff622c1609746a69cfcca64cf95304b",
+      "name": "stow-basic-copied-command",
+      "source_timestamp": "2026-10-26T08:04:32.550Z",
+      "path": "ui-network/stow-basic-copied-command.txt",
+      "bytes": 389,
+      "marker_character_range": [
+        2106,
+        2584
+      ],
+      "sha256": "58af23a28880a5a1986d42a835ed3f49a1e772421cd86167e9c4ab82ebd9e90b"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-open-range",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-open-range.txt",
+      "bytes": 3150,
+      "marker_character_range": [
+        0,
+        3505
+      ],
+      "sha256": "ebb66afe867f9141b8db276315edbca3d3ff518c12aa810879aa7aac8eb4b027"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-open-range-copied-command",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-open-range-copied-command.txt",
+      "bytes": 219,
+      "marker_character_range": [
+        3505,
+        3818
+      ],
+      "sha256": "827eb88974d26db12b3f90c6be114356831b62179bde88e6e2631e744d80b0e4"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-bounded-range",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-bounded-range.txt",
+      "bytes": 3178,
+      "marker_character_range": [
+        3818,
+        7354
+      ],
+      "sha256": "43d99d6fdcbed91dff6dc39501f3e52ef7c4b14d6438f8f58db911bb8582beef"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-scalar",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-scalar.txt",
+      "bytes": 3146,
+      "marker_character_range": [
+        7354,
+        10851
+      ],
+      "sha256": "e3fbc1352ae85e75001a906cc76cd43413dd6275f211e090dfb620c7e8bb4ee3"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-invalid-date",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-invalid-date.txt",
+      "bytes": 2367,
+      "marker_character_range": [
+        10851,
+        13462
+      ],
+      "sha256": "b678b5079b273e068348cfdd13b58b79aa77b3b810bc8862823e96dd9d22fe18"
+    },
+    {
+      "call_id": "call_8c9cdab8debc499b93ba1716bc55040d",
+      "name": "mwl-invalid-time",
+      "source_timestamp": "2026-10-26T08:07:17.469Z",
+      "path": "ui-network/mwl-invalid-time.txt",
+      "bytes": 2340,
+      "marker_character_range": [
+        13462,
+        16046
+      ],
+      "sha256": "2c3d30738ce467224c16e84653bc8436551cb551e83d3674f7e7393ad39901a8"
+    },
+    {
+      "call_id": "call_95105a8981954bd1b7654b9b4c028401",
+      "name": "find-study-ct",
+      "source_timestamp": "2026-10-26T08:13:36.019Z",
+      "path": "ui-network/find-study-ct.txt",
+      "bytes": 3098,
+      "marker_character_range": [
+        0,
+        3463
+      ],
+      "sha256": "2fcb2ee62bfd2e993fb04333596ae2be84435e599fbbef83d9b06a3e4c32a4d6"
+    },
+    {
+      "call_id": "call_95105a8981954bd1b7654b9b4c028401",
+      "name": "find-study-copied-command",
+      "source_timestamp": "2026-10-26T08:13:36.019Z",
+      "path": "ui-network/find-study-copied-command.txt",
+      "bytes": 289,
+      "marker_character_range": [
+        3463,
+        3842
+      ],
+      "sha256": "24213fc76649f18566ed4d36f71fe4446fb2031e2fce57bed905daca30c4a654"
+    },
+    {
+      "call_id": "call_95105a8981954bd1b7654b9b4c028401",
+      "name": "find-series-ct",
+      "source_timestamp": "2026-10-26T08:13:36.019Z",
+      "path": "ui-network/find-series-ct.txt",
+      "bytes": 2856,
+      "marker_character_range": [
+        3842,
+        7036
+      ],
+      "sha256": "d8c2f140d2356c212d08b4fd101ab64dc604f464705474085a4d0bbec86f47fe"
+    },
+    {
+      "call_id": "call_95105a8981954bd1b7654b9b4c028401",
+      "name": "find-image",
+      "source_timestamp": "2026-10-26T08:13:36.019Z",
+      "path": "ui-network/find-image.txt",
+      "bytes": 2999,
+      "marker_character_range": [
+        7092,
+        10442
+      ],
+      "sha256": "14acca673c776de6067d5fae03e9ecd8b7016b4304d57bcc802eb704990d6911"
+    },
+    {
+      "call_id": "call_861888e47a5642e98ccd9d10b3b57fce",
+      "name": "find-image-modality-refusal",
+      "source_timestamp": "2026-10-26T08:14:04.053Z",
+      "path": "ui-network/find-image-modality-refusal.txt",
+      "bytes": 2980,
+      "marker_character_range": [
+        0,
+        3293
+      ],
+      "sha256": "4d8b51c33fc85fe41134485753ef812d027d83354e8eafe67088852168307c01"
+    },
+    {
+      "call_id": "call_861888e47a5642e98ccd9d10b3b57fce",
+      "name": "find-patient-date-refusal",
+      "source_timestamp": "2026-10-26T08:14:04.053Z",
+      "path": "ui-network/find-patient-date-refusal.txt",
+      "bytes": 2890,
+      "marker_character_range": [
+        3293,
+        6487
+      ],
+      "sha256": "7fd66550e6046c96e70503a5deeed0f4e35c1018aa896f0f42ee717933670db4"
+    },
+    {
+      "call_id": "call_861888e47a5642e98ccd9d10b3b57fce",
+      "name": "find-patient-description-refusal",
+      "source_timestamp": "2026-10-26T08:14:04.053Z",
+      "path": "ui-network/find-patient-description-refusal.txt",
+      "bytes": 2885,
+      "marker_character_range": [
+        6487,
+        9683
+      ],
+      "sha256": "706ac6adef1134b8dbded6b73d6ee79dc20356eb6fe9bbade29035f920fa5927"
+    },
+    {
+      "call_id": "call_861888e47a5642e98ccd9d10b3b57fce",
+      "name": "find-patient-uid-refusal",
+      "source_timestamp": "2026-10-26T08:14:04.053Z",
+      "path": "ui-network/find-patient-uid-refusal.txt",
+      "bytes": 2878,
+      "marker_character_range": [
+        9683,
+        12864
+      ],
+      "sha256": "a9df53e2ad710d10da409d9336c17b24981e7ce48a528e9c06d4ab2c50dc00c7"
+    },
+    {
+      "call_id": "call_ae02af9ff22848af8e2a9fa27c20f33e",
+      "name": "find-cancel-zero",
+      "source_timestamp": "2026-10-26T08:15:05.935Z",
+      "path": "ui-network/find-cancel-zero.txt",
+      "bytes": 2674,
+      "marker_character_range": [
+        0,
+        2972
+      ],
+      "sha256": "6f8744aca498cb05c1d92e5b11f3eacf8162ff7b39de1e9b58d7652799d88bf5"
+    },
+    {
+      "call_id": "call_ae02af9ff22848af8e2a9fa27c20f33e",
+      "name": "find-cancel-partial",
+      "source_timestamp": "2026-10-26T08:15:05.935Z",
+      "path": "ui-network/find-cancel-partial.txt",
+      "bytes": 3109,
+      "marker_character_range": [
+        2972,
+        6453
+      ],
+      "sha256": "97f7e342e835a01310d826db67164ab5aba85528c8de4a81bf2f114a818ec267"
+    },
+    {
+      "call_id": "call_39ac0788c8d6421bbafdb9728d6f5ab1",
+      "name": "retrieve-move-cancel",
+      "source_timestamp": "2026-10-26T08:15:46.627Z",
+      "path": "ui-network/retrieve-move-cancel.txt",
+      "bytes": 4265,
+      "marker_character_range": [
+        0,
+        4583
+      ],
+      "sha256": "9212cef975424e29368d79728596e1ac669540b8e8176323b350d9fe5817aa42"
+    },
+    {
+      "call_id": "call_39ac0788c8d6421bbafdb9728d6f5ab1",
+      "name": "retrieve-get-cancel",
+      "source_timestamp": "2026-10-26T08:15:46.627Z",
+      "path": "ui-network/retrieve-get-cancel.txt",
+      "bytes": 4025,
+      "marker_character_range": [
+        4583,
+        8919
+      ],
+      "sha256": "61a890d247e59ff4a132bdcb95361eda55d5afd62a243be9049e90356e1945eb"
+    },
+    {
+      "call_id": "call_39ac0788c8d6421bbafdb9728d6f5ab1",
+      "name": "retrieve-cancel-copied-command",
+      "source_timestamp": "2026-10-26T08:15:46.627Z",
+      "path": "ui-network/retrieve-cancel-copied-command.txt",
+      "bytes": 404,
+      "marker_character_range": [
+        8919,
+        9418
+      ],
+      "sha256": "d4fd7d800c833f08ad5c8eff5ab673b80041847a949af318ad0a52c0c8f11b5d"
+    },
+    {
+      "call_id": "call_efaf3d42df8047b58e24ee81f77f91f1",
+      "name": "retrieve-restarted-get",
+      "source_timestamp": "2026-10-26T08:18:25.304Z",
+      "path": "ui-network/retrieve-restarted-get.txt",
+      "bytes": 3381,
+      "marker_character_range": [
+        0,
+        3691
+      ],
+      "sha256": "9c336e206160305eb77e7e0b1782133d74412658c88a7f3ddf70e04f3a65b2ef"
+    },
+    {
+      "call_id": "call_64d748d9b32d460eb94c76498aa824fc",
+      "name": "qr-review",
+      "source_timestamp": "2026-10-26T08:18:56.053Z",
+      "path": "ui-network/qr-review.txt",
+      "bytes": 4031,
+      "marker_character_range": [
+        0,
+        4387
+      ],
+      "sha256": "ac6d86e5880cd66bcd8fa63ed2e331e8cafb56b9396be7ac77299a19262defa8"
+    },
+    {
+      "call_id": "call_64d748d9b32d460eb94c76498aa824fc",
+      "name": "qr-auto",
+      "source_timestamp": "2026-10-26T08:18:56.053Z",
+      "path": "ui-network/qr-auto.txt",
+      "bytes": 4158,
+      "marker_character_range": [
+        4387,
+        8904
+      ],
+      "sha256": "bba6868b0ccb9409b07bfc4cceb63ced9227a14c8690dceec6fbe8dd1550738c"
+    },
+    {
+      "call_id": "call_64d748d9b32d460eb94c76498aa824fc",
+      "name": "qr-auto-copied-command",
+      "source_timestamp": "2026-10-26T08:18:56.053Z",
+      "path": "ui-network/qr-auto-copied-command.txt",
+      "bytes": 366,
+      "marker_character_range": [
+        8904,
+        9357
+      ],
+      "sha256": "dbb85dc61dd557ff3d8088cabb43c605b5b5af2165630faba1a1948231a70398"
+    },
+    {
+      "call_id": "call_c884004cb748458dbf7115b882252080",
+      "name": "mpps-missing-class",
+      "source_timestamp": "2026-10-26T08:20:32.019Z",
+      "path": "ui-network/mpps-missing-class.txt",
+      "bytes": 2896,
+      "marker_character_range": [
+        0,
+        3160
+      ],
+      "sha256": "f4312c3a4650965cdf0df1b4da7bc6795ede5876d6b9eda46d4e49849399a400"
+    },
+    {
+      "call_id": "call_c884004cb748458dbf7115b882252080",
+      "name": "mpps-ct",
+      "source_timestamp": "2026-10-26T08:20:32.019Z",
+      "path": "ui-network/mpps-ct.txt",
+      "bytes": 2937,
+      "marker_character_range": [
+        3160,
+        6352
+      ],
+      "sha256": "493f02cb43ace3f08cddfe85f8e0e641ef0af01cd2146cdb6c440d86f6c90bc0"
+    },
+    {
+      "call_id": "call_c884004cb748458dbf7115b882252080",
+      "name": "mpps-mr",
+      "source_timestamp": "2026-10-26T08:20:32.019Z",
+      "path": "ui-network/mpps-mr.txt",
+      "bytes": 2937,
+      "marker_character_range": [
+        6352,
+        9544
+      ],
+      "sha256": "594ade4202382255fefbaade10a0badc0295f389b435305b51d4d5cb5e5fa019"
+    },
+    {
+      "call_id": "call_c884004cb748458dbf7115b882252080",
+      "name": "mpps-sc",
+      "source_timestamp": "2026-10-26T08:20:32.019Z",
+      "path": "ui-network/mpps-sc.txt",
+      "bytes": 2937,
+      "marker_character_range": [
+        9544,
+        12736
+      ],
+      "sha256": "032821c229aef4b5e7e54d193b503dfe0d0f999a3d7927f6516b6590fcceb63a"
+    },
+    {
+      "call_id": "call_c884004cb748458dbf7115b882252080",
+      "name": "mpps-copied-command",
+      "source_timestamp": "2026-10-26T08:20:32.019Z",
+      "path": "ui-network/mpps-copied-command.txt",
+      "bytes": 343,
+      "marker_character_range": [
+        12736,
+        13163
+      ],
+      "sha256": "286acf9132cfa00eb3be51c79c0eb87805649f1cae7973ff0d897a6849f2f17e"
+    },
+    {
+      "call_id": "call_db314183358a4b99a270a981ffaa3b99",
+      "name": "ups-basic-create",
+      "source_timestamp": "2026-10-26T08:22:24.292Z",
+      "path": "ui-network/ups-basic-create.txt",
+      "bytes": 1542,
+      "marker_character_range": [
+        0,
+        1713
+      ],
+      "sha256": "16b8ea0b16fc9268b3e6a30897fba412103d9edbe8bbe23f9a62c0be37fef8fa"
+    },
+    {
+      "call_id": "call_db314183358a4b99a270a981ffaa3b99",
+      "name": "ups-basic-copied-command",
+      "source_timestamp": "2026-10-26T08:22:24.292Z",
+      "path": "ui-network/ups-basic-copied-command.txt",
+      "bytes": 382,
+      "marker_character_range": [
+        1713,
+        2183
+      ],
+      "sha256": "9634e39ae00bcab34a53c6257f9ee104bd1d3686ac5e5cc5633c21906e5ac318"
+    },
+    {
+      "call_id": "call_a7aba147aad74b8781b70bb0d42bc2fa",
+      "name": "ups-basic-get",
+      "source_timestamp": "2026-10-26T08:22:54.947Z",
+      "path": "ui-network/ups-basic-get.txt",
+      "bytes": 1657,
+      "marker_character_range": [
+        0,
+        1883
+      ],
+      "sha256": "c122588b8aadd4ee0cee7626df86a077b06592584d0abdced603e33c0fc2891b"
+    },
+    {
+      "call_id": "call_a7aba147aad74b8781b70bb0d42bc2fa",
+      "name": "ups-bearer-preview",
+      "source_timestamp": "2026-10-26T08:22:54.947Z",
+      "path": "ui-network/ups-bearer-preview.txt",
+      "bytes": 225,
+      "marker_character_range": [
+        1883,
+        2191
+      ],
+      "sha256": "f6c4ca4936d13cb0c2b1e9a3eed9e03bd8f5c04e8b6818a1c2f2973479edfeb3"
+    },
+    {
+      "call_id": "call_a7aba147aad74b8781b70bb0d42bc2fa",
+      "name": "ups-none-preview",
+      "source_timestamp": "2026-10-26T08:22:54.947Z",
+      "path": "ui-network/ups-none-preview.txt",
+      "bytes": 201,
+      "marker_character_range": [
+        2191,
+        2473
+      ],
+      "sha256": "c0c81e90d6719b849630d1fddcf5a3d0dca3b1f3837e332f35ca815cf1bcc5ea"
+    },
+    {
+      "call_id": "call_5eb175f18e604a45a0f6f6145358fd8f",
+      "name": "qido-basic-multiline-patient-preview-only",
+      "source_timestamp": "2026-10-26T08:23:39.330Z",
+      "path": "ui-network/qido-basic-multiline-patient-preview-only.txt",
+      "bytes": 371,
+      "marker_character_range": [
+        0,
+        476
+      ],
+      "sha256": "50d21eb607c26a034d3d12c54c0f6462fb3b264a951d9b47557144b80006f19e"
+    },
+    {
+      "call_id": "call_a17d6bff07c748eaa8fe46b9313e8051",
+      "name": "FINAL04-info-supplementary-copied-preview",
+      "source_timestamp": "2026-10-26T08:24:24.536Z",
+      "path": "ui-network/FINAL04-info-supplementary-copied-preview.txt",
+      "bytes": 260,
+      "marker_character_range": [
+        0,
+        366
+      ],
+      "sha256": "def03bb3fcbb7060dd13f25f9fbd41eb78c0311dbbdcf491073d4305f8953b4b"
+    },
+    {
+      "call_id": "call_29180caf89f74915bcccff9160632db7",
+      "name": "FINAL04-validate-supplementary-copied-preview",
+      "source_timestamp": "2026-10-26T08:24:39.659Z",
+      "path": "ui-network/FINAL04-validate-supplementary-copied-preview.txt",
+      "bytes": 445,
+      "marker_character_range": [
+        0,
+        555
+      ],
+      "sha256": "960b78e51b769566e38772de4fcc6a19b01bc23a422fe5025332e00916744c44"
+    },
+    {
+      "call_id": "call_4b190f2fabb5475b94613b6d8fbf0d99",
+      "name": "ups-identity-create",
+      "source_timestamp": "2026-10-26T09:23:32.255Z",
+      "path": "ui-network/ups-identity-create.txt",
+      "bytes": 1580,
+      "marker_character_range": [
+        0,
+        1757
+      ],
+      "sha256": "1362173db0fc0cf86a77dfdb48ff6e2fa1d9fbf12f0b78703a03ab8b0c62a777"
+    },
+    {
+      "call_id": "call_be2afd13a97d4eeb91927fe5b4d2030a",
+      "name": "ups-identity-get",
+      "source_timestamp": "2026-10-26T09:23:50.622Z",
+      "path": "ui-network/ups-identity-get.txt",
+      "bytes": 1631,
+      "marker_character_range": [
+        0,
+        1862
+      ],
+      "sha256": "36a80f6b415694d128f58164ccc15216a8294ee422d1b9c4df9379be50dc63d9"
+    },
+    {
+      "call_id": "call_b47de7eb34364677b18e9d87e493a28d",
+      "name": "ups-identity-invalid",
+      "source_timestamp": "2026-10-26T09:24:10.711Z",
+      "path": "ui-network/ups-identity-invalid.txt",
+      "bytes": 1550,
+      "marker_character_range": [
+        0,
+        1726
+      ],
+      "sha256": "a9bec8cc1da8fcc8ff6ba0cbdcd351dc3f66bcac685211dcbb9516c19416c9ef"
+    }
+  ],
+  "scans": [
+    {
+      "recorded_utc": "2026-10-26T07:59:15.989762+00:00",
+      "start_offset": 74177880,
+      "end_offset": 74436650,
+      "bytes_scanned": 258770,
+      "new_observations": 0
+    },
+    {
+      "recorded_utc": "2026-10-26T08:00:32.544697+00:00",
+      "start_offset": 74273939,
+      "end_offset": 74525708,
+      "bytes_scanned": 251769,
+      "new_observations": 5
+    },
+    {
+      "recorded_utc": "2026-10-26T08:02:54.880652+00:00",
+      "start_offset": 74273939,
+      "end_offset": 74720836,
+      "bytes_scanned": 446897,
+      "new_observations": 16
+    },
+    {
+      "recorded_utc": "2026-10-26T08:04:36.431165+00:00",
+      "start_offset": 74720836,
+      "end_offset": 74874476,
+      "bytes_scanned": 153640,
+      "new_observations": 4
+    },
+    {
+      "recorded_utc": "2026-10-26T08:07:26.137654+00:00",
+      "start_offset": 74874476,
+      "end_offset": 75012722,
+      "bytes_scanned": 138246,
+      "new_observations": 6
+    },
+    {
+      "recorded_utc": "2026-10-26T08:14:08.572898+00:00",
+      "start_offset": 75012722,
+      "end_offset": 76001812,
+      "bytes_scanned": 989090,
+      "new_observations": 8
+    },
+    {
+      "recorded_utc": "2026-10-26T08:15:54.498678+00:00",
+      "start_offset": 76001812,
+      "end_offset": 76083267,
+      "bytes_scanned": 81455,
+      "new_observations": 5
+    },
+    {
+      "recorded_utc": "2026-10-26T08:19:09.402261+00:00",
+      "start_offset": 76083267,
+      "end_offset": 76179121,
+      "bytes_scanned": 95854,
+      "new_observations": 4
+    },
+    {
+      "recorded_utc": "2026-10-26T08:20:36.466433+00:00",
+      "start_offset": 76179121,
+      "end_offset": 76252504,
+      "bytes_scanned": 73383,
+      "new_observations": 5
+    },
+    {
+      "recorded_utc": "2026-10-26T08:23:05.657355+00:00",
+      "start_offset": 76252504,
+      "end_offset": 76325540,
+      "bytes_scanned": 73036,
+      "new_observations": 5
+    },
+    {
+      "recorded_utc": "2026-10-26T08:24:44.329321+00:00",
+      "start_offset": 76325540,
+      "end_offset": 76409113,
+      "bytes_scanned": 83573,
+      "new_observations": 3
+    },
+    {
+      "recorded_utc": "2026-10-26T09:24:40.200058+00:00",
+      "start_offset": 76409113,
+      "end_offset": 79062136,
+      "bytes_scanned": 2653023,
+      "new_observations": 3
+    }
+  ],
+  "parser_revisions": [
+    "Initial strict JSON parser missed blocks with following text.",
+    "Single-object decoder retained first marker but missed additional markers in the same block. Bounded replay from first collected marker recovered all explicit marker objects; identical existing evidence remained unchanged."
+  ]
+}

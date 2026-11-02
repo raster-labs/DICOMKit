@@ -186,6 +186,14 @@ def srt_to_sct(p16):
 TAG_CONST = re.compile(r'static\s+let\s+(\w+)\s*=\s*Tag\(group:\s*0x([0-9A-Fa-f]{4}),\s*element:\s*0x([0-9A-Fa-f]{4})\)')
 TAG_LITERAL = re.compile(r'Tag\(group:\s*0x([0-9A-Fa-f]{4}),\s*element:\s*0x([0-9A-Fa-f]{4})\)')
 
+# A reviewed private identifier may differ from the PS3.6 keyword only at this
+# source location, with both its numeric tag and canonical keyword still checked.
+# Do not rename or remove extracted constants: VR/typed-read/CS checks use them.
+LOCAL_TAG_ALIASES = {
+    ('Anonymization/ConfidentialityProfile.swift', 'methodSequenceTag'):
+        ('00120064', 'DeidentificationMethodCodeSequence'),
+}
+
 
 def tag_constants(core_dir, files):
     """keyword -> GGGGEEEE from DICOMCore's Tag+*.swift and any DICOMKit-local constants."""
@@ -365,6 +373,17 @@ def check_tag_names(rep, p6, files, local_tags, p7=None):
                 wrong.append(f'{fname}:{line_of(src, m.start())}: ({tag[:4]},{tag[4:]}) commented "{doc}"; PS3.6 name is "{entry[0]}"')
     for kw, (tag, fname) in local_tags.items():
         entry = dic.get(tag)
+        alias = LOCAL_TAG_ALIASES.get((fname, kw))
+        if alias is not None:
+            expected_tag, expected_keyword = alias
+            if tag == expected_tag and entry is not None and entry[1] == expected_keyword:
+                matched += 1
+            else:
+                actual_keyword = entry[1] if entry is not None else '<unregistered>'
+                wrong.append(f'{fname}: static let {kw} = ({tag[:4]},{tag[4:]}); '
+                             f'PS3.6 keyword is {actual_keyword}; alias requires '
+                             f'({expected_tag[:4]},{expected_tag[4:]}) {expected_keyword}')
+            continue
         if entry is None:
             continue
         std_kw = entry[1][0].lower() + entry[1][1:] if entry[1] else ''

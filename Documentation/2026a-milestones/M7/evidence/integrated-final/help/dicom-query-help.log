@@ -1,0 +1,81 @@
+OVERVIEW: Query DICOM servers using C-FIND and QIDO-RS protocols
+
+Performs DICOM queries against PACS servers using the C-FIND service.
+Supports patient, study, series, and image (instance) level queries
+(Query/Retrieve Level (0008,0052), PS3.4 C.4.1.1.3.1).
+
+The host argument accepts a hostname or IP address, optionally with a
+port suffix (host:port). Use --port to specify the port separately.
+If no port is given, the default is 11112.
+
+Examples:
+  dicom-query server --port 11112 --aet MY_SCU --patient-name "SMITH^JOHN"
+  dicom-query server:11112 --aet MY_SCU --study-date 20240101-20240131
+  dicom-query server:11112 --aet MY_SCU --modality CT --format json
+  dicom-query server:11112 --aet MY_SCU --modality CT --format dicom-json
+  dicom-query 192.168.1.100:11112 --aet MY_SCU --level series --study-uid 1.2.3
+  dicom-query server:11112 --aet MY_SCU --level image --study-uid 1.2.3
+--series-uid 1.2.3.4
+
+USAGE: dicom-query [<options>] <host> --aet <aet>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112, overrides port in
+                          host argument)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  -l, --level <level>     Query/Retrieve Level (0008,0052): patient, study,
+                          series, image — the values of PS3.4 Tables C.6.1-1 /
+                          C.6.2-1; 'instance' is accepted as an alias of image
+                          (default: study) (values: patient, study, series,
+                          image, instance; default: study)
+  --patient-name <patient-name>
+                          Patient's Name (0010,0010); * and ? wild cards per
+                          PS3.4 C.2.2.2.4
+  --patient-id <patient-id>
+                          Patient ID
+  --study-date <study-date>
+                          Study-level Study Date (0008,0020): YYYYMMDD, or a
+                          range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and
+                          including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5)
+  --study-uid <study-uid> Study Instance UID
+  --series-uid <series-uid>
+                          Series Instance UID
+  --accession-number <accession-number>
+                          Accession Number
+  --modality <modality>   Modality filter (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code. Supported at STUDY and SERIES levels
+                          only; other levels refuse this filter.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --study-description <study-description>
+                          Study-level Study Description (0008,1030); * and ?
+                          wild cards per PS3.4 C.2.2.2.4
+  --referring-physician <referring-physician>
+                          Referring physician name
+  -f, --format <format>   Output format: table, json, csv, compact, dicom-json
+                          (default: table). json is the tool's {"(GGGG,EEEE)":
+                          "value"} summary; dicom-json is the PS3.18 F.2 DICOM
+                          JSON Model ("00100010": {"vr": "PN", "Value": [...]})
+                          (values: table, json, csv, compact, dicom-json;
+                          default: table)
+  --csv-keywords          CSV header row names each column by its PS3.6 keyword
+                          (e.g. PatientName) instead of (GGGG,EEEE)
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --verbose               Show verbose output including query details
+  --include-parent-keys   Non-baseline: at SERIES/IMAGE level also request
+                          parent-level attributes (Patient Name/ID, Study
+                          Date/Description, Accession) as return keys, for
+                          lenient SCPs such as dcm4chee (PS3.4 C.4.1.2.1 does
+                          not allow them)
+  --version               Show the version.
+  -h, --help              Show help information.
+

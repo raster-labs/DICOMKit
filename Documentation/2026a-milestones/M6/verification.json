@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "milestone": "M6",
+  "status": "Completed",
+  "checkpoint_utc": "2026-10-24T14:54:05.723127+00:00",
+  "baseline_commit": "c91c79d9655929eef97ccffd601a9ef4297241d6",
+  "branch": "codex/dicom-2026a-milestones",
+  "source_hash_manifest": "source-hashes.json",
+  "source_provenance": "evidence/source-provenance.json",
+  "focused_suites": {
+    "dicom-printTests": {
+      "XCTest_passed": 19,
+      "skipped": 0,
+      "log": "evidence/qualified-v2/dicom-printTests.log"
+    },
+    "dicom-printscpTests": {
+      "XCTest_passed": 20,
+      "skipped": 0,
+      "log": "evidence/qualified-v2/dicom-printscpTests.log"
+    },
+    "DICOMNetworkTests_print_filter": {
+      "XCTest_passed": 409,
+      "skipped": 0,
+      "log": "evidence/qualified-v2/DICOMNetworkTests.log"
+    },
+    "DICOMPrintKitTests": {
+      "XCTest_passed": 378,
+      "SwiftTesting_passed": 84,
+      "skipped": 1,
+      "log": "evidence/qualified-v2/DICOMPrintKitTests.log"
+    },
+    "DICOMStudioTests_M6_filter": {
+      "XCTest_passed": 22,
+      "skipped": 1,
+      "log": "evidence/qualified-v2/DICOMStudioTests.log"
+    }
+  },
+  "focused_passed_total": 932,
+  "focused_skipped_total": 2,
+  "audit_regressions": {
+    "passed": 38,
+    "log": "evidence/qualified-v2/audit-regressions.log"
+  },
+  "skips": [
+    {
+      "test": "DCMTKInteropTests.testDCMTKPrintSCUCanPrintToOurEmulator",
+      "reason": "Legacy optional sample file unavailable; not counted. Separate synthetic independent campaign supplies reverse-direction print evidence."
+    },
+    {
+      "test": "M6WorkshopExecutionTests.testConfiguredWorkshopActions",
+      "reason": "Opt-in harness skipped in the ordinary suite. Separately activated for the passing 18-action baseline and 7-action image extension; the ordinary skip is not counted as a pass."
+    }
+  ],
+  "independent_interoperability": {
+    "passed": 24,
+    "failed": 0,
+    "peer_limited": 1,
+    "index": "interop-qualification.json",
+    "peer_versions": {
+      "DCMTK": "3.7.0 2025-12-15",
+      "pydicom": "2.4.4",
+      "pynetdicom": "2.0.2",
+      "Pillow": "11.3.0"
+    },
+    "binary_provenance": "evidence/interop-qualified/provenance.json",
+    "targeted_oracle_repair": "evidence/interop-qualified-lut-diagnostic/provenance.json",
+    "identical_binary_hashes_across_runs": true
+  },
+  "workshop_external_VM_campaign": {
+    "status": "Passed",
+    "not_GUI": true,
+    "actual_VM_actions": 25,
+    "CLI_VM_comparisons": 25,
+    "baseline": {
+      "actual_VM_actions": 18,
+      "CLI_cases_including_controls": 20,
+      "results": "evidence/workshop-campaign-v4/results.json",
+      "artifacts": "evidence/workshop-campaign-v4/artifacts.json",
+      "all_existing_commands": 10
+    },
+    "image_extension": {
+      "actual_VM_sends": 7,
+      "CLI_sends": 7,
+      "rendered_PNG_films": 14,
+      "results": "evidence/workshop-image-extension/results.json",
+      "log": "evidence/workshop-image-extension.log",
+      "assertions": [
+        "Native/RLE/JPEG lossless decoded pixel equality",
+        "Three input files equal all three frames",
+        "Selected frame 2 equals extracted frame 2 and differs from frame 1",
+        "CLI/VM normalized JSON and decoded pixel equality",
+        "Receiver filled-image counts [1,1,1,3,3,1,1] for each side"
+      ]
+    },
+    "limits": "Historical test-host ViewModel/same-library receiver evidence, not itself GUI or independent-peer proof. Its original PDF checks were container-only; separate native PDF raster qualification now closes the M6 software comparison."
+  },
+  "native_packaged_GUI": {
+    "status": "Passed",
+    "existing_command_routes": 10,
+    "SCU_commands": 6,
+    "SCP_commands": 4,
+    "closure": "native-closure.json",
+    "identity": "evidence/native-2026-10-26/final-qualified-native-identity.json",
+    "final_menu_SCU": "evidence/native-2026-10-26/ui-menu-final/send-dry-run.txt",
+    "final_menu_SCP": "evidence/native-2026-10-26/cli-final-controls/menu-final-scp-status.json",
+    "counting_note": "Evidence covers required distinct subcases; no invented count of native clicks or additive assertion total."
+  },
+  "application_build": {
+    "status": "BUILD SUCCEEDED; fresh package signed",
+    "log": "evidence/app-build-final.log",
+    "native_runtime_qualified": false,
+    "source_equivalence_note": "Historical1012-file freeze and build retained. Current2060-file identity and bounded print-source equivalence are separate below.",
+    "binary_identity": "evidence/binary-identity.json",
+    "signing_log": "evidence/app-signing-final.log",
+    "scope": "Historical implementation build only; current qualified package is final_native_package."
+  },
+  "physical_output": {
+    "status": "Not qualified",
+    "scope": "No physical DICOM printer, OS paper queue dispatch, calibration, diagnostic fidelity or film density claim."
+  },
+  "acceptance": "acceptance.json",
+  "limits": [
+    "M6 scoped software criteria complete; M7 remains in progress.",
+    "Historical932 focused methods are not the later933 descendant result; neither is all-project/all-standard coverage. Counts from separate layers overlap.",
+    "DCMTK disabled-LUT profile accepted LUT: negative capability unqualified with that peer; PY-F08 independently supplies refusal coverage.",
+    "SCP accepts planar0 compatibility input with a diagnostic; strict-negative uses2; outboundcolor requires1.",
+    "No physical printing/calibration, complete IOD/clinical guarantee, other-platform runtime, current-head remote CI, merge or release claim."
+  ],
+  "full_frozen_source_manifest": "evidence/frozen-source-manifest.json",
+  "full_source_files_verified_unchanged": 1012,
+  "binary_identity": "evidence/binary-identity.json",
+  "additional_catalog_regressions": {
+    "SwiftTesting_passed": 220,
+    "suites": 3,
+    "log": "evidence/catalog-regression-tests.log",
+    "counting_note": "Reported separately; not added to the 932 focused total."
+  },
+  "final_M7_supplement": {
+    "record": "../M7/verification.json",
+    "independent_print_passed": 24,
+    "peer_limited": 1,
+    "print_VM_CLI_comparisons": 25,
+    "native_GUI": "M6 native print criteria completed by native-closure.json; remaining M7 final native qualification stays open."
+  },
+  "closure_utc": "2026-10-26T07:39:12.909405+00:00",
+  "checkpoint_utc_scope": "Historical24 October implementation checkpoint; original counts and hashes below are retained.",
+  "final_native_package": {
+    "native_runtime_qualified": true,
+    "identity": "evidence/native-2026-10-26/final-qualified-native-identity.json",
+    "artifact_hashes": "evidence/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+    "source_hashes": "evidence/native-2026-10-26/final-qualified-native-source-hashes.json",
+    "build_log": "evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/build.log",
+    "signing_log": "evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/signing.log",
+    "full_Studio_before_menu_change": {
+      "XCTest_passed": 88,
+      "XCTest_skipped": 4,
+      "failed": 0,
+      "log": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-path-repair-full-v2.log",
+      "scope": "Executed after generic path and first print repairs, before final menu-only correction.",
+      "SwiftTesting_framework_reported_tests": 5391,
+      "SwiftTesting_optional_skipped": 1,
+      "SwiftTesting_overall_result": "Passed",
+      "XCTest_total_reported": 92,
+      "XCTest_executed": 88,
+      "count_note": "Framework-reported total includes an optional skip; no skipped test is counted as an executed pass."
+    },
+    "later_menu_only_focused_gate": {
+      "XCTest_passed": 5,
+      "log": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-real-form-layout-v2.log",
+      "scope": "Actual CLIWorkshopView hierarchy at240/380/620; final native screenshots/actions follow this build."
+    }
+  },
+  "closure": "native-closure.json"
+}

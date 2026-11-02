@@ -1,0 +1,36 @@
+{
+  "utc": "2026-10-24T15:19:06.991306+00:00",
+  "baseline": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+  "status": "Applied and source frozen for parent-owned serial build; untested",
+  "buildsRun": false,
+  "baseChecks": "All9preparedsource hashes match; new test absent; all3patches git apply --checkpassed; DCMTKtest exact patchcontextmatchesM6checkpoint",
+  "diffCheck": "passed",
+  "files": {
+    "Sources/DICOMCore/JLICodec.swift": "38c01ffa838e78ff5c92154ec137a811365b31c5517fbde8851e3b573c61db0e",
+    "Sources/DICOMCore/JPEGInterchangeFormat.swift": "0668a7a53748835d3534557a5b0b52eba4c8df468b3db6c69c4e0359252f8fbb",
+    "Sources/DICOMKit/ConversionDiagnostics.swift": "c0421914214a9f9625b3062ecaf0bf9834988b5600f9c4fbf686b33cfc2e2f8a",
+    "Tests/DICOMCoreTests/M7JPEGExtendedProcessTests.swift": "2e17df407e3bfcc2c976d743eadb4781684870d055564b565d23a741a0d75f00",
+    "Tests/DICOMStudioTests/AnonWorkshopCLIParityTests.swift": "5f598b3be83a09fb97056cdc6f29f7c93f9b3999546a70fd3cc18e5efc4af79e",
+    "Tests/DICOMStudioTests/SplitMergeWorkshopCLIParityTests.swift": "2fd97284a96658291e2a7a1df22db71b23ad4ea27db9535003c4ef7e970ff535",
+    "Tests/DICOMStudioTests/ViewerStudyDateTimeTests.swift": "08b75768fe85169176ffd7f2eb8d0570dec4ae9f5252c3c132489f00c4c842ef",
+    "Tests/DICOMStudioTests/PrintImageNumberCacheTests.swift": "3b65b699b82a6d4910c25001e9dcd4803b8738b207501e6fa1672159cd87b6a5",
+    "Tests/DICOMStudioTests/CLIWorkshopVideoTests.swift": "162c5571b6773d7e69597e0fcd0075052a2143d58cc946f2d653fad8a592d637",
+    "Tests/DICOMPrintKitTests/DCMTKInteropTests.swift": "42a98b5849b5676a026acfeaf46aaaedffa83b60d8f693e8b6facae19b885bed",
+    "Sources/DICOMCore/TransferSyntaxConverter.swift": "88e031b032cff936a92daae0b411c8c56f921ef092b9312e6e80b80f8b3772bc",
+    "Tests/DICOMCoreTests/M7NativePixelDataVRTests.swift": "36fb5cdf7361f5ec064f3bb827eef10fca05a82822805c52c995c59bf47f41b5",
+    "Scripts/verify_m7_codecs.py": "e9f8d9b1272006f9f3d12b89dca650617de1acbd5841c2da5054bcf6e8a15fd7",
+    "Sources/DICOMKit/DICOMParser.swift": "6ca0e553a0f40c1857e9e6bfc1eaf784caa394e3166a41fd8eeabe579bf3a5bb"
+  },
+  "scope": "Bounded encoder-only JPEGExtended8 SOF1 fix and correct monochrome diagnostic,4 focusedcodec tests,5Studiofixture/expectation/externalbinarylookup repairs,DCMTK syntheticfixturetestrepair. No decoder policy relaxation.",
+  "diagnosis": "work/m7/codec-diagnosis.json",
+  "completion": "M7notcomplete;rootbuild/runtimequalificationpending",
+  "compileRepair": "Only pixels fixture expression split into explicit UInt8 array/Int loop intermediates after parent compiler complexity diagnostic; values unchanged. No build run by subagent.",
+  "latestRepair": "Confirmed native PixelDataVR/evenpadding defect plus runner oraclecorrections; see work/m7/native-pixel-repair.json",
+  "parentTestCompileRepairs": "Root qualified DICOMCore.Tag and changed DICOMKit import to @testable in M7NativePixelDataVRTests; initial compiler failure retained.",
+  "implicitParserRepair": {
+    "cause": "Eager implicit native PixelData used dictionary first alternative OB; lazy path and Core converter already chose OW.",
+    "change": "DICOMParser.parseImplicitVRHeader explicitly chooses OW for PixelData only; dictionary and explicit VR untouched.",
+    "tests": "Three added methods (4 argument executions): independent raw implicit8/16 eager+strict+lazy+metadataOnly; implicit16 to explicitLE/BE using Kit write and Core conversion exact samples/raw bytes; explicit OB/OW eager/lazy retained. Existing M7 filter includes all.",
+    "validation": "git diff --check passed; parent owns all Swift builds/tests; no build or campaign run by subagent."
+  }
+}

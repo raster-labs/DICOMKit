@@ -1,0 +1,51 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 511]
+[Planning deferred tasks]
+[2 / 42]
+Build complete! (0.91 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:54:43.439.
+Test Suite 'DICOMKitTests.xctest' started at 2026-10-24 20:54:43.444.
+Test Suite 'ConversionDiagnosticsTests' started at 2026-10-24 20:54:43.444.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests test16BitTo8BitOnlyTarget_isAcceptedBecauseTheTranscoderWindowsItDown]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests test16BitTo8BitOnlyTarget_isAcceptedBecauseTheTranscoderWindowsItDown]' passed (0.001 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests test32Bit_toJPEG2000_explainsBitsAllocated]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests test32Bit_toJPEG2000_explainsBitsAllocated]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testBatchSummary_isOneLine]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testBatchSummary_isOneLine]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testCommonFormats_areAccepted]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testCommonFormats_areAccepted]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testConvertToDICOM_throwsConversionFailureWithSourceAndTarget]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testConvertToDICOM_throwsConversionFailureWithSourceAndTarget]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_explainsANonDICOMInput]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_explainsANonDICOMInput]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_isTheSameTextForTheCLIAndTheApp]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_isTheSameTextForTheCLIAndTheApp]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_neverFallsBackToFoundationErrorN]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testFailureReport_neverFallsBackToFoundationErrorN]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_acceptsBaselineAndExtended8Bit]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_acceptsBaselineAndExtended8Bit]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_acceptsTable8_2_15_1ColourRows]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_acceptsTable8_2_15_1ColourRows]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejects12BitExtendedSource]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejects12BitExtendedSource]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsLosslessJPEGSource]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsLosslessJPEGSource]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsMonochrome1]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsMonochrome1]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsPhotometricOutsideTable8_2_15_1]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsPhotometricOutsideTable8_2_15_1]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsUncompressedSource]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testRecompression_rejectsUncompressedSource]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testSigned8Bit_toJPEGBaseline_explainsSignedLimit]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testSigned8Bit_toJPEGBaseline_explainsSignedLimit]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testSigned8Bit_toJPEGXL_explainsNoSigned8BitType]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testSigned8Bit_toJPEGXL_explainsNoSigned8BitType]' passed (0.000 seconds).
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testUnknownSourceUID_isRejectedInsteadOfReadAsUncompressed]' started.
+Test Case '-[DICOMKitTests.ConversionDiagnosticsTests testUnknownSourceUID_isRejectedInsteadOfReadAsUncompressed]' passed (0.000 seconds).
+Test Suite 'ConversionDiagnosticsTests' passed at 2026-10-24 20:54:43.448.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'DICOMKitTests.xctest' passed at 2026-10-24 20:54:43.448.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:54:43.448.
+	 Executed 18 tests, with 0 failures (0 unexpected) in 0.004 (0.010) seconds

@@ -1,0 +1,52 @@
+OVERVIEW: Transcode J2K ↔ HTJ2K while preserving DICOM metadata
+
+Decodes the source JPEG 2000 / HTJ2K codestream and re-encodes it using
+the specified target transfer syntax. The DICOM dataset is preserved
+bit-for-bit except for the pixel data element and transfer syntax UID.
+
+Target transfer syntax values (the general .91/.203 UIDs carry either a
+lossy or a lossless codestream per PS3.5 A.4.4; "-lossless-only" selects the
+distinct reversible-only UID):
+  j2k-lossy                 JPEG 2000, lossy          (1.2.840.10008.1.2.4.91)
+  j2k-lossless              JPEG 2000, lossless       (1.2.840.10008.1.2.4.91)
+  j2k-lossless-only         JPEG 2000 Lossless Only   (1.2.840.10008.1.2.4.90)
+  htj2k-lossy               HTJ2K, lossy              (1.2.840.10008.1.2.4.203)
+  htj2k-lossless            HTJ2K, lossless           (1.2.840.10008.1.2.4.203)
+  htj2k-lossless-only       HTJ2K Lossless Only       (1.2.840.10008.1.2.4.201)
+  htj2k-rpcl-lossless-only  HTJ2K Lossless Only, RPCL (1.2.840.10008.1.2.4.202)
+
+Refused (exit 1) — .92 / .93 specify the JPEG 2000 Part 2 multiple component
+transformation extensions (PS3.5 A.4.4), which the encoder does not write:
+  j2k-part2-lossy           JPEG 2000 Part 2, lossy   (1.2.840.10008.1.2.4.93)
+  j2k-part2-lossless        JPEG 2000 Part 2, lossless(1.2.840.10008.1.2.4.93)
+  j2k-part2-lossless-only   JPEG 2000 Part 2 Lossless Only
+(1.2.840.10008.1.2.4.92)
+
+A PS3.6 Table A-1 keyword selects its Table A-1 UID: JPEG2000Lossless now means
+.90 and HTJ2KLossless .201 (a note is printed); the reversible encode into .91
+/
+.203 is JPEG2000Reversible / HTJ2KReversible (or j2k-lossless /
+htj2k-lossless).
+
+Examples:
+  dicom-j2k transcode j2k.dcm --output htj2k.dcm --target htj2k-lossless
+  dicom-j2k transcode htj2k.dcm --output j2k.dcm --target j2k-lossless
+  dicom-j2k transcode input.dcm --output out.dcm --target htj2k --quality 0.9
+
+USAGE: dicom-j2k transcode <input> --output <output> --target <target> [--quality <quality>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  -t, --target <target>   Target transfer syntax (j2k-lossy, j2k-lossless,
+                          j2k-lossless-only, htj2k-lossy, htj2k-lossless,
+                          htj2k-lossless-only, htj2k-rpcl-lossless-only; the
+                          j2k-part2-* targets are refused, PS3.5 A.4.4)
+  -q, --quality <quality> Encoding quality 0.0–1.0 (ignored for lossless
+                          targets) (default: 0.9)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

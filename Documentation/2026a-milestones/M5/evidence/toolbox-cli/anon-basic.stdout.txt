@@ -1,0 +1,5 @@
+
+Anonymization Summary:
+  Total files: 1
+  Successful: 1
+  Failed: 0

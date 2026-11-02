@@ -1,0 +1,63 @@
+OVERVIEW: Query Modality Worklist (C-FIND)
+
+USAGE: dicom-mwl query [<options>] <host> --aet <aet>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --date <date>           Scheduled date filter: YYYYMMDD, 'today', 'tomorrow',
+                          or a DICOM date range (YYYYMMDD-YYYYMMDD, YYYYMMDD-,
+                          -YYYYMMDD). A leading-hyphen range needs the equals
+                          form: --date=-YYYYMMDD
+  --time <time>           Scheduled time filter: HHMMSS (or HH / HHMM /
+                          HHMMSS.FFFFFF, PS3.5 Table 6.2-1 TM), or a DICOM time
+                          range (HHMMSS-HHMMSS, HHMMSS-, -HHMMSS; PS3.4
+                          C.2.2.2.5.2). Combined with --date as one continuous
+                          interval when both are ranges (PS3.4 Table K.6-1,
+                          remark under (0040,0003)). A leading-hyphen range
+                          needs the equals form: --time=-HHMMSS
+  --station <station>     Scheduled Station AE Title filter
+  --patient <patient>     Patient name filter (supports wildcards: *)
+  --patient-id <patient-id>
+                          Patient ID filter
+  --modality <modality>   Modality filter (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --sps-status <sps-status>
+                          Scheduled Procedure Step Status (0040,0020) filter.
+                          Defined Terms per PS3.3 Table C.4-10: SCHEDULED,
+                          ARRIVED, READY, STARTED, DEPARTED (another value is
+                          sent as given, with a warning)
+  --accession-number <accession-number>
+                          Accession number filter
+  --performing-physician <performing-physician>
+                          Scheduled Performing Physician's Name filter
+                          (supports wildcards: *)
+  --specific-character-set <specific-character-set>
+                          Force the Specific Character Set (0008,0005) of the
+                          query, e.g. ISO_IR 100 or ISO_IR 192. By default the
+                          narrowest set that represents every text key is
+                          chosen (none for pure ASCII)
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  -v, --verbose           Show verbose output
+  --json                  Output as JSON. Keys are PS3.6 keywords (e.g.
+                          ScheduledProcedureStepStartDate,
+                          ReferencedStudySequence); the abbreviated keys
+                          SPSStartDate, SPSStartTime, SPSStatus, SPSID,
+                          SPSDescription, SPSLocation,
+                          ScheduledPerformingPhysician, RequestedProcedureCode,
+                          ScheduledProtocolCodes, ReferencedStudySOPInstanceUID
+                          are still written but deprecated
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,43 @@
+CLI inventory: 41 active executable products; 42 source directories; 1 disabled/source-only (dicom-cloud)
+Audit selection: 2 tool(s); disabled sources require explicit --tool selection
+using ../standards/part03_2026a.xml: DICOM PS3.3 2026a - Information Object Definitions
+using ../standards/part04_2026a.xml: DICOM PS3.4 2026a - Service Class Specifications
+using ../standards/part05_2026a.xml: DICOM PS3.5 2026a - Data Structures and Encoding
+using ../standards/part06_2026a.xml: DICOM PS3.6 2026a - Data Dictionary
+using ../standards/part07_2026a.xml: DICOM PS3.7 2026a - Message Exchange
+using ../standards/part10_2026a.xml: DICOM PS3.10 2026a - Media Storage and File Format for Media Interchange
+using ../standards/part11_2026a.xml: DICOM PS3.11 2026a - Media Storage Application Profiles
+using ../standards/part15_2026a.xml: DICOM PS3.15 2026a - Security and System Management Profiles
+using ../standards/part16_2026a.xml: DICOM PS3.16 2026a - Content Mapping Resource
+using ../standards/part18_2026a.xml: DICOM PS3.18 2026a - Web Services
+using ../standards/part19_2026a.xml: DICOM PS3.19 2026a - Application Hosting
+
+== dicom-print (3 files, 55 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 17, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: documented defaults equal the code defaults: matched 22, wrong 0, missing 0, extra 0
+ok   dicom-print: contract rows name real options: matched 43, wrong 0, missing 0, extra 0
+
+== dicom-printscp (8 files, 72 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 16, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: documented defaults equal the code defaults: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-printscp: contract rows name real options: matched 66, wrong 0, missing 0, extra 0
+
+0 check(s) with wrong or missing values, 0 pending owner approval

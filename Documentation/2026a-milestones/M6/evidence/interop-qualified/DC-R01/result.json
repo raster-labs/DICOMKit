@@ -1,0 +1,44 @@
+{
+  "id": "DC-R01",
+  "title": "DCMTK SCU to DICOMKit: 8-bit grayscale",
+  "status": "passed",
+  "elapsed_seconds": 0.4239717080000003,
+  "observations": {
+    "films": [
+      {
+        "file": "film-20261024-201213-001.png",
+        "sha256": "a378928ed5a92fc1212efe6f8030c297df5f9448fe2924875d62407e30795223"
+      }
+    ],
+    "dimse_messages": 18,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.9",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        },
+        "3": {
+          "abstract": "1.2.840.10008.5.1.1.23",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        }
+      }
+    ],
+    "received_bits": 8,
+    "received_size": [
+      16,
+      16
+    ]
+  }
+}

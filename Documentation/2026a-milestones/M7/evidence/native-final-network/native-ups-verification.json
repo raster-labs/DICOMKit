@@ -1,0 +1,172 @@
+{
+  "cases": [
+    "FINAL-06 UPS portion",
+    "FINAL-13"
+  ],
+  "native_actions": 2,
+  "CLI_actions": 2,
+  "assertions": 24,
+  "checks": [
+    {
+      "name": "exactly two native and two CLI UPS requests",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "original UPS input hash unchanged",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request1 exact authentication scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request1 expected method",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS POST1 exact creation attributes and route excluding server-assigned UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS POST1 exact DT and SCHEDULED state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request2 exact authentication scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request2 expected method",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request3 exact authentication scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request3 expected method",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS POST3 exact creation attributes and route excluding server-assigned UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS POST3 exact DT and SCHEDULED state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request4 exact authentication scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS request4 expected method",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "GET uses each surface own returned UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native GET exact timestamp and state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI GET exact timestamp and state",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native and CLI entire GET result equal except peer-assigned UID",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "DT independently resolves correct exact UTC instant",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ups-basic-create actual native SUCCESS and CLI exit0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "ups-basic-get actual native SUCCESS and CLI exit0",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS copied Basic command entirely app-only comments",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS Bearer copied preview has only intended token",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "UPS none copied preview has no stale auth",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "passed": false,
+  "limits": [
+    "Synthetic capture peer supports POST/GET only; no PUT state transition or production UPS server acceptance claim.",
+    "Native Basic request headers are verified; CLI requests intentionally omit Basic because it has no Basic flag. Server credential enforcement is not tested.",
+    "Bearer/none UPS transitions are copied-preview observations only, not additional executed requests.",
+    "The existing create-json route preserves compact DICOM DT; native Scheduled Start field expects ISO8601 and was not given compact DT.",
+    "Input00080018 is omitted by both creation clients for peer-assigned identity. All other input attributes are compared exactly. Initial audit incorrectly expected that UID in POST; the failed oracle receipt is retained."
+  ],
+  "verified_utc": "2026-10-26T08:27:35.288566+00:00",
+  "creation_identity_source_proof": {
+    "rule": "createWorkitem(workitem:uid:) defaults uid to nil, uses POST /workitems when nil, removes00080018 from JSON body, and extracts response identity from Location. Both JSON clients omit the uid argument.",
+    "files": [
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMWeb/UPS/UPSClient.swift",
+        "lines": "189-211,237-244",
+        "sha256": "c2ab8a03c475ed7f24d4e8070fa81b4fb437f8946e30ee1154da9de843e799d3"
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/dicom-wado/DICOMWado.swift",
+        "lines": "1108-1121",
+        "sha256": "6d7e5426ccac9422290789039aacff92f0616d34f827592d0dcb5f42b987ebd1"
+      },
+      {
+        "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+        "lines": "7770-7788",
+        "sha256": "af4d3ce0c11bc29d17c9199546a1305a0a46b937282c58fdc50e8e3fef18d63f"
+      }
+    ],
+    "comparison": "Exclude only00080018 from original input; every other attribute/VR/value equals both POST bodies. Follow each surface returned UID for GET.",
+    "caution": "This explains current implementation behavior only. It does not justify omission under DICOM2026a PS3.18 section11.4.1.1."
+  },
+  "parity_passed": true,
+  "standards_conformance_status": "OPEN — Worklist POST UID omission requires repair/qualification",
+  "acceptance_status": "Not accepted as standard-compliant UPS creation",
+  "standards_open_issue": {
+    "reference": "https://dicom.nema.org/medical/dicom/2026a/output/chtml/part18/sect_11.4.html",
+    "section": "11.4.1.1",
+    "observation": "Both native and CLI POST /workitems have no workitem query parameter and omit00080018 despite input containing it. Permissive capture peer assigns identity; this is parity evidence only, not conformance.",
+    "required_next_step": "Root investigates and repairs shared creation identity handling, then focused tests and native/CLI strict-peer verification.",
+    "previous_oracle_interpretation_retracted": "Treating the omission solely as an audit-oracle error was too broad. API behavior is not the normative oracle."
+  }
+}

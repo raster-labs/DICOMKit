@@ -1,0 +1,130 @@
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "Data Exchange Service Tests" started.
+◇ Suite "WebUPSState (DICOMWeb.UPSState reached from DICOMStudio)" started.
+◇ Suite "Data Exchange ViewModel Tests" started.
+◇ Test "DataExchangeService setSelectedBatchOperationType persists type" started.
+◇ Test "DataExchangeService removeDICOMDIREntry decreases count" started.
+◇ Test "DataExchangeService updateConversionJob modifies existing job" started.
+◇ Test "DataExchangeService removeBatchJob decreases count" started.
+◇ Test "DataExchangeService addExportedImagePath increases count" started.
+◇ Test "DataExchangeService setJSONOutput persists output" started.
+◇ Test "WebUPSState is the DICOMWeb enum: its raw values are the Table C.30.1-1 words" started.
+◇ Test "Deprecated names keep compiling: UPSState is WebUPSState, .cancelled is .canceled" started.
+◇ Test "DataExchangeService setJSONSettings persists settings" started.
+◇ Test "DataExchangeService clearExportedImagePaths empties list" started.
+◇ Test "DataExchangeService setPDFPatientName and PatientID persist" started.
+◇ Test "DataExchangeService setXMLSettings persists settings" started.
+◇ Test "DataExchangeService removeConversionJob decreases count" started.
+◇ Test "DataExchangeService addDICOMDIREntry increases count" started.
+◇ Test "DataExchangeService addConversionJob increases count" started.
+◇ Test "DataExchangeService addBatchJob increases count" started.
+◇ Test "DataExchangeService setSelectedTargetSyntaxUID persists UID" started.
+◇ Test "DataExchangeService setXMLOutput persists output" started.
+◇ Test "DataExchangeService addBatchTagModification increases count" started.
+◇ Test "DataExchangeService setPDFInputPath and OutputPath persist" started.
+◇ Test "DataExchangeService default JSON settings outputFormat is pretty" started.
+◇ Test "DataExchangeService clearBatchTagModifications empties list" started.
+◇ Test "DataExchangeService setJSONInputFilePath persists path" started.
+◇ Test "DataExchangeService setXMLInputFilePath persists path" started.
+◇ Test "addBatchTagModification increases batchTagModifications count" started.
+◇ Test "updateJSONSettings updates jsonSettings" started.
+◇ Test "removeBatchTagModification decreases batchTagModifications count" started.
+◇ Test "setPDFPatientID updates pdfPatientID" started.
+◇ Test "setPDFOutputPath updates pdfOutputPath" started.
+◇ Test "loadFromService reflects service state" started.
+◇ Test "Values stored with the retired Studio raw values IN_PROGRESS / CANCELLED still decode" started.
+◇ Test "removeDICOMDIREntry decreases dicomdirEntries count" started.
+◇ Test "setDICOMDIROutputPath updates dicomdirOutputPath" started.
+◇ Test "setJSONInputFilePath updates jsonInputFilePath" started.
+◇ Test "DataExchangeService setDICOMDIROutputPath persists path" started.
+◇ Test "addConversionJob increases conversionJobs count" started.
+◇ Test "default activeTab is jsonConversion" started.
+◇ Test "setPDFInputPath updates pdfInputPath" started.
+◇ Test "DataExchangeService setPDFMode persists mode" started.
+◇ Test "clearJSONOutput clears jsonOutput" started.
+◇ Test "updateConversionJob modifies existing job" started.
+◇ Test "addExportedImagePath increases exportedImagePaths count" started.
+◇ Test "default jsonSettings outputFormat is pretty" started.
+◇ Test "setXMLInputFilePath updates xmlInputFilePath" started.
+◇ Test "addBatchJob increases batchJobs count" started.
+◇ Test "removeConversionJob decreases conversionJobs count" started.
+◇ Test "clearExportedImagePaths empties exportedImagePaths" started.
+◇ Test "clearXMLOutput clears xmlOutput" started.
+◇ Test "setSelectedTargetSyntaxUID updates selectedTargetSyntaxUID" started.
+◇ Test "updateXMLSettings updates xmlSettings" started.
+◇ Test "removeBatchJob decreases batchJobs count" started.
+◇ Test "Secondary Capture modality defaults to OT, a PS3.3 2026a C.7.3.1.1.1 Defined Term (not SC)" started.
+◇ Test "isLoading starts false" started.
+◇ Test "isJSONExportSheetPresented starts false" started.
+◇ Test "setPDFPatientName updates pdfPatientName" started.
+◇ Test "errorMessage starts nil" started.
+◇ Test "setPDFMode updates pdfMode" started.
+◇ Test "setImageInputFilePath updates imageInputFilePath" started.
+◇ Test "setSelectedBatchOperationType updates selectedBatchOperationType" started.
+◇ Test "addDICOMDIREntry increases dicomdirEntries count" started.
+✔ Test "DataExchangeService setSelectedBatchOperationType persists type" passed after 0.001 seconds.
+✔ Test "DataExchangeService removeBatchJob decreases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService removeDICOMDIREntry decreases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService addExportedImagePath increases count" passed after 0.001 seconds.
+✔ Test "Deprecated names keep compiling: UPSState is WebUPSState, .cancelled is .canceled" passed after 0.001 seconds.
+✔ Test "DataExchangeService updateConversionJob modifies existing job" passed after 0.001 seconds.
+✔ Test "DataExchangeService setXMLSettings persists settings" passed after 0.001 seconds.
+✔ Test "DataExchangeService setPDFPatientName and PatientID persist" passed after 0.001 seconds.
+✔ Test "DataExchangeService removeConversionJob decreases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setJSONOutput persists output" passed after 0.001 seconds.
+✔ Test "DataExchangeService setJSONSettings persists settings" passed after 0.001 seconds.
+✔ Test "DataExchangeService setXMLOutput persists output" passed after 0.001 seconds.
+✔ Test "DataExchangeService addDICOMDIREntry increases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setSelectedTargetSyntaxUID persists UID" passed after 0.001 seconds.
+✔ Test "DataExchangeService default JSON settings outputFormat is pretty" passed after 0.001 seconds.
+✔ Test "DataExchangeService addBatchJob increases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService addBatchTagModification increases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setXMLInputFilePath persists path" passed after 0.001 seconds.
+✔ Test "DataExchangeService setJSONInputFilePath persists path" passed after 0.001 seconds.
+✔ Test "DataExchangeService clearExportedImagePaths empties list" passed after 0.001 seconds.
+✔ Test "DataExchangeService addConversionJob increases count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setPDFInputPath and OutputPath persist" passed after 0.001 seconds.
+✔ Test "DataExchangeService clearBatchTagModifications empties list" passed after 0.001 seconds.
+✔ Test "Values stored with the retired Studio raw values IN_PROGRESS / CANCELLED still decode" passed after 0.001 seconds.
+✔ Test "updateJSONSettings updates jsonSettings" passed after 0.001 seconds.
+✔ Test "setPDFPatientID updates pdfPatientID" passed after 0.001 seconds.
+✔ Test "removeBatchTagModification decreases batchTagModifications count" passed after 0.001 seconds.
+✔ Test "setDICOMDIROutputPath updates dicomdirOutputPath" passed after 0.001 seconds.
+✔ Test "removeDICOMDIREntry decreases dicomdirEntries count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setDICOMDIROutputPath persists path" passed after 0.001 seconds.
+✔ Test "setJSONInputFilePath updates jsonInputFilePath" passed after 0.001 seconds.
+✔ Test "WebUPSState is the DICOMWeb enum: its raw values are the Table C.30.1-1 words" passed after 0.001 seconds.
+✔ Test "addBatchTagModification increases batchTagModifications count" passed after 0.001 seconds.
+✔ Test "DataExchangeService setPDFMode persists mode" passed after 0.001 seconds.
+✔ Test "loadFromService reflects service state" passed after 0.001 seconds.
+✔ Test "addConversionJob increases conversionJobs count" passed after 0.001 seconds.
+✔ Test "setXMLInputFilePath updates xmlInputFilePath" passed after 0.001 seconds.
+✔ Test "addExportedImagePath increases exportedImagePaths count" passed after 0.001 seconds.
+✔ Test "default activeTab is jsonConversion" passed after 0.001 seconds.
+✔ Test "setPDFOutputPath updates pdfOutputPath" passed after 0.001 seconds.
+✔ Test "addBatchJob increases batchJobs count" passed after 0.001 seconds.
+✔ Test "clearExportedImagePaths empties exportedImagePaths" passed after 0.001 seconds.
+✔ Test "default jsonSettings outputFormat is pretty" passed after 0.001 seconds.
+✔ Test "removeConversionJob decreases conversionJobs count" passed after 0.001 seconds.
+✔ Test "setPDFInputPath updates pdfInputPath" passed after 0.001 seconds.
+✔ Test "clearJSONOutput clears jsonOutput" passed after 0.001 seconds.
+✔ Test "isJSONExportSheetPresented starts false" passed after 0.001 seconds.
+✔ Test "removeBatchJob decreases batchJobs count" passed after 0.001 seconds.
+✔ Test "Secondary Capture modality defaults to OT, a PS3.3 2026a C.7.3.1.1.1 Defined Term (not SC)" passed after 0.001 seconds.
+✔ Test "setPDFPatientName updates pdfPatientName" passed after 0.001 seconds.
+✔ Test "isLoading starts false" passed after 0.001 seconds.
+✔ Test "clearXMLOutput clears xmlOutput" passed after 0.001 seconds.
+✔ Test "setImageInputFilePath updates imageInputFilePath" passed after 0.001 seconds.
+✔ Test "setSelectedTargetSyntaxUID updates selectedTargetSyntaxUID" passed after 0.001 seconds.
+✔ Test "setPDFMode updates pdfMode" passed after 0.001 seconds.
+✔ Test "updateXMLSettings updates xmlSettings" passed after 0.001 seconds.
+✔ Test "updateConversionJob modifies existing job" passed after 0.001 seconds.
+✔ Test "addDICOMDIREntry increases dicomdirEntries count" passed after 0.001 seconds.
+✔ Test "setSelectedBatchOperationType updates selectedBatchOperationType" passed after 0.001 seconds.
+✔ Test "errorMessage starts nil" passed after 0.001 seconds.
+✔ Suite "WebUPSState (DICOMWeb.UPSState reached from DICOMStudio)" passed after 0.001 seconds.
+✔ Suite "Data Exchange Service Tests" passed after 0.001 seconds.
+✔ Suite "Data Exchange ViewModel Tests" passed after 0.001 seconds.
+✔ Test run with 60 tests in 3 suites passed after 0.001 seconds.

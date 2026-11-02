@@ -1,0 +1,13 @@
+{
+  "isNormal" : true,
+  "manufacturer" : "DICOMKit",
+  "Manufacturer" : "DICOMKit",
+  "ManufacturerModelName" : "DICOM Print Emulator",
+  "model" : "DICOM Print Emulator",
+  "name" : "DICOMKIT-PRINTER",
+  "PrinterName" : "DICOMKIT-PRINTER",
+  "PrinterStatus" : "NORMAL",
+  "PrinterStatusInfo" : "NORMAL",
+  "status" : "NORMAL",
+  "statusInfo" : "NORMAL"
+}

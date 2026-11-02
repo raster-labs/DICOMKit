@@ -1,0 +1,15 @@
+{
+  "result": "Passed",
+  "raw_request_hashes_verified": 14,
+  "exact_scalar_tag_sets_verified": [
+    3,
+    5
+  ],
+  "refused_requests_preserve_entire_state": [
+    8,
+    11,
+    14
+  ],
+  "listener_present_after_shutdown": false,
+  "port": 65467
+}

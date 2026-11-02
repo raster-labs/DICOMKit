@@ -1,0 +1,68 @@
+OVERVIEW: Search for DICOM objects using QIDO-RS
+
+Searches for studies, series, or instances on DICOMweb server.
+
+Examples:
+  dicom-wado query https://server/dicom-web --patient-name "DOE*"
+  dicom-wado query https://server/dicom-web --study-date 20240101-20240131
+  dicom-wado query https://server/dicom-web --modality CT --limit 10
+  dicom-wado query https://server/dicom-web --level series --study 1.2.3.4.5
+
+USAGE: dicom-wado query [<options>] <base-url>
+
+ARGUMENTS:
+  <base-url>              DICOMweb server base URL
+
+OPTIONS:
+  --level <level>         Query level: study, series, instance (default: study)
+                          (default: study)
+  --patient-name <patient-name>
+                          Patient name (wildcards * and ? supported)
+  --patient-id <patient-id>
+                          Patient ID
+  --study-date <study-date>
+                          Study date or range (YYYYMMDD or YYYYMMDD-YYYYMMDD)
+  --study <study>         Study Instance UID: a single UID scopes
+                          series/instance paths; a comma-separated list remains
+                          a matching filter
+  --series <series>       Series Instance UID: a single UID with --study scopes
+                          instance paths; a comma-separated list remains a
+                          matching filter
+  --accession-number <accession-number>
+                          Accession number
+  --modality <modality>   Modality filter (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --study-description <study-description>
+                          Study description
+  --pps-start-date <pps-start-date>
+                          Series attribute (series or relational instance
+                          searches): Performed Procedure Step Start Date
+                          (0040,0244), YYYYMMDD or a YYYYMMDD-YYYYMMDD range
+  --pps-start-time <pps-start-time>
+                          Series attribute (series or relational instance
+                          searches): Performed Procedure Step Start Time
+                          (0040,0245), HHMMSS or an HHMMSS-HHMMSS range
+  --sps-id <sps-id>       Series attribute (series or relational instance
+                          searches): Scheduled Procedure Step ID inside Request
+                          Attributes Sequence (0040,0275.0040,0009)
+  --requested-procedure-id <requested-procedure-id>
+                          Series attribute (series or relational instance
+                          searches): Requested Procedure ID inside Request
+                          Attributes Sequence (0040,0275.0040,1001)
+  --limit <limit>         Maximum number of results (default: 100) (default:
+                          100)
+  --offset <offset>       Offset for pagination (default: 0) (default: 0)
+  --fuzzy-matching        Ask for fuzzy matching of person names (PS3.18
+                          8.3.4.2: fuzzymatching=true)
+  --token <token>         OAuth2 bearer token for authentication
+  -f, --format <format>   Output format: table, json, csv, dicom-json (default:
+                          table). dicom-json is the PS3.18 F.2 DICOM JSON
+                          Model; json is a tool summary (keyword keys)
+                          (default: table)
+  --verbose               Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

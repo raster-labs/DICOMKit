@@ -1,0 +1,28 @@
+{
+  "index": 4,
+  "utc": "2026-10-26T08:56:06.155904+00:00",
+  "method": "POST",
+  "target": "/cli-default/dicom-web/workitems?workitem=1.2.826.0.1.3680043.8.498.1793004966146884.655486",
+  "headers": {
+    "Host": "127.0.0.1:62053",
+    "Content-Type": "application/dicom+json",
+    "Connection": "keep-alive",
+    "Accept": "application/dicom+json",
+    "User-Agent": "DICOMKit/1.0",
+    "Content-Length": "683",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept-Language": "en-US,en;q=0.9"
+  },
+  "body": "{\"00081195\":{\"vr\":\"UI\"},\"00100040\":{\"vr\":\"CS\"},\"00100020\":{\"vr\":\"LO\",\"Value\":[\"SYNTHETIC-UPS\"]},\"00404018\":{\"vr\":\"SQ\"},\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"\"}]},\"00741204\":{\"Value\":[\"Synthetic generated UPS\"],\"vr\":\"LO\"},\"00101002\":{\"vr\":\"SQ\"},\"00081080\":{\"vr\":\"LO\"},\"00100030\":{\"vr\":\"DA\"},\"00741210\":{\"vr\":\"SQ\"},\"00741216\":{\"vr\":\"SQ\"},\"00380014\":{\"vr\":\"SQ\"},\"00081084\":{\"vr\":\"SQ\"},\"00741002\":{\"vr\":\"SQ\"},\"00404005\":{\"vr\":\"DT\",\"Value\":[\"20261026142606\"]},\"00404021\":{\"vr\":\"SQ\"},\"00100021\":{\"vr\":\"LO\"},\"00380010\":{\"vr\":\"LO\"},\"00741000\":{\"Value\":[\"SCHEDULED\"],\"vr\":\"CS\"},\"00100024\":{\"vr\":\"SQ\"},\"00741200\":{\"vr\":\"CS\",\"Value\":[\"MEDIUM\"]},\"00404041\":{\"Value\":[\"READY\"],\"vr\":\"CS\"}}",
+  "surface": "cli-default",
+  "uid": "1.2.826.0.1.3680043.8.498.1793004966146884.655486",
+  "identity_form": "query",
+  "response": {
+    "status": 201,
+    "headers": {
+      "Content-Length": "0",
+      "Location": "http://127.0.0.1:62053/cli-default/dicom-web/workitems/1.2.826.0.1.3680043.8.498.1793004966146884.655486"
+    },
+    "body": ""
+  }
+}

@@ -1,0 +1,162 @@
+[
+  {
+    "name": "TLS12-custom-trust",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS12-modified-cipher-subset",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS13-custom-trust",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ]
+  },
+  {
+    "name": "TLS13-modified-cipher-subset",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ]
+  },
+  {
+    "name": "untrusted-system-root-refused",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "wrong-custom-root-refused",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "wrong-hostname-refused",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS13-only-client-refuses-TLS12-peer",
+    "phase": "control",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS12-custom-trust",
+    "phase": "client",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS12-modified-cipher-subset",
+    "phase": "client",
+    "success": true,
+    "version": "TLSv1.2",
+    "cipher": [
+      "ECDHE-RSA-AES256-GCM-SHA384",
+      "TLSv1.2",
+      256
+    ]
+  },
+  {
+    "name": "TLS13-custom-trust",
+    "phase": "client",
+    "success": true,
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ]
+  },
+  {
+    "name": "TLS13-modified-cipher-subset",
+    "phase": "client",
+    "success": true,
+    "version": "TLSv1.3",
+    "cipher": [
+      "TLS_AES_256_GCM_SHA384",
+      "TLSv1.3",
+      256
+    ]
+  },
+  {
+    "name": "untrusted-system-root-refused",
+    "phase": "client",
+    "success": false,
+    "reason": "TLSV1_ALERT_UNKNOWN_CA",
+    "error": "[SSL: TLSV1_ALERT_UNKNOWN_CA] tlsv1 alert unknown ca (_ssl.c:1010)"
+  },
+  {
+    "name": "wrong-custom-root-refused",
+    "phase": "client",
+    "success": false,
+    "reason": "SSLV3_ALERT_CERTIFICATE_UNKNOWN",
+    "error": "[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] ssl/tls alert certificate unknown (_ssl.c:1010)"
+  },
+  {
+    "name": "wrong-hostname-refused",
+    "phase": "client",
+    "success": false,
+    "reason": "SSLV3_ALERT_CERTIFICATE_UNKNOWN",
+    "error": "[SSL: SSLV3_ALERT_CERTIFICATE_UNKNOWN] ssl/tls alert certificate unknown (_ssl.c:1010)"
+  },
+  {
+    "name": "TLS13-only-client-refuses-TLS12-peer",
+    "phase": "client",
+    "success": false,
+    "reason": "UNSUPPORTED_PROTOCOL",
+    "error": "[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1010)"
+  }
+]

@@ -1,0 +1,27 @@
+OVERVIEW: Add a new printer configuration
+
+Adds a new printer to the local configuration file.
+
+Examples:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+  dicom-print add-printer --name color-printer \
+      --host 10.0.0.50 --port 11112 --called-ae COLOR_PRINT \
+      --color color --default
+
+USAGE: dicom-print add-printer --name <name> --host <host> [--port <port>] --called-ae <called-ae> [--calling-ae <calling-ae>] [--color <color>] [--default]
+
+OPTIONS:
+  --name <name>           Printer name (identifier)
+  --host <host>           Printer hostname or IP address
+  --port <port>           Printer DICOM port (default: 11112) (default: 11112)
+  --called-ae <called-ae> Remote Application Entity Title (called AE)
+  --calling-ae <calling-ae>
+                          Local Application Entity Title (calling AE, optional)
+  --color <color>         Color mode: grayscale, color (default: grayscale)
+                          (default: grayscale)
+  --default               Set as default printer
+  --version               Show the version.
+  -h, --help              Show help information.
+

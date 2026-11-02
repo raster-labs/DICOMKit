@@ -1,0 +1,10 @@
+[
+  {
+    "id": "phi-false",
+    "status": "ERROR"
+  },
+  {
+    "id": "phi-true",
+    "status": "SUCCESS"
+  }
+]

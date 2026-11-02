@@ -1,0 +1,44 @@
+OVERVIEW: Validate DICOM files against standards and best practices
+
+Validates DICOM files for conformance to the DICOM standard.
+Supports multiple validation levels from basic file format to IOD-specific
+rules.
+
+Examples:
+  dicom-validate file.dcm
+  dicom-validate file.dcm --level 3 --detailed
+  dicom-validate file.dcm --iod CTImageStorage
+  dicom-validate file.dcm --iod ComputedRadiographyImageStorage
+  dicom-validate study/ --recursive --format json --output report.json
+  dicom-validate file.dcm --strict
+
+USAGE: dicom-validate <input-path> [--level <level>] [--iod <iod>] [--detailed] [--recursive] [--format <format>] [--output <output>] [--strict] [--force]
+
+ARGUMENTS:
+  <input-path>            Path to DICOM file or directory
+
+OPTIONS:
+  --level <level>         Validation level (1-5): 1=File Meta Information
+                          (PS3.10 Table 7.1-1), 2=VR and VM against PS3.6 Table
+                          6-1, value length, character repertoire and
+                          DA/TM/UI/AS/DS/IS value forms (PS3.5 Table 6.2-1,
+                          6.2.1, 9.1), 3=IOD Type 1/1C/2/2C (PS3.3), 4=Best
+                          practices, 5=J2K codestream (default: 3)
+  --iod <iod>             IOD to validate against: SOP Class keyword or UID of
+                          PS3.6 Table A-1 (e.g. CTImageStorage, MRImageStorage,
+                          ComputedRadiographyImageStorage,
+                          UltrasoundImageStorage, SecondaryCaptureImageStorage,
+                          GrayscaleSoftcopyPresentationStateStorage,
+                          PseudoColorSoftcopyPresentationStateStorage, an SR or
+                          Key Object Selection keyword); short names CT, MR,
+                          CR, US, SC, GSPS, SR, KOS also accepted; default:
+                          from SOP Class UID (0008,0016)
+  --detailed              Show detailed validation report
+  --recursive             Process directories recursively
+  -f, --format <format>   Output format: text, json (default: text)
+  -o, --output <output>   Output file path (stdout if not specified)
+  --strict                Treat warnings as errors (exit code non-zero)
+  --force                 Force parsing of files without DICM prefix
+  --version               Show the version.
+  -h, --help              Show help information.
+

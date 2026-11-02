@@ -1,0 +1,259 @@
+[
+  {
+    "name": "template-workflow",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "template",
+      "templateName": "workflow"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "template-pipeline",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "template",
+      "templateName": "pipeline"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "template-query",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "template",
+      "templateName": "query"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "template-archive",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "template",
+      "templateName": "archive"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "template-anonymize",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "template",
+      "templateName": "anonymize"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+      "dryRun": "true"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "dry-run",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "run",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+      "dryRun": "true"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "workshop-live-refused",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+      "dryRun": "false",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/run.log"
+    },
+    "expectedStatus": "ERROR"
+  },
+  {
+    "name": "unknown-root",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-root.dcmscript",
+      "dryRun": "true",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/unknown-root.log"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-root-validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-root.dcmscript"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-pipeline",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-pipeline.dcmscript",
+      "dryRun": "true",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/unknown-pipeline.log"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-pipeline-validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-pipeline.dcmscript"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-conditional",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript",
+      "dryRun": "true",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/unknown-conditional.log"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-conditional-validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-option-equals",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-option-equals.dcmscript",
+      "dryRun": "true",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/unknown-option-equals.log"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "unknown-option-equals-validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-option-equals.dcmscript"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "conditional-pipeline",
+    "tool": "dicom-script",
+    "values": {
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript",
+      "dryRun": "true",
+      "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/conditional-pipeline.log"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "conditional-pipeline-validate",
+    "tool": "dicom-script",
+    "values": {
+      "operation": "validate",
+      "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "phi-false",
+    "tool": "dicom-anon",
+    "values": {
+      "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/phi-false-workshop.dcm",
+      "clean-pixel-data": "false",
+      "allow-burned-in-phi": "false"
+    },
+    "expectedStatus": "ERROR",
+    "expectedExit": 1
+  },
+  {
+    "name": "phi-true",
+    "tool": "dicom-anon",
+    "values": {
+      "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/phi-true-workshop.dcm",
+      "clean-pixel-data": "false",
+      "allow-burned-in-phi": "true"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "qr-review",
+    "tool": "dicom-qr",
+    "values": {
+      "host": "127.0.0.1",
+      "port": "59132",
+      "aet": "M5CLIENT",
+      "called-aet": "M5SCP",
+      "method": "c-get",
+      "mode": "review",
+      "study-uid": "2.25.505",
+      "timeout": "5",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/qr-review-workshop"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "qr-auto",
+    "tool": "dicom-qr",
+    "values": {
+      "host": "127.0.0.1",
+      "port": "59132",
+      "aet": "M5CLIENT",
+      "called-aet": "M5SCP",
+      "method": "c-get",
+      "mode": "auto",
+      "study-uid": "2.25.505",
+      "timeout": "5",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/qr-auto-workshop"
+    },
+    "expectedStatus": "SUCCESS",
+    "expectedExit": 0
+  },
+  {
+    "name": "stale-interactive",
+    "tool": "dicom-qr",
+    "values": {
+      "host": "127.0.0.1",
+      "port": "59132",
+      "mode": "interactive",
+      "method": "c-get",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/must-not-start/interactive"
+    },
+    "expectedStatus": "ERROR"
+  }
+]

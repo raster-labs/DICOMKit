@@ -1,0 +1,3 @@
+Error: Printer with name 'Synthetic; O'Neil 雪' already exists
+Usage: dicom-print <subcommand>
+  See 'dicom-print --help' for more information.

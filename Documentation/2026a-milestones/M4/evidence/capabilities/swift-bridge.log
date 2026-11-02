@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 18:30:32.550.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 18:30:32.554.
+Test Suite 'M4CapabilitiesProcessHarnessTests' started at 2026-10-24 18:30:32.554.
+Test Case '-[DICOMWebTests.M4CapabilitiesProcessHarnessTests testCapabilitiesProcessHarness]' started.
+Test Case '-[DICOMWebTests.M4CapabilitiesProcessHarnessTests testCapabilitiesProcessHarness]' passed (2.276 seconds).
+Test Suite 'M4CapabilitiesProcessHarnessTests' passed at 2026-10-24 18:30:34.831.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.276 (2.276) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 18:30:34.831.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.276 (2.276) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 18:30:34.831.
+	 Executed 1 test, with 0 failures (0 unexpected) in 2.276 (2.281) seconds

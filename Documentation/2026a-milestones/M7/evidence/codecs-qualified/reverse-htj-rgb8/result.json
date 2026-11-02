@@ -1,0 +1,75 @@
+{
+  "name": "reverse-htj-rgb8",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/ojph_compress",
+        "-i",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.ppm",
+        "-o",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-htj-rgb8/foreign.jph",
+        "-reversible",
+        "true",
+        "-num_decomps",
+        "3"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/ojph_expand",
+        "-i",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-htj-rgb8/stream.jph",
+        "-o",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-htj-rgb8/foreign-decoded.ppm"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-htj-rgb8/foreign.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-htj-rgb8/decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    }
+  ],
+  "independent_foreign_exact": true,
+  "independent_sample_count": 9216,
+  "foreign_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 3,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "YBR_RCT",
+    "planarConfiguration": 0,
+    "transferSyntax": "1.2.840.10008.1.2.4.201"
+  },
+  "decoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 3,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "RGB",
+    "planarConfiguration": 0,
+    "transferSyntax": "1.2.840.10008.1.2.1"
+  },
+  "sample_count": 9216,
+  "status": "passed",
+  "elapsed_seconds": 0.09849470795597881
+}

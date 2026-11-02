@@ -1,0 +1,11 @@
+# E1 focused reproduction
+
+Use the repository's resolved dependencies and macOS arm64 toolchain. Synthetic peers require pydicom 3.0.1 and pynetdicom 3.0.4. The previous full milestone suites are not prerequisites for reproducing these bounded changes.
+
+1. Build `dicom-mpps` and `dicom-mwl` with `swift build --disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --product <name>`. Use `--scratch-path` and `--cache-path` to reuse existing dependencies if appropriate; obtain the actual binaries with `swift build --show-bin-path` using the same settings.
+2. Run `swift test` with those settings, `--test-product DICOMNetworkTests --filter MPPS`. Leave `DICOMKIT_M2_CAPTURE_DIR` unset: it activates a manual, long-running native capture server. The ordinary captured-reference test runs automatically; E1 uses its independent peer for native verification.
+3. Run `python Scripts/verify_mpps_intermediate.py --bin-dir <actual-bin-directory> --output-dir <new-evidence-directory>` for the independent CLI campaign.
+4. Start the peer with `--serve --seed-bin-dir <actual-bin-directory> --output-dir <new-peer-directory>`. It writes ready.json, seeds an externally created UTF-8 instance, then writes workshop-requests.json. Wait for that request file before running the harness. Set `DICOMKIT_E1_WORKSHOP_REQUESTS` to the latter and `DICOMKIT_E1_WORKSHOP_OUTPUT` to a new `workshop-actions.json` path. Run the DICOMStudioTests product with filter `MetadataValueIntegrityTests|MetadataViewModelTests|MetadataTreeNodeTests|DICOMValueParserTests|ClipboardHelperTests|M5SRTemporalPrecisionTests|E1WorkshopMPPSTests|M2WorkshopMPPSReferenceTests|NetworkToolWorkshopCLIParityTests`. Verify the output with the peer script's `--verify-workshop <results> --output-dir <peer-directory>`. Create the peer directory's `stop` file to close the listener.
+5. Build/sign the ordinary packaged DICOMStudio app and verify the MPPS update controls and real intermediate execution against a separate isolated peer. Record app identity and expected requests separately from ViewModel evidence. Do not introduce a production route for the dormant metadata component simply to test it.
+
+Acceptance results and exact source/artifact identities are recorded separately. Keep failed attempts and original raw logs. No command here authorizes a main merge.

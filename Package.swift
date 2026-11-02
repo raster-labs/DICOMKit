@@ -350,6 +350,11 @@ let package = Package(
                 "DICOMNetwork"
             ]
         ),
+        .target(
+            name: "DICOMPrintCommandSupport",
+            dependencies: ["DICOMPrintKit", "DICOMNetwork", "DICOMKit", "DICOMCore",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")]
+        ),
         .testTarget(
             name: "DICOMCoreTests",
             dependencies: [
@@ -538,14 +543,22 @@ let package = Package(
         .testTarget(
             name: "dicom-printTests",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "dicom-print", "DICOMNetwork", "DICOMPrintKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Tests/dicom-printTests"
         ),
+        // Test-only source generator; no bundled DICOM binary resources.
+        .target(
+            name: "DICOMPrintTestSupport",
+            dependencies: ["DICOMCore", "DICOMKit"],
+            path: "Tests/Support/DICOMPrintTestSupport"
+        ),
         .testTarget(
             name: "dicom-printscpTests",
             dependencies: [
+                "DICOMPrintCommandSupport", "DICOMPrintTestSupport",
                 "dicom-printscp", "DICOMNetwork", "DICOMPrintKit",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
@@ -828,6 +841,8 @@ let package = Package(
                 // key warning (D249), PS3.5 9.1 UID root rule (D250), PS3.10 8.1/8.2/8.5/8.6
                 // File-set rules (D253), PS3.5 A.1/A.2/A.3/A.5 native decompress targets (D267),
                 // PS3.6 Table A-1 keywords of the convert catalog (D268).
+                "TextEncodingIntegrityTests.swift",
+                "TagEditIntegrityTests.swift",
                 "Validation/IODNameTableTests.swift",
                 "ArchiveStudyDateWarningTests.swift",
                 "UIDRootRuleTests.swift",
@@ -887,7 +902,7 @@ let package = Package(
             // DICOMDictionary: published presentation states are checked
             // element-by-element against the standard data dictionary.
             dependencies: ["DICOMPrintKit", "DICOMNetwork", "DICOMCore",
-                           "DICOMKit", "DICOMDictionary"]
+                           "DICOMKit", "DICOMDictionary", "DICOMPrintTestSupport"]
         ),
         .testTarget(
             name: "DICOMToolboxTests",
@@ -1184,6 +1199,7 @@ let package = Package(
         .executableTarget(
             name: "dicom-print",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMNetwork",
@@ -1198,6 +1214,7 @@ let package = Package(
         .executableTarget(
             name: "dicom-printscp",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMNetwork",
@@ -1410,6 +1427,7 @@ let package = Package(
         .target(
             name: "DICOMStudio",
             dependencies: [
+                "DICOMPrintCommandSupport",
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
@@ -1430,11 +1448,10 @@ let package = Package(
             name: "DICOMStudioTests",
             // DICOMPrintKit: the viewer-presentation geometry and film-pixel
             // transform the print path bakes into marks.
-            dependencies: ["DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork"],
-            resources: [
-                // Small synthetic DICOM the print tests render (see
-                // StudioTestFixtures). PHI-free — generated, not patient data.
-                .copy("Fixtures")
+            dependencies: [
+                "DICOMPrintCommandSupport", "DICOMPrintTestSupport",
+                "DICOMStudio", "DICOMWeb", "DICOMPrintKit", "DICOMNetwork", "dicom-mwl", "dicom-wado",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
         // dicom-convert: --transfer-syntax Table A-1 keywords, --window-width per PS3.3 C.11.2.1.2.1.

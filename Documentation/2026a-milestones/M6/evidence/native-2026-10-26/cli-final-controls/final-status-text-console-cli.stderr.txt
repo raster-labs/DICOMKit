@@ -1,0 +1,8 @@
+Printer Status
+==============
+Printer Name: DICOMKIT-PRINTER
+Printer Status: NORMAL
+Printer Status Info: NORMAL
+Manufacturer: DICOMKit
+Manufacturer's Model Name: DICOM Print Emulator
+Is Normal: Yes

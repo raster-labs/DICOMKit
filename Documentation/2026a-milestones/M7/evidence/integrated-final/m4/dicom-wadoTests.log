@@ -1,0 +1,72 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 657]
+[Planning deferred tasks]
+[2 / 55]
+Build complete! (0.85 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:53:14.793.
+Test Suite 'dicom-wadoTests.xctest' started at 2026-10-24 20:53:14.798.
+Test Suite 'QIDOOutgoingResourceTests' started at 2026-10-24 20:53:14.798.
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testRealParserBuildsSixResourceFormsWithExactKeys]' started.
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testRealParserBuildsSixResourceFormsWithExactKeys]' passed (0.016 seconds).
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior]' started.
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testRelationalInstancePPSKeysAreAcceptedWithoutIgnoredBehavior]' passed (0.004 seconds).
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testUIDListOptionsAreQueriesRatherThanPathComponents]' started.
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testUIDListOptionsAreQueriesRatherThanPathComponents]' passed (0.002 seconds).
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testUnsupportedScopeRefusesBeforeURLConfigurationOrDispatch]' started.
+Test Case '-[dicom_wadoTests.QIDOOutgoingResourceTests testUnsupportedScopeRefusesBeforeURLConfigurationOrDispatch]' passed (0.026 seconds).
+Test Suite 'QIDOOutgoingResourceTests' passed at 2026-10-24 20:53:14.847.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.048 (0.048) seconds
+Test Suite 'WADOOptionRulesTests' started at 2026-10-24 20:53:14.847.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testAbsentContentTypeIsApplicationDicom]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testAbsentContentTypeIsApplicationDicom]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testAllOptionalURIParametersAreReachable]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testAllOptionalURIParametersAreReachable]' passed (0.006 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateIsCanonicalAndUpdateIsADeprecatedAlias]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateIsCanonicalAndUpdateIsADeprecatedAlias]' passed (0.016 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateRefusalIsTheEngineText]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateRefusalIsTheEngineText]' passed (0.015 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateTargetsAreTheThreeOf11_7_1_4]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeStateTargetsAreTheThreeOf11_7_1_4]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeToScheduledIsRefusedWithExit1]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testChangeToScheduledIsRefusedWithExit1]' passed (0.013 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testCLIReportsTheEngineRulesWithItsExitCodes]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testCLIReportsTheEngineRulesWithItsExitCodes]' passed (0.020 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testDICOMJSONFormatIsAcceptedByQueryAndUPS]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testDICOMJSONFormatIsAcceptedByQueryAndUPS]' passed (0.007 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testDICOMJSONModelIsTheRawResultSortedWithoutGroupLength]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testDICOMJSONModelIsTheRawResultSortedWithoutGroupLength]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFilterStateInProgressReachesTheSharedSearchBuilder]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFilterStateInProgressReachesTheSharedSearchBuilder]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFrameNumberIsASinglePositiveInteger]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFrameNumberIsASinglePositiveInteger]' passed (0.003 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFuzzyMatchingSendsTheStandardParameter]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testFuzzyMatchingSendsTheStandardParameter]' passed (0.004 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testLimitAndOffsetAreUnsigned]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testLimitAndOffsetAreUnsigned]' passed (0.006 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testModalityKeyFollowsTheQueryLevel]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testModalityKeyFollowsTheQueryLevel]' passed (0.004 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testParametersOutsideTheirTransactionWarn]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testParametersOutsideTheirTransactionWarn]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testProcedureStepStateAcceptsTheStandardSpelling]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testProcedureStepStateAcceptsTheStandardSpelling]' passed (0.007 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testRowsAndColumnsArePositiveAndNeedURI]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testRowsAndColumnsArePositiveAndNeedURI]' passed (0.012 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testSection9RulesRefuseTheCommand]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testSection9RulesRefuseTheCommand]' passed (0.025 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testStoreFailsWhenAnyInstanceWasNotStored]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testStoreFailsWhenAnyInstanceWasNotStored]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testTimeoutDrivesTheRequestTimeout]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testTimeoutDrivesTheRequestTimeout]' passed (0.000 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testUnrequestableContentTypeIsRejectedNotFetchedAsDicom]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testUnrequestableContentTypeIsRejectedNotFetchedAsDicom]' passed (0.003 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testUPSHelpNamesTheStandardTerms]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testUPSHelpNamesTheStandardTerms]' passed (0.004 seconds).
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testURIContentTypesAreApplicationDicomOrRenderedMediaTypes]' started.
+Test Case '-[dicom_wadoTests.WADOOptionRulesTests testURIContentTypesAreApplicationDicomOrRenderedMediaTypes]' passed (0.000 seconds).
+Test Suite 'WADOOptionRulesTests' passed at 2026-10-24 20:53:14.993.
+	 Executed 23 tests, with 0 failures (0 unexpected) in 0.145 (0.146) seconds
+Test Suite 'dicom-wadoTests.xctest' passed at 2026-10-24 20:53:14.993.
+	 Executed 27 tests, with 0 failures (0 unexpected) in 0.193 (0.195) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:14.993.
+	 Executed 27 tests, with 0 failures (0 unexpected) in 0.193 (0.199) seconds

@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "(0008,1110)[1]: Invalid date format for Patient's Birth Date (expected YYYYMMDD)",
+          "tag" : "(0010,0030)"
+        }
+      ],
+      "filePath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m2\/cli\/fixtures\/nested-invalid-date.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

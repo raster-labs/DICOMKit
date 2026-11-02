@@ -1,0 +1,91 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output tiff --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --layout 'ROW\1,3' --copies 2 --presentation-lut IDENTITY --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\''Neil second' --annotation-format M7FMT --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm
+
+{
+  "annotations" : [
+    "1:  first; literal note ",
+    "2: O'Neil second"
+  ],
+  "borderDensity" : "150",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 3,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "WHITE",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280309.292432",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280182.128563",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "ROW\\1,3",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 2,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280352.941895",
+  "receivedAt" : "2026-10-26T05:41:55Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "YES"
+}
+
+			5 scroll bar (settable, float) 0.004611837048425073
+				6 value indicator (settable, float) 0.004611837048425073
+				7 increment arrow button
+				8 decrement arrow button
+				9 increment page button
+				10 decrement page button
+		11 button Cancel
+		12 button Import
+13 menu bar
+	14 DICOMStudio
+	15 File
+	16 Edit
+	17 View
+	18 Image
+	19 Window
+	20 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp simulate --dpi 36 --max-pixels 1024 --output png --output tiff --output pdf --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-simulated --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --layout 'ROW\1,3' --copies 2 --presentation-lut IDENTITY --trim --border-density 150 --empty-density WHITE --annotate ' first; literal note ' --annotate 'O'\''Neil second' --annotation-format M7FMT --frame 1 --window-center=-600 --window-width 1200 --bit-depth 8 --calling-ae SIMULATE --format json -- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm
+
+{
+  "annotations" : [
+    "1:  first; literal note ",
+    "2: O'Neil second"
+  ],
+  "borderDensity" : "150",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 3,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "WHITE",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280309.292432",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280182.128563",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "ROW\\1,3",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 2,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792993315280352.941895",
+  "receivedAt" : "2026-10-26T05:41:55Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "YES"
+}

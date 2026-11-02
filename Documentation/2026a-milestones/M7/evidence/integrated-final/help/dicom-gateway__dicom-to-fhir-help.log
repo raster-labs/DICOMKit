@@ -1,0 +1,20 @@
+OVERVIEW: Convert DICOM files to FHIR resources
+
+Convert DICOM files to FHIR resources including ImagingStudy,
+Patient, Practitioner, and DiagnosticReport.
+
+USAGE: dicom-gateway dicom-to-fhir <input> [--output <output>] [--resource <resource>] [--pretty] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output JSON file path
+  -r, --resource <resource>
+                          FHIR resource type: ImagingStudy, Patient,
+                          Practitioner, DiagnosticReport (default: ImagingStudy)
+  --pretty                Pretty-print JSON output
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

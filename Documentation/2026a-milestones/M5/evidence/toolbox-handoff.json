@@ -1,0 +1,53 @@
+{
+  "items": [
+    "TB-FIX-01",
+    "TB-FIX-02",
+    "TB-FIX-03"
+  ],
+  "status": "Source frozen; Swift build and runtime CLI oracle pending parent execution",
+  "unit_suite": "DICOMToolboxTests.M5ToolboxContractTests",
+  "regular_tests": 10,
+  "opt_in_tests": 1,
+  "exporter": {
+    "environment": "DICOMKIT_M5_TOOLBOX_EXPORT_DIR",
+    "method": "DICOMToolboxTests.M5ToolboxContractTests/testExportCurrentCLIInvocationsForIndependentProcessGate",
+    "manifest": "<export-dir>/toolbox-cli-manifest.json",
+    "case_count": 12,
+    "case_breakdown": "7 anonymization argv cases + 5 template argv cases",
+    "runs_processes": false
+  },
+  "process_steps": [
+    "Export the manifest from the actual compiled Toolbox library test.",
+    "Create only synthetic input.dcm and input-directory/nested/input.dcm with study/series/instance UIDs, StudyDate 20260115, AccessionNumber SYNTHETIC-ACCESSION and StudyDescription BEFORE. A no-Pixel-Data fixture avoids OCR qualification claims.",
+    "Run each manifest executable/arguments array directly against current binaries; never evaluate its display text through a shell.",
+    "For both profile tokens, compare original/processed Study, Series and SOP Instance UIDs: default changes UIDs, retain-uids keeps them. Assert output SOP Instance UID matches File Meta identity.",
+    "For all-current-controls case, verify date becomes 20251216, AccessionNumber removed, StudyDescription SYNTHETIC, original UIDs retained, audit.log exists and output.dcm.backup equals input.",
+    "Dry run produces no output; recursive case discovers nested input and leaves the input files unchanged.",
+    "Each template command produces stdout; save it as an oracle action, then run dicom-script validate on that file. Template argv has exactly template plus required name and no --output."
+  ],
+  "migration_policy": {
+    "profiles": "clinical-trial/research/unknown saved values are refused; choose PS3.15 or Basic (alias) explicitly and review retention choices. No automatic policy equivalence is inferred.",
+    "removed_flags": "Nonempty saved keep/regenerate-uids (including false) are refused. Discard retired settings and explicitly review Retain UIDs. Unchecked retains current CLI regeneration default; checked sends --retain-uids.",
+    "history": "Retired values are checked in both stored parameter dictionaries and literal argv. Refused entries cannot replay or copy/export executable text; comments explain rebuilding. M1 raw-legacy history safeguards remain.",
+    "template_output": "A saved --output setting is refused with console-copy guidance. Discard it and choose one of five required names. No new app save feature is added."
+  },
+  "form_review_steps_conditional_host_only": [
+    "Toolbox is a separate library and is not linked into the packaged DICOMStudio target; packaged Toolbox UI gate is not applicable in this repository. Do not call an isolated view host DICOMStudio.",
+    "In a host of DicomAnonView+ConsoleView, verify Profile shows PS3.15 and Basic (alias), Retain UIDs off by default, and no Regenerate UIDs/Tags to Keep controls. Changing Retain UIDs changes only --retain-uids in literal argv.",
+    "Inject a legacy profile/keep/regenerate-uids parameter dictionary: Run is disabled, actionable migration text appears, and preview copies only refusal comments. Discard-retired-settings removes only the retired keys; choose the current profile explicitly.",
+    "Replay a retired history entry: no process launches; rebuilding guidance appears. Copy/export of that entry is commented text.",
+    "In DicomScriptView, choose Template: empty required Template Name prevents Run; selecting Workflow/Pipeline/Query/Archive/Anonymize yields the corresponding positional argument. Template Output control is absent; text states output is printed to console.",
+    "Inject a legacy template output setting: Run is refused until Discard retired template output setting is used."
+  ],
+  "limits": [
+    "No claim of de-identification certification, OCR/pixel-cleaning coverage, or external-data safety follows from these profile labels or no-pixel synthetic cases.",
+    "M1 direct process execution, quoting and cancellation implementation is unchanged.",
+    "No new DICOMStudio integration, script engine feature, or broad Toolbox option-coverage expansion.",
+    "Existing CLI runtime refusal for omitted output unless dry-run remains enforced by the CLI; process oracle uses explicit output paths."
+  ],
+  "checks_performed": [
+    "git diff --check passed",
+    "Static extraction confirms all 10 generated anonymous-tool option flags are declared in current DICOMAnon.swift",
+    "No Swift build/test or actual CLI process run performed by this agent"
+  ]
+}

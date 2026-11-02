@@ -1,0 +1,142 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button (selected) Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-convert, Help: Transfer syntax conversion and image export
+			24 button Description: dicom-validate, Help: DICOM conformance validation against IODs
+			25 button (selected) Description: dicom-anon, Help: Anonymize DICOM files following PS3.15 profiles
+			26 button Description: dicom-compress, Help: Compress and decompress DICOM pixel data
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text DICOM Anon. De-identifies DICOM files with the PS3.15 Annex E Basic Confidentiality Profile — header attributes and burned-in pixel text (OCR). Parameters Input Input File/Directory
+						32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm
+						33 button Description: Browse for Input File/Directory, Help: Opens a file picker dialog
+						34 text DICOM file or directory to de-identify Parameters Remove Attributes --remove
+						35 text field (settable) Description: Remove Attributes, Placeholder: Modality
+						36 text Remove attributes by tag or keyword Replace Attributes --replace
+						37 text field (settable) Description: Replace Attributes, Placeholder: PatientID=SUBJECT
+						38 text Replace attributes using tag=value Shift Dates (Modified Dates) --shift-dates
+						39 text field (settable) Shift Dates (Modified Dates)
+						40 text Retain Longitudinal Temporal Information with Modified Dates: shift every date by this many days so intervals survive. Alternative to Retain Dates. Redact Region(s) --redact-region
+						41 text field (settable) Description: Redact Region(s), Placeholder: e.g. 0,0,1024,90; 0,980,1024,44
+						42 text Rectangles to blank as x,y,width,height, unioned with the automatic sources (always applied, even when Burned In Annotation = NO). Separate with “ ; ”. Redact Style --redact-style
+						43 Redact Style
+							44 radio button Description: blank, Value: 1
+							45 radio button Description: label, Value: 0
+							46 radio button Description: replace, Value: 0
+						47 text blank: fill only. label: a fixed stamp drawn into the blanked box. replace: the header engine's own de-identified value for the matched attribute (needs OCR mode classify or header; uncertain regions get the label). The region is always blanked first. Redact Fill --redact-fill
+						48 Redact Fill
+							49 radio button Description: black, Value: 1
+							50 radio button Description: white, Value: 0
+						51 text What blanked regions are filled with: black (stored value 0) or white (the largest stored value at the image's bit depth, resolved per file). Options
+						52 checkbox Description: Retain Full Dates, Value: 0
+						53 checkbox Description: Retain Modified Dates, Value: 0
+						54 checkbox Description: Retain Dates (Full Dates), Value: 0
+						55 checkbox Description: Retain Patient Characteristics, Value: 0
+						56 checkbox Description: Retain Device Identity, Value: 0
+						57 checkbox Description: Retain Institution Identity, Value: 0
+						58 checkbox Description: Retain UIDs, Value: 0
+						59 checkbox Description: Clean Descriptors, Value: 0
+						60 checkbox Description: Retain Safe Private, Value: 0
+						61 checkbox Description: Clean Graphics, Value: 0
+						62 checkbox Description: Clean Structured Content, Value: 0
+						63 checkbox Description: Clean Recognizable Visual Features, Value: 0
+						64 checkbox Description: Clean Pixel Data, Value: 0
+						65 checkbox Description: Recursive, Value: 0
+						66 checkbox Description: Dry Run, Value: 0
+						67 checkbox Description: Verbose, Value: 0
+						68 text Output Output Path --output
+						69 text field (settable) Description: Output Path, Placeholder: Output file or directory path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm
+						70 button Description: Browse for Output Path, Help: Opens a file picker dialog
+						71 text Destination file or directory (required unless Dry Run). Browse grants a folder: a single input file is written into it under its own name. Parameters Re-encode Clean Pixels --recompress
+						72 pop up button Description: Re-encode Clean Pixels, Help: Shows additional flags for this tool, Value: Any
+						73 text Help: Shows additional flags for this tool, Value: After cleaning: source mirrors the input transfer syntax (lossy sources are re-quantized), or any dicom-compress codec. Empty = Explicit VR Little Endian. Redacted regions are re-verified blank after re-encoding. Options
+						74 checkbox Description: Allow Burned-in PHI, Help: Shows additional flags for this tool, Value: 1
+						75 checkbox Description: Backup Originals, Help: Shows additional flags for this tool, Value: 0
+						76 checkbox Description: Force Parse, Help: Shows additional flags for this tool, Value: 0
+						77 text Help: Shows additional flags for this tool, Value: Output Audit Log Path --audit-log
+						78 text field (settable) Description: Audit Log Path, Help: Shows additional flags for this tool, Placeholder: Optional audit log file path
+						79 button Description: Browse for Audit Log Path, Help: Shows additional flags for this tool
+						80 text Help: Shows additional flags for this tool, Value: Write the per-tag action log (never values) and the PHI-safe OCR lines to this file — also on a dry run
+						81 disclosure triangle Description: Advanced options (5), Help: Shows additional flags for this tool, Value: on
+						82 scroll bar (settable, float) 0.9710067520299077
+							83 value indicator (settable, float) 0.9710067520299077
+							84 increment arrow button
+							85 decrement arrow button
+							86 increment page button
+							87 decrement page button
+					88 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					89 button Description: Run command, Help: Runs the selected Workshop action
+				90 splitter (disabled, settable, float) 460
+				91 container
+					92 text Command Preview Valid $ Select a tool to build a command
+					93 button Description: Copy command, Help: Copies the command to the clipboard
+					94 text Console SUCCESS
+					95 button Description: Copy console output, Help: Copies the console output to the clipboard
+					96 button Clear console output
+					97 scroll area
+						98 text $ dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm --no-clean-pixel-data --redact-style blank --redact-fill black --allow-burned-in-phi
+
+
+Anonymization Summary:
+  Total files: 1
+  Successful: 1
+  Failed: 0
+
+Warnings:
+  ⚠️  Burned In Annotation (0028,0301) is YES: identifying text is rendered into the pixel data, which a metadata-only pass leaves untouched. The image is NOT de-identified; (0012,0062) is therefore recorded as NO. Clean the pixels (PS3.15 Clean Pixel Data Option) before release.
+
+							99 text $ dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm --no-clean-pixel-data --redact-style blank --redact-fill black --allow-burned-in-phi
+
+
+Anonymization Summary:
+  Total files: 1
+  Successful: 1
+  Failed: 0
+
+Warnings:
+  ⚠️  Burned In Annotation (0028,0301) is YES: identifying 
+					100 text History
+					101 button Clear
+					102 scroll area
+						103 text dicom-validate dicom-validate dicom-convert dicom-convert dicom-convert dicom-convert dicom-convert dicom-convert dicom-anon dicom-anon
+	104 toolbar
+		105 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		106 search text field (settable) Search features
+			107 button Search
+	108 close button
+	109 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	110 minimize button
+	111 text DICOM Studio
+112 menu bar
+	113 DICOMStudio
+	114 File
+	115 Edit
+	116 View
+	117 Image
+	118 Window
+	119 Help
+
+The focused UI element is 69 text field (settable) Description: Output Path, Placeholder: Output file or directory path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm

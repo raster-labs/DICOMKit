@@ -1,0 +1,23 @@
+OVERVIEW: Measure angle between two lines sharing a vertex
+
+USAGE: dicom-measure angle <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] --vertex <vertex> --p1 <p1> --p2 <p2>
+
+ARGUMENTS:
+  <file-path>             Path to the DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output file path (prints to stdout if omitted)
+  -f, --format <format>   Output format: text, json, csv (values: text, json,
+                          csv; default: text)
+  --unit <unit>           Unit for measurements: mm, cm, um, inches, pixels
+                          (physical units need a pixel spacing; see the
+                          overview) (values: mm, cm, um, inches, pixels;
+                          default: mm)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --vertex <vertex>       Vertex point as x,y (e.g., 200,200)
+  --p1 <p1>               First endpoint as x,y (e.g., 100,100)
+  --p2 <p2>               Second endpoint as x,y (e.g., 300,100)
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,135 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 240
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button (selected) Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			33 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 split group
+				36 container
+					37 scroll area Secondary Actions: Scroll Up, Scroll Down
+						38 text DICOM Query. Queries a DICOM server using C-FIND to search for patients, studies, series, or instances. Server
+						39 button Add new server
+						40 button Description: Save current server as default, Help: Persists hostname, port, and AE titles as defaults for all network tools
+						41 button Use manual server entry
+						46 text Parameters Parameters Host --host
+						47 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						48 text PACS server hostname or IP address (optionally host:port) Port --port
+						49 text field (settable) Description: Port, Value: 52948, Placeholder: 11112
+						50 text PACS server port (default: 11112) AE Title --aet
+						51 text field (settable) Description: AE Title, Value: M4CLIENT, Placeholder: DICOMSTUDIO
+						52 text Local Application Entity title (calling AE) Called AE Title --called-aet
+						53 text field (settable) Description: Called AE Title, Value: M4PEER, Placeholder: ANY-SCP
+						54 text Remote server Application Entity title Query Level --level
+						55 Query Level
+							56 radio button Description: patient, Value: 0
+							57 radio button Description: study, Value: 1
+							58 radio button Description: series, Value: 0
+							59 radio button Description: image, Value: 0
+						60 text Query/Retrieve Level (0008,0052): patient, study, series, image — the values of PS3.4 Tables C.6.1-1 / C.6.2-1; 'instance' is accepted as an alias of image (default: study) Patient ID --patient-id
+						61 text field (settable) Description: Patient ID, Value: M4ZERO, Placeholder: e.g. PAT001
+						62 text Patient ID (0010,0020) Patient Name --patient-name
+						63 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						64 text Patient's Name (0010,0010); * and ? wild cards per PS3.4 C.2.2.2.4 Study Date --study-date
+						65 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						66 text Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5) Modality --modality
+						67 pop up button Description: Modality, Value: Any
+						68 text Modality filter (0008,0060) — e.g. CT, MR, US, OPT. Run 'dicom-tags --list-modalities' for every DICOM 2026a code. Study Instance UID --study-uid
+						69 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						70 text Study Instance UID to filter by (0020,000D) Series Instance UID --series-uid
+						71 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						72 text Series Instance UID to filter by (0020,000E) Accession Number --accession-number
+						73 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						74 text Accession Number to filter by (0008,0050) Timeout (s) --timeout
+						75 pop up button Description: Timeout (s), Value: 60
+						76 text Connection timeout in seconds Output Format --format
+						77 Output Format
+							78 radio button Description: table, Value: 0
+							79 radio button Description: json, Value: 1
+							80 radio button Description: csv, Value: 0
+							81 radio button Description: compact, Value: 0
+							82 radio button Description: dicom-json, Value: 0
+						83 text Output format: table, json, csv, compact, dicom-json (default: table). json is the tool's {"(GGGG,EEEE)": "value"} summary; dicom-json is the PS3.18 F.2 DICOM JSON Model ("00100010": {"vr": "PN", "Value": [...]}) Options
+						84 checkbox Description: Verbose, Value: 0
+						85 disclosure triangle Description: Advanced options (3), Help: Shows additional flags for this tool, Value: off
+						86 scroll bar (settable, float) 1
+							87 value indicator (settable, float) 1
+							88 increment arrow button
+							89 decrement arrow button
+							90 increment page button
+							91 decrement page button
+					92 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					93 button Description: Run command, Help: Executes the constructed DICOM command
+				94 splitter (disabled, settable, float) 480
+				95 container
+					96 text Command Preview Valid $ Select a tool to build a command
+					97 button Description: Copy command, Help: Copies the command to the clipboard
+					98 text Console ERROR
+					99 button Description: Copy console output, Help: Copies the console output to the clipboard
+					100 button Clear console output
+					101 scroll area
+						102 text $ dicom-query 127.0.0.1:52948 --aet M4CLIENT --called-aet M4PEER --level study --patient-id M4ZERO --timeout 60 --format json
+
+[
+
+]
+Error: C-FIND cancelled (FE00); 0 partial result(s) received. Query results are incomplete.
+
+							103 text $ dicom-query 127.0.0.1:52948 --aet M4CLIENT --called-aet M4PEER --level study --patient-id M4ZERO --timeout 60 --format json
+
+[
+
+]
+Error: C-FIND cancelled (FE00); 0 partial result(s) received. Query results are incomplete.
+
+					104 text History
+					105 button Clear
+					106 scroll area
+						107 text dicom-query
+	108 toolbar
+		109 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		110 search text field (settable) Search features
+			111 button Search
+	112 close button
+	113 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	114 minimize button
+	115 text DICOM Studio
+116 menu bar
+	117 DICOMStudio
+	118 File
+	119 Edit
+	120 View
+	121 Image
+	122 Window
+	123 Help
+
+The focused UI element is 61 text field (settable) Description: Patient ID, Value: M4ZERO, Placeholder: e.g. PAT001

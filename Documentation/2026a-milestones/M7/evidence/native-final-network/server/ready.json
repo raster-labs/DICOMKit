@@ -1,0 +1,11 @@
+{
+  "host": "127.0.0.1",
+  "port": 60927,
+  "aet": "M7NATIVE",
+  "study_uid": "2.25.505",
+  "series_uid": "2.25.505.1",
+  "instance_uid": "2.25.505.1.1",
+  "pid": 66288,
+  "storage": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server-storage",
+  "stop_file": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/stop"
+}

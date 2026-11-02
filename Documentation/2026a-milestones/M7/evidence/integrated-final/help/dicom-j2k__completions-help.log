@@ -1,0 +1,18 @@
+OVERVIEW: Generate shell completion scripts
+
+Generates shell completion scripts for bash, zsh, or fish.
+
+Examples:
+  dicom-j2k completions bash >> ~/.bash_profile
+  dicom-j2k completions zsh  > ~/.zsh/completions/_dicom-j2k
+  dicom-j2k completions fish > ~/.config/fish/completions/dicom-j2k.fish
+
+USAGE: dicom-j2k completions <shell>
+
+ARGUMENTS:
+  <shell>                 Shell type: bash, zsh, or fish
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+

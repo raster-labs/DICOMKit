@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "milestone": "M6",
+  "status": "Completed",
+  "recorded_utc": "2026-10-26T07:39:12.909405+00:00",
+  "items": [
+    "WS-COV-07",
+    "WS-COV-08"
+  ],
+  "criteria": {
+    "total": 8,
+    "Passed": 8
+  },
+  "scope": "Finite macOS arm64 synthetic software qualification of the existing six SCU and four SCP command contracts in CLI and actual packaged CLI Workshop. No print feature expansion.",
+  "identity": "evidence/native-2026-10-26/final-qualified-native-identity.json",
+  "artifacts": "evidence/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+  "sources": "evidence/native-2026-10-26/final-qualified-native-source-hashes.json",
+  "required_remaining": [],
+  "M7_status": "In progress; remaining final non-print native matrix is not closed by this record.",
+  "evidence_layers": [
+    {
+      "name": "native image and CLI parity",
+      "passed_checks": 100,
+      "evidence": "evidence/native-2026-10-26/print-native-cli-parity.json"
+    },
+    {
+      "name": "SCP native and CLI controls",
+      "passed_checks": 64,
+      "evidence": "evidence/native-2026-10-26/scp-native-verification-post-repair.json"
+    },
+    {
+      "name": "registry and granted tri-state controls",
+      "passed_checks": 17,
+      "evidence": "evidence/native-2026-10-26/repaired-print-controls-review.json"
+    },
+    {
+      "name": "final six CLI/native controls",
+      "passed_checks": 33,
+      "evidence": "evidence/native-2026-10-26/final-print-controls-verification.json"
+    },
+    {
+      "name": "native independent SCU peer review",
+      "passed_checks": 128,
+      "evidence": "evidence/native-2026-10-26/native-scu-peer-independent-review.json"
+    },
+    {
+      "name": "PDF raster and stored-image checks",
+      "passed_checks": 33,
+      "evidence": "evidence/native-2026-10-26/pdf-raster-verification.json"
+    },
+    {
+      "name": "final menu and SCP closure review",
+      "passed_checks": 13,
+      "evidence": "evidence/native-2026-10-26/m6-native-closure-review.json"
+    }
+  ],
+  "counting": "These overlapping assertions are separate evidence layers, never an additive total or exhaustive combination count.",
+  "historical_pending_resolution": {
+    "Mac locked / no native action": "Superseded by actual packaged actions on26 October; earlier blockers remain historical.",
+    "registry/relaunch/remove": "repaired-print-controls-review.json and underlying captures",
+    "full tri-state baseline": "Browse-granted verbose native inherited/enabled/disabled trio; earlier unreadable-config fallback not counted as read success",
+    "collision/quit/restart": "scp-native-verification-post-repair.json, scp-app-quit-rebind.json and ui-final/scp-port-rebind.json",
+    "PDF container-only": "pdf-raster-verification.json exact CLI/native full-page raster plus exact embedded image/companion equality",
+    "narrow layout": "Real form hierarchy five-test gate plus final240px native SCU/SCP screenshots and final actions",
+    "final SCP menu": "cli-final-controls/menu-final-scp-status.json: native SUCCESS, status selection, exit0/no diagnostics and complete11-field JSON equality"
+  },
+  "retained_limits": [
+    "No physical printer, paper queue dispatch, film density/calibration or diagnostic fidelity qualification.",
+    "No complete IOD/standard, clinical safety or other-platform guarantee.",
+    "DCMTK disabled-LUT refusal remains peer-limited; independent pynetdicom refusal is separately passed.",
+    "SCP planar0 is a disclosed compatibility tolerance, not strict-conformance proof; invalid2 refuses and outboundcolor uses1.",
+    "Keyboard/Space behavior is supplementary platform interaction scope, not an added original M6 acceptance gate.",
+    "No latest-head CI, merge, release or M7 completion is claimed."
+  ],
+  "acceptance": "acceptance.json"
+}

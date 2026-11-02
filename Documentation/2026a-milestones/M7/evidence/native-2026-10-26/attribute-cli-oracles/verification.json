@@ -1,0 +1,3204 @@
+{
+  "recorded_utc": "2026-10-26T07:12:54.540218+00:00",
+  "execution": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/execution.json",
+  "CLI_processes": 72,
+  "cases_passed": 72,
+  "cases_failed": 0,
+  "assertions_passed": 504,
+  "assertions_failed": 0,
+  "pydicom": "3.0.1",
+  "cases": [
+    {
+      "id": "tags-literals",
+      "status": "passed",
+      "assertions": 13,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "leading-equals-token",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-0-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-0-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-1-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-1-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-2-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-2-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-3-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-3-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-4-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-4-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-5-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-5-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-6-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-6-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-7-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-7-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-8-dry",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "invalid-8-write",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "identity-both",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "latin-leading",
+      "status": "passed",
+      "assertions": 10,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "japanese-leading",
+      "status": "passed",
+      "assertions": 10,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "utf8-leading",
+      "status": "passed",
+      "assertions": 10,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "nested-charsets-edit",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "copy-0",
+      "status": "passed",
+      "assertions": 11,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "copy-1",
+      "status": "passed",
+      "assertions": 11,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "copy-2",
+      "status": "passed",
+      "assertions": 11,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "copy-3",
+      "status": "passed",
+      "assertions": 11,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "copy-compatible",
+      "status": "passed",
+      "assertions": 10,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "signed-insert",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "signed-update",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "unsigned-negative",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "US-overflow",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "info-latin",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "info-japanese",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "info-utf8",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "info-nested-charsets",
+      "status": "passed",
+      "assertions": 5,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L1-base.dcm",
+      "status": "passed",
+      "assertions": 7,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L1-empty-required-meta.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L1-uid-changed.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L2-base.dcm",
+      "status": "passed",
+      "assertions": 7,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L2-empty-required-meta.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-L2-uid-changed.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-invalid_AS.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-invalid_DT.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-invalid_VM.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-invalid_calendar_date.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-nested-invalid-AS.dcm",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-nested-invalid-date.dcm",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-odd_numeric_length.dcm",
+      "status": "passed",
+      "assertions": 8,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "wrong-VR-False-json",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "wrong-VR-False-text",
+      "status": "passed",
+      "assertions": 6,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "wrong-VR-True-json",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "wrong-VR-True-text",
+      "status": "passed",
+      "assertions": 6,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-valid-leap.dcm",
+      "status": "passed",
+      "assertions": 7,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-valid-partial-DT.dcm",
+      "status": "passed",
+      "assertions": 7,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "validate-valid-fraction-DT.dcm",
+      "status": "passed",
+      "assertions": 7,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "script-template",
+      "status": "passed",
+      "assertions": 3,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "template-validate",
+      "status": "passed",
+      "assertions": 3,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "template-dry-run",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "script-live-disabled",
+      "status": "passed",
+      "assertions": 3,
+      "CLI_behavior": "intentional_app_CLI_difference"
+    },
+    {
+      "id": "unknown-conditional",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "conditional-pipeline",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "phi-false",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "phi-true",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "extended-gray8",
+      "status": "passed",
+      "assertions": 11,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "extended-rgb8",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "supported_refusal"
+    },
+    {
+      "id": "part2-refusal",
+      "status": "passed",
+      "assertions": 4,
+      "CLI_behavior": "supported_refusal"
+    },
+    {
+      "id": "native16",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "native-odd",
+      "status": "passed",
+      "assertions": 9,
+      "CLI_behavior": "normal"
+    },
+    {
+      "id": "strict-precision-refusal",
+      "status": "passed",
+      "assertions": 6,
+      "CLI_behavior": "interoperability_limit"
+    }
+  ],
+  "assertions": [
+    {
+      "case": "tags-literals",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "tag edit preserves exact pixel bytes",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "literal apostrophe/space PN",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "leading equals LO",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "shell-like text retained literally",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "DS multiplicity bytes exactly 1\\2",
+      "passed": true
+    },
+    {
+      "case": "tags-literals",
+      "assertion": "literal sentinel never created",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "leading-equals-token",
+      "assertion": "invalid leading equals token diagnosed literally",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0010,1010)",
+        "vr": "AS"
+      }
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-0-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0010,1010)",
+        "vr": "AS"
+      }
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0010,0030)",
+        "vr": "DA"
+      }
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-1-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0010,0030)",
+        "vr": "DA"
+      }
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0028,0030)",
+        "vr": "DS"
+      }
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-2-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0028,0030)",
+        "vr": "DS"
+      }
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0020,0011)",
+        "vr": "IS"
+      }
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-3-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0020,0011)",
+        "vr": "IS"
+      }
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,002A)",
+        "vr": "DT"
+      }
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-4-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,002A)",
+        "vr": "DT"
+      }
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,0030)",
+        "vr": "TM"
+      }
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-5-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,0030)",
+        "vr": "TM"
+      }
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0020,000D)",
+        "vr": "UI"
+      }
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-6-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0020,000D)",
+        "vr": "UI"
+      }
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0028,0010)",
+        "vr": "US"
+      }
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-7-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0028,0010)",
+        "vr": "US"
+      }
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-dry",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,0054)",
+        "vr": "AE"
+      }
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "invalid-8-write",
+      "assertion": "offending tag and VR diagnosed",
+      "passed": true,
+      "details": {
+        "tag": "(0008,0054)",
+        "vr": "AE"
+      }
+    },
+    {
+      "case": "identity-both",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "identity-both",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "requested CT class copied to identity",
+      "passed": true
+    },
+    {
+      "case": "identity-both",
+      "assertion": "requested instance copied to identity",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "declared charset decodes unchanged PN",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "two leading spaces remain significant",
+      "passed": true
+    },
+    {
+      "case": "latin-leading",
+      "assertion": "raw text starts with two spaces",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "declared charset decodes unchanged PN",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "two leading spaces remain significant",
+      "passed": true
+    },
+    {
+      "case": "japanese-leading",
+      "assertion": "raw text starts with two spaces",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "declared charset decodes unchanged PN",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "two leading spaces remain significant",
+      "passed": true
+    },
+    {
+      "case": "utf8-leading",
+      "assertion": "raw text starts with two spaces",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "nested-charsets-edit",
+      "assertion": "11 nested text paths and inherited/overridden charset byte oracle",
+      "passed": true,
+      "details": {
+        "argv": [
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/peer-venv/bin/python",
+          "-B",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested_charsets_fixture.py",
+          "--verify",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/outputs/nested-charsets-edited.dcm",
+          "--edited",
+          "--report",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/nested-charsets-independent.json"
+        ],
+        "report": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attribute-cli-oracles/nested-charsets-independent.json"
+      }
+    },
+    {
+      "case": "copy-0",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "copy-0",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "copied PN correct VR and decoded value",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "cross-charset copy truthful UTF8 declaration",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "copied PN bytes encoded UTF8",
+      "passed": true
+    },
+    {
+      "case": "copy-0",
+      "assertion": "all four selector spellings yield identical file bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "copy-1",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "copied PN correct VR and decoded value",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "cross-charset copy truthful UTF8 declaration",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "copied PN bytes encoded UTF8",
+      "passed": true
+    },
+    {
+      "case": "copy-1",
+      "assertion": "all four selector spellings yield identical file bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "copy-2",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "copied PN correct VR and decoded value",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "cross-charset copy truthful UTF8 declaration",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "copied PN bytes encoded UTF8",
+      "passed": true
+    },
+    {
+      "case": "copy-2",
+      "assertion": "all four selector spellings yield identical file bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "copy-3",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "copied PN correct VR and decoded value",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "cross-charset copy truthful UTF8 declaration",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "copied PN bytes encoded UTF8",
+      "passed": true
+    },
+    {
+      "case": "copy-3",
+      "assertion": "all four selector spellings yield identical file bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "copied PN correct VR and decoded value",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "compatible declaration remains Latin1",
+      "passed": true
+    },
+    {
+      "case": "copy-compatible",
+      "assertion": "compatible PN raw bytes exactly preserved",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "contextual SS VR and exact signed word",
+      "passed": true,
+      "details": "ffff"
+    },
+    {
+      "case": "signed-insert",
+      "assertion": "final PixelRepresentation is signed",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "signed-update",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "signed-update",
+      "assertion": "contextual SS VR and exact signed word",
+      "passed": true,
+      "details": "feff"
+    },
+    {
+      "case": "signed-update",
+      "assertion": "final PixelRepresentation is signed",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "unsigned-negative",
+      "assertion": "unsigned/range refusal diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "US-overflow",
+      "assertion": "unsigned/range refusal diagnostic retained",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "info-latin",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "full Info JSON decoded PN",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "full Info JSON significant leading text",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "full Info JSON decoded PN",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "full Info JSON significant leading text",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "full Info JSON decoded PN",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "full Info JSON significant leading text",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "full Info JSON decoded PN",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "full Info JSON significant leading text",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "Info identifies nested RequestAttributesSequence without claiming all item display",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "nested validation diagnostic exact item path",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "nested validation diagnostic exact item path",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "wrong-VR identified regardless strict flag",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "text report invalid status",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "text report exact wrong VR issue",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "failure reports concrete messages and tags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "wrong-VR identified regardless strict flag",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "text report invalid status",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "text report exact wrong VR issue",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "complete validation JSON validity",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "complete validation JSON error counts internally agree",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "validation file counters",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "script-template",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "script-template",
+      "assertion": "fresh workflow template byte-identical to validated source",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "template-validate",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "template-validate",
+      "assertion": "template validation confirmed",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "dry run explicitly reports no execution",
+      "passed": true
+    },
+    {
+      "case": "template-dry-run",
+      "assertion": "template placeholder output absent",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "script-live-disabled",
+      "assertion": "CLI live read-only script supported; native intentional refusal remains distinct",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "invalid nested script creates no log directory",
+      "passed": true
+    },
+    {
+      "case": "unknown-conditional",
+      "assertion": "precise nested script refusal",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "invalid nested script creates no log directory",
+      "passed": true
+    },
+    {
+      "case": "conditional-pipeline",
+      "assertion": "precise nested script refusal",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "phi-false",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "phi-false",
+      "assertion": "burned-in PHI refusal explains explicit option",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "phi-true",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "metadata-only burned-in output remains marked NO",
+      "passed": true
+    },
+    {
+      "case": "phi-true",
+      "assertion": "no-clean-pixel-data preserves exact pixels",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "bounded JPEG marker walk confirms SOF1 8-bit grayscale",
+      "passed": true,
+      "details": {
+        "marker": 193,
+        "precision": 8,
+        "rows": 48,
+        "columns": 64,
+        "components": 1
+      }
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "JPEGExtended exact transfer syntax",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "fresh compressed stream equals independently qualified stream byte-for-byte",
+      "passed": true
+    },
+    {
+      "case": "extended-gray8",
+      "assertion": "reused DCMTK/own lossy decoder sample difference bounded to1",
+      "passed": true,
+      "details": {
+        "samples": 3072,
+        "max_difference": 1
+      }
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "extended-rgb8",
+      "assertion": "explicit grayscale-only encoder refusal",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "part2-refusal",
+      "assertion": "explicit Part2 unsupported encoder; not codec success",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "native16",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "16-bit allocated native OW and exact byte length",
+      "passed": true
+    },
+    {
+      "case": "native16",
+      "assertion": "3072 exact 12-stored/16-allocated little-endian source samples",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 0
+    },
+    {
+      "case": "native-odd",
+      "assertion": "exact successful exit0",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "expected output exists",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "output unchanged after dependent operations",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "dataset/file-meta class equality",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "dataset/file-meta instance equality",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "file-meta GroupLength equals exact encoded bytes",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "9 native samples plus one final even-length NUL, OB",
+      "passed": true
+    },
+    {
+      "case": "native-odd",
+      "assertion": "odd-frame exact metadata",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "expected CLI success/refusal class",
+      "passed": true,
+      "details": 1
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "exact expected error exit1",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "rejected command leaves no output",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "strict descriptor mismatch refusal retained",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "actual independently encoded16precision/12stored limit fixture",
+      "passed": true
+    },
+    {
+      "case": "strict-precision-refusal",
+      "assertion": "retained independent DCMTK decode exactly equals original samples",
+      "passed": true
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/japanese.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-fraction-DT.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-leap.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-partial-DT.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "source remains byte-identical after all72 commands",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/synthetic.dcm"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon"
+    },
+    {
+      "case": "provenance",
+      "assertion": "CLI executable identity unchanged throughout campaign",
+      "passed": true,
+      "details": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert"
+    }
+  ],
+  "reused_independent_evidence": [
+    {
+      "case": "extended-gray8",
+      "basis": "identical fresh encoded codestream plus exact dicom-convert binary hash",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEGExtended-gray8",
+      "hashes": {
+        "encoded.dcm": "887170d26ec2bf54730ae6fddde1392264b2d9a2cd2b0939e3940aaf694d397f",
+        "foreign-decoded.dcm": "63ce50d67d29916b0ec9fcd0f5be1b438efbfe0d81804bcd120324945d6461ea",
+        "self-decoded.dcm": "c3c280ca53f748992574b159382d775ca6da52baf2c883746bab79bca37869db"
+      },
+      "limit": "Prior decoder execution, no rerun; lossy decoder samples differ by at most1, not exact equality."
+    },
+    {
+      "case": "strict-precision-refusal",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12",
+      "classification": "interoperability_limit, never codec pass or peer nonconformance claim",
+      "hashes": {
+        "foreign.dcm": "2d718cfe7cab2a17d6af2babae70c21b4eb5a3b673b11396b9f1f5abbecfe42f",
+        "foreign-decoded.dcm": "87773b2caa869b67db08bad01c3899551da3f54b98d4c6525a4c201aadeedc86"
+      }
+    }
+  ],
+  "limits": [
+    "No native UI execution by this runner. Paired native file/console comparison remains parent-owned.",
+    "Supported refusals and strict precision interoperability limit are expected CLI behaviors, never codec passes.",
+    "Live script supported by CLI intentionally differs from app-only pre-run refusal.",
+    "Lossy JPEG independent decoder difference is bounded1, not exact source/decoder equality.",
+    "Ordinary file execution does not prove sandbox access; parent packaged-app Browse controls remain required."
+  ]
+}

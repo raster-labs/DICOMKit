@@ -1,0 +1,589 @@
+CLI inventory: 41 active executable products; 42 source directories; 1 disabled/source-only (dicom-cloud)
+Audit selection: 41 tool(s); disabled sources require explicit --tool selection
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part03_2026a.xml: DICOM PS3.3 2026a - Information Object Definitions
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part04_2026a.xml: DICOM PS3.4 2026a - Service Class Specifications
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part05_2026a.xml: DICOM PS3.5 2026a - Data Structures and Encoding
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part06_2026a.xml: DICOM PS3.6 2026a - Data Dictionary
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part07_2026a.xml: DICOM PS3.7 2026a - Message Exchange
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part10_2026a.xml: DICOM PS3.10 2026a - Media Storage and File Format for Media Interchange
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part11_2026a.xml: DICOM PS3.11 2026a - Media Storage Application Profiles
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part15_2026a.xml: DICOM PS3.15 2026a - Security and System Management Profiles
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part16_2026a.xml: DICOM PS3.16 2026a - Content Mapping Resource
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part18_2026a.xml: DICOM PS3.18 2026a - Web Services
+using /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/standards/part19_2026a.xml: DICOM PS3.19 2026a - Application Hosting
+
+== dicom-info (1 files, 7 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-info: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-info: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-info: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-info: contract rows name real options: matched 13, wrong 0, missing 0, extra 0
+
+== dicom-convert (2 files, 14 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-convert: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 7, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-convert: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-convert: documented defaults equal the code defaults: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-convert: contract rows name real options: matched 13, wrong 0, missing 0, extra 0
+
+== dicom-validate (2 files, 9 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-validate: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-validate: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-validate: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-validate: contract rows name real options: matched 12, wrong 0, missing 0, extra 0
+
+== dicom-anon (2 files, 34 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-anon: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-anon: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-anon: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-anon: contract rows name real options: matched 35, wrong 0, missing 0, extra 0
+
+== dicom-dump (1 files, 10 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dump: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dump: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dump: documented defaults equal the code defaults: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-dump: contract rows name real options: matched 16, wrong 0, missing 0, extra 0
+
+== dicom-query (2 files, 20 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-query: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-query: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-query: documented defaults equal the code defaults: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-query: contract rows name real options: matched 19, wrong 0, missing 0, extra 0
+
+== dicom-send (2 files, 13 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-send: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 6, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-send: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-send: documented defaults equal the code defaults: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-send: contract rows name real options: matched 13, wrong 0, missing 0, extra 0
+
+== dicom-diff (1 files, 10 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-diff: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 6, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-diff: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-diff: documented defaults equal the code defaults: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-diff: contract rows name real options: matched 10, wrong 0, missing 0, extra 0
+
+== dicom-retrieve (2 files, 18 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-retrieve: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-retrieve: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-retrieve: documented defaults equal the code defaults: matched 5, wrong 0, missing 0, extra 0
+ok   dicom-retrieve: contract rows name real options: matched 18, wrong 0, missing 0, extra 0
+
+== dicom-split (1 files, 19 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-split: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-split: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-split: documented defaults equal the code defaults: matched 6, wrong 0, missing 0, extra 0
+ok   dicom-split: contract rows name real options: matched 18, wrong 0, missing 0, extra 0
+
+== dicom-merge (1 files, 14 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-merge: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-merge: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-merge: documented defaults equal the code defaults: matched 5, wrong 0, missing 0, extra 0
+ok   dicom-merge: contract rows name real options: matched 14, wrong 0, missing 0, extra 0
+
+== dicom-json (1 files, 11 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-json: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-json: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-json: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-json: contract rows name real options: matched 11, wrong 0, missing 0, extra 0
+
+== dicom-xml (1 files, 11 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-xml: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-xml: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-xml: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-xml: contract rows name real options: matched 11, wrong 0, missing 0, extra 0
+
+== dicom-pdf (2 files, 19 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-pdf: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pdf: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pdf: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pdf: contract rows name real options: matched 25, wrong 0, missing 0, extra 0
+
+== dicom-image (2 files, 19 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-image: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 10, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-image: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-image: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-image: contract rows name real options: matched 19, wrong 0, missing 0, extra 0
+
+== dicom-video (3 files, 43 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-video: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-video: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-video: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-video: contract rows name real options: matched 40, wrong 0, missing 0, extra 0
+
+== dicom-dcmdir (2 files, 17 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dcmdir: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 12, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dcmdir: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dcmdir: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-dcmdir: contract rows name real options: matched 17, wrong 0, missing 0, extra 0
+
+== dicom-archive (2 files, 30 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-archive: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-archive: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-archive: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-archive: contract rows name real options: matched 30, wrong 0, missing 0, extra 0
+
+== dicom-export (2 files, 41 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-export: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 11, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-export: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-export: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-export: contract rows name real options: matched 41, wrong 0, missing 0, extra 0
+
+== dicom-qr (1 files, 31 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-qr: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-qr: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-qr: documented defaults equal the code defaults: matched 7, wrong 0, missing 0, extra 0
+ok   dicom-qr: contract rows name real options: matched 31, wrong 0, missing 0, extra 0
+
+== dicom-wado (2 files, 93 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-wado: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 6, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-wado: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-wado: documented defaults equal the code defaults: matched 8, wrong 0, missing 0, extra 0
+ok   dicom-wado: contract rows name real options: matched 88, wrong 0, missing 0, extra 0
+
+== dicom-echo (1 files, 9 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-echo: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-echo: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-echo: documented defaults equal the code defaults: matched 3, wrong 0, missing 0, extra 0
+ok   dicom-echo: contract rows name real options: matched 9, wrong 0, missing 0, extra 0
+
+== dicom-print (3 files, 55 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 17, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-print: documented defaults equal the code defaults: matched 22, wrong 0, missing 0, extra 0
+ok   dicom-print: contract rows name real options: matched 43, wrong 0, missing 0, extra 0
+
+== dicom-printscp (8 files, 72 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 16, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-printscp: documented defaults equal the code defaults: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-printscp: contract rows name real options: matched 66, wrong 0, missing 0, extra 0
+
+== dicom-mwl (1 files, 18 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mwl: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 11, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mwl: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mwl: documented defaults equal the code defaults: matched 2, wrong 0, missing 0, extra 0
+ok   dicom-mwl: contract rows name real options: matched 18, wrong 0, missing 0, extra 0
+
+== dicom-mpps (1 files, 46 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mpps: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 24, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mpps: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-mpps: documented defaults equal the code defaults: matched 5, wrong 0, missing 0, extra 0
+ok   dicom-mpps: contract rows name real options: matched 36, wrong 0, missing 0, extra 0
+
+== dicom-pixedit (2 files, 10 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pixedit: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pixedit: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pixedit: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-pixedit: contract rows name real options: matched 10, wrong 0, missing 0, extra 0
+
+== dicom-tags (1 files, 10 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-tags: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-tags: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-tags: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-tags: contract rows name real options: matched 13, wrong 0, missing 0, extra 0
+
+== dicom-uid (2 files, 21 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-uid: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 8, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-uid: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-uid: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-uid: contract rows name real options: matched 21, wrong 0, missing 0, extra 0
+
+== dicom-compress (1 files, 21 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-compress: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-compress: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-compress: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-compress: contract rows name real options: matched 21, wrong 0, missing 0, extra 0
+
+== dicom-study (2 files, 20 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-study: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-study: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-study: documented defaults equal the code defaults: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-study: contract rows name real options: matched 20, wrong 0, missing 0, extra 0
+
+== dicom-script (1 files, 9 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-script: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-script: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-script: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-script: contract rows name real options: matched 9, wrong 0, missing 0, extra 0
+
+== dicom-report (2 files, 15 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-report: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 5, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-report: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-report: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-report: contract rows name real options: matched 23, wrong 0, missing 0, extra 0
+
+== dicom-measure (2 files, 25 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-measure: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 22, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 34, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-measure: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-measure: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-measure: contract rows name real options: matched 26, wrong 0, missing 0, extra 0
+
+== dicom-viewer (2 files, 22 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-viewer: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-viewer: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-viewer: documented defaults equal the code defaults: matched 2, wrong 0, missing 0, extra 0
+ok   dicom-viewer: contract rows name real options: matched 22, wrong 0, missing 0, extra 0
+
+== dicom-3d (6 files, 56 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-3d: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 1, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 10, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 3, wrong 0, missing 0, extra 0
+ok   dicom-3d: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-3d: documented defaults equal the code defaults: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-3d: contract rows name real options: matched 54, wrong 0, missing 0, extra 0
+
+== dicom-jpip (2 files, 17 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 4, wrong 0, missing 0, extra 0
+ok   dicom-jpip: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 4, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 3, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-jpip: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-jpip: documented defaults equal the code defaults: matched 2, wrong 0, missing 0, extra 0
+ok   dicom-jpip: contract rows name real options: matched 17, wrong 0, missing 0, extra 0
+
+== dicom-j2k (2 files, 30 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-j2k: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 7, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 20, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 5, wrong 0, missing 0, extra 0
+ok   dicom-j2k: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-j2k: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-j2k: contract rows name real options: matched 33, wrong 0, missing 0, extra 0
+
+== dicom-ai (6 files, 46 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-ai: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 2, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 32, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 0, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 87, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-ai: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-ai: documented defaults equal the code defaults: matched 1, wrong 0, missing 0, extra 0
+ok   dicom-ai: contract rows name real options: matched 46, wrong 0, missing 0, extra 0
+
+== dicom-gateway (11 files, 33 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 2, wrong 0, missing 0, extra 0
+ok   dicom-gateway: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 1, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 3, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 28, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-gateway: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-gateway: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-gateway: contract rows name real options: matched 33, wrong 0, missing 0, extra 0
+
+== dicom-server (11 files, 25 options)
+ok   PS3.6 Table A-1: every 1.2.840.10008.* literal in the module is registered: matched 10, wrong 0, missing 0, extra 0
+ok   PS3.6 Table A-1 names written next to UID literals: matched 10, wrong 0, missing 0, extra 0
+ok   dicom-server: every 1.2.840.10008.* UID in the source (incl. help text) is registered in PS3.6 Table A-1: matched 10, wrong 0, missing 0, extra 0
+ok   PS3.16 Table D-1 / CID tables: coded concept literals (value, scheme, meaning): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.16 Table 8-1 / O-1: SRT-style SNOMED codes (2026a templates use SCT concept ids): matched 0, wrong 0, missing 0, extra 0
+ok   PS3.6 Table 6-1: names and keywords written next to Tag(group:element:) literals: matched 5, wrong 0, missing 0, extra 0
+ok   Section, table, TID and CID citations in doc comments exist in the 2026a text and name the right clause: matched 22, wrong 0, missing 0, extra 0
+ok   PS3.3 module tables: CS literals written to attributes with listed terms: matched 0, wrong 0, missing 0, extra 0
+ok   PS3.3 C.7.6.3.1.2: Photometric Interpretation string literals are defined terms: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-server: transfer-syntax names tied to a UID in help/labels spelled as PS3.6 Table A-1: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-server: documented defaults equal the code defaults: matched 0, wrong 0, missing 0, extra 0
+ok   dicom-server: contract rows name real options: matched 25, wrong 0, missing 0, extra 0
+
+0 check(s) with wrong or missing values, 0 pending owner approval

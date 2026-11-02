@@ -1,0 +1,121 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button (selected) Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down
+						40 text Print Client.  Printer list: /Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification/printers.json. This Workshop list is separate from Print Center and may differ from the terminal's list when the app is sandboxed.
+						41 button Import Command
+						42 text Parameters Parameters Operation
+						43 Operation
+							44 radio button Description: status, Value: 0
+							45 radio button Description: send, Value: 0
+							46 radio button Description: job, Value: 0
+							47 radio button Description: list-printers, Value: 0
+							48 radio button Description: add-printer, Value: 1
+							49 radio button Description: remove-printer, Value: 0
+						50 text The printer list belongs to this Workshop environment and is separate from Print Center. Send uses its explicit URL and AE fields. Color Mode --color
+						51 Color Mode
+							52 radio button Description: grayscale, Value: 0
+							53 radio button Description: color, Value: 1
+						54 text Basic Grayscale or Basic Color Print Management Meta SOP Class. Printer Name --name
+						55 text field (settable) Description: Printer Name, Value: Native; O'Neil 雪
+						56 text Exact case-sensitive name in this Workshop printer list. Printer Host --host
+						57 text field (settable) Description: Printer Host, Value: 127.0.0.1
+						58 text Printer Port --port
+						59 text field (settable) Description: Printer Port, Value: 21113
+						60 text Saved Called AE Title --called-ae
+						61 text field (settable) Description: Saved Called AE Title, Value: M7CLI
+						62 text Saved Calling AE Title --calling-ae
+						63 text field (settable) Description: Saved Calling AE Title, Value: M7NATIVE
+						64 text Options
+						65 checkbox Description: Mark as Default, Value: 1
+						66 scroll bar (settable, float) 0.872
+							67 value indicator (settable, float) 0.872
+							68 increment arrow button
+							69 decrement arrow button
+							70 increment page button
+							71 decrement page button
+					72 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					73 button Description: Run command, Help: Runs the selected Workshop action
+				74 splitter (disabled, settable, float) 840
+				75 container
+					76 text Command Preview Valid $ Select a tool to build a command
+					77 button Description: Copy command, Help: Copies the command to the clipboard
+					78 text Console SUCCESS
+					79 button Description: Copy console output, Help: Copies the console output to the clipboard
+					80 button Clear console output
+					81 scroll area
+						82 text $ dicom-print list-printers --format json --verbose
+
+No printers configured.
+
+Add a printer with:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+							83 text $ dicom-print add-printer --color color --name 'Native; O'\''Neil 雪' --host 127.0.0.1 --port 21113 --called-ae M7CLI --calling-ae M7NATIVE --default
+
+✓ Printer 'Native; O'Neil 雪' added successfully
+  Set as default printer
+
+Use with:
+  dicom-print send pacs://127.0.0.1:21113 image.dcm --aet M7NATIVE
+
+					84 text History
+					85 button Clear
+					86 scroll area
+						87 text dicom-print dicom-print
+	88 toolbar
+		89 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		90 search text field (settable) Search features
+			91 button Search
+	92 close button
+	93 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	94 minimize button
+	95 text DICOM Studio
+96 menu bar
+	97 DICOMStudio
+	98 File
+	99 Edit
+	100 View
+	101 Image
+	102 Window
+	103 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "/opt/homebrew/bin/dcmprscu",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-gray-send/dcmtk.cfg",
+    "--printer",
+    "M6",
+    "--dump",
+    "--log-level",
+    "trace",
+    "--copies",
+    "1",
+    "--medium-type",
+    "PAPER",
+    "--destination",
+    "PROCESSOR",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-gray-send/dcmtk/database/SP_6adeea20307f884c.dcm"
+  ],
+  "pid": 53703,
+  "exit_code": 0,
+  "elapsed_seconds": 0.25698170800000003,
+  "timed_out": false,
+  "stopped_by_harness": false
+}

@@ -1,0 +1,40 @@
+{
+  "files" : [
+    {
+      "errorCount" : 5,
+      "errors" : [
+        {
+          "message" : "Type 1 File Meta Information element Media Storage SOP Class UID is empty",
+          "tag" : "(0002,0002)"
+        },
+        {
+          "message" : "Type 1 File Meta Information element Media Storage SOP Instance UID is empty",
+          "tag" : "(0002,0003)"
+        },
+        {
+          "message" : "Type 1 File Meta Information element Implementation Class UID is empty",
+          "tag" : "(0002,0012)"
+        },
+        {
+          "message" : "File Meta (0002,0002) UID '' does not match dataset (0008,0016) UID '1.2.840.10008.5.1.4.1.1.7'",
+          "tag" : "(0002,0002)"
+        },
+        {
+          "message" : "File Meta (0002,0003) UID '' does not match dataset (0008,0018) UID '2.25.123456789'",
+          "tag" : "(0002,0003)"
+        }
+      ],
+      "filePath" : "\/private\/tmp\/dicomkit-m2-ui\/empty-required-meta.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 5,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

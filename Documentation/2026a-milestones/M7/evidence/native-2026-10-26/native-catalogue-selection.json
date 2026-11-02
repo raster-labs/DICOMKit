@@ -1,0 +1,525 @@
+{
+  "observed": "2026-10-26T06:28:33.198Z",
+  "source": "repaired running app before layout/output repairs; selection only, no execution claim",
+  "routes": [
+    {
+      "category": "File Inspection",
+      "name": "dicom-info",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File, Placeholder: Path to DICOM file",
+        "40 text field (settable) Description: Filter Tag(s), Placeholder: e.g. Patient's Name; 0008,0060",
+        "42 checkbox Description: Show Private Tags, [value omitted]",
+        "43 checkbox Description: File Statistics, [value omitted]",
+        "45 checkbox Description: Force Parse, Help: Shows additional flags for this tool, [value omitted]"
+      ]
+    },
+    {
+      "category": "File Inspection",
+      "name": "dicom-dump",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File, Placeholder: Path to DICOM file",
+        "35 text field (settable) Description: Dump Tag, Placeholder: e.g. 7FE0,0010 or PixelData",
+        "37 checkbox Description: No Color, [value omitted]",
+        "38 checkbox Description: Annotate Tags, [value omitted]",
+        "39 checkbox Description: Verbose, [value omitted]",
+        "41 text field (settable) Description: Start Offset, Help: Shows additional flags for this tool, Placeholder: e.g. 0x1000 or 4096",
+        "43 text field (settable) Description: Length (bytes), Help: Shows additional flags for this tool, Placeholder: 256",
+        "50 text field (settable) Description: Highlight Tag, Help: Shows additional flags for this tool, Placeholder: e.g. 0010,0010 or PatientName",
+        "52 checkbox Description: Force Parse, Help: Shows additional flags for this tool, [value omitted]"
+      ]
+    },
+    {
+      "category": "File Inspection",
+      "name": "dicom-tags",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File, Placeholder: Path to DICOM file",
+        "35 text field (settable) Description: Set Tag(s), Placeholder: e.g. PatientName=DOE^JOHN; 0008,0090=DR.SMITH",
+        "37 text field (settable) Description: Delete Tag(s), Placeholder: e.g. PatientBirthDate; 0010,0020",
+        "39 checkbox Description: List Modalities, [value omitted]",
+        "40 checkbox Description: Delete Private Tags, [value omitted]",
+        "41 checkbox Description: Verbose, [value omitted]",
+        "42 checkbox Description: Dry Run, [value omitted]",
+        "44 text field (settable) Description: Output File, Placeholder: Output DICOM file path (overwrites input if omitted)",
+        "47 text field (settable) Description: Copy From File, Help: Shows additional flags for this tool, Placeholder: Source DICOM file path",
+        "50 text field (settable) Description: Tags to Copy, Help: Shows additional flags for this tool, Placeholder: e.g. PatientName,PatientID"
+      ]
+    },
+    {
+      "category": "File Inspection",
+      "name": "dicom-diff",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: File 1, Placeholder: First DICOM file to compare",
+        "35 text field (settable) Description: File 2, Placeholder: Second DICOM file to compare",
+        "43 text field (settable) Description: Ignore Tag(s), Placeholder: e.g. SOPInstanceUID; (0008,0012)",
+        "45 checkbox Description: Ignore Private Tags, [value omitted]",
+        "46 checkbox Description: Compare Pixels, [value omitted]",
+        "47 checkbox Description: Quick Mode, [value omitted]",
+        "48 checkbox Description: Verbose, [value omitted]",
+        "50 text field (settable) Description: Pixel Tolerance, Help: Shows additional flags for this tool, [value omitted]",
+        "52 checkbox Description: Show Identical Tags, Help: Shows additional flags for this tool, [value omitted]"
+      ]
+    },
+    {
+      "category": "File Processing",
+      "name": "dicom-convert",
+      "selected": true,
+      "parameters": [
+        "33 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory",
+        "44 text field (settable) Description: Output Path, Placeholder: Output file or directory path",
+        "47 checkbox Description: Strip Private Tags, Help: Shows additional flags for this tool, [value omitted]",
+        "48 checkbox Description: Recursive, Help: Shows additional flags for this tool, [value omitted]",
+        "49 checkbox Description: Validate Output, Help: Shows additional flags for this tool, [value omitted]",
+        "50 checkbox Description: Force Parse, Help: Shows additional flags for this tool, [value omitted]"
+      ]
+    },
+    {
+      "category": "File Processing",
+      "name": "dicom-validate",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory",
+        "46 checkbox Description: Detailed, [value omitted]",
+        "47 checkbox Description: Recursive, [value omitted]",
+        "48 checkbox Description: Strict Mode, [value omitted]",
+        "50 text field (settable) Description: IOD Override, Help: Shows additional flags for this tool, Placeholder: e.g. CTImageStorage or 1.2.840.10008.5.1.4.1.1.2",
+        "52 checkbox Description: Force Parse, Help: Shows additional flags for this tool, [value omitted]",
+        "54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path"
+      ]
+    },
+    {
+      "category": "File Processing",
+      "name": "dicom-anon",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory",
+        "35 text field (settable) Description: Remove Attributes, Placeholder: Modality",
+        "37 text field (settable) Description: Replace Attributes, Placeholder: PatientID=SUBJECT",
+        "45 text field (settable) Description: Redact Region(s), Placeholder: e.g. 0,0,1024,90; 0,980,1024,44",
+        "56 checkbox Description: Retain Full Dates, [value omitted]",
+        "57 checkbox Description: Retain Modified Dates, [value omitted]",
+        "58 checkbox Description: Retain Dates (Full Dates), [value omitted]",
+        "59 checkbox Description: Retain Patient Characteristics, [value omitted]",
+        "60 checkbox Description: Retain Device Identity, [value omitted]",
+        "61 checkbox Description: Retain Institution Identity, [value omitted]",
+        "62 checkbox Description: Retain UIDs, [value omitted]",
+        "63 checkbox Description: Clean Descriptors, [value omitted]",
+        "64 checkbox Description: Retain Safe Private, [value omitted]",
+        "65 checkbox Description: Clean Graphics, [value omitted]",
+        "66 checkbox Description: Clean Structured Content, [value omitted]",
+        "67 checkbox Description: Clean Recognizable Visual Features, [value omitted]",
+        "68 checkbox Description: Clean Pixel Data, [value omitted]",
+        "69 checkbox Description: Text Only, [value omitted]",
+        "70 checkbox Description: Recursive, [value omitted]",
+        "71 checkbox Description: Dry Run, [value omitted]",
+        "72 checkbox Description: Verbose, [value omitted]",
+        "74 text field (settable) Description: Output Path, Placeholder: Output file or directory path",
+        "79 checkbox Description: OCR Every Frame, Help: Shows additional flags for this tool, [value omitted]",
+        "80 checkbox Description: Allow Burned-in PHI, Help: Shows additional flags for this tool, [value omitted]",
+        "81 checkbox Description: Backup Originals, Help: Shows additional flags for this tool, [value omitted]",
+        "82 checkbox Description: Force Parse, Help: Shows additional flags for this tool, [value omitted]",
+        "84 text field (settable) Description: Audit Log Path, Help: Shows additional flags for this tool, Placeholder: Optional audit log file path"
+      ]
+    },
+    {
+      "category": "File Processing",
+      "name": "dicom-compress",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File, Placeholder: input.dcm",
+        "42 checkbox Description: JSON Output, [value omitted]"
+      ]
+    },
+    {
+      "category": "File Organization",
+      "name": "dicom-split",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File, Placeholder: Path to multi-frame DICOM file",
+        "35 text field (settable) Description: Frame Numbers, Placeholder: e.g. 1,3,5-10",
+        "52 checkbox Description: Apply Window, [value omitted]",
+        "53 checkbox Description: Recursive, [value omitted]",
+        "54 checkbox Description: Verbose, [value omitted]",
+        "56 text field (settable) Description: Output Directory, Placeholder: Output directory"
+      ]
+    },
+    {
+      "category": "File Organization",
+      "name": "dicom-merge",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input File(s), Placeholder: e.g. a.dcm; b.dcm or a directory",
+        "56 checkbox Description: Validate, [value omitted]",
+        "57 checkbox Description: Recursive, [value omitted]",
+        "58 checkbox Description: Verbose, [value omitted]",
+        "60 text field (settable) Description: Output File, Placeholder: Merged output DICOM path"
+      ]
+    },
+    {
+      "category": "File Organization",
+      "name": "dicom-dcmdir",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Input Directory, Placeholder: folder containing DICOM files",
+        "41 text field (settable) Description: File-set ID, Placeholder: derived from directory name",
+        "45 checkbox Description: Recursive, [value omitted]",
+        "46 checkbox Description: Strict, [value omitted]",
+        "47 checkbox Description: Verbose, [value omitted]",
+        "49 text field (settable) Description: Output DICOMDIR, Placeholder: DICOMDIR"
+      ]
+    },
+    {
+      "category": "File Organization",
+      "name": "dicom-archive",
+      "selected": true,
+      "parameters": [
+        "32 text field (settable) Description: Archive Path, Placeholder: Path to archive directory",
+        "43 checkbox Description: Show Instances, [value omitted]"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-json",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input File, Placeholder: Path to DICOM or JSON file",
+        "38 checkbox Description: Reverse (JSON -> DICOM), [value omitted]",
+        "39 checkbox Description: Pretty Print, [value omitted]",
+        "40 checkbox Description: Metadata Only, [value omitted]",
+        "41 checkbox Description: Verbose, [value omitted]",
+        "43 text field (settable) Description: Output File, Placeholder: Choose a location… (e.g. ExportedFile.json)"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-xml",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input File, Placeholder: Path to DICOM or XML file",
+        "38 checkbox Description: Reverse (XML → DICOM), [value omitted]",
+        "39 checkbox Description: Pretty Print, [value omitted]",
+        "40 checkbox Description: No Keywords (deprecated), [value omitted]",
+        "41 checkbox Description: Include Empty Values, [value omitted]",
+        "42 checkbox Description: Metadata Only, [value omitted]",
+        "43 checkbox Description: Verbose, [value omitted]",
+        "45 text field (settable) Description: Output File, Placeholder: Choose a location… (e.g. ExportedFile.xml)"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-pdf",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input, Placeholder: report.dcm or report.pdf",
+        "38 text field (settable) Description: Patient's Name, Placeholder: DOE^JOHN",
+        "40 text field (settable) Description: Patient ID, Placeholder: 12345",
+        "42 checkbox Description: Extract Mode, [value omitted]",
+        "44 text field (settable) Description: Output, Placeholder: Choose a location… (e.g. ExportedFile.pdf)"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-image",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input Image/Directory, Placeholder: Path to image file or directory",
+        "38 text field (settable) Description: Patient's Name, Placeholder: DOE^JOHN",
+        "40 text field (settable) Description: Patient ID, Placeholder: 12345",
+        "42 text field (settable) Description: Study Description, Placeholder: Clinical Photography",
+        "44 text field (settable) Description: Series Description, Placeholder: Clinical Photos",
+        "46 text field (settable) Description: Modality, Placeholder: OT",
+        "48 checkbox Description: Strict Modality, [value omitted]",
+        "49 checkbox Description: Use EXIF Metadata, [value omitted]",
+        "50 checkbox Description: Split Multi-page TIFF, [value omitted]",
+        "51 checkbox Description: Recursive Directory, [value omitted]",
+        "53 text field (settable) Description: Output File/Directory, Placeholder: Output file or directory path"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-export",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file(s) or directory",
+        "49 text field (settable) Description: JPEG Quality, [value omitted]",
+        "51 text field (settable) Description: Frame Number, Placeholder: 1",
+        "53 text field (settable) Description: Window Center, Placeholder: e.g. 40",
+        "55 text field (settable) Description: Window Width, Placeholder: e.g. 400",
+        "57 checkbox Description: Embed Metadata, [value omitted]",
+        "58 checkbox Description: Apply Window/Level, [value omitted]",
+        "60 text field (settable) Description: Output Path, Placeholder: Output file or directory path"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-pixedit",
+      "selected": true,
+      "parameters": [
+        "35 text field (settable) Description: Input File, Placeholder: Path to DICOM file",
+        "38 text field (settable) Description: Mask Region, Placeholder: x,y,width,height",
+        "40 text field (settable) Description: Fill Value, Placeholder: 0",
+        "42 text field (settable) Description: Crop Region, Placeholder: x,y,width,height",
+        "44 text field (settable) Description: Window Center, Placeholder: e.g. 40",
+        "46 text field (settable) Description: Window Width, Placeholder: e.g. 400",
+        "48 checkbox Description: Apply Window/Level, [value omitted]",
+        "49 checkbox Description: Invert, [value omitted]",
+        "51 text field (settable) Description: Output File, Placeholder: Choose a location… (e.g. ExportedFile.dcm)"
+      ]
+    },
+    {
+      "category": "Data Export",
+      "name": "dicom-video",
+      "selected": true,
+      "parameters": [
+        "36 text field (settable) Description: Input Video, Placeholder: clip.mp4",
+        "47 text field (settable) Description: Patient Name, Placeholder: Doe^Jane",
+        "49 text field (settable) Description: Patient ID, Placeholder: 12345",
+        "51 text field (settable) Description: Series Description, Placeholder: Endoscopy clip",
+        "53 checkbox Description: Dry Run, [value omitted]",
+        "54 checkbox Description: Overwrite Existing, [value omitted]",
+        "55 checkbox Description: Verbose, [value omitted]",
+        "57 text field (settable) Description: Output DICOM File, Placeholder: clip.dcm"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-echo",
+      "selected": true,
+      "parameters": [
+        "53 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "55 text field (settable) Description: Port, [value omitted]",
+        "57 text field (settable) Description: AE Title, [value omitted]",
+        "59 text field (settable) Description: Called AE Title, [value omitted]",
+        "61 text field (settable) Description: Echo Count, [value omitted]",
+        "65 checkbox Description: Show Statistics, [value omitted]",
+        "66 checkbox Description: Network Diagnostics, [value omitted]",
+        "67 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-query",
+      "selected": true,
+      "parameters": [
+        "53 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "55 text field (settable) Description: Port, [value omitted]",
+        "57 text field (settable) Description: AE Title, [value omitted]",
+        "59 text field (settable) Description: Called AE Title, [value omitted]",
+        "67 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001",
+        "69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*",
+        "71 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310",
+        "75 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "77 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "79 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345",
+        "90 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-send",
+      "selected": true,
+      "parameters": [
+        "53 text field (settable) Description: DICOM Files, Placeholder: e.g. a.dcm; b.dcm or a directory",
+        "56 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "58 text field (settable) Description: Port, [value omitted]",
+        "60 text field (settable) Description: AE Title, [value omitted]",
+        "62 text field (settable) Description: Called AE Title, [value omitted]",
+        "76 checkbox Description: Recursive Scan, [value omitted]",
+        "77 checkbox Description: Verify (C-ECHO), [value omitted]",
+        "78 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-retrieve",
+      "selected": true,
+      "parameters": [
+        "53 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "55 text field (settable) Description: Port, [value omitted]",
+        "57 text field (settable) Description: AE Title, [value omitted]",
+        "59 text field (settable) Description: Called AE Title, [value omitted]",
+        "65 text field (settable) Description: Move Destination AET, Placeholder: e.g. MY_STORE_SCP",
+        "67 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "69 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "80 checkbox Description: Hierarchical Output, [value omitted]",
+        "81 checkbox Description: Verbose, [value omitted]",
+        "83 text field (settable) Description: Output Directory, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-qr",
+      "selected": true,
+      "parameters": [
+        "53 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "55 text field (settable) Description: Port, [value omitted]",
+        "57 text field (settable) Description: AE Title, [value omitted]",
+        "59 text field (settable) Description: Called AE Title, [value omitted]",
+        "69 text field (settable) Description: Move Destination AET, Placeholder: e.g. MY_STORE_SCP",
+        "71 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*",
+        "73 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001",
+        "75 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310",
+        "77 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345",
+        "90 checkbox Description: Hierarchical Output, [value omitted]",
+        "92 text field (settable) Description: Output Directory, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-mwl",
+      "selected": true,
+      "parameters": [
+        "55 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "57 text field (settable) Description: Port, [value omitted]",
+        "59 text field (settable) Description: AE Title, [value omitted]",
+        "61 text field (settable) Description: Called AE Title, [value omitted]",
+        "63 text field (settable) Description: Date, Placeholder: today / YYYYMMDD / YYYYMMDD-YYYYMMDD",
+        "65 text field (settable) Description: Time, Placeholder: HHMMSS / HHMMSS-HHMMSS",
+        "67 text field (settable) Description: Station AE Title, Placeholder: e.g. CT1",
+        "69 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*",
+        "71 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001",
+        "77 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345",
+        "79 text field (settable) Description: Performing Physician, Placeholder: e.g. SMITH^JOHN or SMITH*",
+        "83 checkbox Description: JSON Output, [value omitted]",
+        "84 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-mpps",
+      "selected": true,
+      "parameters": [
+        "57 text field (settable) Description: Host, Placeholder: hostname or IP address",
+        "59 text field (settable) Description: Port, [value omitted]",
+        "61 text field (settable) Description: AE Title, [value omitted]",
+        "63 text field (settable) Description: Called AE Title, [value omitted]",
+        "65 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN",
+        "67 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001",
+        "69 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "71 text field (settable) Description: Scheduled Procedure Step ID, Placeholder: e.g. SPS001",
+        "73 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345",
+        "77 text field (settable) Description: Patient Birth Date, Placeholder: YYYYMMDD",
+        "81 text field (settable) Description: Performed Procedure Step ID, Placeholder: e.g. PPS1 (default: 1)",
+        "83 text field (settable) Description: Requested Procedure ID, Placeholder: e.g. RP1",
+        "89 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-wado query",
+      "selected": true,
+      "parameters": [
+        "48 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web",
+        "55 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*",
+        "57 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001",
+        "59 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310",
+        "63 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "65 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345",
+        "67 text field (settable) Description: Result Limit, [value omitted]",
+        "80 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-wado retrieve",
+      "selected": true,
+      "parameters": [
+        "52 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web",
+        "54 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "56 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "58 text field (settable) Description: SOP Instance UID, Placeholder: e.g. 1.2.840.113619...",
+        "69 checkbox Description: Metadata Only, [value omitted]",
+        "70 checkbox Description: Rendered Image, [value omitted]",
+        "71 checkbox Description: Thumbnail, [value omitted]",
+        "72 checkbox Description: Verbose, [value omitted]",
+        "74 text field (settable) Description: Output Directory, Placeholder: e.g. ~/Downloads/studies"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-wado store",
+      "selected": true,
+      "parameters": [
+        "48 text field (settable) Description: DICOM Files, Placeholder: e.g. a.dcm; b.dcm or a directory",
+        "51 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web",
+        "53 text field (settable) Description: Target Study UID, Placeholder: e.g. 1.2.840.113619...",
+        "55 text field (settable) Description: Batch Size, [value omitted]",
+        "62 checkbox Description: Continue on Error, [value omitted]",
+        "63 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-wado ups",
+      "selected": true,
+      "parameters": [
+        "50 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web",
+        "54 text field (settable) Description: Scheduled Station, Placeholder: e.g. CT_SCANNER_1",
+        "67 checkbox Description: Verbose, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-print",
+      "selected": true,
+      "parameters": [
+        "58 text field (settable) Description: Called AE Title, [value omitted]",
+        "60 text field (settable) Description: Connection Timeout (seconds), [value omitted]",
+        "66 text field (settable) Description: Number of Copies, [value omitted]",
+        "68 text field (settable) Description: Film Size ID, [value omitted]",
+        "70 text field (settable) Description: Film Orientation, [value omitted]",
+        "72 text field (settable) Description: Print Priority, [value omitted]",
+        "78 text field (settable) Description: Medium Type, [value omitted]",
+        "80 text field (settable) Description: Magnification Type, [value omitted]",
+        "82 text field (settable) Description: Film Destination, [value omitted]",
+        "88 text field (settable) Description: Frame (1-based), [value omitted]",
+        "94 text field (settable) Description: Grayscale Bit Depth, [value omitted]"
+      ]
+    },
+    {
+      "category": "Network Operations",
+      "name": "dicom-printscp",
+      "selected": true,
+      "parameters": [
+        "68 checkbox --save-config  Save Config, Description: Save Config, Help: Write the resolved settings back to the configuration file and exit, [value omitted]"
+      ]
+    },
+    {
+      "category": "Automation",
+      "name": "dicom-study",
+      "selected": true,
+      "parameters": [
+        "31 text field (settable) Description: Input Directory, Placeholder: Choose a folder… (e.g. CT)",
+        "45 checkbox Description: Copy Files, [value omitted]",
+        "46 checkbox Description: Verbose, [value omitted]",
+        "48 text field (settable) Description: Output Directory, Placeholder: Choose a folder… (e.g. dicom-study)"
+      ]
+    },
+    {
+      "category": "Automation",
+      "name": "dicom-uid",
+      "selected": true,
+      "parameters": [
+        "37 text field (settable) Description: Count, [value omitted]",
+        "46 text field (settable) Description: UID Root, Placeholder: 1.2.826.0.1.3680043.10.511.4",
+        "48 checkbox Description: UUID Derived, [value omitted]",
+        "49 checkbox Description: JSON Output, [value omitted]"
+      ]
+    },
+    {
+      "category": "Automation",
+      "name": "dicom-script",
+      "selected": true,
+      "parameters": [
+        "31 text field (settable) Description: Script File, Placeholder: workflow.dcmscript",
+        "39 text field (settable) Description: Variables, Placeholder: KEY=VALUE; KEY2=VALUE2",
+        "41 checkbox Description: Parallel Execution, [value omitted]",
+        "42 checkbox Description: Verbose, [value omitted]",
+        "43 checkbox Description: Dry Run (required in Workshop), [value omitted]"
+      ]
+    }
+  ]
+}

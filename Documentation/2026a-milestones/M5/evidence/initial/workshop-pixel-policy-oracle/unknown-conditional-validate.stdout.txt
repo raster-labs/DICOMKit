@@ -1,0 +1,2 @@
+✗ Script has 1 issue(s):
+  - Command 1 (then): Command 1: Unknown DICOM tool 'dicom-not-a-tool'

@@ -58,7 +58,7 @@ struct DICOMTags: ParsableCommand {
     @Option(name: .long, help: "Copy tags from another DICOM file")
     var copyFrom: String?
 
-    @Option(name: .long, help: "Comma-separated keywords or GGGG,EEEE tags to copy (used with --copy-from)")
+    @Option(name: .long, help: "Keywords or GGGG,EEEE tags to copy, separated by commas or semicolons (used with --copy-from)")
     var tags: String?
 
     @Flag(name: .shortAndLong, help: "Show verbose output")
@@ -79,9 +79,7 @@ struct DICOMTags: ParsableCommand {
             throw TagEditorError.fileNotFound(input)
         }
 
-        let copyTags: [String] = tags?
-            .split(separator: ",")
-            .map { String($0).trimmingCharacters(in: .whitespaces) } ?? []
+        let copyTags = try TagEditor().parseTagSelectors(tags ?? "")
 
         if let copyFrom = copyFrom {
             guard FileManager.default.fileExists(atPath: copyFrom) else {
@@ -125,6 +123,7 @@ struct DICOMTags: ParsableCommand {
         let destPath = OutputPathResolver.resolveFileOutput(output: output, input: input)
         if !dryRun {
             let modifiedFile = DICOMFile(fileMetaInformation: dicomFile.fileMetaInformation, dataSet: dataSet)
+                .synchronizingMediaStorageUIDs()
             let outputData = try modifiedFile.write()
             let destURL = URL(fileURLWithPath: destPath)
             try FileManager.default.createDirectory(

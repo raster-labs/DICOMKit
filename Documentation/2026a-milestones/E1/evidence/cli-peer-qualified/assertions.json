@@ -1,0 +1,226 @@
+[
+  {
+    "assertion": "create-ascii exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-ascii wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-ascii remains IN PROGRESS",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-explicit exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-explicit wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "explicit status is carried",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar update does not empty sequences",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-omitted exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-omitted wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "omitted status absent on wire",
+    "result": "Passed"
+  },
+  {
+    "assertion": "omitted status preserves IN PROGRESS",
+    "result": "Passed"
+  },
+  {
+    "assertion": "updated scalar stored",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-sequence exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-sequence wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar-preserves-sequence exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar-preserves-sequence wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar preserves prior image references",
+    "result": "Passed"
+  },
+  {
+    "assertion": "unrelated patient value preserved",
+    "result": "Passed"
+  },
+  {
+    "assertion": "sequence-replacement exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "sequence-replacement wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "full replacement retains all acquired images",
+    "result": "Passed"
+  },
+  {
+    "assertion": "empty-intermediate-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "empty-intermediate-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "complete exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "complete wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "COMPLETED retained",
+    "result": "Passed"
+  },
+  {
+    "assertion": "terminal end date/time supplied",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-complete-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-complete-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "terminal SCP response 0110",
+    "result": "Passed"
+  },
+  {
+    "assertion": "refused update preserves terminal data",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-utf8 exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-utf8 wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-utf8 remains IN PROGRESS",
+    "result": "Passed"
+  },
+  {
+    "assertion": "same-charset exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "same-charset wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "UTF8 decoded correctly",
+    "result": "Passed"
+  },
+  {
+    "assertion": "original charset preserved",
+    "result": "Passed"
+  },
+  {
+    "assertion": "mismatched-charset-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "mismatched-charset-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "mismatched charset status 0106",
+    "result": "Passed"
+  },
+  {
+    "assertion": "mismatched update did not mutate state",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-for-discontinuation exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-for-discontinuation wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-for-discontinuation remains IN PROGRESS",
+    "result": "Passed"
+  },
+  {
+    "assertion": "nonascii-without-original-charset-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "nonascii-without-original-charset-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-without-series-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-without-series-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-no-images exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-no-images wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "DISCONTINUED has one empty-image series",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-discontinue-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-discontinue-refused wire count",
+    "result": "Passed"
+  },
+  {
+    "assertion": "peer had no implementation exceptions",
+    "result": "Passed"
+  }
+]

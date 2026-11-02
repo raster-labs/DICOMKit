@@ -1,0 +1,15 @@
+OVERVIEW: List available hardware acceleration backends
+
+Displays the hardware acceleration backends available on this platform.
+
+Examples:
+  dicom-3d backends
+  dicom-3d backends --json
+
+USAGE: dicom-3d backends [--json]
+
+OPTIONS:
+  --json                  Output as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

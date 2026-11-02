@@ -1,0 +1,1922 @@
+{
+  "prepared_utc": "2026-10-26T05:25:16.705798+00:00",
+  "status": "Prepared only; no native/product execution by this run-card",
+  "output_root": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output",
+  "UI_route": "CLI Workshop: select tool then Advanced mode as needed; use Browse/Open/Save panels for files to obtain sandbox access. Always set explicit fresh output; never overwrite retained inputs. Reuse input/output selections between adjacent cases and change one variable at a time. No generic command import exists for these tools; Import Command is print-only. Use Copy and compare literal argv, not shell-evaluate untrusted text.",
+  "setup": "Parent creates fresh output root through existing authorized file workflow before execution. Capture input hashes before/after; root may replay each exact CLI_argv with output path replaced by sibling fresh CLI path. All commands here are plans, not executed evidence.",
+  "minimization": "One allowed literal edit covers multiple quoting boundaries; one identity edit changes both identifiers; charset write outputs feed Info; one signedinsert output feeds update. Do not combine nine negative edits: keep18dry/write runs. Do not collapse fourcopyselector or fourstrict/format cases.",
+  "cases": [
+    {
+      "id": "tags-literals",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm",
+        "set": "PatientName=O'Neil^White Space; PixelSpacing=1\\2; PatientComments=literal $(touch /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/MUST-NOT-EXIST) $HOME *; PatientID==leading-equals",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm",
+        "--set",
+        "PatientName=O'Neil^White Space",
+        "--set",
+        "PixelSpacing=1\\2",
+        "--set",
+        "PatientComments=literal $(touch /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/MUST-NOT-EXIST) $HOME *",
+        "--set",
+        "PatientID==leading-equals",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'\"'\"'Neil; snow 雪.dcm' --set 'PatientName=O'\"'\"'Neil^White Space' --set 'PixelSpacing=1\\2' --set 'PatientComments=literal $(touch /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/MUST-NOT-EXIST) $HOME *' --set PatientID==leading-equals --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/tags-literals.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "Input filename apostrophe/semicolon/Unicode stays one positional token; copied argv equals recorded CLI_argv after executable normalization. (0010,0010) PN=O'Neil^White Space; (0028,0030) DS raw=1\\2 plus legal final padding; (0010,4000) LT contains literal $(touch...) $HOME *; (0010,0020) LO begins =. No sentinel exists. Compare entire GUI/CLI output when written with same finalbinary andarguments except outputpath."
+    },
+    {
+      "id": "leading-equals-token",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/leading-equals-token.dcm",
+        "set": "=workshop_nonexistent_command",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "=workshop_nonexistent_command",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/leading-equals-token.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set =workshop_nonexistent_command --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/leading-equals-token.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Copied argv must carry literal =workshop_nonexistent_command as the --set value, safely quoted; empty/invalid tag is rejected. No output and no shell expansion. This is a separate invalid token boundary, not an allowed tag edit."
+    },
+    {
+      "id": "invalid-0-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-dry.dcm",
+        "set": "PatientAge=Y123",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientAge=Y123",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set PatientAge=Y123 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-0-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-write.dcm",
+        "set": "PatientAge=Y123",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientAge=Y123",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set PatientAge=Y123 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-0-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-1-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-dry.dcm",
+        "set": "PatientBirthDate=20260231",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20260231",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set PatientBirthDate=20260231 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-1-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-write.dcm",
+        "set": "PatientBirthDate=20260231",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PatientBirthDate=20260231",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set PatientBirthDate=20260231 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-1-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-2-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-dry.dcm",
+        "set": "PixelSpacing=1..2\\3",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelSpacing=1..2\\3",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'PixelSpacing=1..2\\3' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-2-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-write.dcm",
+        "set": "PixelSpacing=1..2\\3",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelSpacing=1..2\\3",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'PixelSpacing=1..2\\3' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-2-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-3-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-dry.dcm",
+        "set": "SeriesNumber=++1",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SeriesNumber=++1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set SeriesNumber=++1 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-3-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-write.dcm",
+        "set": "SeriesNumber=++1",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SeriesNumber=++1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set SeriesNumber=++1 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-3-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-4-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-dry.dcm",
+        "set": "AcquisitionDateTime=20269999112233",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20269999112233",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set AcquisitionDateTime=20269999112233 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-4-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-write.dcm",
+        "set": "AcquisitionDateTime=20269999112233",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "AcquisitionDateTime=20269999112233",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set AcquisitionDateTime=20269999112233 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-4-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-5-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-dry.dcm",
+        "set": "StudyTime=256199",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyTime=256199",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set StudyTime=256199 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-5-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-write.dcm",
+        "set": "StudyTime=256199",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyTime=256199",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set StudyTime=256199 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-5-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-6-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-dry.dcm",
+        "set": "StudyInstanceUID=1..02",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyInstanceUID=1..02",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set StudyInstanceUID=1..02 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-6-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-write.dcm",
+        "set": "StudyInstanceUID=1..02",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "StudyInstanceUID=1..02",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set StudyInstanceUID=1..02 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-6-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-7-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-dry.dcm",
+        "set": "Rows=1\\2",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=1\\2",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'Rows=1\\2' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-7-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-write.dcm",
+        "set": "Rows=1\\2",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=1\\2",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'Rows=1\\2' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-7-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-8-dry",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-dry.dcm",
+        "set": "RetrieveAETitle=Müller",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "RetrieveAETitle=Müller",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-dry.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'RetrieveAETitle=Müller' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-dry.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "invalid-8-write",
+      "checklist": "FINAL-02",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-write.dcm",
+        "set": "RetrieveAETitle=Müller",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "RetrieveAETitle=Müller",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-write.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set 'RetrieveAETitle=Müller' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/invalid-8-write.dcm",
+      "expected": "ERROR",
+      "independent_oracle": "Reject with tag/VR/value diagnostic; base input SHA256 unchanged; destination absent. Do not combine malformed values because first failure would mask later checks."
+    },
+    {
+      "id": "identity-both",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/identity-both.dcm",
+        "set": "SOPClassUID=1.2.840.10008.5.1.4.1.1.2; SOPInstanceUID=2.25.202610260003",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SOPClassUID=1.2.840.10008.5.1.4.1.1.2",
+        "--set",
+        "SOPInstanceUID=2.25.202610260003",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/identity-both.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set SOPClassUID=1.2.840.10008.5.1.4.1.1.2 --set SOPInstanceUID=2.25.202610260003 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/identity-both.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0002,0002)==(0008,0016)==CT UID; (0002,0003)==(0008,0018)==2.25.202610260003; (0002,0000) UL equals exact encoded group2 bytes following GroupLength element. This proves identity synchronization, not CT IOD conformance."
+    },
+    {
+      "id": "latin-leading",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm",
+        "set": "StudyDescription=  Leading text",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--set",
+        "StudyDescription=  Leading text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --set 'StudyDescription=  Leading text' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0008,1030) LO preserves two leading spaces. Decode all unchanged names from declared character set, compare to source; declaration and encoded bytes remain mutually valid; compare GUI/CLI full output. Expected Latin1 Müller^Jörg; Japanese Yamada^Tarou=山田^太郎; UTF8 Müller^患者."
+    },
+    {
+      "id": "japanese-leading",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/japanese.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm",
+        "set": "StudyDescription=  Leading text",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/japanese.dcm",
+        "--set",
+        "StudyDescription=  Leading text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/japanese.dcm --set 'StudyDescription=  Leading text' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0008,1030) LO preserves two leading spaces. Decode all unchanged names from declared character set, compare to source; declaration and encoded bytes remain mutually valid; compare GUI/CLI full output. Expected Latin1 Müller^Jörg; Japanese Yamada^Tarou=山田^太郎; UTF8 Müller^患者."
+    },
+    {
+      "id": "utf8-leading",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm",
+        "set": "StudyDescription=  Leading text",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm",
+        "--set",
+        "StudyDescription=  Leading text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm --set 'StudyDescription=  Leading text' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0008,1030) LO preserves two leading spaces. Decode all unchanged names from declared character set, compare to source; declaration and encoded bytes remain mutually valid; compare GUI/CLI full output. Expected Latin1 Müller^Jörg; Japanese Yamada^Tarou=山田^太郎; UTF8 Müller^患者."
+    },
+    {
+      "id": "nested-charsets-edit",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm",
+        "set": "StudyDescription=  Native nested text",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm",
+        "--set",
+        "StudyDescription=  Native nested text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm --set 'StudyDescription=  Native nested text' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "Use nested_charsets_fixture.py --verify <output> --edited --report <fresh JSON>. All 11 expected text paths agree between pydicom and raw sequence walker, including two significant leading spaces. Root/inherited item remain Latin1; explicit UTF8 remains UTF8; explicit Japanese ISO2022 override becomes truthful UTF8 after normalization; grandchildren inherit their item charset. Do not require unchanged ISO2022 bytes. Source SHA unchanged. Compare independent CLI counterpart separately; native run is not implied by fixture validation."
+    },
+    {
+      "id": "copy-0",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-0.dcm",
+        "set": "",
+        "copy-from": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "tags": "0010,0010",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "0010,0010",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-0.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --copy-from /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --tags 0010,0010 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-0.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0010,0010) VR PN decodes Müller^Jörg, expected UTF8 after copying into default-repertoire destination; all4outputs equal ignoring no fields other than destination filename outside file. Each selector needs its own actual run."
+    },
+    {
+      "id": "copy-1",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-1.dcm",
+        "set": "",
+        "copy-from": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "tags": "(0010,0010)",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "(0010,0010)",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-1.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --copy-from /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --tags '(0010,0010)' --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-1.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0010,0010) VR PN decodes Müller^Jörg, expected UTF8 after copying into default-repertoire destination; all4outputs equal ignoring no fields other than destination filename outside file. Each selector needs its own actual run."
+    },
+    {
+      "id": "copy-2",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-2.dcm",
+        "set": "",
+        "copy-from": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "tags": "00100010",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "00100010",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-2.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --copy-from /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --tags 00100010 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-2.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0010,0010) VR PN decodes Müller^Jörg, expected UTF8 after copying into default-repertoire destination; all4outputs equal ignoring no fields other than destination filename outside file. Each selector needs its own actual run."
+    },
+    {
+      "id": "copy-3",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-3.dcm",
+        "set": "",
+        "copy-from": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "tags": "PatientName",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "PatientName",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-3.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --copy-from /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --tags PatientName --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-3.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0010,0010) VR PN decodes Müller^Jörg, expected UTF8 after copying into default-repertoire destination; all4outputs equal ignoring no fields other than destination filename outside file. Each selector needs its own actual run."
+    },
+    {
+      "id": "copy-compatible",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-compatible.dcm",
+        "set": "",
+        "copy-from": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "tags": "0010,0010",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm",
+        "--copy-from",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+        "--tags",
+        "0010,0010",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-compatible.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm --copy-from /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm --tags 0010,0010 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/copy-compatible.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "Source and destination declarations ISO_IR100; initial destination PN DESTINATION^NAME changes. Output PN raw bytes/VR exactly match Latin1 source and declaration stays ISO_IR100. Do not use source itself as destination because no-op could pass."
+    },
+    {
+      "id": "signed-insert",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm",
+        "set": "SmallestImagePixelValue=-1; PixelRepresentation=1",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "SmallestImagePixelValue=-1",
+        "--set",
+        "PixelRepresentation=1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set SmallestImagePixelValue=-1 --set PixelRepresentation=1 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0028,0106) SS length2 rawFFFF, (0028,0103) US=1; input unchanged. Dependent VR resolved from final values even though PixelRepresentation follows it."
+    },
+    {
+      "id": "signed-update",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-update.dcm",
+        "set": "SmallestImagePixelValue=-2",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm",
+        "--set",
+        "SmallestImagePixelValue=-2",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-update.dcm"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-insert.dcm --set SmallestImagePixelValue=-2 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/signed-update.dcm",
+      "expected": "SUCCESS",
+      "independent_oracle": "(0028,0106) SS length2 rawFEFF; existing SS value changed; previous output unchanged."
+    },
+    {
+      "id": "unsigned-negative",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/unsigned-negative.dcm",
+        "set": "PixelRepresentation=0; SmallestImagePixelValue=-1",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "PixelRepresentation=0",
+        "--set",
+        "SmallestImagePixelValue=-1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/unsigned-negative.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set PixelRepresentation=0 --set SmallestImagePixelValue=-1 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/unsigned-negative.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "US negative rejected and no output."
+    },
+    {
+      "id": "US-overflow",
+      "checklist": "FINAL-03",
+      "tool": "dicom-tags",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/US-overflow.dcm",
+        "set": "Rows=65536",
+        "copy-from": "",
+        "tags": "",
+        "dry-run": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--set",
+        "Rows=65536",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/US-overflow.dcm",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --set Rows=65536 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/US-overflow.dcm --dry-run",
+      "expected": "ERROR",
+      "independent_oracle": "US upper range rejected and no output."
+    },
+    {
+      "id": "info-latin",
+      "checklist": "FINAL-04",
+      "tool": "dicom-info",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm",
+        "format": "json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm",
+        "--format",
+        "json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/latin-leading.dcm --format json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Visible output name and two leading spaces in StudyDescription match decoded input; copy full JSON where possible. AX truncation is not full-report parity."
+    },
+    {
+      "id": "info-japanese",
+      "checklist": "FINAL-04",
+      "tool": "dicom-info",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm",
+        "format": "json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm",
+        "--format",
+        "json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/japanese-leading.dcm --format json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Visible output name and two leading spaces in StudyDescription match decoded input; copy full JSON where possible. AX truncation is not full-report parity."
+    },
+    {
+      "id": "info-utf8",
+      "checklist": "FINAL-04",
+      "tool": "dicom-info",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm",
+        "format": "json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm",
+        "--format",
+        "json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/utf8-leading.dcm --format json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Visible output name and two leading spaces in StudyDescription match decoded input; copy full JSON where possible. AX truncation is not full-report parity."
+    },
+    {
+      "id": "info-nested-charsets",
+      "checklist": "FINAL-04",
+      "tool": "dicom-info",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm",
+        "format": "json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm",
+        "--format",
+        "json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-info /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm --format json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Native Info opens edited file and shows root Müller^Jörg, two-leading-space StudyDescription and sequence where supported. Nested text correctness is established from the saved output with independent recursive oracle; do not claim complete native console representation if Info omits sequence item content or AX truncates it."
+    },
+    {
+      "id": "validate-L1-base.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "level": "1",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-base.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-base.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --level 1 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-base.dcm.json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=true. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-L1-empty-required-meta.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "level": "1",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-empty-required-meta.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-empty-required-meta.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm --level 1 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-empty-required-meta.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-L1-uid-changed.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "level": "1",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-uid-changed.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "--level",
+        "1",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-uid-changed.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm --level 1 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-uid-changed.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-L2-base.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-base.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-base.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-base.dcm.json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=true. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-L2-empty-required-meta.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-empty-required-meta.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-empty-required-meta.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-empty-required-meta.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-L2-uid-changed.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-uid-changed.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-uid-changed.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-uid-changed.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-invalid_AS.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_AS.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_AS.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_AS.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-invalid_DT.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_DT.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_DT.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_DT.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-invalid_VM.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_VM.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_VM.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_VM.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-invalid_calendar_date.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-nested-invalid-AS.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-AS.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-AS.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-AS.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-nested-invalid-date.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-date.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-date.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-date.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-odd_numeric_length.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-odd_numeric_length.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-odd_numeric_length.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-odd_numeric_length.dcm.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "wrong-VR-False-json",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-json.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-json.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-json.json",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "wrong-VR-False-text",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "level": "2",
+        "format": "text",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-text.txt"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-text.txt"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm --level 2 --format text --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-text.txt",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "wrong-VR-True-json",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "true",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-json.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-json.json",
+        "--strict"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-json.json --strict",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "wrong-VR-True-text",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "level": "2",
+        "format": "text",
+        "strict": "true",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-text.txt"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm",
+        "--level",
+        "2",
+        "--format",
+        "text",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-text.txt",
+        "--strict"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm --level 2 --format text --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-text.txt --strict",
+      "expected": "ERROR",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=false. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-valid-leap.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-leap.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-leap.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-leap.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-leap.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-leap.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-leap.dcm.json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=true. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-valid-partial-DT.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-partial-DT.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-partial-DT.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-partial-DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-partial-DT.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-partial-DT.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-partial-DT.dcm.json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=true. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "validate-valid-fraction-DT.dcm",
+      "checklist": "FINAL-04",
+      "tool": "dicom-validate",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-fraction-DT.dcm",
+        "level": "2",
+        "format": "json",
+        "strict": "false",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-fraction-DT.dcm.json"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-fraction-DT.dcm",
+        "--level",
+        "2",
+        "--format",
+        "json",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-fraction-DT.dcm.json"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-fraction-DT.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-fraction-DT.dcm.json",
+      "expected": "SUCCESS",
+      "independent_oracle": "Read saved report, not only console badge. Expected isValid=true. Compare complete GUI/CLI JSON recursively excluding filePath and duration only. Preserve errors/tags/counts; text must show VALID/INVALID accordingly."
+    },
+    {
+      "id": "script-template",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "template",
+        "templateName": "workflow"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "workflow"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script template workflow",
+      "expected": "SUCCESS",
+      "independent_oracle": "Generated visible text matches existing workflow template file exactly apart from console wrapper; template has placeholders and is never live-executed."
+    },
+    {
+      "id": "template-validate",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "validate",
+        "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+        "dryRun": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+      "expected": "SUCCESS",
+      "independent_oracle": "Validate current generated template via existing identical file; dry-run explicitly says no commands executed and creates no /path/to/output or operational output. If generated template differs, save its actual text as a new artifact and use that; do not substitute old template evidence."
+    },
+    {
+      "id": "template-dry-run",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "run",
+        "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+        "dryRun": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt",
+        "--dry-run"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt --dry-run",
+      "expected": "SUCCESS",
+      "independent_oracle": "Validate current generated template via existing identical file; dry-run explicitly says no commands executed and creates no /path/to/output or operational output. If generated template differs, save its actual text as a new artifact and use that; do not substitute old template evidence."
+    },
+    {
+      "id": "script-live-disabled",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "run",
+        "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+        "dryRun": "false",
+        "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript",
+      "expected": "PRE-RUN REFUSAL",
+      "independent_oracle": "Run disabled and clear CLI-only guidance; no history entry or log/output. The CLI counterpart is actually supported and would execute; do not claim exit equivalence for intentional app-only refusal."
+    },
+    {
+      "id": "unknown-conditional",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "run",
+        "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript",
+        "dryRun": "true",
+        "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/unknown-conditional.log"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/unknown-conditional.log"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript --dry-run --log /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/unknown-conditional.log",
+      "expected": "ERROR",
+      "independent_oracle": "Line-numbered unknown nested command/unsupported conditional pipe error before any log creation; absent condition does not hide invalid nested syntax."
+    },
+    {
+      "id": "conditional-pipeline",
+      "checklist": "FINAL-14",
+      "tool": "dicom-script",
+      "ui_fields": {
+        "operation": "run",
+        "scriptPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript",
+        "dryRun": "true",
+        "log": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/conditional-pipeline.log"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "run",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript",
+        "--dry-run",
+        "--log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/conditional-pipeline.log"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript --dry-run --log /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/conditional-pipeline.log",
+      "expected": "ERROR",
+      "independent_oracle": "Line-numbered unknown nested command/unsupported conditional pipe error before any log creation; absent condition does not hide invalid nested syntax."
+    },
+    {
+      "id": "phi-false",
+      "checklist": "FINAL-16",
+      "tool": "dicom-anon",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm",
+        "clean-pixel-data": "false",
+        "allow-burned-in-phi": "false"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm",
+        "--no-clean-pixel-data"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-false.dcm --no-clean-pixel-data",
+      "expected": "ERROR",
+      "independent_oracle": "False: output absent. True: one flag only, output (0012,0062) CS=NO. In Beginner Advanced disclosure observe one control, set true, switch to Advanced and back, confirm retained singlebinding; saveAX in bothmodes. UID/date anonymization may be generated: compare defined semantic fields and pixel bytes, not entire file equality."
+    },
+    {
+      "id": "phi-true",
+      "checklist": "FINAL-16",
+      "tool": "dicom-anon",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm",
+        "clean-pixel-data": "false",
+        "allow-burned-in-phi": "true"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm",
+        "--no-clean-pixel-data",
+        "--allow-burned-in-phi"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/phi-true.dcm --no-clean-pixel-data --allow-burned-in-phi",
+      "expected": "SUCCESS",
+      "independent_oracle": "False: output absent. True: one flag only, output (0012,0062) CS=NO. In Beginner Advanced disclosure observe one control, set true, switch to Advanced and back, confirm retained singlebinding; saveAX in bothmodes. UID/date anonymization may be generated: compare defined semantic fields and pixel bytes, not entire file equality."
+    },
+    {
+      "id": "extended-gray8",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm",
+        "format": "dicom",
+        "transfer-syntax": "JPEGExtended"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEGExtended"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-gray8.dcm --format dicom --transfer-syntax JPEGExtended",
+      "expected": "SUCCESS",
+      "independent_oracle": "Output .51, actual JPEG SOF1 (FFC1) precision8,48x64mono; independent DCMTK decoded pixels agree with freshCLI decode (lossy original need not equal)."
+    },
+    {
+      "id": "extended-rgb8",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm",
+        "format": "dicom",
+        "transfer-syntax": "JPEGExtended"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEGExtended"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/extended-rgb8.dcm --format dicom --transfer-syntax JPEGExtended",
+      "expected": "ERROR",
+      "independent_oracle": "Accurate monochrome/1sample diagnostic; no output."
+    },
+    {
+      "id": "part2-refusal",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm",
+        "format": "dicom",
+        "transfer-syntax": "JPEG2000Part2LosslessOnly"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "JPEG2000Part2LosslessOnly"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/part2-refusal.dcm --format dicom --transfer-syntax JPEG2000Part2LosslessOnly",
+      "expected": "ERROR",
+      "independent_oracle": "Explicit unsupported Part2encoder diagnostic; no output; not codec success."
+    },
+    {
+      "id": "native16",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm",
+        "format": "dicom",
+        "transfer-syntax": "ExplicitVRLittleEndian"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native16.dcm --format dicom --transfer-syntax ExplicitVRLittleEndian",
+      "expected": "SUCCESS",
+      "independent_oracle": "Native PixelData OW, BitsAllocated16/BitsStored12, length6144,3072exactlittle-endian samples equal existing gray12fixture andCLI output; meta TS .1."
+    },
+    {
+      "id": "native-odd",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm",
+        "format": "dicom",
+        "transfer-syntax": "ExplicitVRLittleEndian"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm --format dicom --transfer-syntax ExplicitVRLittleEndian",
+      "expected": "SUCCESS",
+      "independent_oracle": "PixelData OB, length10, rawhex00040803070b05090d00; exactly9samples and onefinalNUL; compare CLI metadata/pixels."
+    },
+    {
+      "id": "strict-precision-refusal",
+      "checklist": "FINAL-18",
+      "tool": "dicom-convert",
+      "ui_fields": {
+        "inputPath": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm",
+        "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm",
+        "format": "dicom",
+        "transfer-syntax": "ExplicitVRLittleEndian"
+      },
+      "CLI_argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm",
+        "--format",
+        "dicom",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "CLI_command": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/strict-precision-refusal.dcm --format dicom --transfer-syntax ExplicitVRLittleEndian",
+      "expected": "ERROR",
+      "independent_oracle": "Documented strict16precision/12stored JPEG refusal with header mismatch diagnostic, nooutput; independent DCMTK decode remains valid evidence, not peer-nonconformance claim."
+    }
+  ],
+  "viewer": {
+    "checklist": "FINAL-17",
+    "route": "Library Import Files usingnative chooser, select synthetic study/instance, Open in Viewer; no existing study modifications. If same synthetic SOP alreadypresent, open it and verify provenance/hash rather than count duplicateimport as newfile.",
+    "SR_input": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm",
+    "expected_rows": [
+      {
+        "label": "TIME fraction",
+        "vr": "TM",
+        "raw": "101530.123456",
+        "expected": "10:15:30.123456"
+      },
+      {
+        "label": "TIME next fraction",
+        "vr": "TM",
+        "raw": "101530.123457",
+        "expected": "10:15:30.123457"
+      },
+      {
+        "label": "TIME trailing zeros",
+        "vr": "TM",
+        "raw": "101530.120000",
+        "expected": "10:15:30.120000"
+      },
+      {
+        "label": "TIME hour",
+        "vr": "TM",
+        "raw": "10",
+        "expected": "10"
+      },
+      {
+        "label": "TIME minute",
+        "vr": "TM",
+        "raw": "1015",
+        "expected": "10:15"
+      },
+      {
+        "label": "DATETIME positive offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456+0530",
+        "expected": "2026-10-24 10:15:30.123456 +0530"
+      },
+      {
+        "label": "DATETIME negative offset",
+        "vr": "DT",
+        "raw": "20261024101530.123456-0330",
+        "expected": "2026-10-24 10:15:30.123456 -0330"
+      },
+      {
+        "label": "DATETIME year",
+        "vr": "DT",
+        "raw": "2026",
+        "expected": "2026"
+      },
+      {
+        "label": "DATETIME month",
+        "vr": "DT",
+        "raw": "202610",
+        "expected": "2026-10"
+      },
+      {
+        "label": "DATETIME date",
+        "vr": "DT",
+        "raw": "20261024",
+        "expected": "2026-10-24"
+      },
+      {
+        "label": "DATETIME hour",
+        "vr": "DT",
+        "raw": "2026102410",
+        "expected": "2026-10-24 10"
+      },
+      {
+        "label": "DATETIME minute",
+        "vr": "DT",
+        "raw": "202610241015",
+        "expected": "2026-10-24 10:15"
+      },
+      {
+        "label": "DATETIME zeros UTC",
+        "vr": "DT",
+        "raw": "20261024101530.120000+0000",
+        "expected": "2026-10-24 10:15:30.120000 +0000"
+      },
+      {
+        "label": "DATETIME partial offset",
+        "vr": "DT",
+        "raw": "2026+0530",
+        "expected": "2026 +0530"
+      },
+      {
+        "label": "Malformed TIME retained",
+        "vr": "TM",
+        "raw": "101530.1234567",
+        "expected": "101530.1234567"
+      },
+      {
+        "label": "Malformed DATETIME retained",
+        "vr": "DT",
+        "raw": "20260230101530+0530",
+        "expected": "20260230101530+0530"
+      }
+    ],
+    "clipboard_exact": "2026-10-24 10:15:30.123456 +0530",
+    "overlay_input": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm",
+    "overlay_expected": "2026-10-24 10:15:30.123456",
+    "oracles": "Inspect all16narrative values, screenshot/AX and clipboard capture; verify both sourcehashes unchanged. Ordinaryimageoverlay mustretain .123456. Imports use synthetic data only; do not claim backendparse as native display."
+  },
+  "network_handoff": {
+    "FINAL-12": "MPPS missingSOPclass preflight can be observed withoutpeer; successfulCT/MR/SC pairs require network owner run-card.",
+    "FINAL-13": "UPS create/retrieve DT fraction/offset requires capturepeer andserver; network owner.",
+    "FINAL-15": "QRvisibleReview/Auto selector can be inspected; outcomesrequirepreparedretrievalpeer. RetainunsupportedpersistedInteractive native subcase as unexecuted unless existing supportedimport can set it."
+  },
+  "coverage_gaps": [],
+  "source_files": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/japanese.dcm": "c855ab2dd0da17e22ecc295a06be97764d08eeaf3561c705b545e2f3180d8729",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-fraction-DT.dcm": "b3ea42638556a435afb563eb6d7271efa1ca1b4ae95e6cdddd7ebf5551c7e9b7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-leap.dcm": "5fec44c3a1169556fcf76d7017e714d58e56517210eab89a2a76f019e6f2f7d7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Documentation/2026a-milestones/M2/gui-fixtures/valid-partial-DT.dcm": "af8fb6be0c6ca36e69d3a0867eacb32697f0b6a931414bf0f4f37210ac60fd56",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-RLELossless-gray12/encoded.dcm": "c76142b07b20a15044dcf479861098694c9f8d257bda959c1d1510c6f0aded79",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jpeg-gray12/foreign.dcm": "2d718cfe7cab2a17d6af2babae70c21b4eb5a3b673b11396b9f1f5abbecfe42f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/base.dcm": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/empty-required-meta.dcm": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_AS.dcm": "1874a849698cc1a776dbdf6d9a69eeafd105f723aaa65ba175dcfc533874086f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_DT.dcm": "80ef30c98da1b5f2d38324f92f61f16e3ae7505ef2580420f6db2f5fc5d81a6c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_VM.dcm": "a2c9f4beed29541449e7bbfbd6db55cb20b93ef41ece0279154cf11820d2e151",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm": "59469d4b5be0155558ed2804ed336d7000faac16b42de7ba1f22cae0777cc2fc",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-copy-destination.dcm": "d506323f5ead515f54baa70e48fb51329a5a747467f2864ea128e91eed969624",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-AS.dcm": "0947cf432cbe8ea5c95df9a4894dcde493e2cbb1743ab98f0f4c289d801aa96d",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/nested-invalid-date.dcm": "65244c54effa97ce439f14a4481f103704c0e723fda9c930e446864f562706a2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/odd_numeric_length.dcm": "f73e372b797852896555a3094af72b7552d9b74953cc2908ab3244be494e2fc2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/uid-changed.dcm": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/wrong_VR.dcm": "4cec66d6e5a94715dea609c0e9a787bf5c9759a9ad8c470bc12524d74e740961",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/unicode.dcm": "fa3c8faed6bec7aec39ff60f0efd5fd2ad5c820e97d7098cde957e3e5810b9ed",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/sr-fixture/m5-sr-temporal-precision.dcm": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/burned-in-synthetic.dcm": "91268153f9fc0342d3fbc351dc15468713cb11350841482f87103e9d5446d457",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/conditional-pipeline.dcmscript": "4da66e03a85a8fd5aeb53beab2e9e8582e4c38d23b9564f3fff36037791841af",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt": "3e0036e4cf3999d77fe8b097550ca7ce42f6bdb0a1aa8a0fff3b79e5101089f3",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/unknown-conditional.dcmscript": "ce4927c384444f81c894c3e0eebcafc5beba5bb327076d6bbf45cfc58376fce6",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript": "7a8ac36843b02572a555455c974f47ee4b581dc1f569538adefdeb7886ed126f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/fractional-study-time.dcm": "adf09021a2c187b7aa1bf1a520411b8e8148f439a314ccdb957aaaa48fac21c2",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm": "4c8c90668e279188e23dfc97191ef3c1e4da392d924409b241bf07df2a88c84c",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/literal O'Neil; snow 雪.dcm": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm": "e7888c77ec9dac5ccf7330e70f56e82209cc4e09b231256190d5c148378d2c48"
+  },
+  "independent_inspectors": {
+    "flat": "Scripts/verify_m2_attributes.py elements/scalar (explicitlength flatdatasets only); group2UL computed from rawoffsets; never strip leading text.",
+    "recursive": "pydicom3.0.1 independentlydecode charset peritem andinspect VR/values; compare original nesteditems tooutput underdeclaredencoding.",
+    "codec": "Existing verify_m7_codecs.py markerwalker andforeign decoder approach; do not assumeJPEG SOFbyfindingmarkerbytesinAPPpayload.",
+    "report": "JSONdeepcompareexcludingfilePath/duration only; savefullfiles becauseAXconsole maytruncate.",
+    "nested": "extra-fixtures/nested_charsets_fixture.py: pydicom3.0.1 plus independent Explicit VR LE sequence/item byte walker, Python latin1/utf8/iso2022_jp codecs, exact 11 text paths and local/inherited declarations. Fixture verified; output checker prepared but not run."
+  },
+  "nested_charsets": {
+    "fixture_manifest": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets-manifest.json",
+    "source_wire_oracle": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets-wire-oracle.json",
+    "native_status": "Prepared only; native edit and Info actions pending",
+    "expected_text_paths": {
+      "00100010": "Müller^Jörg",
+      "00400275[0]/00321032": "Müller^Jörg",
+      "00400275[0]/00321060": "  Héritage Café",
+      "00400275[0]/00400008[0]/00080104": "  Café Über",
+      "00400275[1]/00321032": "Renée^患者",
+      "00400275[1]/00321060": "  雪の検査",
+      "00400275[1]/00400008[0]/00080104": "  雪の診断",
+      "00400275[2]/00321032": "Yamada^Tarou=山田^太郎",
+      "00400275[2]/00321060": "  日本検査",
+      "00400275[2]/00400008[0]/00080104": "  日本コード",
+      "00081030": "  Nested charset source"
+    },
+    "post_edit_check_argv": [
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/peer-venv/bin/python",
+      "-B",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested_charsets_fixture.py",
+      "--verify",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm",
+      "--edited",
+      "--report",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited-oracle.json"
+    ],
+    "post_edit_check_command": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/peer-venv/bin/python -B /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested_charsets_fixture.py --verify /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited.dcm --edited --report /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/nested-charsets-edited-oracle.json",
+    "post_edit_note": "All text preserved exactly; root Latin1 and inherited item stay Latin1. Existing explicit item overrides normalize to UTF8 with truthful declarations. Do not demand unchanged Japanese ISO2022 bytes after an edit."
+  }
+}

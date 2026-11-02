@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file path
+Usage: dicom-j2k transcode <input> --output <output> --target <target> [--quality <quality>] [--verbose]
+  See 'dicom-j2k transcode --help' for more information.

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<base-url>'
+Help:  <base-url>  DICOMweb server base URL
+Usage: dicom-wado store <base-url> [<files> ...] [--study <study>] [--input <input>] [--batch <batch>] [--token <token>] [--continue-on-error] [--verbose]
+  See 'dicom-wado store --help' for more information.

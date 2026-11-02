@@ -1,0 +1,3 @@
+Error: Provide a UID, use --list-all, or --search to find UIDs
+Usage: dicom-uid lookup [<uid>] [--list-all] [--type <type>] [--search <search>] [--json]
+  See 'dicom-uid lookup --help' for more information.

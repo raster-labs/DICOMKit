@@ -1,0 +1,33 @@
+OVERVIEW: Hexadecimal dump with DICOM structure visualization
+
+Displays hexadecimal dump of DICOM files with structure annotations.
+Useful for low-level debugging and format inspection.
+
+Examples:
+  dicom-dump file.dcm
+  dicom-dump file.dcm --tag 7FE0,0010
+  dicom-dump file.dcm --tag PatientName --verbose
+  dicom-dump file.dcm --offset 0x1000 --length 256
+  dicom-dump file.dcm --no-color > dump.txt
+
+USAGE: dicom-dump <file-path> [--tag <tag>] [--offset <offset>] [--length <length>] [--bytes-per-line <bytes-per-line>] [--highlight <highlight>] [--no-color] [--annotate] [--force] [--verbose]
+
+ARGUMENTS:
+  <file-path>             Path to DICOM file
+
+OPTIONS:
+  --tag <tag>             Dump specific tag (format: 0010,0010 or PS3.6
+                          keyword, e.g. PatientName)
+  --offset <offset>       Start offset in bytes (hex or decimal)
+  --length <length>       Number of bytes to dump
+  --bytes-per-line <bytes-per-line>
+                          Bytes per line (default: 16) (default: 16)
+  --highlight <highlight> Highlight specific tag (format: 0010,0010 or PS3.6
+                          keyword)
+  --no-color              Disable color output
+  --annotate              Show tag annotations
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output with VR and length details
+  --version               Show the version.
+  -h, --help              Show help information.
+

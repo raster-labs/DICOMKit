@@ -1,0 +1,45 @@
+{
+  "recorded_utc": "2026-10-26T09:32:30.720333+00:00",
+  "local_acceptance": "Complete",
+  "unique_items": 68,
+  "item_counts": {
+    "Completed": 46,
+    "In progress": 0,
+    "Deferred": 22
+  },
+  "native_groups": {
+    "Passed": 28
+  },
+  "independent_review": "evidence/ups-identity-repair/independent-final-native-acceptance.json",
+  "independent_review_sha256": "58c8e162334bc77620f2316a2258403ebd9eedd7f5d01cdf0982ff16b0b448ac",
+  "source_inputs_rehashed": 2062,
+  "app_files_rehashed": 14,
+  "UPS_repair": {
+    "native_actions": 3,
+    "CLI_actions": 5,
+    "native_HTTP_requests": 2,
+    "CLI_HTTP_requests": 4,
+    "assertions": 54,
+    "strict_receipt": "evidence/ups-identity-repair/strict-ups-final-verification.json"
+  },
+  "network_assertions": {
+    "accepted_non_UPS": 457,
+    "repaired_UPS_including_prior_CLI": 54,
+    "accepted_total": 511,
+    "old_UPS_parity_only_excluded": 24
+  },
+  "counting": "Phase counts retain initial43 native/43 CLI as history and repair3 native/5 CLI separately. Do not add54 and38; the54 includes prior CLI assertions.",
+  "source_epoch": "No source change after frozen UPS/JSON build. Fresh native relaunch verifies all14 app files; original source-equivalent actions retain their original artifact epochs.",
+  "remote_CI": {
+    "state_at_document_creation": "Pending exact next pushed head",
+    "recorded_utc": "2026-10-26T09:34:23.083422+00:00",
+    "executed_on_next_head": false,
+    "historical_passed_head": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+    "historical_evidence": "evidence/remote-verification-c9001dd.json",
+    "required_workflows": 8,
+    "current_status_url": "https://github.com/raster-labs/DICOMKit/actions?query=branch%3Acodex%2Fdicom-2026a-milestones",
+    "interpretation": "Immutable creation-time snapshot. Post-push exact-head receipt and final report are output-only; consult branch Actions for live status."
+  },
+  "closure_rule": "Original six local item assertions pass. Overall publication/goal closure remains provisional until eight exact pushed-head workflows/jobs/steps pass. Post-push proof is output-only; no self-referential CI commit loop.",
+  "merge_authority": "User; no main merge"
+}

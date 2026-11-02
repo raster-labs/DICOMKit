@@ -1,0 +1,31 @@
+{
+  "utc": "2026-10-24T15:19:06.991548+00:00",
+  "status": "Source frozen; parent runtime/build pending",
+  "originalEvidence": "work/m7/codecs-final (21failed rows preserved)",
+  "productionCause": "TransferSyntaxConverter.transcodeFromEncapsulated copied encapsulated OB to native data; fixed VR from BitsAllocated/targetimplicit plus final-field evenpadding. Existingwriter performs OW byteorder conversion from defaultLE toBE; no manualdouble swap.",
+  "standardSource": "work/standards/part05_2026a.xml sect_A.2,sect_A.4,sect_8.2;native BitsAllocated>8 OW;explicit<=8 OBorOW;implicitOW;oneevenVLfield",
+  "tests": "M7NativePixelDataVRTests: parameterizedstored8/12/16 withallocated16 acrossLE/BE/implicit; odd3x3byteframe explicitOB/implicitOW finalpad; twooddframes nointerframepad",
+  "oracleRepairs": [
+    "ExtendedRGB actualcorrected needs1samples diagnostic classified onlywithpositiveexit/nooutput",
+    "NativeOWrule now explicitlyusesBitsAllocated andimplicit syntax",
+    "JPEGXL independentdjxloutput nowPGM/PPM --bits_per_sample=0 (documentedoriginalstreambitdepth); jxlinfo captured foreachJXLstream"
+  ],
+  "oracleDiagnosis": {
+    "existingForeignJXL": "jxlinfo reported12-bitGrayscale64x48",
+    "existingPNG": "I;16, pixel0/64/128/192 =>0/1024/2048/3073; inverse12/16scaling exactlyrecoverssource, proving PNGrepresentationrescale",
+    "diagnosticCommandsOnly": "Read-only jxlinfo onexistingartifact anddjxlverbosehelp; no new conversioncampaign orSwiftbuild"
+  },
+  "sha256": {
+    "Sources/DICOMCore/TransferSyntaxConverter.swift": "88e031b032cff936a92daae0b411c8c56f921ef092b9312e6e80b80f8b3772bc",
+    "Tests/DICOMCoreTests/M7NativePixelDataVRTests.swift": "36fb5cdf7361f5ec064f3bb827eef10fca05a82822805c52c995c59bf47f41b5",
+    "Scripts/verify_m7_codecs.py": "e9f8d9b1272006f9f3d12b89dca650617de1acbd5841c2da5054bcf6e8a15fd7",
+    "Sources/DICOMKit/DICOMParser.swift": "6ca0e553a0f40c1857e9e6bfc1eaf784caa394e3166a41fd8eeabe579bf3a5bb"
+  },
+  "parentTestCompileRepairs": "Root qualified DICOMCore.Tag and changed DICOMKit import to @testable in M7NativePixelDataVRTests; initial compiler failure retained.",
+  "implicitParserRepair": {
+    "cause": "Eager implicit native PixelData used dictionary first alternative OB; lazy path and Core converter already chose OW.",
+    "change": "DICOMParser.parseImplicitVRHeader explicitly chooses OW for PixelData only; dictionary and explicit VR untouched.",
+    "tests": "Three added methods (4 argument executions): independent raw implicit8/16 eager+strict+lazy+metadataOnly; implicit16 to explicitLE/BE using Kit write and Core conversion exact samples/raw bytes; explicit OB/OW eager/lazy retained. Existing M7 filter includes all.",
+    "validation": "git diff --check passed; parent owns all Swift builds/tests; no build or campaign run by subagent."
+  }
+}

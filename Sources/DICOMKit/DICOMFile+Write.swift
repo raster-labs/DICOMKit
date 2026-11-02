@@ -184,14 +184,10 @@ extension DICOMFile {
         
         // 3. Write File Meta Information (always Explicit VR Little Endian per PS3.10).
         //    File Meta Information Group Length (0002,0000) is Type 1 (PS3.10 Table 7.1-1):
-        //    it is computed here when the caller did not set it.
+        //    always recompute from the actual encoded bytes, including changed UIDs.
         let fileMetaWriter = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
         var fileMetaInformation = self.fileMetaInformation
-        if fileMetaInformation[.fileMetaInformationGroupLength] == nil {
-            let others = fileMetaInformation.write(using: fileMetaWriter)
-            fileMetaInformation[.fileMetaInformationGroupLength] = DataElement.uint32(
-                tag: .fileMetaInformationGroupLength, value: UInt32(others.count))
-        }
+        Self.setGroupLength(in: &fileMetaInformation)
         data.append(fileMetaInformation.write(using: fileMetaWriter))
         
         // 4. Determine transfer syntax for main data set
@@ -204,7 +200,7 @@ extension DICOMFile {
         
         // 5. Write main data set
         let mainWriter = DICOMWriter(byteOrder: byteOrder, explicitVR: isExplicitVR)
-        data.append(dataSet.write(using: mainWriter))
+        data.append(try dataSet.preparingTextForWriting().write(using: mainWriter))
         
         return data
     }

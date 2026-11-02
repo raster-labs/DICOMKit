@@ -1,0 +1,25 @@
+{
+  "scope": "Isolated two-test Swift 6.4 package outside the repository",
+  "old_sequence": [
+    "swift test --enable-code-coverage list",
+    "swift test --enable-code-coverage --skip-build"
+  ],
+  "old_test_process_exit": 1,
+  "old_test_assertions": "1 XCTest and 1 Swift Testing passed; coverage directory unavailable",
+  "fixed_sequence": [
+    "swift build --build-tests --enable-code-coverage",
+    "swift test --enable-code-coverage --skip-build"
+  ],
+  "fixed_test_process_exit": 0,
+  "fixed_test_assertions": "1 XCTest and 1 Swift Testing passed",
+  "coverage": {
+    "CoverageProbe.json": {
+      "bytes": 6239,
+      "sha256": "adffeac8416ec71de2856ecfc46ce6be59696b6d5145c3cc9f1cee24369cb896"
+    },
+    "default.profdata": {
+      "bytes": 1992,
+      "sha256": "9c5ed519582aa89215c5624737656e59709fbd5d3288fe90de00a8be2911df2f"
+    }
+  }
+}

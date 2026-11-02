@@ -1,0 +1,24 @@
+OVERVIEW: Measure area of a polygon or ellipse
+
+USAGE: dicom-measure area <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] [--polygon <polygon> ...] [--ellipse <ellipse>]
+
+ARGUMENTS:
+  <file-path>             Path to the DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output file path (prints to stdout if omitted)
+  -f, --format <format>   Output format: text, json, csv (values: text, json,
+                          csv; default: text)
+  --unit <unit>           Unit for measurements: mm, cm, um, inches, pixels
+                          (physical units need a pixel spacing; see the
+                          overview) (values: mm, cm, um, inches, pixels;
+                          default: mm)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --polygon <polygon>     Polygon vertices as x,y pairs (e.g., 100,100 150,200
+                          200,200)
+  --ellipse <ellipse>     Ellipse center and radii as cx,cy,rx,ry (e.g.,
+                          200,200,50,30)
+  --version               Show the version.
+  -h, --help              Show help information.
+

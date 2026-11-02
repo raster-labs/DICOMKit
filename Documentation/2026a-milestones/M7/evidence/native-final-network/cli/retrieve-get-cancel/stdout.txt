@@ -1,0 +1,16 @@
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:60872
+  Calling AE Title:  M7NATIVE
+  Called AE Title:   M4PEER
+  Method:            C-GET
+  Move Destination:  M4DEST
+  Level:             STUDY
+  Study UID:         2.25.404
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-get-cancel-cli
+  Organization:      Flat
+  Timeout:           10s
+
+Executing C-GET...
+
+C-GET cancelled — 0 file(s) received before cancellation

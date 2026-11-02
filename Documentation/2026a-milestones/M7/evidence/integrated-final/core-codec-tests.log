@@ -1,0 +1,204 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 511]
+[Planning deferred tasks]
+[4 / 5] DICOMCoreTests-product
+Build complete! (0.84 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "NativeJPEG2000Codec Encoder Tests" started.
+◇ Suite "CodecRegistry Encoder Tests" started.
+◇ Suite "TranscodingConfiguration Tests" started.
+◇ Suite "TranscodingError Tests" started.
+◇ Suite "TranscodingResult Tests" started.
+◇ Suite "M7 JPEG Extended 8-bit coding process" started.
+◇ Suite "CompressionConfiguration Tests" started.
+◇ Suite "CompressionQuality Tests" started.
+◇ Suite "TransferSyntaxConverter Tests" started.
+◇ Test "Supported encoding transfer syntaxes list is populated" started.
+◇ Test "Registry has the native lossless RLE encoder" started.
+◇ Suite "NativeJPEGCodec Encoder Tests" started.
+◇ Test "Can encode with lossless configuration" started.
+◇ Suite "CompressionSpeed Tests" started.
+◇ Suite "M7 native Pixel Data VR, byte order and final padding" started.
+◇ Test "Can encode 8-bit grayscale" started.
+◇ Suite "End-to-End Compression Transcoding Tests" started.
+◇ Suite "JLISwift JPEG codec — registry wiring & lossy/lossless modes" started.
+◇ Test "Registry has encoders for JPEG 2000" started.
+◇ Test "Can encode 16-bit grayscale" started.
+◇ Test "12-bit grayscale JPEG 2000: deprecated ImageIO path corrupts, supported path round-trips" started.
+◇ Test "Configuration is hashable" started.
+◇ Suite "TransferSyntaxConverter Compression Tests" started.
+◇ Test "Errors are equatable" started.
+◇ Test "Registry has encoders for JPEG" started.
+◇ Test "Default configuration prefers Explicit VR Little Endian" started.
+◇ Test "Max compression configuration allows lossy" started.
+◇ Test "The Extended color restriction remains enforced" started.
+◇ Test "Registry returns encoder for supported syntax" started.
+◇ Test "Extended8 writes SOF1 and strict decoders produce the same pixels as Baseline" started.
+◇ Test "Configuration description is informative" started.
+◇ Test "Custom configuration creation" started.
+◇ Test "Lossless configuration enforces lossless" started.
+◇ Test "Lossless compression configuration only includes lossless syntaxes" started.
+◇ Test "Custom configuration creation" started.
+◇ Test "Error descriptions are meaningful" started.
+◇ Test "Default configuration has expected values" started.
+◇ Test "Network configuration optimizes for transfer" started.
+◇ Test "Transcoding result with actual transcoding" started.
+◇ Test "Transcoding result without actual transcoding (same syntax)" started.
+◇ Test "Quality presets have correct values" started.
+◇ Test "Marker walk skips APP payload marker lookalikes and preserves every other byte" started.
+◇ Test "Archival configuration prioritizes quality" started.
+◇ Test "Truncated segments and other JPEG processes cannot be relabeled" started.
+◇ Test "Custom quality values are clamped" started.
+◇ Test "Maximum quality is considered lossless" started.
+◇ Test "Quality descriptions are meaningful" started.
+◇ Test "Converter with default configuration" started.
+◇ Test "Transcode US (UInt16) data element with byte order change" started.
+◇ Test "Transcode multiple data elements" started.
+◇ Test "Can transcode between uncompressed syntaxes" started.
+◇ Test "Can transcode same syntax (no-op)" started.
+◇ Test "Can recompress between JPEG 2000 and HTJ2K families when codecs are available" started.
+◇ Test "Select target syntax respects lossy constraint" started.
+◇ Test "Select target syntax from accepted list" started.
+◇ Test "Transcoding configuration respects lossy constraint" started.
+◇ Test "Transcode simple data element from Implicit to Explicit VR" started.
+◇ Test "Can decompress JPEG to uncompressed (if codec available)" started.
+◇ Test "Transcode simple data element from Explicit to Implicit VR" started.
+◇ Test "Transcode same syntax returns unchanged data" started.
+◇ Test "Can transcode to compressed syntax with encoder support" started.
+◇ Test "Can decompress RLE to uncompressed" started.
+◇ Test "Converter with custom configuration" started.
+◇ Test "Select target syntax returns nil when none compatible" started.
+◇ Test "Transcode throws for unsupported target" started.
+◇ Test "Cannot encode 16-bit with JPEG Baseline" started.
+◇ Test "Cannot encode when lossless is preferred" started.
+◇ Test "Can encode 8-bit grayscale" started.
+◇ Test "Encode simple 8-bit grayscale frame" started.
+◇ Test "Cannot encode 8-bit RGB (ImageIO colour has no valid Table 8.2.1-1 label)" started.
+◇ Test "Speed descriptions are meaningful" started.
+◇ Test "Allocated16 always writes OW, including Stored8, with correct target word order" started.
+◇ Test "Odd-sized frames concatenate without padding between frames" started.
+◇ Test "Implicit native OW agrees across eager and lazy reads; metadata mode omits pixels" started.
+◇ Test "Roundtrip: transcode to JPEG 2000 then back to uncompressed preserves pixel data" started.
+◇ Test "Explicit Pixel Data VR is retained, including a wrong OB16 for later validation" started.
+◇ Test "Transcode 16-bit to JPEG 2000 Lossless preserves data" started.
+◇ Test "Implicit16 to explicit preserves OW and numerical samples through both conversion paths" started.
+◇ Test "One odd8-bit frame has a single final NUL and native explicit OB or implicit OW" started.
+◇ Test "Transcode 8-bit to JPEG 2000 Lossless produces valid encapsulated data" started.
+◇ Test "Registry lossless round-trip is bit-exact" started.
+◇ Test "canEncode enforces each JPEG process's pixel constraints" started.
+◇ Test "Transcode 8-bit to JPEG Baseline produces valid output" started.
+◇ Test "Baseline encode routes YBR_FULL_422 input through the YCbCr passthrough, not the RGB transform" started.
+◇ Test "canEncode rejects 12-bit YBR_FULL_422 (JLIEncoder's YCbCr passthrough is 8-bit only)" started.
+◇ Test "Bare JLICodec() encodes lossless regardless of a lossy configuration" started.
+◇ Test "Registry Baseline (.50) lossy round-trip keeps size and high fidelity" started.
+◇ Test "CodecRegistry exposes a JLISwift decoder and encoder for all four JPEG syntaxes" started.
+◇ Test "Registry Extended (.51) lossy round-trip handles 12-bit with high fidelity" started.
+✔ Test "Can encode with lossless configuration" passed after 0.001 seconds.
+◇ Test "Converter with compression configuration" started.
+✔ Test "Can encode 16-bit grayscale" passed after 0.001 seconds.
+✔ Test "Can encode 8-bit grayscale" passed after 0.001 seconds.
+✔ Test "Default configuration prefers Explicit VR Little Endian" passed after 0.001 seconds.
+✔ Test "Errors are equatable" passed after 0.001 seconds.
+✔ Test "Configuration is hashable" passed after 0.001 seconds.
+✔ Test "Supported encoding transfer syntaxes list is populated" passed after 0.001 seconds.
+✔ Test "Registry has encoders for JPEG 2000" passed after 0.001 seconds.
+✔ Test "Registry has encoders for JPEG" passed after 0.001 seconds.
+✔ Test "Max compression configuration allows lossy" passed after 0.001 seconds.
+✔ Test "The Extended color restriction remains enforced" passed after 0.001 seconds.
+✔ Test "Registry has the native lossless RLE encoder" passed after 0.001 seconds.
+✔ Test "Registry returns encoder for supported syntax" passed after 0.001 seconds.
+✔ Test "Lossless compression configuration only includes lossless syntaxes" passed after 0.001 seconds.
+✔ Test "Custom configuration creation" passed after 0.001 seconds.
+✔ Test "Custom configuration creation" passed after 0.001 seconds.
+✔ Test "Configuration description is informative" passed after 0.001 seconds.
+✔ Test "Error descriptions are meaningful" passed after 0.001 seconds.
+✔ Test "Lossless configuration enforces lossless" passed after 0.001 seconds.
+✔ Test "Default configuration has expected values" passed after 0.001 seconds.
+◇ Test case passing 1 argument stored → 16 to "Allocated16 always writes OW, including Stored8, with correct target word order" started.
+◇ Test case passing 1 argument stored → 8 to "Allocated16 always writes OW, including Stored8, with correct target word order" started.
+◇ Test case passing 1 argument stored → 12 to "Allocated16 always writes OW, including Stored8, with correct target word order" started.
+✔ Test "Network configuration optimizes for transfer" passed after 0.001 seconds.
+◇ Test case passing 1 argument allocated → 8 to "Implicit native OW agrees across eager and lazy reads; metadata mode omits pixels" started.
+◇ Test case passing 1 argument allocated → 16 to "Implicit native OW agrees across eager and lazy reads; metadata mode omits pixels" started.
+✔ Test "Transcoding result without actual transcoding (same syntax)" passed after 0.002 seconds.
+✔ Test "Transcoding result with actual transcoding" passed after 0.004 seconds.
+✔ Test "Quality presets have correct values" passed after 0.007 seconds.
+◇ Test case passing 1 argument spp → 1 to "Registry Baseline (.50) lossy round-trip keeps size and high fidelity" started.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.57", ba → 8, bs → 8, spp → 1, signed → false to "Registry lossless round-trip is bit-exact" started.
+◇ Test case passing 1 argument spp → 3 to "Registry Baseline (.50) lossy round-trip keeps size and high fidelity" started.
+✔ Test "Archival configuration prioritizes quality" passed after 0.071 seconds.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.57", ba → 16, bs → 12, spp → 1, signed → false to "Registry lossless round-trip is bit-exact" started.
+✔ Test "Custom quality values are clamped" passed after 0.072 seconds.
+✔ Test "Maximum quality is considered lossless" passed after 0.072 seconds.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.57", ba → 16, bs → 16, spp → 1, signed → false to "Registry lossless round-trip is bit-exact" started.
+✔ Test "Converter with default configuration" passed after 0.079 seconds.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.57", ba → 8, bs → 8, spp → 3, signed → false to "Registry lossless round-trip is bit-exact" started.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.70", ba → 16, bs → 12, spp → 1, signed → false to "Registry lossless round-trip is bit-exact" started.
+✔ Test "Can transcode between uncompressed syntaxes" passed after 0.084 seconds.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.70", ba → 8, bs → 8, spp → 3, signed → false to "Registry lossless round-trip is bit-exact" started.
+✔ Test "Quality descriptions are meaningful" passed after 0.087 seconds.
+◇ Test case passing 5 arguments uid → "1.2.840.10008.1.2.4.70", ba → 16, bs → 16, spp → 1, signed → true to "Registry lossless round-trip is bit-exact" started.
+✔ Test "Can transcode same syntax (no-op)" passed after 0.089 seconds.
+✔ Test "Can recompress between JPEG 2000 and HTJ2K families when codecs are available" passed after 0.089 seconds.
+✔ Test "Select target syntax respects lossy constraint" passed after 0.089 seconds.
+✔ Test "Transcode multiple data elements" passed after 0.090 seconds.
+✔ Test "Select target syntax from accepted list" passed after 0.089 seconds.
+✔ Test "Transcoding configuration respects lossy constraint" passed after 0.089 seconds.
+✔ Test "Transcode US (UInt16) data element with byte order change" passed after 0.090 seconds.
+✔ Test "Can decompress JPEG to uncompressed (if codec available)" passed after 0.089 seconds.
+✔ Test "Transcode simple data element from Implicit to Explicit VR" passed after 0.089 seconds.
+✔ Test "Can decompress RLE to uncompressed" passed after 0.089 seconds.
+✔ Test "Transcode simple data element from Explicit to Implicit VR" passed after 0.089 seconds.
+✔ Test "Transcode same syntax returns unchanged data" passed after 0.089 seconds.
+✔ Test "Can transcode to compressed syntax with encoder support" passed after 0.089 seconds.
+✔ Test "Converter with custom configuration" passed after 0.089 seconds.
+✔ Test "Select target syntax returns nil when none compatible" passed after 0.089 seconds.
+✔ Test "Cannot encode 16-bit with JPEG Baseline" passed after 0.089 seconds.
+✔ Test "Can encode 8-bit grayscale" passed after 0.089 seconds.
+✔ Test "Cannot encode 8-bit RGB (ImageIO colour has no valid Table 8.2.1-1 label)" passed after 0.089 seconds.
+✔ Test "Speed descriptions are meaningful" passed after 0.089 seconds.
+✔ Test "Cannot encode when lossless is preferred" passed after 0.089 seconds.
+✔ Test "Transcode throws for unsupported target" passed after 0.090 seconds.
+✔ Test "Implicit native OW agrees across eager and lazy reads; metadata mode omits pixels" with 2 test cases passed after 0.089 seconds.
+✔ Test "Truncated segments and other JPEG processes cannot be relabeled" passed after 0.090 seconds.
+✔ Test "Explicit Pixel Data VR is retained, including a wrong OB16 for later validation" passed after 0.089 seconds.
+✔ Test "Encode simple 8-bit grayscale frame" passed after 0.089 seconds.
+✔ Test "Implicit16 to explicit preserves OW and numerical samples through both conversion paths" passed after 0.089 seconds.
+✔ Test "Marker walk skips APP payload marker lookalikes and preserves every other byte" passed after 0.090 seconds.
+✔ Test "Extended8 writes SOF1 and strict decoders produce the same pixels as Baseline" passed after 0.090 seconds.
+✔ Test "canEncode enforces each JPEG process's pixel constraints" passed after 0.089 seconds.
+✔ Test "Transcode 8-bit to JPEG Baseline produces valid output" passed after 0.089 seconds.
+✔ Test "Allocated16 always writes OW, including Stored8, with correct target word order" with 3 test cases passed after 0.089 seconds.
+✔ Test "Odd-sized frames concatenate without padding between frames" passed after 0.089 seconds.
+✔ Test "canEncode rejects 12-bit YBR_FULL_422 (JLIEncoder's YCbCr passthrough is 8-bit only)" passed after 0.089 seconds.
+✔ Test "CodecRegistry exposes a JLISwift decoder and encoder for all four JPEG syntaxes" passed after 0.089 seconds.
+✔ Test "One odd8-bit frame has a single final NUL and native explicit OB or implicit OW" passed after 0.089 seconds.
+✔ Test "Bare JLICodec() encodes lossless regardless of a lossy configuration" passed after 0.089 seconds.
+✔ Test "Baseline encode routes YBR_FULL_422 input through the YCbCr passthrough, not the RGB transform" passed after 0.089 seconds.
+✔ Test "Registry Extended (.51) lossy round-trip handles 12-bit with high fidelity" passed after 0.089 seconds.
+✔ Test "Converter with compression configuration" passed after 0.089 seconds.
+✔ Suite "TranscodingConfiguration Tests" passed after 0.090 seconds.
+✔ Test "Transcode 8-bit to JPEG 2000 Lossless produces valid encapsulated data" passed after 0.089 seconds.
+✔ Suite "TranscodingError Tests" passed after 0.090 seconds.
+✔ Suite "CodecRegistry Encoder Tests" passed after 0.090 seconds.
+✔ Suite "CompressionConfiguration Tests" passed after 0.090 seconds.
+✔ Suite "TranscodingResult Tests" passed after 0.091 seconds.
+✔ Suite "CompressionQuality Tests" passed after 0.090 seconds.
+✔ Suite "TransferSyntaxConverter Tests" passed after 0.091 seconds.
+✔ Suite "NativeJPEGCodec Encoder Tests" passed after 0.090 seconds.
+✔ Suite "CompressionSpeed Tests" passed after 0.090 seconds.
+✔ Suite "M7 native Pixel Data VR, byte order and final padding" passed after 0.090 seconds.
+✔ Suite "M7 JPEG Extended 8-bit coding process" passed after 0.091 seconds.
+✔ Suite "TransferSyntaxConverter Compression Tests" passed after 0.090 seconds.
+✔ Test "Registry lossless round-trip is bit-exact" with 7 test cases passed after 0.092 seconds.
+✔ Test "Roundtrip: transcode to JPEG 2000 then back to uncompressed preserves pixel data" passed after 0.093 seconds.
+✔ Test "Registry Baseline (.50) lossy round-trip keeps size and high fidelity" with 2 test cases passed after 0.093 seconds.
+✔ Suite "JLISwift JPEG codec — registry wiring & lossy/lossless modes" passed after 0.094 seconds.
+✔ Test "Transcode 16-bit to JPEG 2000 Lossless preserves data" passed after 0.093 seconds.
+✔ Suite "End-to-End Compression Transcoding Tests" passed after 0.094 seconds.
+✔ Test "12-bit grayscale JPEG 2000: deprecated ImageIO path corrupts, supported path round-trips" passed after 0.101 seconds.
+✔ Suite "NativeJPEG2000Codec Encoder Tests" passed after 0.101 seconds.
+✔ Test run with 75 tests in 15 suites passed after 0.101 seconds.

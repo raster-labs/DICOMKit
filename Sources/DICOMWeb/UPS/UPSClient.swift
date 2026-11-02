@@ -181,7 +181,7 @@ public final class UPSClient: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - workitem: The workitem data as DICOM JSON
-    ///   - uid: Optional specific UID to use (if nil, server will generate)
+    ///   - uid: Optional query UID. If nil, preserve the Data Set UID or generate a client UID.
     /// - Returns: Response with the created workitem UID
     /// - Throws: DICOMwebError on failure, UPSError.workitemAlreadyExists if UID conflicts
     ///
@@ -190,20 +190,12 @@ public final class UPSClient: @unchecked Sendable {
         workitem: [String: Any],
         uid: String? = nil
     ) async throws -> UPSCreateResponse {
-        // Per PS3.18 §11.4: POST /workitems?workitem={uid} for client-specified UID,
-        // POST /workitems for server-generated UID.
-        // NOTE: POST /workitems/{uid} is the UPDATE endpoint (§11.5), not CREATE.
-        let url: URL
-        if let uid = uid {
-            url = urlBuilder.createWorkitemURL(workitemUID: uid)
-        } else {
-            url = urlBuilder.workitemsURL
-        }
-        
-        // Per PS3.18 Section 11.4 and PS3.4 Table CC.2.5-3, enforce attributes
-        // for UPS-RS Create request body
-        var filteredWorkitem = workitem
-        filteredWorkitem.removeValue(forKey: UPSTag.sopInstanceUID)       // (0008,0018) in URL
+        let identity = try UPSCreateIdentity(workitem: workitem, explicitUID: uid)
+        let url = identity.usesQueryParameter
+            ? urlBuilder.createWorkitemURL(workitemUID: identity.uid)
+            : urlBuilder.workitemsURL
+
+        var filteredWorkitem = identity.workitem
         // Procedure Step State (0074,1000) MUST be SCHEDULED for N-CREATE per PS3.4 CC.2.5-3
         filteredWorkitem[UPSTag.procedureStepState] = ["vr": "CS", "Value": ["SCHEDULED"]]
         
@@ -224,16 +216,17 @@ public final class UPSClient: @unchecked Sendable {
         do {
             response = try await httpClient.execute(request)
         } catch let error as DICOMwebError {
-            if case .httpError(let statusCode, _) = error, statusCode == 409 {
-                let existingUID = uid ?? "unknown"
-                throw UPSError.workitemAlreadyExists(uid: existingUID)
+            switch error {
+            case .conflict, .httpError(statusCode: 409, message: _):
+                throw UPSError.workitemAlreadyExists(uid: identity.uid)
+            default:
+                throw error
             }
-            throw error
         }
         
         // Extract workitem UID from Location header or response
         let locationHeader = response.header("Location")
-        let workitemUID = extractWorkitemUID(from: locationHeader) ?? uid ?? ""
+        let workitemUID = extractWorkitemUID(from: locationHeader) ?? identity.uid
         
         // Check for warnings
         let warnings = extractWarnings(from: response)

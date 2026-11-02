@@ -1,0 +1,37 @@
+OVERVIEW: Create a DICOMDIR from a directory of DICOM files
+
+USAGE: dicom-dcmdir create <input-directory> [--output <output>] [--file-set-id <file-set-id>] [--profile <profile>] [--recursive] [--no-recursive] [--strict] [--copy-to <copy-to>] [--verbose]
+
+ARGUMENTS:
+  <input-directory>       Directory containing DICOM files
+
+OPTIONS:
+  -o, --output <output>   Output DICOMDIR path (default: DICOMDIR in input
+                          directory)
+  --file-set-id <file-set-id>
+                          File-set ID (0004,1130): up to 16 characters A-Z,
+                          0-9, _ (PS3.10 8.1, 8.5); any other value is refused
+                          (exit 1); default: the directory name upper-cased,
+                          other characters as _, cut to 16
+  --profile <profile>     PS3.11 Application Profile identifier, e.g.
+                          STD-GEN-CD (default), STD-GEN-DVD-JPEG,
+                          STD-GEN-DVD-J2K, STD-GEN-USB-JPEG, STD-GEN-USB-J2K,
+                          STD-GEN-BD-JPEG (deprecated: STD-GEN-DVD,
+                          STD-GEN-USB, STD-GEN-SEC, STD-CTMR-XXXX, STD-US-XXXX
+                          are not PS3.11 identifiers; still accepted with a
+                          warning) (default: STD-GEN-CD)
+  --recursive/--no-recursive
+                          Recursively scan subdirectories (default: on)
+                          (default: --recursive)
+  --strict                Include only valid DICOM files
+  --copy-to <copy-to>     Copy the files into a new File-set in this folder
+                          under File IDs the tool assigns,
+                          DICOM\PTnnnnnn\STnnnnnn\SEnnnnnn\IMnnnnnn (PS3.10
+                          8.2, 8.5), and write the DICOMDIR there (default
+                          output: <folder>/DICOMDIR). Without it, files are
+                          indexed in place and a path that is not a PS3.10 File
+                          ID (e.g. img1.dcm) is refused
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

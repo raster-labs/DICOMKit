@@ -1,0 +1,103 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button (selected) Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-convert, Help: Transfer syntax conversion and image export
+			24 button (selected) Description: dicom-validate, Help: DICOM conformance validation against IODs
+			25 button Description: dicom-anon, Help: Anonymize DICOM files following PS3.15 profiles
+			26 button Description: dicom-compress, Help: Compress and decompress DICOM pixel data
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 text (selected) DICOM Validate. Checks a DICOM file for conformance against the matching IOD and returns a structured report. Parameters Input Input File/Directory
+						32 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm
+						33 button Description: Browse for Input File/Directory, Help: Opens a file picker dialog
+						34 text DICOM file or directory to validate Parameters Validation Level --level
+						35 Validation Level
+							36 radio button Description: 1, Value: 0
+							37 radio button Description: 2, Value: 1
+							38 radio button Description: 3, Value: 0
+							39 radio button Description: 4, Value: 0
+							40 radio button Description: 5, Value: 0
+						41 text Validation level (1-5): 1=File Meta Information (PS3.10 Table 7.1-1), 2=VR and VM against PS3.6 Table 6-1, value length, character repertoire and DA/TM/UI/AS/DS/IS value forms (PS3.5 Table 6.2-1, 6.2.1, 9.1), 3=IOD Type 1/1C/2/2C (PS3.3), 4=Best practices, 5=J2K codestream Output Format --format
+						42 Output Format
+							43 radio button Description: text, Value: 0
+							44 radio button Description: json, Value: 1
+						45 text Output format for the validation report Options
+						46 checkbox Description: Detailed, Value: 0
+						47 checkbox Description: Recursive, Value: 0
+						48 checkbox Description: Strict Mode, Value: 0
+						49 text Help: Shows additional flags for this tool, Value: Parameters IOD Override --iod
+						50 text field (settable) Description: IOD Override, Help: Shows additional flags for this tool, Placeholder: e.g. CTImageStorage or 1.2.840.10008.5.1.4.1.1.2
+						51 text Help: Shows additional flags for this tool, Value: IOD to validate against: SOP Class keyword or UID of PS3.6 Table A-1 (e.g. CTImageStorage, MRImageStorage, ComputedRadiographyImageStorage, UltrasoundImageStorage, SecondaryCaptureImageStorage, GrayscaleSoftcopyPresentationStateStorage, PseudoColorSoftcopyPresentationStateStorage, an SR or Key Object Selection keyword); short names CT, MR, CR, US, SC, GSPS, SR, KOS also accepted; default: from SOP Class UID (0008,0016) Options
+						52 checkbox Description: Force Parse, Help: Shows additional flags for this tool, Value: 0
+						53 text Help: Shows additional flags for this tool, Value: Output Save Report To --output
+						54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json
+						55 button Description: Browse for Save Report To, Help: Shows additional flags for this tool
+						56 text Help: Shows additional flags for this tool, Value: Write the validation report to a file instead of (or in addition to) the console
+						57 disclosure triangle Description: Advanced options (3), Help: Shows additional flags for this tool, Value: on
+						58 scroll bar (settable, float) 1
+							59 value indicator (settable, float) 1
+							60 increment arrow button
+							61 decrement arrow button
+							62 increment page button
+							63 decrement page button
+					64 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					65 button Description: Run command, Help: Runs the selected Workshop action
+				66 splitter (disabled, settable, float) 460
+				67 container
+					68 text Command Preview Valid $ Select a tool to build a command
+					69 button Description: Copy command, Help: Copies the command to the clipboard
+					70 text Console ERROR
+					71 button Description: Copy console output, Help: Copies the console output to the clipboard
+					72 button Clear console output
+					73 scroll area
+						74 text $ dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json
+
+
+							75 text $ dicom-validate /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/invalid_calendar_date.dcm --level 2 --format json --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json
+
+
+					76 text History
+					77 button Clear
+					78 scroll area
+						79 text dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate
+	80 toolbar
+		81 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		82 search text field (settable) Search features
+			83 button Search
+	84 close button
+	85 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	86 minimize button
+	87 text DICOM Studio
+88 menu bar
+	89 DICOMStudio
+	90 File
+	91 Edit
+	92 View
+	93 Image
+	94 Window
+	95 Help
+
+The focused UI element is 54 text field (settable) Description: Save Report To, Help: Shows additional flags for this tool, Placeholder: Optional output file path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json

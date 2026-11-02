@@ -1,0 +1,20 @@
+Test Suite 'Selected tests' started at 2026-11-02 11:20:12.172.
+Test Suite 'DICOMNetworkTests.xctest' started at 2026-11-02 11:20:12.177.
+Test Suite 'PrintConformanceLoopbackTests' started at 2026-11-02 11:20:12.177.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout]' passed (0.018 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testPrinterNGetWithoutDataSetIsUnknown]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testPrinterNGetWithoutDataSetIsUnknown]' passed (0.002 seconds).
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testWorkflowRecordsTheReferencedPrintJob]' started.
+Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testWorkflowRecordsTheReferencedPrintJob]' passed (0.002 seconds).
+Test Suite 'PrintConformanceLoopbackTests' passed at 2026-11-02 11:20:12.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.022 (0.022) seconds
+Test Suite 'DICOMNetworkTests.xctest' passed at 2026-11-02 11:20:12.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.022 (0.022) seconds
+Test Suite 'Selected tests' passed at 2026-11-02 11:20:12.199.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.022 (0.028) seconds
+[colour-wire phase] connecting
+[colour-wire phase] creatingSession
+[colour-wire phase] uploadingImages(current: 1, total: 1)
+[colour-wire phase] printing
+[colour-wire phase] cleanup

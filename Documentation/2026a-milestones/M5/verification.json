@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "milestone": "M5",
+  "verified_at_utc": "2026-10-24T14:17:43.291835+00:00",
+  "baseline_commit": "441ae21ab09bbb18687baa06baa131831a3ac10d",
+  "branch": "codex/dicom-2026a-milestones",
+  "local_result": "Passed within recorded scope",
+  "criteria": {
+    "criteria": 24,
+    "Passed": 22,
+    "Not applicable": 2,
+    "missing_criteria": 0
+  },
+  "source_provenance": "evidence/source-provenance.json",
+  "source_hash_manifest": "source-hashes.json",
+  "frozen_binary_hash_manifest": "evidence/binary-hashes.json",
+  "implementation_snapshot_count": 27,
+  "build_environment_observed": {
+    "architecture": "arm64",
+    "build_configuration": "Debug",
+    "Xcode_build": "27A266a (app-build.log)",
+    "macOS_SDK": "27.0 (app-build.log)",
+    "scheme": "temporary app-only DICOMStudio-M5App copied from checked-in DICOMStudio.xcscheme",
+    "application_build_result": "BUILD SUCCEEDED; DICOMStudioApp linked"
+  },
+  "regular_suites": {
+    "DICOMToolboxTests": {
+      "XCTest_passed": 11,
+      "SwiftTesting_passed": 488,
+      "total_passed": 499,
+      "log": "evidence/DICOMToolboxTests.log"
+    },
+    "DICOMStudioTests": {
+      "XCTest_passed": 16,
+      "XCTest_skipped_opt_in": 1,
+      "SwiftTesting_passed": 197,
+      "total_passed": 213,
+      "log": "evidence/DICOMStudioTests.log"
+    },
+    "DICOMRoundTripTests.ScriptRoundTripTests": {
+      "XCTest_passed": 28,
+      "total_passed": 28,
+      "log": "evidence/DICOMRoundTripTests.log"
+    }
+  },
+  "regular_suite_passed_total": 740,
+  "separately_activated_harness": {
+    "method": "DICOMStudioTests.M5WorkshopActionHarnessTests.testConfiguredWorkshopActions",
+    "passed": 1,
+    "actions": 23,
+    "log": "evidence/workshop/workshop.log",
+    "result": "evidence/workshop/workshop.json",
+    "initial_skip_not_counted": true
+  },
+  "audit_regressions": {
+    "passed": 30,
+    "log": "evidence/audit-regressions.log",
+    "tree": "M4 baseline git archive + exact frozen M5 overlay"
+  },
+  "campaigns": {
+    "toolbox_CLI": {
+      "passed": 23,
+      "result": "evidence/toolbox-cli/results.json"
+    },
+    "workshop_CLI": {
+      "passed": 22,
+      "result": "evidence/workshop/results.json"
+    },
+    "workshop_VM": {
+      "passed": 23,
+      "result": "evidence/workshop/workshop.json"
+    },
+    "native_packaged_GUI": {
+      "passed": 10,
+      "result": "evidence/ui/ui-verification.json"
+    },
+    "paired_native_GUI_QR_CLI_replays": {
+      "passed": 2,
+      "result": "evidence/ui/comparisons.json"
+    },
+    "SR_exact_display_records": {
+      "passed": 16,
+      "result": "evidence/sr-results.json"
+    }
+  },
+  "independent_review": "evidence/independent-review.json",
+  "repair_provenance": "evidence/repair-provenance.json",
+  "limits": [
+    "Local focused M5 qualification only; not complete-project DICOM conformance or a clinical deployment certification.",
+    "DICOMToolbox is a separate library not linked into DICOMStudio and has no standalone app target in this repository. Its form/validated argv/history tests and actual CLI process oracle are executed; packaged Toolbox UI is not applicable, not passed.",
+    "No live Workshop script dispatcher or actual interactive QR selection was added; the two conditional criteria remain not applicable and those enhancements stay deferred.",
+    "Only workflow template was manually exercised in native UI. All five templates were exercised by actual CLI and ViewModel runtime.",
+    "GUI Dry Run is explicitly operator-witnessed; its retained AX file is a no-change delta, supplemented by the observation record and separate automated evidence.",
+    "Synthetic metadata/one-pixel fixtures and loopback service only. No physical printer, external PACS, complete IOD, OCR/pixel-cleaning quality, or broad interoperability claim.",
+    "M0 audit regressions test extraction behavior; they do not close unrelated findings or establish all-tool runtime coverage.",
+    "The audit was rerun on a coherent frozen M5 overlay after concurrent M6 edits invalidated a mixed-tree run. M6 edits and mixed-tree failures are excluded from this M5 record.",
+    "No M5 exact-head remote CI, merge, release, or publication is asserted by this local evidence package."
+  ]
+}

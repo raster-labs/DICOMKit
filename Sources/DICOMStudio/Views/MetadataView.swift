@@ -193,7 +193,7 @@ struct MetadataTreeRowView: View {
 
             // Copy button
             Button {
-                copyToClipboard(ClipboardHelper.formatValueForClipboard(node.value))
+                copyToClipboard(node.copyValue)
             } label: {
                 Image(systemName: "doc.on.doc")
                     .font(.caption2)
@@ -201,7 +201,7 @@ struct MetadataTreeRowView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Copy value of \(node.name)")
-            .help("Copy tag value to clipboard")
+            .help("Copy value without display formatting")
 
             // Length
             Text(node.lengthString)

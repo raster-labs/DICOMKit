@@ -1,0 +1,4 @@
+{"level":"info","message":"Listening on port 21114 as COLLISION","time":"2026-10-26T05:52:59Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association from M7CLI (127.0.0.1:57213)","time":"2026-10-26T05:53:18Z"}
+{"callingAE":"M7CLI","level":"connection","message":"Association released by M7CLI","time":"2026-10-26T05:53:18Z"}
+{"level":"info","message":"Stopped — 1 association, 0 films, 0 errors (interrupted)","time":"2026-10-26T05:53:18Z"}

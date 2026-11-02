@@ -1,0 +1,18 @@
+[
+  {
+    "id": "info-latin",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "info-japanese",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "info-utf8",
+    "status": "SUCCESS"
+  },
+  {
+    "id": "info-nested-charsets",
+    "status": "SUCCESS"
+  }
+]

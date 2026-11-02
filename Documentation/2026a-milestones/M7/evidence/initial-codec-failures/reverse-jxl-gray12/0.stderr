@@ -1,0 +1,4 @@
+JPEG XL encoder v0.12.0 0.12.0 [_NEON_BF16_,NEON] {AppleClang 21.0.0.21000099}
+Encoding [Modular, lossless, effort: 3]
+Compressed to 720 bytes (1.875 bpp).
+64 x 48, 6.106 MP/s, 10 threads.

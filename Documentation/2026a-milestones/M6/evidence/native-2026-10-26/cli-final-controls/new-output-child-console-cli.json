@@ -1,0 +1,46 @@
+{
+  "recordedUTC": "2026-10-26T06:36:13.626484+00:00",
+  "nativeSource": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-repaired/new-output-child-console.txt",
+  "nativeSHA256": "d89e913ae38133d04928fa79a347dcee31fb13e9b3d7edbe98eacce3e12b4dda",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "simulate",
+    "--dpi",
+    "36",
+    "--max-pixels",
+    "1024",
+    "--output",
+    "png",
+    "--output-dir",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-new-output-child",
+    "--name-pattern",
+    "created-{timestamp}-{index}",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+    "--copies",
+    "1",
+    "--frame",
+    "1",
+    "--bit-depth",
+    "8",
+    "--calling-ae",
+    "SIMULATE",
+    "--format",
+    "json",
+    "--",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+  ],
+  "explicitOutputPathMapping": [
+    {
+      "index": 9,
+      "native": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/new-output-child",
+      "CLI": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-new-output-child"
+    }
+  ],
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.10629224999999998,
+  "stdout": "{\n  \"annotations\" : [\n\n  ],\n  \"borderDensity\" : \"BLACK\",\n  \"callingAETitle\" : \"SIMULATE\",\n  \"columns\" : 1,\n  \"densityMapping\" : \"PAPER\",\n  \"dpi\" : 36,\n  \"emptyImageDensity\" : \"BLACK\",\n  \"filledImageBoxCount\" : 1,\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792996573594838.601951\",\n  \"filmOrientation\" : \"PORTRAIT\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792996573594775.955454\",\n  \"filmSize\" : \"14INX17IN\",\n  \"imageBoxCount\" : 1,\n  \"imageDisplayFormat\" : \"STANDARD\\\\1,1\",\n  \"magnificationType\" : \"REPLICATE\",\n  \"mediumType\" : \"PAPER\",\n  \"numberOfCopies\" : 1,\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792996573594860.442795\",\n  \"receivedAt\" : \"2026-10-26T06:36:13Z\",\n  \"rows\" : 1,\n  \"sheetHeightMillimeters\" : 431.79999999999995,\n  \"sheetWidthMillimeters\" : 355.59999999999997,\n  \"skippedImageBoxes\" : [\n\n  ],\n  \"trim\" : \"NO\"\n}\n",
+  "stderr": ""
+}

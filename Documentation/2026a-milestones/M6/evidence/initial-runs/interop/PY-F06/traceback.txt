@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 904, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 830, in <lambda>
+    ('PY-F06','DICOMKit SCU to pynetdicom: N-ACTION warning surfaced',lambda c:py_forward(c,'action-warning')),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 712, in py_forward
+    require('warn' in (result.stdout()+result.stderr()).lower(),'warning not surfaced')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 51, in require
+    raise AssertionError(message)
+AssertionError: warning not surfaced

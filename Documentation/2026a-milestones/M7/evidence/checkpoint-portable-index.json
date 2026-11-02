@@ -1,0 +1,2130 @@
+{
+  "recorded_utc": "2026-10-26T09:14:23.825676+00:00",
+  "original_bytes_preserved": true,
+  "mapping": {
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/audit_cancel.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/audit_cancel.py",
+      "sha256": "d64d1c50e4fba1bc2a3473c99a64b3f7c9947f7170791cf256c3433e01caf3f9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/audit_find.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/audit_find.py",
+      "sha256": "190f0fb99a33eb1549be58a6b3124edab3c46861eb08689da4a251a46eb921f2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/audit_http_mwl.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/audit_http_mwl.py",
+      "sha256": "3a4f406d246b9b69e8b5089b32e15ff0f5ff99d04ae887789525b1e64e0efb9d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/audit_server_mpps_ups-initial-oracle.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/audit_server_mpps_ups-initial-oracle.py",
+      "sha256": "a0f57e96c57867dbf5f6d405444754e8cccfce95afd1deeffd407f932b5e6993"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/audit_server_mpps_ups.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/audit_server_mpps_ups.py",
+      "sha256": "97fb29d28889738af1066ebdd41e6e978da0de6184173901cdbb7e6c37f2daf9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/finished.json",
+      "sha256": "4ffa59d65266f6c6fcbb0abcc32a6282004b70c7fbab90d9dc584f6ea42bc544"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/ready.json",
+      "sha256": "2b1c0a33ba9d2ba0ec1b19118af9763f6a752facf0c69c6bcc2b3fe7236df636"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-001.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-001.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-001.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-001.identifier.bin",
+      "sha256": "755c8294cc893a4f681aa6ff502a5b5fb34d79fd7a16720146d7811cc8572939"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-001.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-001.terminal.bin",
+      "sha256": "a5df7b1599bfc40cc3c902aff8421426ae726a51f78cc44710f01bcf62dd7f0d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-002.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-002.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-002.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-002.identifier.bin",
+      "sha256": "58ba689f37836cf652811114ab3e7f77e16b8fc8038cb265e4a698ac812898a5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-002.partial.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-002.partial.bin",
+      "sha256": "4123556456875ba9e73150945cb69a5f25821edb6afe995d3761fbb49ef47ff6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-002.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-002.terminal.bin",
+      "sha256": "a5df7b1599bfc40cc3c902aff8421426ae726a51f78cc44710f01bcf62dd7f0d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-003.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-003.command.bin",
+      "sha256": "54f138b9573157b1c6f96bf99e490b07baf513bc18989e53c2cc8fdb0580a8c5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-003.failed-uids.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-003.failed-uids.bin",
+      "sha256": "78f98028f15cfdb0aeae95470ba01fc781cb158455cf868ad536b9d92c37be45"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-003.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-003.identifier.bin",
+      "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-003.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-003.terminal.bin",
+      "sha256": "cf403bc86ec61ac2fd86481fe684e9c5666db34ba31e0f7ec01d35eb89f814a1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-004.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-004.command.bin",
+      "sha256": "91eb0de45a32cb681393bb41a684a160473a8f2c95d882d59846dd0e09fd2ace"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-004.failed-uids.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-004.failed-uids.bin",
+      "sha256": "78f98028f15cfdb0aeae95470ba01fc781cb158455cf868ad536b9d92c37be45"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-004.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-004.identifier.bin",
+      "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-004.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-004.terminal.bin",
+      "sha256": "654797dd5e5de6446a82273897ad99ae4b52fefbfdce23dc421f3985911fc27c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-005.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-005.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-005.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-005.identifier.bin",
+      "sha256": "755c8294cc893a4f681aa6ff502a5b5fb34d79fd7a16720146d7811cc8572939"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-005.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-005.terminal.bin",
+      "sha256": "a5df7b1599bfc40cc3c902aff8421426ae726a51f78cc44710f01bcf62dd7f0d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-006.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-006.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-006.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-006.identifier.bin",
+      "sha256": "58ba689f37836cf652811114ab3e7f77e16b8fc8038cb265e4a698ac812898a5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-006.partial.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-006.partial.bin",
+      "sha256": "4123556456875ba9e73150945cb69a5f25821edb6afe995d3761fbb49ef47ff6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-006.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-006.terminal.bin",
+      "sha256": "a5df7b1599bfc40cc3c902aff8421426ae726a51f78cc44710f01bcf62dd7f0d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-007.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-007.command.bin",
+      "sha256": "54f138b9573157b1c6f96bf99e490b07baf513bc18989e53c2cc8fdb0580a8c5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-007.failed-uids.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-007.failed-uids.bin",
+      "sha256": "78f98028f15cfdb0aeae95470ba01fc781cb158455cf868ad536b9d92c37be45"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-007.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-007.identifier.bin",
+      "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-007.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-007.terminal.bin",
+      "sha256": "cf403bc86ec61ac2fd86481fe684e9c5666db34ba31e0f7ec01d35eb89f814a1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-008.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-008.command.bin",
+      "sha256": "91eb0de45a32cb681393bb41a684a160473a8f2c95d882d59846dd0e09fd2ace"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-008.failed-uids.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-008.failed-uids.bin",
+      "sha256": "78f98028f15cfdb0aeae95470ba01fc781cb158455cf868ad536b9d92c37be45"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-008.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-008.identifier.bin",
+      "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/request-008.terminal.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/request-008.terminal.bin",
+      "sha256": "654797dd5e5de6446a82273897ad99ae4b52fefbfdce23dc421f3985911fc27c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/state.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/state.json",
+      "sha256": "5faad68d5a2826a796d2e4e30c5dcef3dfeeac3b21a62ceeee9839f5d5ffde80"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel-native-before-cli.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel-native-before-cli.json",
+      "sha256": "b19bd63d609e1d0e5b5ab82ce1d9e5153616c928ebe48487f378cba75fb04f46"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cancel-peer-launch.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cancel-peer-launch.json",
+      "sha256": "6402de94e6d1fd3f3834fc1fdba652afa8c33a8ce5f730b600bbd3cb5693e8aa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-partial/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-partial/execution.json",
+      "sha256": "b63f3688871a64c25727240af951a005fc713b5197e3f81c6f04e0f2d3d7637a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-partial/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-partial/stderr.txt",
+      "sha256": "7d6f611cbd7250c23fb32e12416f87f96b9af40dfec1732fdb46d69c6938ca16"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-partial/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-partial/stdout.txt",
+      "sha256": "d34c19d98322f691e762bc7d88d888b6bf921b30bdf0b5bc8ad1c94629142189"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-zero/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-zero/execution.json",
+      "sha256": "f61df05d113774f870259fbe17995bef3712528844c6fba481ac8e1dd3aa3b2a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-zero/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-zero/stderr.txt",
+      "sha256": "eeabcd66c20c51e8b2c52e8dac28231133beef4766472c5ddc0ec300d91c22e7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-cancel-zero/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-cancel-zero/stdout.txt",
+      "sha256": "2ba33ca0557f1bb5b7ba88d67f9d0093c7185a36ec51fe2b7bd9372d3e001d6d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image/execution.json",
+      "sha256": "7a38e06c2392f25b41fdb0eb619c51f71e2a4b6f4d539300808a9c1bd1a87ee2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image/stdout.txt",
+      "sha256": "cc74134703c4772499229c02e503b40864ad4440f03057d1e7a5fae5e9130bc8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image-modality-refusal/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image-modality-refusal/execution.json",
+      "sha256": "828761be1a8fc279b045a2c90754ea54fe58ce2473cac45bcc5bfbbe6100d2cb"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image-modality-refusal/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image-modality-refusal/stderr.txt",
+      "sha256": "6aae59704f4f544181b66a8685a738b156343d9349322c5b8dedaa3a4892d0c4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-image-modality-refusal/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-image-modality-refusal/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-date-refusal/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-date-refusal/execution.json",
+      "sha256": "f79701ced6e9f03034f1cfb87d1027886181f9b7dda06c2bafcd111480043963"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-date-refusal/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-date-refusal/stderr.txt",
+      "sha256": "ce95f0afccdd9e299a0180faadaf3877f5e0131c2c871d639388377807112944"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-date-refusal/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-date-refusal/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-description-refusal/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-description-refusal/execution.json",
+      "sha256": "0f97bb06e9c3fa9f17e650b09518586abfe9ff4c89a06fd3a57f625a2c10a330"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-description-refusal/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-description-refusal/stderr.txt",
+      "sha256": "253de6f4d6eacc7c39f63592abd666897215c323d198776d6a73a59757698184"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-description-refusal/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-description-refusal/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-uid-refusal/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-uid-refusal/execution.json",
+      "sha256": "dab0bdf97eb0e615828e4774a8841c66224117a8dc17bcfc49ee244abb168686"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-uid-refusal/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-uid-refusal/stderr.txt",
+      "sha256": "b170f10b5455ee608c116c5f1b46cdc240f917b99d18b2a6aef9ec6134ffdcce"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-patient-uid-refusal/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-patient-uid-refusal/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-series-ct/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-series-ct/execution.json",
+      "sha256": "f4f4419d3ab070490b839bdb94a39572ac6af829a8c3534271fa6cd182ae022a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-series-ct/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-series-ct/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-series-ct/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-series-ct/stdout.txt",
+      "sha256": "6c7df818371b0512927cf942de608a94e1d9f105f889bb45b17eb32310c595df"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-study-ct/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-study-ct/execution.json",
+      "sha256": "9ca4175290a8fb85ea6fb330f102ec7fb3213a684d148e80d4c00ccea871bbce"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-study-ct/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-study-ct/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/find-study-ct/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/find-study-ct/stdout.txt",
+      "sha256": "f6ac02348c0a2499cd218fc345843c0a8e7ae41f81be27d3d40fa38a963b1a08"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-ct/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-ct/execution.json",
+      "sha256": "78c7ee3b7ccb0f26725182142af8bd5512ff7f6b1cf4b8b239b659bd9496392e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-ct/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-ct/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-ct/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-ct/stdout.txt",
+      "sha256": "409d643b6f58296f51c2cab339cb1fc72e1abff00d0619ec698ee9940c6a597f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-missing-class/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-missing-class/execution.json",
+      "sha256": "f0a4742b6f9a7dcf2d3e806e3403fd69fda377aebd05cd8d78baa108afebd451"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-missing-class/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-missing-class/stderr.txt",
+      "sha256": "9d2ab032ea719eee3a7d15cd17fcf1d98c6a0f62ef44bd765cba2468c54c32aa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-missing-class/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-missing-class/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-mr/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-mr/execution.json",
+      "sha256": "c5032e6735c4022fb4d4367e2f1cdb2de3b99c20a8170529e13663f1726c8b6f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-mr/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-mr/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-mr/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-mr/stdout.txt",
+      "sha256": "409d643b6f58296f51c2cab339cb1fc72e1abff00d0619ec698ee9940c6a597f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-sc/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-sc/execution.json",
+      "sha256": "f6c8a56831d7be4da3c2db53911b7d8dfc27de466cf1ed9776fce4b9b654db80"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-sc/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-sc/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mpps-sc/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mpps-sc/stdout.txt",
+      "sha256": "409d643b6f58296f51c2cab339cb1fc72e1abff00d0619ec698ee9940c6a597f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-bounded-range/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-bounded-range/execution.json",
+      "sha256": "f075b4050ec620c5acb410a2d1aac21907250bcdb9b78abbf1a63e782e48b712"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-bounded-range/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-bounded-range/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-bounded-range/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-bounded-range/stdout.txt",
+      "sha256": "ac6e269fbe2018d15bcb8e9fcbe10a22edfe7cabb0b1d23284d2e343111d3039"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-date/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-date/execution.json",
+      "sha256": "dc82c1a304e7d1f1f3c0a9f92f19997b80f02a902693c831c3ce46d8a6a28fa6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-date/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-date/stderr.txt",
+      "sha256": "f88c5995515783583de5dc44c29c7b3aee1768c90d6949f8255df06f39cca9e3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-date/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-date/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-time/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-time/execution.json",
+      "sha256": "43c7fbc6055d7a8c744803d2ef523b4bfbd7481c6aa6a261349f1ad29525ae76"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-time/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-time/stderr.txt",
+      "sha256": "e1873c1563a5e5aac18d493f6a05f29981362a0f42d6e594ed80111a87d05d6c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-invalid-time/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-invalid-time/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-open-range/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-open-range/execution.json",
+      "sha256": "80c2ae1e2735a0ce04c2fcfe3b43070f9ffa863dd2a2b65e0e5df2d167ea21d2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-open-range/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-open-range/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-open-range/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-open-range/stdout.txt",
+      "sha256": "ac6e269fbe2018d15bcb8e9fcbe10a22edfe7cabb0b1d23284d2e343111d3039"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-scalar/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-scalar/execution.json",
+      "sha256": "209118e1377dc70ff5d8bcd8bfa7dd3d83619afce5d62f6f208f41acd2661d72"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-scalar/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-scalar/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/mwl-scalar/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/mwl-scalar/stdout.txt",
+      "sha256": "ac6e269fbe2018d15bcb8e9fcbe10a22edfe7cabb0b1d23284d2e343111d3039"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-after-tool-reset/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-after-tool-reset/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-after-tool-reset/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-after-tool-reset/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-after-tool-reset/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-after-tool-reset/verification.json",
+      "sha256": "632cecd41efdeaab63d08fbe337f70687c2b6475bd5e13ecba8d780ce1b69d01"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-instances/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-instances/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-instances/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-instances/stdout.txt",
+      "sha256": "1bf952904df3cb974ca26922b4b62ea5a3197fda4c907aa2d127fd531db9dc53"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-instances/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-instances/verification.json",
+      "sha256": "01b9ad4f8485903d0c36edfb70a4a97020ee9bc1b3204d574a1023581f486d8b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-series/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-series/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-series/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-series/stdout.txt",
+      "sha256": "69f3f1ab7a32da3350843c5d6e12924ed92ee5b2acd9cff79c9ad675c9f809a7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-all-series/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-all-series/verification.json",
+      "sha256": "d8d2f8b6d7abe649fbf0391897404b7c7afdac1dc8e3d0dcb4adc07c1de32bd7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-basic/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-basic/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-basic/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-basic/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-basic/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-basic/verification.json",
+      "sha256": "eab59a0c426ee3adbf7fa867a47e74ddfbdaf82c37c8cd500286cc907aaad8ca"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-bearer/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-bearer/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-bearer/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-bearer/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-bearer/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-bearer/verification.json",
+      "sha256": "c26061bd07c71c9d752b04d95331655dc2aaaead192c6945f3dd15174ed52b54"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-instance-hidden-series/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-instance-hidden-series/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-instance-hidden-series/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-instance-hidden-series/stdout.txt",
+      "sha256": "fb82ac8e52379b8ffa2772b7d7d407b95be95d91e231c3584afccaaa48ad2723"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-instance-hidden-series/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-instance-hidden-series/verification.json",
+      "sha256": "f3e2a4871ce343264d3f2c35031b6b188518dab670fce2c0e7442b3964207b8a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-none/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-none/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-none/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-none/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-none/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-none/verification.json",
+      "sha256": "f8ae39b51834cc6fd9965bf7b5408f9fc137137d6eb65125c9ed40d1cb1eaae2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-scoped-series/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-scoped-series/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-scoped-series/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-scoped-series/stdout.txt",
+      "sha256": "e08bc45d65dd1c234a305847e677e8dd20e149e7fb5073f8b2edc9fc6753a0d0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-scoped-series/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-scoped-series/verification.json",
+      "sha256": "eed7fe768e88a8d342cd1beff0271cf3c53660c1cf5c47a1f85dd1cacb714d97"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-ct/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-ct/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-ct/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-ct/stdout.txt",
+      "sha256": "603866683d3b0084482777fa0b57d94034a1e16013371a93b053b60d99d1d5ff"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-ct/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-ct/verification.json",
+      "sha256": "7ef003019ccbd506c458b6229afc3e09e7e5ea32fb883c552fb949f3dbfdf75a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-hidden-parent/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-hidden-parent/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-hidden-parent/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-hidden-parent/stdout.txt",
+      "sha256": "304eefd1303422fd989c7ff6471b9ae73123fb651e9dd6393fae3a6bcaa37a1d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-hidden-parent/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-hidden-parent/verification.json",
+      "sha256": "8e162605b18dc0496cabb5b05da6ea1919c38a11a3f11f584b725db25ac3fb1a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-instances/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-instances/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-instances/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-instances/stdout.txt",
+      "sha256": "fb82ac8e52379b8ffa2772b7d7d407b95be95d91e231c3584afccaaa48ad2723"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-instances/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-instances/verification.json",
+      "sha256": "e5db04e71e6124cb546663d09169155b080f30830c4a9e09b55774aaab101ef6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-pps-parent/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-pps-parent/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-pps-parent/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-pps-parent/stdout.txt",
+      "sha256": "304eefd1303422fd989c7ff6471b9ae73123fb651e9dd6393fae3a6bcaa37a1d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-series-pps-parent/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-series-pps-parent/verification.json",
+      "sha256": "7a5263ca46c999a1dc5cd98c0613ed84e3945ea26d5da0f1b689ea47c756c915"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-ct/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-ct/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-ct/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-ct/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-ct/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-ct/verification.json",
+      "sha256": "8e15dcf095b3179a7f1198e786c6b25a1fcc473ed4b64a090a7ed2fb088eb186"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-instances/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-instances/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-instances/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-instances/stdout.txt",
+      "sha256": "4b0cda99375a49bd797cee910d4461984eeeed1c070de5cb173839bc30422d32"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-study-instances/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-study-instances/verification.json",
+      "sha256": "5296c043b94f37729f19fe51ff1632b337e8416b75a1509222b5f243c0050208"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-list/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-list/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-list/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-list/stdout.txt",
+      "sha256": "81f4337a29beb9a9a639aee6db67f12a35002062cad400506f15c8d0cbb0fbf1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-list/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-list/verification.json",
+      "sha256": "9e3a8a202069d9b76cde0f8cbaf733ac009b74b01f3b97c21290084fa06f8996"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-unicode/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-unicode/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-unicode/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-unicode/stdout.txt",
+      "sha256": "e507fb117e41e17214721cf87be0217c6275b2afb4980aad72c1ff611bc092a9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qido-uid-unicode/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qido-uid-unicode/verification.json",
+      "sha256": "5eb36e809571905246fa5423af73d504f58fdfb71c7eddf8b0154fefba2a05a1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-auto/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-auto/execution.json",
+      "sha256": "fc5c71af3d7d90b4829a46b23c2875dd392285bd018b393d8359e3191c9b82db"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-auto/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-auto/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-auto/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-auto/stdout.txt",
+      "sha256": "24b965596e7e2f4a4f515cbea68bb230953c40e960f7e5e70f604f3314a70019"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-review/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-review/execution.json",
+      "sha256": "6fce9a715cedda3d8f5bb61709e96b71e4e9ae8f90ca64c7a31b97974cb991c4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-review/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-review/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/qr-review/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/qr-review/stdout.txt",
+      "sha256": "1364e0f093e617ffdea6499cb8a6208dc31bf462eca2097bd2bdd05f87b97519"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-get-cancel/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-get-cancel/execution.json",
+      "sha256": "a6e196d2e0fe45db8d9a5b37582deff6f422cc3e2a14711a72d1655d5f566f9b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-get-cancel/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-get-cancel/stderr.txt",
+      "sha256": "f01ba37bb56983d5c8b43f1f0c0faad7cfe231014fddf6d5aeec549382db6467"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-get-cancel/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-get-cancel/stdout.txt",
+      "sha256": "8c0130e96ad147f675f4059f8ecb7d648928e3ae46a79c437fefa3e27d788ff3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-move-cancel/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-move-cancel/execution.json",
+      "sha256": "5343a9743d9bbab78d1a7edf3ad501a1bd4cb54ebda749c4b74aac18c900562c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-move-cancel/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-move-cancel/stderr.txt",
+      "sha256": "ccacff14e55bfb27bf7336b61b50534a6045d24d53004c6aab1378055dc4fb8e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-move-cancel/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-move-cancel/stdout.txt",
+      "sha256": "1f66d1b372b7609dc23639bf2701008b35d3b36188036b471d86a24b2975544c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-restarted-get/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-restarted-get/execution.json",
+      "sha256": "6d2e581da66e32af6e067c5934db2fcafb5bcb5b433d4401d0011f470e8490c2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-restarted-get/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-restarted-get/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/retrieve-restarted-get/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/retrieve-restarted-get/stdout.txt",
+      "sha256": "e40d11002748828fe9f72a795902d648e541f6a661647e4f5bc530a099574171"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/stow-basic/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/stow-basic/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/stow-basic/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/stow-basic/stdout.txt",
+      "sha256": "f0b28a80eab6f2b673a573a0d9f096674c9e400e3a032fab9057efb58efccdbe"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/stow-basic/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/stow-basic/verification.json",
+      "sha256": "51a4fc6add688e9f81ed30b3367af492f0139c0c0779086ee5b297f2194902a0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-create/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-create/execution.json",
+      "sha256": "739c23ef7e4c87b400b38c43568787bf6a8384c27f618fae449f8eb7836271e0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-create/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-create/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-create/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-create/stdout.txt",
+      "sha256": "7b2621b4ddef2a951fa9e8973ee0afc2c43e1be6b8bc1486647ac09f6c77db4f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-get/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-get/execution.json",
+      "sha256": "ccfc0923c46babf9d17616511ec26be13d71f2ff2fb98229928347ba947f0156"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-get/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-get/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/ups-basic-get/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/ups-basic-get/stdout.txt",
+      "sha256": "21078724e68faf970b29c337cd599349ee8118c64492d5c709b745e365547f12"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/wado-basic-instance/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/wado-basic-instance/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/wado-basic-instance/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/wado-basic-instance/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/cli/wado-basic-instance/verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/cli/wado-basic-instance/verification.json",
+      "sha256": "0b2587d30b3de957e52b50780de384d3b4255e98f660aaf365177836b65b11d4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-001.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-002.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-003.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-004.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-005.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-005.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/association-006.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/association-006.json",
+      "sha256": "7238e9db012fe9f4ab0e0b771b0950f25b060ead89a41ce84a1de7d842107eb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/finished.json",
+      "sha256": "c70cceffecc6cde8571aea1a5d9549cd532dc4cd0ce553b5a8b0d0ff55b8fe52"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/ready.json",
+      "sha256": "90b8a00bde1668421ce66be8c3b56765a071fed49e034fcad2e966eef57bec7e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-001.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-001.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-001.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-001.identifier.bin",
+      "sha256": "a2f92fa8686f395f8ca09327247c6e19e0c0f3d11820f99618d53ae5353628aa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-001.json",
+      "sha256": "b8c75a87c48dda49ee9ba9494641e18d84b1bd743a3160ba4e3f1db279847218"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-001.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-001.response-1.bin",
+      "sha256": "61139abe8b343919168a4583c4647deb8d42502c927bc430761fa65898ff7da2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-002.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-002.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-002.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-002.identifier.bin",
+      "sha256": "2775b18b946df0d430dc6ff8c601120c2305b9ec0536d2aa82dab8337432bf95"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-002.json",
+      "sha256": "f71810dd8acfe46d12c33cd672c868591f06bb7211b6115b7c636c90eaf3b09f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-002.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-002.response-1.bin",
+      "sha256": "992141d3aa32fb7185280278e61ba9fa651ae2873b4758e092c905a6c98cf1d2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-003.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-003.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-003.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-003.identifier.bin",
+      "sha256": "92a5fb17766489d3edd999b6fbdfb7535c4b8e4a5cd6d156b387d2d6a7c07f6b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-003.json",
+      "sha256": "c97abb131d8d6e60d1f8608de4186078e7599393412932d94d7cac54327c2531"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-003.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-003.response-1.bin",
+      "sha256": "ce70c34b5d03fd28d8692fb95a3c8decd2661b53e4f9de94c14b51d16076afbf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-004.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-004.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-004.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-004.identifier.bin",
+      "sha256": "a2f92fa8686f395f8ca09327247c6e19e0c0f3d11820f99618d53ae5353628aa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-004.json",
+      "sha256": "0a4e6f5122789b5498bb19dfeb8daed3cf0ce0192b3bdf798be73eb43637d0c9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-004.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-004.response-1.bin",
+      "sha256": "61139abe8b343919168a4583c4647deb8d42502c927bc430761fa65898ff7da2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-005.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-005.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-005.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-005.identifier.bin",
+      "sha256": "2775b18b946df0d430dc6ff8c601120c2305b9ec0536d2aa82dab8337432bf95"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-005.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-005.json",
+      "sha256": "1ae4d0d5b71b947cf5dab99678818d0173bc081d1c7201331bd25aa83002f592"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-005.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-005.response-1.bin",
+      "sha256": "992141d3aa32fb7185280278e61ba9fa651ae2873b4758e092c905a6c98cf1d2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-006.command.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-006.command.bin",
+      "sha256": "9017d0160619f0461949e0c8883daeded28da45076e67f5b0e20018e05490a82"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-006.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-006.identifier.bin",
+      "sha256": "92a5fb17766489d3edd999b6fbdfb7535c4b8e4a5cd6d156b387d2d6a7c07f6b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-006.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-006.json",
+      "sha256": "102bd255169ec06b9629479127b2aa0935d44240e1e2b29d1c05b8ba4fb7da78"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/request-006.response-1.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/request-006.response-1.bin",
+      "sha256": "ce70c34b5d03fd28d8692fb95a3c8decd2661b53e4f9de94c14b51d16076afbf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/state.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/state.json",
+      "sha256": "d92fbe6a1088f3d0d5f48627df39b8bff245a09d9ccc42b2651e14f11acc8acd"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find-native-before-cli.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find-native-before-cli.json",
+      "sha256": "67fa0824a531954ead5e182679944c2c8fdc10540b489fb34284820169e833f5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/find-peer-launch.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/find-peer-launch.json",
+      "sha256": "e7cafcd4ef5f0e06e47acf7676b4e1bc5da1337cc27f24b5eaebffa32e78f595"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/captures.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/captures.json",
+      "sha256": "0353e5210cda7bcf29cfe4f7a768b381244a5be1e43b9dc7337ab383b7600918"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/fixtures.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/fixtures.json",
+      "sha256": "44c102f110cee971175daf03707f9b7d587e026d16913a180cfd5278ddee8775"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00001.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00001.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00002.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00002.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00003.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00003.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00004.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00004.response",
+      "sha256": "7c58b8d0a39bb410d4479610d24ea3c93244c672d70712dc8b39ce585075a65c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00005.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00005.response",
+      "sha256": "94112ef9647a7d11a981376bb09846f3f40c9c8a83243cfe5885ac6ae8d867f0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00006.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00006.response",
+      "sha256": "b4b299003fbaf4a91613521cee3040dc053475dccbbf540dda42f233d6fa38b7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00007.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00007.response",
+      "sha256": "cc3f8c52687415c88552316fef16eabec93796ace816e15cbe3fbf17c1bec0bf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00008.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00008.response",
+      "sha256": "6efd4709c97be69a75b357360e0c289666cf61d431c69027b437c3d885dc6708"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00009.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00009.response",
+      "sha256": "66c4d8d73c915f20aeca54808355cd269790e540a3c9d470dc16e84db5ea4721"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00010.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00010.response",
+      "sha256": "d8b90439008ee73a6336babcc64458d4f9f380ae7c5bf80baa37867a698e59c5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00011.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00011.response",
+      "sha256": "6efd4709c97be69a75b357360e0c289666cf61d431c69027b437c3d885dc6708"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00012.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00012.response",
+      "sha256": "8a3c76d4b9a904f00e9f9cf23938203afa98322c7f5a34cc6bce0022fe97bc81"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00013.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00013.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00014.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00014.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00015.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00015.response",
+      "sha256": "1df463b523d67d88f18e1e0f4e301fcccf1e42dca77461a41e4908217ff927cf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00016.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00016.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00017.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00017.response",
+      "sha256": "f27039940be9852e7806f28f1067d0a49291315dd2bdaec56ad0fea1dcba9c8c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00018.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00018.response",
+      "sha256": "c40054a01f3879cb2643528652da4329541b40b02851bd2ba7438d3cf810217d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00019.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00019.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00020.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00020.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00021.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00021.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00022.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00022.response",
+      "sha256": "7c58b8d0a39bb410d4479610d24ea3c93244c672d70712dc8b39ce585075a65c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00023.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00023.response",
+      "sha256": "94112ef9647a7d11a981376bb09846f3f40c9c8a83243cfe5885ac6ae8d867f0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00024.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00024.response",
+      "sha256": "b4b299003fbaf4a91613521cee3040dc053475dccbbf540dda42f233d6fa38b7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00025.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00025.response",
+      "sha256": "cc3f8c52687415c88552316fef16eabec93796ace816e15cbe3fbf17c1bec0bf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00026.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00026.response",
+      "sha256": "6efd4709c97be69a75b357360e0c289666cf61d431c69027b437c3d885dc6708"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00027.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00027.response",
+      "sha256": "66c4d8d73c915f20aeca54808355cd269790e540a3c9d470dc16e84db5ea4721"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00028.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00028.response",
+      "sha256": "d8b90439008ee73a6336babcc64458d4f9f380ae7c5bf80baa37867a698e59c5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00029.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00029.response",
+      "sha256": "6efd4709c97be69a75b357360e0c289666cf61d431c69027b437c3d885dc6708"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00030.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00030.response",
+      "sha256": "8a3c76d4b9a904f00e9f9cf23938203afa98322c7f5a34cc6bce0022fe97bc81"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00031.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00031.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00032.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00032.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00033.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00033.response",
+      "sha256": "1df463b523d67d88f18e1e0f4e301fcccf1e42dca77461a41e4908217ff927cf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00034.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00034.response",
+      "sha256": "fe957b905301d5a6a843ea3014c879b23169df629492647591ed0bd1bb0c918f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00035.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00035.response",
+      "sha256": "ba1d57eeda2e1f59cc473129de92b3a880394d616c6f79be3cd98cccd867f022"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-00036.response": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-00036.response",
+      "sha256": "c40054a01f3879cb2643528652da4329541b40b02851bd2ba7438d3cf810217d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/http-ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/http-ready.json",
+      "sha256": "61339d1aea90f447c18dcc0347964fad6617fc70794f687df786a672fa31f714"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/ready": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/ready",
+      "sha256": "b24d6d33736ecd5604a4b17bc9c6481039fac362bb7df044ef1c10a2bfd21db6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/stop-http": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/stop-http",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/swift-bridge.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/swift-bridge.log",
+      "sha256": "1eaa39e5380c2706eea0bff32f9d6e235e3f519a4d13fa74f3881dbd974df489"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-0.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/synthetic-0.dcm",
+      "sha256": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/synthetic-1.dcm",
+      "sha256": "03f3460ed0079ef10e742c023417ac3014fe369fdd9db060aad0db6a9e648051"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-2.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/synthetic-2.dcm",
+      "sha256": "64c579c07ae637a73c388301ae3eb8396e87d37f988efa3a26e38bbea03bfdbf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-3.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/synthetic-3.dcm",
+      "sha256": "192c3ebb8fba9db2249ecdeb041933cc26ce0b635c407c6decf571b5fd24862a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http/synthetic-4.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http/synthetic-4.dcm",
+      "sha256": "6bb40944f5eb41b273daf19abfbfce5cbc9daeb5c3458a60facf5144db023366"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http-native-observed-first15.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http-native-observed-first15.json",
+      "sha256": "718f3f8e3317000a405d3e6a898fa0485ceb3c09cf6f6d104cb706c0bd3114f3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http-peer-launch.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http-peer-launch.json",
+      "sha256": "275a5631ed6f6c5067032c59d3403b670cc41f5d86d1e14d102a11dae0558314"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/http-replay-inputs.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/http-replay-inputs.json",
+      "sha256": "8438aacb1f0c510a92bbd2459dd9845a4f06db0dbf30c03bf65e4381792e7cf5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/finished.json",
+      "sha256": "f002dd69f430fdf0edd9cc9d68e2efd5001381ad65121ff0c90dd61899bd7b9b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/ready.json",
+      "sha256": "9432cbb8c6fffa539fa0ef8aca457ccadf17e04ee8817652a1abc135c8c86c43"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-001.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-001.dcmdata",
+      "sha256": "a05e5776c9bcef564b31c252630ed54060afae167c9ba0714304b07197104976"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-001.json",
+      "sha256": "bb864302dcb61a154a0774a97917473b96b91647e5a9a4622aad86551c0dea1c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-002.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-002.dcmdata",
+      "sha256": "9b4f2eaae32ea91143989237a5c60186906bad37f03d15cda653da01042354fa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-002.json",
+      "sha256": "71d657d331f52535efced4d460212830b185c5982fa818e3eead6544c92eb67d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-003.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-003.dcmdata",
+      "sha256": "8df450bdf768afa9f8de58f15d83bf87a41ed77f8706ea837183f9d3ba2d6e11"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-003.json",
+      "sha256": "8e697124c6a595f28714cc6651f2f380da4aad7a32f7d562fa1285370690e40b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-004.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-004.dcmdata",
+      "sha256": "d725970faf1ad4d58c542281aaac07c85db3688ab4e9059a464761fba7fd5f34"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-004.json",
+      "sha256": "bb864302dcb61a154a0774a97917473b96b91647e5a9a4622aad86551c0dea1c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-005.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-005.dcmdata",
+      "sha256": "3237f5c692b087e1e436e03fd8d76e4671f56dfa807a9f291d133611d08d2292"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-005.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-005.json",
+      "sha256": "71d657d331f52535efced4d460212830b185c5982fa818e3eead6544c92eb67d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-006.dcmdata": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-006.dcmdata",
+      "sha256": "f5708e7b354f4cee3b9d50282a41bffb5c6aa64e42b99add4770cb918366c7d0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/request-006.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/request-006.json",
+      "sha256": "8e697124c6a595f28714cc6651f2f380da4aad7a32f7d562fa1285370690e40b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps-native-before-cli.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps-native-before-cli.json",
+      "sha256": "4a80f7cd661e3450dcb0f74594d9086ff106bd25e01cd212bb6ea944b267710d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mpps-peer-completion.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mpps-peer-completion.json",
+      "sha256": "6a5280bcc05b4b61c2c7e7a34b210eafbb5b2cfb3b3addd618eb245043930fa1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/finished.json",
+      "sha256": "ede73df201047916a11271560e4d09f6b5d5a3c6ac38255fe9559c4f8c1b5bd8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/ready.json",
+      "sha256": "8a092149f9e46e378661eb7b481d655d3abef04549d8fc263c23bdb845bbcb8f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-001.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-001.identifier.bin",
+      "sha256": "de42bd6e201f0919304139b9a5ab68b76eb1fd12f066cbe56bdd660af1ff6912"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-001.json",
+      "sha256": "08dda5af9682b7d27ec084e546bfb07618547e93e20fc6c94e782146f0c787b5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-002.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-002.identifier.bin",
+      "sha256": "d7c7b879d05cbb4343729533122f02627c32ac42371232d791328bccc6f9a779"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-002.json",
+      "sha256": "2a4e2c3644e525017fe36c9a4dde3c56706cb6556902fc61aeec5514eb090a80"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-003.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-003.identifier.bin",
+      "sha256": "b12be837835b63c915aba2e32340ce14c7bebee66db34e28af0d71e60e133759"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-003.json",
+      "sha256": "75d25de2d583559e6f2bfbea98baf840f42d6a9612c81e2f6167bd9a0599ed1a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-004.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-004.identifier.bin",
+      "sha256": "de42bd6e201f0919304139b9a5ab68b76eb1fd12f066cbe56bdd660af1ff6912"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-004.json",
+      "sha256": "01676b0943a75c03acad6b47a3db12c503d91f832e8fd361f56c55f7f38eba03"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-005.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-005.identifier.bin",
+      "sha256": "d7c7b879d05cbb4343729533122f02627c32ac42371232d791328bccc6f9a779"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-005.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-005.json",
+      "sha256": "a5ba7ec33307fa857027dfe98e4fcb5dd0fc658a38ebbf2133940aa8a535341f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-006.identifier.bin": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-006.identifier.bin",
+      "sha256": "b12be837835b63c915aba2e32340ce14c7bebee66db34e28af0d71e60e133759"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/request-006.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/request-006.json",
+      "sha256": "c09ea94aba14af2f84947eeb57fe9ae770ad15fb4785e8169f167dbd8f85f5a8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/state.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/state.json",
+      "sha256": "640a95b3d06265ff32f64f73ba714452dc91c84755b5f07f445575501d1fbbb4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl-native-before-cli.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl-native-before-cli.json",
+      "sha256": "76ecfd493e5ea35018d0112074b5956c3f6e4a744aae89ea0d9bf39610550c8c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/mwl-peer-launch.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/mwl-peer-launch.json",
+      "sha256": "9dbafb30c4648f57dfdd0632b77a0b97147d66c0d1753c8f026d0b98d33b3abe"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-cancel-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-cancel-verification.json",
+      "sha256": "e8f3669e46f21d22ace3163c2d06b72902b16b1513037ff7c888a12529a40cd0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-find-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-find-verification.json",
+      "sha256": "0d323d8adb6029a380086e099a15395e3a86a6974e97bf3d918be4578c7dfda3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-http-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-http-verification.json",
+      "sha256": "b6366c4cba4c9ed34a4b7560aac20fb6d62bbaf58616b01ecd2962a5527c4eea"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-mpps-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-mpps-verification.json",
+      "sha256": "c014c9bc2983938ca72b7126736e1551721c292673365c48c94183281557e0f4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-mwl-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-mwl-verification.json",
+      "sha256": "a97677dc24dd593f0d49b4cb444f0b6f1e87d86463c8f1c869b3e74c21cc6891"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-server-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-server-verification.json",
+      "sha256": "9d2e2e51b94ab669165b84940ebf928332f82ce93698ef125c284598e1dce58e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-ups-parity-only-snapshot.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-ups-parity-only-snapshot.json",
+      "sha256": "d6b38cd232753935901ff34a3cf7505f8a654c66fd7e96061d31e94f7e94830e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-ups-verification-initial-oracle.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-ups-verification-initial-oracle.json",
+      "sha256": "895431983507d83e268b5b75b4852db6bd9a72a8dc8aff2336a51a5f7a0a05e6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/native-ups-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/native-ups-verification.json",
+      "sha256": "3c19b7ec7b43d60b2f14b28cb6b37af2928ef081905304246da24785d10ad1be"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/network-native-rollup-parity-only-snapshot.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/network-native-rollup-parity-only-snapshot.json",
+      "sha256": "307107e3c27466f8844f9e9253d28e419cdaf7286e3244b219fe76bb3ad09dd7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/network-native-rollup.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/network-native-rollup.json",
+      "sha256": "1d358650188c7e5484e32ef70301aa72f2f24cbf9de98cba57cb157dcfc81252"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-auto-cli/2.25.505.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/qr-auto-cli/2.25.505.1.1.dcm",
+      "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/qr-auto-gui/2.25.505.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/qr-auto-gui/2.25.505.1.1.dcm",
+      "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/restarted-get-gui/2.25.505.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/restarted-get-gui/2.25.505.1.1.dcm",
+      "sha256": "a38868e35afa21873ef2b1736f109735f8fb6b83074db9ceaefa2929687d0cdf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/retrieve-restarted-get-cli/2.25.505.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/retrieve-restarted-get-cli/2.25.505.1.1.dcm",
+      "sha256": "83f56c386e88397d80a880b4b176980883d29f89152ae5450447accb20b7d2d4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-cli/instance_1.2.826.0.1.3680043.10.543.301.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/wado-cli/instance_1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "sha256": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/outputs/wado-gui/1.2.826.0.1.3680043.10.543.301.1.1.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/outputs/wado-gui/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "sha256": "1c4101db4797d64c462064e963f74a52c61e8c734f2d828652be2f220a91344b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/owned-peer-cleanup.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/owned-peer-cleanup.json",
+      "sha256": "d08835698c6d54cec704eb08375505b32c4edb0c802b90f1c098719144cb12f1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/replay_http_case.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/replay_http_case.py",
+      "sha256": "fe2cbca8f9b470c5233419bee2ac92421d06092faa5a77abb2037ecfebc32f3e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/restarted_server_peer.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/restarted_server_peer.py",
+      "sha256": "8ba74a3e1b083a892c9d8b0f6130f8e554a9038df4cc5109028f275b1e67d1ad"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/resume_restarted_server_peer.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/resume_restarted_server_peer.py",
+      "sha256": "f3d338d6c647955ebd07708df5723ccb8bb8c21eff2b1c41671379aa1ba386bd"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/run-card-correction.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/run-card-correction.json",
+      "sha256": "63cb28c052a48ca7d9cfe014c59e0cdedf992ec76d0b30d9101f0a8e0a27de11"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/run_cli_case.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/run_cli_case.py",
+      "sha256": "54be2a8670342821927813240f29e5d04d71b9415ad731a5dada42b5973db2f6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/first.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/first.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/initial-helper-zero-exit-assumption-failure.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/initial-helper-zero-exit-assumption-failure.json",
+      "sha256": "755960b06526f233bcd2e60b23c97c27434427343b8be7ae628fc516fc6f4815"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/lifecycle.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/lifecycle.json",
+      "sha256": "77777bf369976c2ae8155cb45094d8b86602890c840255e6c1a59542d65d0688"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/ready.json",
+      "sha256": "f58f560fcc4e676bc786e746fbe5980309937623461f5a5ff04efd44d158baa4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/restarted.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/restarted.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server-storage/synthetic.dcm": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/server-storage/synthetic.dcm",
+      "sha256": "f1bf35d6bfccaf8367cc1c7ac14fc98ce2253ca13262b0803719d08e9189b451"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-cancel-partial.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-cancel-partial.json",
+      "sha256": "ab59764166cca0256809530dafd9e09893ca9886e25a68a7604283d3698091aa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-cancel-zero.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-cancel-zero.json",
+      "sha256": "95eadae7ed37ba9ec67c33fff6d149021655fcab69cb2c29469cfcd6a0d9439f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-image-modality-refusal.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-image-modality-refusal.json",
+      "sha256": "5a84e78f7d66c2b851893d44bc4bfa70c35c470bf7ec2191087809524051bde0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-image.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-image.json",
+      "sha256": "809d80e3f85826a8a3a5f5a7b5f26928f8f180e8c7831d01f96117ca92434fb5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-patient-date-refusal.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-patient-date-refusal.json",
+      "sha256": "2a5266f3a327ab5f2d526e53c21b06a51746079bae545e5d2a191ae28e6c77d0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-patient-description-refusal.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-patient-description-refusal.json",
+      "sha256": "371ca05d035dbeee04c408647d84733cbc5f46fa1a51642c83c7242acc86c3d6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-patient-uid-refusal.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-patient-uid-refusal.json",
+      "sha256": "6f49a6623b8f5aad7558119a9fc0988e6620fb4248d69af6ada629be66ac93fa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-series-ct.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-series-ct.json",
+      "sha256": "33f3f55017dea4fd1e8eb1796bd73f9525a1ef82295570822ae135d6813c585f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/find-study-ct.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/find-study-ct.json",
+      "sha256": "d3b4757506f4d466281371f9004735a78ea31be2eff44ac727e8ac6504a94d0c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mpps-ct.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mpps-ct.json",
+      "sha256": "eb01044d85e7f3b8b5c41c3edcf9953be361696a3378b132ae3e53845c9c210e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mpps-missing-class.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mpps-missing-class.json",
+      "sha256": "52808e297a30b97a9a4e671e9000e1b4045101e1d875f760c704e16a3fdfec1e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mpps-mr.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mpps-mr.json",
+      "sha256": "1e7edc27e76e95f5c6aaa45ced11d766e61d068cc0424ac1ef559591e645cba7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mpps-sc.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mpps-sc.json",
+      "sha256": "928e8dab969e60da04d2caac4092c5ac4ad8fa299d8d34586f4d67e055c5ffae"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mwl-bounded-range.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mwl-bounded-range.json",
+      "sha256": "3c7538830f67030ff69da7d40e05ce93993a28c10cd8f38846f0ea79d9f0f752"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mwl-invalid-date.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mwl-invalid-date.json",
+      "sha256": "8adf08b5ba708cbd7254d2aa1b08783fdc7542636096879e1484cde23d89ff29"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mwl-invalid-time.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mwl-invalid-time.json",
+      "sha256": "d0486f66c612b02b3f326cf4a14788645223f29cddc8ea35528750ccdec99fb6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mwl-open-range.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mwl-open-range.json",
+      "sha256": "4ff1f778f53fa5f258da1968327cc5c2ce3e47cf78b020b93a83f660bb245e5d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/mwl-scalar.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/mwl-scalar.json",
+      "sha256": "a9504762a30ecea463fa36bf9ae5f770211c666fcedec072081f2cfb72f0a5ca"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-after-tool-reset.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-after-tool-reset.json",
+      "sha256": "d52abfcce62e94fc0cbaaec1d20de58bbf35374ed62127a43f50405bc05c670a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-all-instances.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-all-instances.json",
+      "sha256": "058bf42f034d35b137bef34d663e7a9c6e444ad90b0ef2f29272087671026da4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-all-series.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-all-series.json",
+      "sha256": "4ae1081fdd4dbdaa388b3bbf8b6d1aabb38a16362c6c41262f12acd17a3ac0e1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-basic.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-basic.json",
+      "sha256": "470f0b986b93655f4390774dc4de2f35a80402212b4edf435a0fad309bf9a508"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-bearer.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-bearer.json",
+      "sha256": "626cb2b561260b7ed438fb722955ac4bda0285055301ae6d781c580ddcdac233"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-instance-hidden-series.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-instance-hidden-series.json",
+      "sha256": "05495a300734aea003fb9dc8346e096ea6d8741eff95d99c317cc43dea85dfaf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-none.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-none.json",
+      "sha256": "e91957d49efb59e52b20664e260597dfbdd7a89bcba160cb61d73622228f65a2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-scoped-series.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-scoped-series.json",
+      "sha256": "07ba456089291009f3a0ea664aa307783080e644dbde9a21a489e0491a159ff6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-series-ct.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-series-ct.json",
+      "sha256": "deedce5b35f46d09abdac16b9055bc4a1655ffb3a540c349292bf42ef548f8d5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-series-hidden-parent.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-series-hidden-parent.json",
+      "sha256": "0aa78a56d5897fecdcc8a80c61f177bef4525a01f1fc71cec18fe36b945d44b2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-series-instances.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-series-instances.json",
+      "sha256": "641950d7266d406b6c1f4dd4c55632e8e36cd08da495b58cf5c7d780dbe881e0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-series-pps-parent.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-series-pps-parent.json",
+      "sha256": "19a0e5efdf580c9ce3294fb0ef13f5d5c6ffbec9ad068ad050a59b7e19486ac9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-study-ct.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-study-ct.json",
+      "sha256": "8cd08bc6b5bc551d33841b79487a49d5f7e7d3f366bd1dacf91626ba8736f424"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-study-instances.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-study-instances.json",
+      "sha256": "8160377763b39aab5e7317a6e1069dc1fe60f7e7372f063ec8d5d2e99a36ec93"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-uid-list.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-uid-list.json",
+      "sha256": "3a6a9f1528d2562c2b9f2b2ea1885356857d5d776c47763dd65292c268f0f022"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qido-uid-unicode.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qido-uid-unicode.json",
+      "sha256": "f60b11c11407aac6cda96af5c6e0ed183a9ea640838b5a1144ee80c023cc49f8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qr-auto.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qr-auto.json",
+      "sha256": "6bf6d4de73bdd6182c7dda0758324f311b69dee49d54f8a824011358dca1960b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/qr-review.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/qr-review.json",
+      "sha256": "206a0e1e6fb4726d963b8d92113bda5198fdbebed087013c50cf500c011d7950"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/retrieve-get-cancel.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/retrieve-get-cancel.json",
+      "sha256": "d4814fb9c06878363399ad836c444ccd4cddc8187b2e9181b37be8b4dfaa1496"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/retrieve-move-cancel.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/retrieve-move-cancel.json",
+      "sha256": "e6bbad792874bcfc15735f8cc430e24e64080e76e77d8cfb2970816d8a831bd4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/retrieve-restarted-get.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/retrieve-restarted-get.json",
+      "sha256": "9cc702da754da4aea03e3348fa2bca328f9a1ca0d92d3528f125ba7816e67f27"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/stow-basic.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/stow-basic.json",
+      "sha256": "d4eb3f62fb6ad098b714858e96cfae8a94960b4b73c2c2cdc628db578bf821ed"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/ups-basic-create.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/ups-basic-create.json",
+      "sha256": "c4dc3e34233a7bb79e2f6a196ddac4d97bc89a240e6ea0fd401369c86c1d3244"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/ups-basic-get.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/ups-basic-get.json",
+      "sha256": "28f79bf861bb054ea7e93e886422f134d7ca8bcb1f7297c5ffc2053373dfcf30"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/specs/wado-basic-instance.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/specs/wado-basic-instance.json",
+      "sha256": "bfb6f3189a1792c535b0eaa62e3979ce32ce451bde63dc5dd54f638de6e3696e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/finished.json",
+      "sha256": "fc6ce2c7f990e291c3ed0ad6a6f0a0363f3ccb25b8e616e34d6e6907982e2c56"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/ready.json",
+      "sha256": "01f4eaa34d6222d56e6345ed09202a473142c8adc3e6ac9e36e60b3b57f83ec1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-001.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-001.body",
+      "sha256": "7388669c4f110f57cffe6ce9c794d749785038446ce048e32e0ed7761431d0e8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-001.json",
+      "sha256": "0d5ac62d99a6f6f5fb8db394f2a46243c8e8c114c7c42229517058f332658774"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-002.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-002.body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-002.json",
+      "sha256": "0f8c5f86b04b46652e92bc9a208aeab50ff8abf5b53854671ec0e646ce71eb0d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-003.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-003.body",
+      "sha256": "d2cebed44c1346f1243164d425a423a07e6e7373b9a4f54556d52dd3fce5ca64"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-003.json",
+      "sha256": "87c4a3302fc1df809faa7c08ef971c9ace685aaa4ec77214c074d831fb74bfe8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-004.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-004.body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/request-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/request-004.json",
+      "sha256": "1209afacd84374720191fac1c6633bf5e84fcc56e7a3d84d93dd91ef1d2a580b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/ups-auth/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-final-network/ups-auth/stop",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/FINAL04-info-supplementary-copied-preview.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/FINAL04-info-supplementary-copied-preview.txt",
+      "sha256": "def03bb3fcbb7060dd13f25f9fbd41eb78c0311dbbdcf491073d4305f8953b4b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/FINAL04-validate-supplementary-copied-preview.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/FINAL04-validate-supplementary-copied-preview.txt",
+      "sha256": "960b78e51b769566e38772de4fcc6a19b01bc23a422fe5025332e00916744c44"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-cancel-partial.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-cancel-partial.txt",
+      "sha256": "97f7e342e835a01310d826db67164ab5aba85528c8de4a81bf2f114a818ec267"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-cancel-zero.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-cancel-zero.txt",
+      "sha256": "6f8744aca498cb05c1d92e5b11f3eacf8162ff7b39de1e9b58d7652799d88bf5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-image-modality-refusal.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-image-modality-refusal.txt",
+      "sha256": "4d8b51c33fc85fe41134485753ef812d027d83354e8eafe67088852168307c01"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-image.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-image.txt",
+      "sha256": "14acca673c776de6067d5fae03e9ecd8b7016b4304d57bcc802eb704990d6911"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-patient-date-refusal.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-patient-date-refusal.txt",
+      "sha256": "7fd66550e6046c96e70503a5deeed0f4e35c1018aa896f0f42ee717933670db4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-patient-description-refusal.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-patient-description-refusal.txt",
+      "sha256": "706ac6adef1134b8dbded6b73d6ee79dc20356eb6fe9bbade29035f920fa5927"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-patient-uid-refusal.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-patient-uid-refusal.txt",
+      "sha256": "a9df53e2ad710d10da409d9336c17b24981e7ce48a528e9c06d4ab2c50dc00c7"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-series-ct.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-series-ct.txt",
+      "sha256": "d8c2f140d2356c212d08b4fd101ab64dc604f464705474085a4d0bbec86f47fe"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-study-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-study-copied-command.txt",
+      "sha256": "24213fc76649f18566ed4d36f71fe4446fb2031e2fce57bed905daca30c4a654"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-study-ct.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/find-study-ct.txt",
+      "sha256": "2fcb2ee62bfd2e993fb04333596ae2be84435e599fbbef83d9b06a3e4c32a4d6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mpps-copied-command.txt",
+      "sha256": "286acf9132cfa00eb3be51c79c0eb87805649f1cae7973ff0d897a6849f2f17e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-ct.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mpps-ct.txt",
+      "sha256": "493f02cb43ace3f08cddfe85f8e0e641ef0af01cd2146cdb6c440d86f6c90bc0"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-missing-class.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mpps-missing-class.txt",
+      "sha256": "f4312c3a4650965cdf0df1b4da7bc6795ede5876d6b9eda46d4e49849399a400"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-mr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mpps-mr.txt",
+      "sha256": "594ade4202382255fefbaade10a0badc0295f389b435305b51d4d5cb5e5fa019"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mpps-sc.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mpps-sc.txt",
+      "sha256": "032821c229aef4b5e7e54d193b503dfe0d0f999a3d7927f6516b6590fcceb63a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-bounded-range.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-bounded-range.txt",
+      "sha256": "43d99d6fdcbed91dff6dc39501f3e52ef7c4b14d6438f8f58db911bb8582beef"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-invalid-date.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-invalid-date.txt",
+      "sha256": "b678b5079b273e068348cfdd13b58b79aa77b3b810bc8862823e96dd9d22fe18"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-invalid-time.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-invalid-time.txt",
+      "sha256": "2c3d30738ce467224c16e84653bc8436551cb551e83d3674f7e7393ad39901a8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-open-range-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-open-range-copied-command.txt",
+      "sha256": "827eb88974d26db12b3f90c6be114356831b62179bde88e6e2631e744d80b0e4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-open-range.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-open-range.txt",
+      "sha256": "ebb66afe867f9141b8db276315edbca3d3ff518c12aa810879aa7aac8eb4b027"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/mwl-scalar.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/mwl-scalar.txt",
+      "sha256": "e3fbc1352ae85e75001a906cc76cd43413dd6275f211e090dfb620c7e8bb4ee3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-after-tool-reset.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-after-tool-reset.txt",
+      "sha256": "85bdac95209b3483f8b510c58159046fad6fde14f65e80e3c62c925abe31668d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-all-instances.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-all-instances.txt",
+      "sha256": "d85ee54fbe5d75f0c33987025f650695c16f852d9b465823c3f18feab0e4d07b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-all-series.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-all-series.txt",
+      "sha256": "f6a6207e1f8843b7bb47aa74831e41b3b8c3b15fd08f7d50fac6511cd6d99a40"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-after.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-basic-after.txt",
+      "sha256": "affc6220b5074c3405c2f097128208f65353beecdde86e3f8daab617295b7b3d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-before.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-basic-before.txt",
+      "sha256": "d9e20dfe0aed87d025439feef75fb672aa6994a00254eca91f9884dd4adc9bd6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-basic-copied-command.txt",
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-multiline-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-basic-multiline-copied-command.txt",
+      "sha256": "54d3bbceee2e9b024084ab0d9fdc7956ad091fe0175d18628cc45007a478995c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-multiline-patient-preview-only.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-basic-multiline-patient-preview-only.txt",
+      "sha256": "50d21eb607c26a034d3d12c54c0f6462fb3b264a951d9b47557144b80006f19e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-bearer.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-bearer.txt",
+      "sha256": "a77f5933b001c41031b0598258f94c8d7a58080f8ffb33a90256a7978cdf7576"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-changed-tool-reset.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-changed-tool-reset.txt",
+      "sha256": "10284aadcc000249639c726284a5a73d039d87b0acc5fe3e4ce666cadee86655"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-filter-returned.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-filter-returned.txt",
+      "sha256": "61052fef753534ebf89d5c8e5af2cfb98998818ca50188d17c98b94cd8e85403"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-instance-hidden-series.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-instance-hidden-series.txt",
+      "sha256": "6a13a5a657267fa53df01808f167b27701764b8597aa55bac7e84bdfc1959a5d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-none.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-none.txt",
+      "sha256": "392669e6421ab33fb14d48c3a2bc5d43b40cbd94fa8e1bd220bbd9df0e06bdd2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-scoped-series.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-scoped-series.txt",
+      "sha256": "8ffd93f55b3fc95643dd2e2444bbf6344106da91c047961bac0b01ff2bc65d3b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-ct.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-series-ct.txt",
+      "sha256": "f7259eb4541697b614fb8a9d3bbc27ab58f7f14df9e2322fadaa7c1358dc3d65"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-hidden-parent.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-series-hidden-parent.txt",
+      "sha256": "eb639ab75c9b6f4791dd9b4b5721f445b7cb38e48973e99244f27e2bf8e24a85"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-instances.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-series-instances.txt",
+      "sha256": "2067f8eba92f7655206591fe100e9c77bf8632deb8912e9391c758be85ec9338"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-series-pps-parent.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-series-pps-parent.txt",
+      "sha256": "a3aec6f5bb0f15d1c34aa6d89fbb1e2a97a27b2063236e51d5476c99ef7be007"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-study-ct.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-study-ct.txt",
+      "sha256": "23a6ca2216bbe2d486e5850f0f7219e1ea4b1a6bc93da55865dcfa95ed9ad970"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-study-instances.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-study-instances.txt",
+      "sha256": "ef8f31fb2c8ec37590b2bdfc3fc85c2ed9c84ab16c917dbb6c624ffa8a560279"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-uid-list.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-uid-list.txt",
+      "sha256": "f460e384a1266e0f57f85736fc2bcbe72a673dce1b9808a71fa96a90a693ee55"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-uid-unicode.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qido-uid-unicode.txt",
+      "sha256": "1cfd6bf2bdf6ec40ea7c431102cdab48f25f928ed82021f9c8d1a039f4563611"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qr-auto-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qr-auto-copied-command.txt",
+      "sha256": "dbb85dc61dd557ff3d8088cabb43c605b5b5af2165630faba1a1948231a70398"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qr-auto.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qr-auto.txt",
+      "sha256": "bba6868b0ccb9409b07bfc4cceb63ced9227a14c8690dceec6fbe8dd1550738c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qr-review.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/qr-review.txt",
+      "sha256": "ac6d86e5880cd66bcd8fa63ed2e331e8cafb56b9396be7ac77299a19262defa8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-cancel-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/retrieve-cancel-copied-command.txt",
+      "sha256": "d4fd7d800c833f08ad5c8eff5ab673b80041847a949af318ad0a52c0c8f11b5d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-get-cancel.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/retrieve-get-cancel.txt",
+      "sha256": "61a890d247e59ff4a132bdcb95361eda55d5afd62a243be9049e90356e1945eb"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-move-cancel.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/retrieve-move-cancel.txt",
+      "sha256": "9212cef975424e29368d79728596e1ac669540b8e8176323b350d9fe5817aa42"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/retrieve-restarted-get.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/retrieve-restarted-get.txt",
+      "sha256": "9c336e206160305eb77e7e0b1782133d74412658c88a7f3ddf70e04f3a65b2ef"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/stow-basic-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/stow-basic-copied-command.txt",
+      "sha256": "58af23a28880a5a1986d42a835ed3f49a1e772421cd86167e9c4ab82ebd9e90b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/stow-basic.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/stow-basic.txt",
+      "sha256": "ba3a99a81457e3ba2d7e177dcc6442b452daec77da36d7d72d36a015509fcb48"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-basic-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-basic-copied-command.txt",
+      "sha256": "9634e39ae00bcab34a53c6257f9ee104bd1d3686ac5e5cc5633c21906e5ac318"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-basic-create.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-basic-create.txt",
+      "sha256": "16b8ea0b16fc9268b3e6a30897fba412103d9edbe8bbe23f9a62c0be37fef8fa"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-basic-get.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-basic-get.txt",
+      "sha256": "c122588b8aadd4ee0cee7626df86a077b06592584d0abdced603e33c0fc2891b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-bearer-preview.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-bearer-preview.txt",
+      "sha256": "f6c4ca4936d13cb0c2b1e9a3eed9e03bd8f5c04e8b6818a1c2f2973479edfeb3"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-none-preview.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-none-preview.txt",
+      "sha256": "c0c81e90d6719b849630d1fddcf5a3d0dca3b1f3837e332f35ca815cf1bcc5ea"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/wado-basic-copied-command.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/wado-basic-copied-command.txt",
+      "sha256": "dd9eee876e2a4c2eca312e651c9b3493ae6b813f301550f2dc2ae9fc1ef32f3f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/wado-basic-instance.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/wado-basic-instance.txt",
+      "sha256": "f73b97f3e2a343c0a30f114ee7e5c5a311609a3bce9f77c01644986ec4d14b62"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/all-products-repaired.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/all-products-repaired.log",
+      "sha256": "9dba12e3f4a92c76d0dfcef8d7495545495499df167cc66afaadc2eab9704c5f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/DICOMStudio-M7App.xcscheme": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/app-build/DICOMStudio-M7App.xcscheme",
+      "sha256": "2658b184870edf4451a87d4d669eec1d2de83e750eb2020ed7751e7a842e69da"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/build.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/app-build/build.log",
+      "sha256": "3bc3c8719b4cdec7759739bd6a1a88511b238d34e7b4111fb7bec8226cdd0d8b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/code-identity.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/app-build/code-identity.log",
+      "sha256": "c2d193500d49695f70a3a4d75132b6bfd64d81fb93ad2df630a456ebb637e106"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/entitlements.plist": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/app-build/entitlements.plist",
+      "sha256": "9f3653cb5be88564ac0cf0602c6bfe1cd0b7e27c2417b15028c4fb28aee9e9ee"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/app-build/signing.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/app-build/signing.log",
+      "sha256": "8d9b45e47ccc8ff87b17f8e16148038091cd9f026bcccd723f03f2032306cd41"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/audit-strict-ups.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/audit-strict-ups.py",
+      "sha256": "099b3039fa61e1dc5df5206b9f49869226ae53d7a6eb14d2048667f5369616d2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/build-dicom-wado.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/build-dicom-wado.log",
+      "sha256": "770238aff890273de3b55c69fcfbeba6dea1007519a10afbab52572bb2a81e4c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/build-ups-app.sh": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/build-ups-app.sh",
+      "sha256": "1100c0d87bf1a4a4bc6e1bd70417292f5369ba45eb52c02515ee8beb2ebf1c41"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-create/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-create/execution.json",
+      "sha256": "12b746b02b53973116039420c9ca2e0c7e523c65ffb693f981547ca679b2b274"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-create/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-create/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-create/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-create/stdout.txt",
+      "sha256": "1e1839e1efe85d1977341448b9d6dad32d19a9b8d9376079a3c3c21695526e6b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-default/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-default/execution.json",
+      "sha256": "f105ff6b64a6471c9715b16ca3c1bd53ffb4a349d4ee7075053f94293d3c6db4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-default/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-default/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-default/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-default/stdout.txt",
+      "sha256": "b7d732680e4938a9494c6c589dd5ea081277d954e1f2f5902e97a51835899bdb"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-generated/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-generated/execution.json",
+      "sha256": "4354d05664a64a364e4bb3a9740c48456a479cf636b060a8a3cee23d6c189934"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-generated/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-generated/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-generated/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-generated/stdout.txt",
+      "sha256": "805c0ec67474a3dffe335f511ce19d2400e54eefc5beaeef7a306c66fce3301e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-get/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-get/execution.json",
+      "sha256": "28b38db8f0fe2104ce67b7c98ee428f68dba2b8b5a22b1bfd8bf11eae0b557e8"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-get/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-get/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-get/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-get/stdout.txt",
+      "sha256": "35244c133247222cbc3ec70c27cd82fdaad76efe7793991f7d095190ef60c436"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-invalid/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-invalid/execution.json",
+      "sha256": "17048f9cd35107d8e9bf8ec54c757059acf10f99e68764940cafe027ecb858bd"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-invalid/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-invalid/stderr.txt",
+      "sha256": "4c25e4b197f736b4cb183ec1d82b3c792d65f86c9ac0d70f804e31304867e751"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli/ups-identity-invalid/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli/ups-identity-invalid/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli-executions.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli-executions.json",
+      "sha256": "7b024eccfaf5b379a185519c8f6588db615e80524c5fc141913a7f1559984b30"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/execution.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/execution.json",
+      "sha256": "77e9ab166310f203663036cf5ca42034a9007edc3defe5f848e667c63ab7623b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/stderr.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/stderr.txt",
+      "sha256": "09bd5fbc919446d6f7e29e2c3f68e8085e66bf30cfd33f10a2a61180feb128b6"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/stdout.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/cli-initial-unsupported-timeout/ups-identity-create/stdout.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all-repaired-v1.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/dicomweb-all-repaired-v1.log",
+      "sha256": "8ef98819a7308e33bff106a924b483b3ccf934e11310a035940f6a7c70695e23"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all-repaired-v2.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/dicomweb-all-repaired-v2.log",
+      "sha256": "3a118739ad39f1b3fad3497fbc5af606cdbbae4984722f2df8bb7a1615dcf3f5"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/dicomweb-all.log",
+      "sha256": "29f7842aea961a2c40459c77233247ea407f67b1f66a28cd288c84c2ff74d22e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/generated-workitem.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/fixtures/generated-workitem.json",
+      "sha256": "9ea9c6e8d412ee8bb26c4e78d53f95cef29acbb8696402df87ba26ad45a25ae1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/invalid-workitem.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/fixtures/invalid-workitem.json",
+      "sha256": "118355ac474e95ee065ba10b2fdb643a87752a0131a94b7dd6a55b93cd71286d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/fixtures/valid-workitem.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/fixtures/valid-workitem.json",
+      "sha256": "596f4b4a2dbbd9a12811283dd9441fdc56cdf8e245177c2fe40ddd4de55c59dd"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/identity-focused-v1.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/identity-focused-v1.log",
+      "sha256": "97e8cd226a09dae0cd7097b850cf49aeb346af281dce7bd51acd85beff3be0dd"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/identity-focused-v2.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/identity-focused-v2.log",
+      "sha256": "4396cf9b8f4efee9c8d922ec206b877c944f630c05c6bb19c1f1123337f7233b"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/identity-focused-v3.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/identity-focused-v3.log",
+      "sha256": "4e43ae2bf058633441054d42fa575c907d9bb147c2cba7a4e05664634ca0f4dc"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/implementation-test-receipt.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/implementation-test-receipt.json",
+      "sha256": "a857038944fd467d64adc0ad50b0ffe0e32132af82e93b8aa65d6013e82d3044"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/independent-dicomweb-failure-classification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/independent-dicomweb-failure-classification.json",
+      "sha256": "4892a57847ae814086b1d52086ace93dedb51e743871c4129f9b197cca777d2a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/independent-repair-build-acceptance.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/independent-repair-build-acceptance.json",
+      "sha256": "141600e3cacba4a0b9bae3139d98984c80ed3af9760d522648531d41e3ae4e7e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/independent-ups-json-repair-review.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/independent-ups-json-repair-review.json",
+      "sha256": "48db733795d1866c06bbf3e1ad944e847c18de36ab618dcb8472652a5ea372bb"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/native-capture-blocker.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/native-capture-blocker.json",
+      "sha256": "88b9135f506b46d3b3863d29997ea2bffb042e6be0687864305f6e3cd292892c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/native-lock-confirmed.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/native-lock-confirmed.json",
+      "sha256": "57d8f15060a75a6d7acb6132a372949c618b245949fcf1da2767eddb69f1fe9d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/owned-strict-peer-cleanup.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/owned-strict-peer-cleanup.json",
+      "sha256": "0e8170530d5a49e39fa6dbee4d6767cd52b5881eb0061cdf501b62dfbcc2539a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/ready.json",
+      "sha256": "6d49960fe28feef936da398fc6a7eaf3f0fcee568dc7577c0921e83fcfba9ad4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-001.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-001.body",
+      "sha256": "855efcebcc0a8706e0b2a7098554ef86289629a7bccefb2edea2f2f396059282"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-001.json",
+      "sha256": "4f6b43bc5f91bfc0ab022d1bca57b4de94c7a09a30d18e7707dd381d74108d2a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-002.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-002.body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-002.json",
+      "sha256": "bd3ab87862c39a53dcb481b055fc5015116876ff68463363d8d1e4396a492404"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-003.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-003.body",
+      "sha256": "ab05cb7d39f7e894927f2f198c8083b2b3964c18237eaee0f093649f5ad03599"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-003.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-003.json",
+      "sha256": "ec74dcd32207dbf4023723b0f5ed3b7072e883af420853c2e98043219ce4aa3e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-004.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-004.body",
+      "sha256": "a3f31930a5c400a001086548e71d26bf5f20e541308151fcd8945b6d6211973c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/request-004.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/request-004.json",
+      "sha256": "b38bc460cbabe9135e4736c735423f35df0017ead60a7da599d49c9e04fe0c78"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/state.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/state.json",
+      "sha256": "dbd8402520427d6e85da0fcace4cbf00020e5132a3a1c77fa8dd5855fb89cb47"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer/stop",
+      "sha256": "78085f3cfb2a6fee680cf17ccdf4d49e0687bb3aa4cede7cbe1fcb01735f385c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/record-final-repair-results.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/record-final-repair-results.py",
+      "sha256": "a43a664c339372eba4e8dc61a7ef1ecd8f3df30c1c7e30dfd280a35e71e12c3e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/replay-ups-cli.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/replay-ups-cli.py",
+      "sha256": "e728680f57237c91d93360ed33e2cdf4a1009c0c4293334822808d8f45e41a80"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/root-final-repair-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/root-final-repair-verification.json",
+      "sha256": "081aa76726ff1714a60fd9b226e5409c3c9c9c75e80b8cb2a491fb10bb946d8d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/run-card.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/run-card.json",
+      "sha256": "2143bb0e00279f8ed983a5a4aa0317bea78a3e9360515fa53dfb14c48898c05e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/strict-ups-cli-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/strict-ups-cli-verification.json",
+      "sha256": "bf6ddfc037fa7e452b0bccaed082fe151adec34b432d9a90f275619c8a5f007a"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/strict-ups-peer.py": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/strict-ups-peer.py",
+      "sha256": "704f9397bc19b0da7bf3b153a570d8bbea57ea0a5e913738f8cb4b8a6a23ccb2"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/studio-affected-workflows-confirmed.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/studio-affected-workflows-confirmed.log",
+      "sha256": "46481cf6f9ac5e4af7858206f1c307d437720ab4f75216e5e91d276dcf4d6e65"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/studio-affected-workflows.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/studio-affected-workflows.log",
+      "sha256": "31f9af0187b4821cb899fae601f653ab7c00483c2aa785dab4d55d90a813827c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-artifact-hashes.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-artifact-hashes.json",
+      "sha256": "2e9e24ea3612857b7ae053ebc6c883380f683b533d734bdd0ed1394ad11d0f0e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-code-identity.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-code-identity.log",
+      "sha256": "d971d933bb6cf4ca0a71d6d69b00173f05c33b5ca7e875bebe20eb16f72c3ccb"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-entitlements-export.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-entitlements-export.log",
+      "sha256": "d00ad12d0335cd6d6b83f3eb646bf7210550d2e0f142149d83848a4a1c355315"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-identity.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-identity.json",
+      "sha256": "235f81a2b17ad50d1a24ad7cc6ecad160b4bb2f87e8924a501fb1b3ad7da3f7f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-signature-verification.log": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-signature-verification.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-signed-entitlements.plist": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-signed-entitlements.plist",
+      "sha256": "13aab78543709982570268d59f7b059d7e1b24a0cadffb8baae36dd425819067"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ups-native-source-hashes.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ups-native-source-hashes.json",
+      "sha256": "74fcd858623de80d04832169878aecb1a9d77e747e740941f1efbb2d60f82efc"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/verify-linked-products.sh": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/verify-linked-products.sh",
+      "sha256": "5565f40aa4e32304be03d2dbc9ecb6c616a7cccd6981b93297139862c46a3956"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/network-evidence-collection.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/network-evidence-collection.json",
+      "sha256": "811973df300c0930e64a0c88a716f4c0ac598a5b91abcd25086a366cc91d6f6c"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/harness-native-evidence-write-limitation.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/harness-native-evidence-write-limitation.json",
+      "sha256": "5cb044b3317ec564de6f913460592269c37e8ecaef220ef6bdf919ab950e4f79"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/independent-final-native-scope-review.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/independent-final-native-scope-review.json",
+      "sha256": "e4ed6b33c946d55dea311724ab5c5b8f6f9a9c2c33c4609f9b73abd889c6abaf"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/independent-final-native-acceptance.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/independent-final-native-acceptance.json",
+      "sha256": "58c8e162334bc77620f2316a2258403ebd9eedd7f5d01cdf0982ff16b0b448ac"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/native-app-relaunch-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/native-app-relaunch-verification.json",
+      "sha256": "e363a5a72c244ef813fd3ee63f27dd02171c9c0e017c4900698345793404f72e"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/owned-strict-native-peer-cleanup.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/owned-strict-native-peer-cleanup.json",
+      "sha256": "5f3b928ac93dd38659ddc6c50db3e5c0fe76699d7015fb813b46bd1f3ad2af54"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/finished.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/finished.json",
+      "sha256": "73e3d27541426d3756df447e473d8785f7abd345917e404f879a177e470f6e56"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/ready.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/ready.json",
+      "sha256": "07998939205eb693b3403445f7b5235038788c57b3b302938a93323e3d67fc6d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/request-001.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/request-001.body",
+      "sha256": "4c896096557456589b3345d0ca1670accc384a5e39f0a4a2c27dc28b2403954f"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/request-001.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/request-001.json",
+      "sha256": "18c918edf6b2c30a03c55ad838facae475a173d55337cff83262ff9308315378"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/request-002.body": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/request-002.body",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/request-002.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/request-002.json",
+      "sha256": "903e231388de110c6fee831de3ca61766bcb0e803e9315ffd69f864b93dc6cc1"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/state.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/state.json",
+      "sha256": "636875ec2a78b84f38479de58817fe94789627d9540ff8acd0aac37cec0044d4"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/peer-native-resume-01/stop": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/peer-native-resume-01/stop",
+      "sha256": "ec5b1804c6a41bb61298fcbcdde691cebcf1c4f10b8992b96a8cbf7c93b47626"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/strict-ups-final-verification.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/strict-ups-final-verification.json",
+      "sha256": "610317d4a9792269d1bdd27ff22d24b0fb0cf0ad693b7468b781ab1ee313766d"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ui/ups-identity-create.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ui/ups-identity-create.txt",
+      "sha256": "1362173db0fc0cf86a77dfdb48ff6e2fa1d9fbf12f0b78703a03ab8b0c62a777"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ui/ups-identity-get.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ui/ups-identity-get.txt",
+      "sha256": "36a80f6b415694d128f58164ccc15216a8294ee422d1b9c4df9379be50dc63d9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/ui/ups-identity-invalid.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/ui/ups-identity-invalid.txt",
+      "sha256": "a9bec8cc1da8fcc8ff6ba0cbdcd351dc3f66bcac685211dcbb9516c19416c9ef"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-identity-create.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-identity-create.txt",
+      "sha256": "1362173db0fc0cf86a77dfdb48ff6e2fa1d9fbf12f0b78703a03ab8b0c62a777"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-identity-get.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-identity-get.txt",
+      "sha256": "36a80f6b415694d128f58164ccc15216a8294ee422d1b9c4df9379be50dc63d9"
+    },
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/ups-identity-invalid.txt": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/ui-network/ups-identity-invalid.txt",
+      "sha256": "a9bec8cc1da8fcc8ff6ba0cbdcd351dc3f66bcac685211dcbb9516c19416c9ef"
+    },
+    "work/m7/native-2026-10-26/ups-identity-repair/independent-final-native-acceptance.json": {
+      "repository_path": "Documentation/2026a-milestones/M7/evidence/ups-identity-repair/independent-final-native-acceptance.json",
+      "sha256": "58c8e162334bc77620f2316a2258403ebd9eedd7f5d01cdf0982ff16b0b448ac"
+    }
+  },
+  "historical_source_root": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26",
+  "helper_execution_note": "Scripts retain original execution-location assumptions; mapping does not claim direct export-root executability.",
+  "updated_utc": "2026-10-26T09:32:30.720333+00:00",
+  "local_final_acceptance": "local-final-acceptance.json"
+}

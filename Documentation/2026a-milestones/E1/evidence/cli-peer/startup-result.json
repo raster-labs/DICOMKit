@@ -1,0 +1,7 @@
+{
+  "result": "Unavailable",
+  "stage": "loopback listener bind",
+  "error": "PermissionError: [Errno 1] Operation not permitted",
+  "requests": 0,
+  "resolution": "Authorized loopback run attempted next in cli-peer-authorized; final passing run in cli-peer-run2"
+}

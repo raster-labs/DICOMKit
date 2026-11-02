@@ -1,0 +1,626 @@
+{
+  "result": "Passed",
+  "cases": 34,
+  "records": [
+    {
+      "id": "client-echo",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-echo",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-1",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-1.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-2",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-2.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2.1"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-3",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-3.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2.2"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-4",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-4.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-5",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-5.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2.1"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-6",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-6.dcm",
+        "--transfer-syntax",
+        "1.2.840.10008.1.2.2"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-warning",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-1.dcm"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-store-failure",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/fixture-1.dcm"
+      ],
+      "exit": 1
+    },
+    {
+      "id": "client-find-study",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "study",
+        "--format",
+        "dicom-json",
+        "--modality",
+        "CT",
+        "--patient-name",
+        "M7*",
+        "--study-date",
+        "20261001-20261031"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-find-series",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "series",
+        "--format",
+        "dicom-json",
+        "--study-uid",
+        "2.25.700",
+        "--modality",
+        "CT"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "client-find-image",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "image",
+        "--format",
+        "dicom-json",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.1"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "refuse-image-modality",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "image",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.1",
+        "--modality",
+        "CT"
+      ],
+      "exit": 64
+    },
+    {
+      "id": "refuse-patient-date",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "patient",
+        "--study-date",
+        "20261024"
+      ],
+      "exit": 64
+    },
+    {
+      "id": "refuse-patient-description",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "patient",
+        "--study-description",
+        "x"
+      ],
+      "exit": 64
+    },
+    {
+      "id": "refuse-patient-studyuid",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "patient",
+        "--study-uid",
+        "2.25.700"
+      ],
+      "exit": 64
+    },
+    {
+      "id": "client-find-FE00",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--level",
+        "study",
+        "--format",
+        "json"
+      ],
+      "exit": 1
+    },
+    {
+      "id": "client-get",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--method",
+        "c-get",
+        "--study-uid",
+        "2.25.700",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/client-get"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "mpps-refuse-missing-class",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+        "update",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--mpps-uid",
+        "2.25.700900",
+        "--status",
+        "COMPLETED",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.1",
+        "--image-uid",
+        "2.25.7000.1",
+        "--protocol-name",
+        "M7SYNTHETIC"
+      ],
+      "exit": 64
+    },
+    {
+      "id": "mpps-reference-0",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+        "update",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--mpps-uid",
+        "2.25.700900",
+        "--status",
+        "COMPLETED",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.1",
+        "--image-uid",
+        "2.25.7000.1",
+        "--protocol-name",
+        "M7SYNTHETIC",
+        "--sop-class-uid",
+        "1.2.840.10008.5.1.4.1.1.2"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "mpps-reference-1",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+        "update",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--mpps-uid",
+        "2.25.700900",
+        "--status",
+        "COMPLETED",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.2",
+        "--image-uid",
+        "2.25.7000.3",
+        "--protocol-name",
+        "M7SYNTHETIC",
+        "--sop-class-uid",
+        "1.2.840.10008.5.1.4.1.1.4"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "mpps-reference-2",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+        "update",
+        "127.0.0.1",
+        "--port",
+        "58578",
+        "--aet",
+        "M7CLIENT",
+        "--called-aet",
+        "M7PEER",
+        "--timeout",
+        "5",
+        "--mpps-uid",
+        "2.25.700900",
+        "--status",
+        "COMPLETED",
+        "--study-uid",
+        "2.25.700",
+        "--series-uid",
+        "2.25.700.3",
+        "--image-uid",
+        "2.25.7000.5",
+        "--protocol-name",
+        "M7SYNTHETIC",
+        "--sop-class-uid",
+        "1.2.840.10008.5.1.4.1.1.7"
+      ],
+      "exit": 0
+    },
+    {
+      "id": "server-echo-store-native6",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/server-storage",
+        "--aet",
+        "M7SERVER",
+        "--port",
+        "58597",
+        "--move-destination",
+        "M7DEST=127.0.0.1:58578"
+      ],
+      "instances": 6
+    },
+    {
+      "id": "server-find-study-wildcard-range",
+      "result": "Passed",
+      "matches": 1
+    },
+    {
+      "id": "server-find-study-date-miss",
+      "result": "Passed",
+      "matches": 0
+    },
+    {
+      "id": "server-find-series-modality",
+      "result": "Passed",
+      "matches": 1
+    },
+    {
+      "id": "server-find-image-return-keys",
+      "result": "Passed",
+      "matches": 2
+    },
+    {
+      "id": "server-get-cancel-mixed-counters",
+      "result": "Passed"
+    },
+    {
+      "id": "server-move-unknown-destination",
+      "result": "Passed"
+    },
+    {
+      "id": "server-move-success-identity-originator",
+      "result": "Passed"
+    },
+    {
+      "id": "server-move-cancel-mixed-counters",
+      "result": "Passed"
+    },
+    {
+      "id": "server-TLS-refusal-flag",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--data-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/tls-flag",
+        "--port",
+        "58620",
+        "--aet",
+        "M7TLS",
+        "--tls"
+      ],
+      "exit": 1
+    },
+    {
+      "id": "server-TLS-refusal-config",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/tls-refusal-config.json"
+      ],
+      "exit": 1
+    },
+    {
+      "id": "server-TLS-refusal-config-false-plus-flag",
+      "result": "Passed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+        "start",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/network-qualified/tls-refusal-config-false-plus-flag.json",
+        "--tls"
+      ],
+      "exit": 1
+    }
+  ],
+  "versions": {
+    "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "pynetdicom": "3.0.4",
+    "pydicom": "3.0.1"
+  },
+  "binary_sha256": {
+    "dicom-echo": "a689e087fc9581c6a7ccbe55472b7ef4545507e6107219d03f944820581dc46b",
+    "dicom-send": "fed329f5b86c408fc393a95f8130c1d9ee021101fc634cccba15297b7aec0440",
+    "dicom-query": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+    "dicom-retrieve": "cd24a6f9a690b83914efbe37184baf1296bfb4e544108decbf92e6cc041e76ea",
+    "dicom-mpps": "24058234700742e9635dfdf19a91ea01911be1eff61260d238dd58ba7ae7dae8",
+    "dicom-server": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8"
+  },
+  "limits": [
+    "Synthetic CT/MR/SC opaque transport and identity, not complete IOD validation.",
+    "Native transfer syntaxes only; codec qualification separate.",
+    "Deterministic server C-FIND midstream cancellation is not established by this script; M4 tests and independent complementary gate remain required.",
+    "TLS protocol/identity tests are a separate library-only runner.",
+    "No external PACS or clinical data."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "scope": "Preserved exact c900 checkpoint; current status is elsewhere",
+  "sha256": {
+    "Documentation/ConformanceStatement.md": "a9e454af2f65b771e4f073b1f61d307c482a842158df7ade25c5de4867ea6baf",
+    "Documentation/2026a-milestones/PLAN.md": "495e321cc5914f2c1231c5ed26e3aadd5a528e30c90b832aaf7dad3bb092bc1c",
+    "Documentation/2026a-milestones/STATUS.md": "1418bc509b8a7dfa9de6eb6e58119e4de4fa07ece5ed047e0a1ff0e03d981e8c",
+    "Documentation/2026a-milestones/items.json": "e2667055ef17c648abad7a5d31997fd72540209b5ea82ddbd7f94ce39fb0c8b4",
+    "Documentation/2026a-milestones/M7/acceptance.json": "cd7ea80a5ea531ebc91c73cca3250137bc0c198fa8d48eb659bd08b762058620",
+    "Documentation/2026a-milestones/M7/source-hashes.json": "efe679933566c788a5708f979bca061786a3bd8e28c68a602058ff00d9d8b50b",
+    "Documentation/2026a-milestones/M7/artifact-hashes.json": "989f761b27574c13bc0d13eb0a67cbdb2b8ab789154e94076242de499a947b7c",
+    "Documentation/2026a-milestones/M7/verification.json": "3313c74e86ea99844b92e14837a10fb8da49158a3a70ab2d0f4911f9ceb1c78d",
+    "Documentation/2026a-milestones/M7/REPORT.md": "b35d95186bf2854daa0074da185a835c81a9a71b8686870ede26881478424b7a",
+    "Documentation/2026a-milestones/M7/REPRODUCE.md": "0397a27de5e2436b84292ca46aad8bbea6d7811f49942e1e75d4d456a9cff756",
+    "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/native-results.json": "3ddf9469681a4c63165d9471de7091b585871b9d99a95abc58efed8e4eb148f8",
+    "Documentation/2026a-milestones/M7/evidence/native-2026-10-26/evidence-index.json": "d50e602b9164cb56da7a517dc4dde1c33396eb855ff8d315717e0b44112caa79"
+  }
+}

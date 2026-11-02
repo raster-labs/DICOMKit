@@ -1,0 +1,123 @@
+{
+  "case": "qido-basic",
+  "started_utc": "2026-10-26T08:06:17.757018+00:00",
+  "native_capture": 1,
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "query",
+    "http://127.0.0.1:60241/dicom-web",
+    "--level",
+    "study",
+    "--limit",
+    "100",
+    "--offset",
+    "0",
+    "--format",
+    "json"
+  ],
+  "checks": [
+    {
+      "name": "native response HTTP status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native authorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI exit",
+      "passed": true,
+      "detail": 0
+    },
+    {
+      "name": "exactly one CLI request",
+      "passed": true,
+      "detail": 1
+    },
+    {
+      "name": "same method, resource and decoded query",
+      "passed": true,
+      "detail": {
+        "native": [
+          "GET",
+          "/dicom-web/studies",
+          [
+            [
+              "limit",
+              "100"
+            ],
+            [
+              "offset",
+              "0"
+            ]
+          ]
+        ],
+        "cli": [
+          "GET",
+          "/dicom-web/studies",
+          [
+            [
+              "limit",
+              "100"
+            ],
+            [
+              "offset",
+              "0"
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "name": "CLI response HTTP status",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "CLI authorization",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "name": "native exact expected UID set",
+      "passed": true,
+      "detail": [
+        "1.2.826.0.1.3680043.10.543.301",
+        "1.2.826.0.1.3680043.10.543.302"
+      ]
+    },
+    {
+      "name": "CLI exact expected UID set",
+      "passed": true,
+      "detail": [
+        "1.2.826.0.1.3680043.10.543.301",
+        "1.2.826.0.1.3680043.10.543.302"
+      ]
+    },
+    {
+      "name": "native and CLI complete DICOM JSON response equality",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "limitations": [
+    "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+  ],
+  "exit": 0,
+  "binary_sha256": "d838f9b15bd67fdbfa1b72be7399d512b540dfc686ffb2bbcbf50ffabc574aee",
+  "cli_capture_indices": [
+    19
+  ],
+  "native_UIDs": [
+    "1.2.826.0.1.3680043.10.543.301",
+    "1.2.826.0.1.3680043.10.543.302"
+  ],
+  "cli_UIDs": [
+    "1.2.826.0.1.3680043.10.543.301",
+    "1.2.826.0.1.3680043.10.543.302"
+  ],
+  "passed": true,
+  "assertions": 10
+}

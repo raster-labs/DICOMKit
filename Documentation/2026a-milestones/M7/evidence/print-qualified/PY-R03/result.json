@@ -1,0 +1,28 @@
+{
+  "id": "PY-R03",
+  "title": "pynetdicom SCU to DICOMKit: no Job context means no event",
+  "status": "passed",
+  "elapsed_seconds": 0.2955042920000004,
+  "observations": {
+    "films": [
+      {
+        "file": "film-20261024-205201-001.png",
+        "sha256": "dcca6e7d2a49858a8f2092b102cdbd3ffe771ebf874603ab56a58cbd183f6e67"
+      }
+    ],
+    "dimse_messages": 12,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.18",
+          "offered": [
+            "1.2.840.10008.1.2.1"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        }
+      }
+    ],
+    "job_uid": "1.2.826.0.1.3680043.10.511.4.1792855321234150.577501"
+  }
+}

@@ -1,0 +1,1 @@
+{"body":"{\"error\": \"Bad Request: includefield=all cannot be combined with another includefield\"}","headers":{"Content-Type":"application\/json"},"status":400}

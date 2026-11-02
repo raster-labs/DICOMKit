@@ -1,0 +1,10 @@
+{
+  "source_commit": "3be6b6ef5de2210016fbb45aef2e96bcabf74ba2",
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t27.0.1\nBuildVersion:\t\t26A434",
+  "swift": "Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)\nTarget: arm64-apple-macosx27.0.0",
+  "xcode": "Xcode 27.0\nBuild version 27A266a",
+  "architecture": "arm64",
+  "cli_bin_dir": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/.build/out/Products/Release",
+  "debug_command": "swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --enable-code-coverage --no-parallel --skip largeSparseSource",
+  "release_command": "swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --test-product DICOMKitTests --filter largeSparseSource"
+}

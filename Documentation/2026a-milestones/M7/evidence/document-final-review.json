@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "reviewed_utc": "2026-10-24T15:35:36.948306+00:00",
+  "scope": "Read-only M7 documentation/evidence audit; no builds or native execution",
+  "status": "Reporting correction resolved; audit-only final source/evidence manifest refresh remains with root",
+  "verified": {
+    "item_statuses": {
+      "Completed": 43,
+      "Deferred": 22,
+      "In progress": 3
+    },
+    "M7_acceptance": {
+      "Passed": 5,
+      "Blocked": 1
+    },
+    "M6_focused_latest_passed": 933,
+    "Studio_XCTest_passed": 83,
+    "Studio_XCTest_skipped": 4,
+    "Studio_SwiftTesting_framework_reported_tests": 5380,
+    "additional_SwiftTesting_skip_lines": [
+      "\u279c Test \"Per-format codec comparison on SampleStudies\" skipped: \"Requires optional SampleStudies codec fixtures\""
+    ],
+    "VM_actions_and_CLI_comparisons": 25,
+    "native_planned_groups": 28,
+    "native_executed_claim": 0,
+    "source_hashes_checked": 2057,
+    "artifact_hashes_checked": 71,
+    "evidence_hashes_checked": 3077,
+    "authored_local_links_checked": 96
+  },
+  "problems": {
+    "local_links": [],
+    "source_hashes": [],
+    "artifact_hashes": [],
+    "evidence_hashes": []
+  },
+  "findings": [
+    {
+      "id": "DOC-M7-01",
+      "severity": "Required reporting correction",
+      "source": "Documentation/2026a-milestones/M7/evidence/integrated-final/studio-full-tests.log:5680",
+      "detail": "Optional Swift Testing SampleStudies per-format codec test is skipped in addition to four XCTest opt-in skips. Reports/verification must retain that unexecuted fixture case; do not imply all skips were activated later.",
+      "root_notified": true,
+      "resolution": "Verified SampleStudies optional-fixture skip is now explicit in M7/REPORT.md, M7/verification.json and STATUS.md; the framework-reported 5380 is not reclassified as an independent executed-pass count.",
+      "status": "Resolved"
+    }
+  ],
+  "scope_review": "No native GUI, physical output, whole-standard, M7-completion or exact-head M7 CI overclaim found. M6 remote success is explicitly scoped to historical 3ee9af8a. QUAL-02 is bounded external claims only; three active items remain open.",
+  "reproduction_review": "Promoted scripts and inputs exist; fresh-output rules and modern M7 versus legacy M6 peer environments are disclosed. Prefer explicit separate interpreter variables in command blocks to prevent accidental peer-version exchange. No commands executed during audit.",
+  "updated_utc": "2026-10-24T15:44:44.198028+00:00",
+  "post_review_audit_update": {
+    "verification": "studio-audit-repair-verification.json",
+    "regression_tests_passed": 48,
+    "full_studio_callbacks": 178,
+    "audit_errors": 0,
+    "retained_finding_checks": 3,
+    "note": "Original hash/link check counts above describe the prior reviewed documentation snapshot. Root is refreshing manifests for audit-only script/workflow changes and their evidence."
+  }
+}

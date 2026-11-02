@@ -1,0 +1,11 @@
+Test Suite 'Selected tests' started at 2026-10-24 20:53:47.660.
+Test Suite 'DICOMStudioTests.xctest' started at 2026-10-24 20:53:47.665.
+Test Suite 'M5WorkshopActionHarnessTests' started at 2026-10-24 20:53:47.665.
+Test Case '-[DICOMStudioTests.M5WorkshopActionHarnessTests testConfiguredWorkshopActions]' started.
+Test Case '-[DICOMStudioTests.M5WorkshopActionHarnessTests testConfiguredWorkshopActions]' passed (0.197 seconds).
+Test Suite 'M5WorkshopActionHarnessTests' passed at 2026-10-24 20:53:47.862.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.197 (0.197) seconds
+Test Suite 'DICOMStudioTests.xctest' passed at 2026-10-24 20:53:47.862.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.197 (0.197) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:53:47.862.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.197 (0.202) seconds

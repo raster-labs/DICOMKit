@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "reviewed_utc": "2026-10-24T15:47:49.707278+00:00",
+  "status": "Passed \u2014 no remaining documentation blocker",
+  "scope": "Read-only final metadata/evidence review; no product tests, builds, GUI, repository edits or remote CI lookup.",
+  "counts": {
+    "source_files": 2058,
+    "runtime_source_files": 2057,
+    "post_build_audit_only_files": 4,
+    "overlay_members": 31,
+    "artifacts_rehashed": 71,
+    "evidence_files_rehashed": 3087,
+    "authored_local_links_checked": 98,
+    "item_statuses": {
+      "Completed": 43,
+      "Deferred": 22,
+      "In progress": 3
+    },
+    "M7_criteria": {
+      "Passed": 5,
+      "Blocked": 1
+    },
+    "M6_final_focused_passes": 933,
+    "M6_final_ordinary_skips": 1,
+    "Studio_framework_reported_SwiftTesting": 5380,
+    "Studio_optional_SampleStudies_skips": 1,
+    "Studio_XCTest_passes": 83,
+    "Studio_XCTest_ordinary_optin_skips": 4,
+    "audit_regressions": 48,
+    "Studio_static_callbacks": 178,
+    "Studio_static_retained_findings": 3,
+    "print_VM_actions": 25,
+    "print_CLI_comparisons": 25,
+    "native_planned_groups": 28,
+    "native_executed_claim": 0
+  },
+  "checks": {
+    "source_hash_mismatches": [],
+    "runtime_reconciliation": [],
+    "overlay": [],
+    "artifact_hash_mismatches": [],
+    "evidence_hash_mismatches": [],
+    "broken_local_links": [],
+    "missing_evidence_references": [],
+    "missing_reproduction_scripts": [],
+    "count_or_environment_errors": []
+  },
+  "reproduction": {
+    "explicit_m6_python_and_m7_python": true,
+    "script_files_checked": [
+      "Scripts/diff_cli.py",
+      "Scripts/diff_kit.py",
+      "Scripts/diff_studio.py",
+      "Scripts/m7-peer-requirements.txt",
+      "Scripts/verify_m6_print_interop.py",
+      "Scripts/verify_m6_workshop.py",
+      "Scripts/verify_m6_workshop_images.py",
+      "Scripts/verify_m7.sh",
+      "Scripts/verify_m7_codecs.py",
+      "Scripts/verify_m7_network_interop.py",
+      "Scripts/verify_m7_tls_interop.py"
+    ],
+    "note": "Modern M7 network/TLS/codec Python and legacy M6 print/Workshop Python are explicitly separated; fresh output directories and historical app-build path adaptation are stated."
+  },
+  "acceptance_scope": "QUAL-01 and WS-COV-07/08 remain open; M6 native AC03/04 are not closed. Final native, physical printer/CUPS, full DICOM/TLS profiles, other-platform runtime, M7 remote CI and merge completion are not asserted. Historical M6 remote CI is scoped to 3ee9af8a.",
+  "snapshot_note": "Evidence hashes describe this observed snapshot. Root may add this review and refresh evidence hashes afterward; that is documentation-only. Prior review retains resolved SampleStudies finding history."
+}

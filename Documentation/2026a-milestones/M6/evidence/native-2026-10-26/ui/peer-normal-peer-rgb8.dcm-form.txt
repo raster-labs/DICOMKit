@@ -1,0 +1,155 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button (selected) Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down (showing 0-100 of 114 items)
+						40 text Print Client.  Printer list: /Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification/printers.json. This Workshop list is separate from Print Center and may differ from the terminal's list when the app is sandboxed.
+						41 button Import Command
+						42 text Parameters Parameters Operation
+						43 Operation
+							44 radio button Description: status, Value: 0
+							45 radio button Description: send, Value: 1
+							46 radio button Description: job, Value: 0
+							47 radio button Description: list-printers, Value: 0
+							48 radio button Description: add-printer, Value: 0
+							49 radio button Description: remove-printer, Value: 0
+						50 text The printer list belongs to this Workshop environment and is separate from Print Center. Send uses its explicit URL and AE fields. Printer URL
+						51 text field (settable) Description: Printer URL, Value: pacs://127.0.0.1:56648
+						52 text pacs://hostname:port (default port 11112) DICOM Files or Directories
+						53 text field (settable) Description: DICOM Files or Directories entry 1, Placeholder: Value, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-rgb8.dcm
+						54 button Description: Remove DICOM Files or Directories entry 1, ID: minus.circle
+						55 button Add DICOM Files or Directories entry
+						56 button Browse for DICOM Files or Directories
+						57 text Ordered file or directory paths, one entry per row. Use Browse to grant file access. Calling AE Title --aet
+						58 text field (settable) Description: Calling AE Title, Value: M7NATIVE
+						59 text Called AE Title --called-aet
+						60 text field (settable) Description: Called AE Title, Value: PYM6
+						61 text Connection Timeout (seconds) --timeout
+						62 text field (settable) Description: Connection Timeout (seconds), Value: 5
+						63 text Output Format --format
+						64 Output Format
+							65 radio button Description: text, Value: 0
+							66 radio button Description: json, Value: 1
+						67 text JSON is result output; diagnostics remain separate in the CLI. Number of Copies --copies
+						68 text field (settable) Description: Number of Copies, Value: 1
+						69 text Number of Copies (2000,0010), at least 1. Film Size ID --film-size
+						70 text field (settable) Description: Film Size ID, Value: 8x10
+						71 text 8x10 = 8INX10IN, 8.5x11 = 8_5INX11IN, 10x12 = 10INX12IN, 10x14 = 10INX14IN, 11x14 = 11INX14IN, 11x17 = 11INX17IN, 14x14 = 14INX14IN, 14x17 = 14INX17IN, 24x24cm = 24CMX24CM, 24x30cm = 24CMX30CM, a4 = A4, a3 = A3 Film Orientation --orientation
+						72 text field (settable) Description: Film Orientation, Value: portrait
+						73 text portrait = PORTRAIT, landscape = LANDSCAPE Print Priority --priority
+						74 text field (settable) Description: Print Priority, Value: medium
+						75 text low = LOW, medium = MED, high = HIGH Image Display Format --layout
+						76 text field (settable) Description: Image Display Format, Value: 1x1
+						77 text Grid RxC, STANDARD\C,R, ROW\R1,R2,..., COL\C1,C2,..., SLIDE, SUPERSLIDE or CUSTOM\i. Empty selects automatic layout. Conflicts with Template. Layout Template --template
+						78 pop up button Description: Layout Template, Value: Any
+						79 text Sets layout, film size and orientation. Leave empty for automatic layout or explicit Layout. Medium Type --medium
+						80 text field (settable) Description: Medium Type, Value: paper
+						81 text paper = PAPER, clear-film = CLEAR FILM, blue-film = BLUE FILM, mammo-clear-film = MAMMO CLEAR FILM, mammo-blue-film = MAMMO BLUE FILM Magnification Type --magnification
+						82 text field (settable) Description: Magnification Type, Value: replicate
+						83 text replicate = REPLICATE, bilinear = BILINEAR, cubic = CUBIC, none = NONE Film Destination --film-destination
+						84 text field (settable) Description: Film Destination, Value: processor
+						85 text processor / PROCESSOR, magazine / MAGAZINE, or bin-N / BIN_N for N >= 1 with no leading zeros. Color Mode --color
+						86 Color Mode
+							87 radio button Description: grayscale, Value: 0
+							88 radio button Description: color, Value: 1
+						89 text Basic Grayscale or Basic Color Print Management Meta SOP Class. Frame (1-based) --frame
+						90 text field (settable) Description: Frame (1-based), Value: 1
+						91 text Window Center --window-center
+						92 text field (settable) Window Center
+						93 text Decimal value; requires Window Width. Negative values are preserved. Window Width --window-width
+						94 text field (settable) Window Width
+						95 text Decimal width; requires Window Center. Grayscale Bit Depth --bit-depth
+						96 text field (settable) Description: Grayscale Bit Depth, Value: 8
+						97 text Bits Stored: 8 or 12. Existing CLI clamps higher values; 12 uses 12-in-16 P-Values. Presentation LUT --presentation-lut
+						98 text field (settable) Presentation LUT
+						99 text identity = IDENTITY, inverse, lin-od = LIN OD; empty creates no Presentation LUT. Pixel Palette --palette
+						100 text field (settable) Pixel Palette
+						101 text Grayscale: grayscale, grayscale-inverse
+DICOM Standard: hot-iron, pet, hot-metal-blue, pet-20-step, spring, summer, fall, winter
+Perceptually Uniform: viridis, inferno, magma, plasma
+Spectrum: jet, rainbow, gray-rainbow, spectrum
+Single Hue & Flow: hot-green, hue-1, hue-2, flow, ratio
+
+Colour is baked into 8-bit RGB before sending: DICOM Print Management cannot name a palette to a printer (PS3.3 Table C.13-5 allows only RGB in a Basic Color Image Sequence). --bit-depth and a lin-od presentation LUT therefor Annotations --annotate
+						102 button Add Annotations entry
+						103 text One annotation per row; position starts at 1. Text, spaces, semicolons and backslashes are preserved. Requires Annotation Format. Annotation Display Format ID --annotation-format
+						104 text field (settable) Annotation Display Format ID
+					105 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					106 button Description: Run command, Help: Runs the selected Workshop action
+				107 splitter (disabled, settable, float) 840
+				108 container
+					109 text Command Preview Valid $ Select a tool to build a command
+					110 button Description: Copy command, Help: Copies the command to the clipboard
+					111 text Console ERROR
+					112 button Description: Copy console output, Help: Copies the console output to the clipboard
+					113 button Clear console output
+					114 scroll area
+						115 text $ dicom-print list-printers --format json --verbose
+
+No printers configured.
+
+Add a printer with:
+  dicom-print add-printer --name radiology-printer \
+      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP
+
+							116 text $ dicom-print send --aet M7NATIVE --called-aet PYM6 --timeout 5 --format json --copies 1 --film-size 8x10 --orientation portrait --priority medium --layout 1x1 --medium paper --magnification replicate --film-destination processor --color grayscale --frame 1 --raw --bit-depth 8 --presentation-lut IDENTITY --retries 0 -- pacs://127.0.0.1:56650 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/peer-gray8.dcm
+
+Error: SOP Class not supported: 1.2.840.1
+					117 text History
+					118 button Clear
+					119 scroll area
+						120 text dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print dicom-print
+	121 toolbar
+		122 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		123 search text field (settable) Search features
+			124 button Search
+	125 close button
+	126 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	127 minimize button
+	128 text DICOM Studio
+129 menu bar
+	130 DICOMStudio
+	131 File
+	132 Edit
+	133 View
+	134 Image
+	135 Window
+	136 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

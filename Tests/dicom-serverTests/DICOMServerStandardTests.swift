@@ -381,7 +381,7 @@ final class DICOMServerStandardTests: XCTestCase {
     private func startServer(ae: String, dir: URL, destinations: [String: DestinationAE] = [:]) async throws -> (PACSServer, UInt16, Task<Void, Error>) {
         for _ in 0..<5 {
             let port = UInt16.random(in: 40000...60000)
-            let config = ServerConfiguration(aeTitle: ae, port: port, dataDirectory: dir.path, databaseURL: "sqlite://\(dir.path)/index.db",
+            let config = ServerConfiguration(aeTitle: ae, port: port, dataDirectory: dir.path, databaseURL: "filesystem://",
                                              maxPDUSize: 16384, knownDestinations: destinations)
             let server = try PACSServer(configuration: config)
             let task = Task { try await server.start() }

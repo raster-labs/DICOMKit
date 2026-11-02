@@ -1,0 +1,26 @@
+OVERVIEW: Manage AI model registry
+
+Manage the AI model registry for versioning and tracking models.
+
+Examples:
+  dicom-ai registry add --name pneumonia-v1 --path model.mlmodel --type
+classification
+  dicom-ai registry list
+  dicom-ai registry remove --name pneumonia-v1
+  dicom-ai registry search --tags chest,xray
+
+USAGE: dicom-ai registry <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  add                     Add a model to the registry
+  list                    List all models in the registry
+  remove                  Remove a model from the registry
+  search                  Search models by tags
+  info                    Get detailed information about a model
+  clear                   Clear all models from the registry
+
+  See 'dicom-ai help registry <subcommand>' for detailed help.

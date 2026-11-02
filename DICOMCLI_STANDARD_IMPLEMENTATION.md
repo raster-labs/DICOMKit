@@ -1,5 +1,9 @@
 # `dicom-*` CLI tools — DICOM 2026a verification
 
+> Current implementation follow-up: [DICOM 2026a milestone status](Documentation/2026a-milestones/STATUS.md).
+> This report is historical evidence from the dates below. Its earlier “complete” status does not
+> close the 24 October 2026 behavioral findings; M0 repairs audit tooling only.
+
 Scope: the 42 `dicom-*` executable targets under `Sources/dicom-*` (80 Swift files at the start, 100 at the close — 23 files added, 3 removed again the same day: `TagEditRules.swift` folded into DICOMKit in `d812b918`, the two `RetrieveStatusText.swift` into DICOMNetwork in `5ab35bf4`). Target edition
 **DICOM 2026a**. Method: ["Verification method (reuse for every module)"](DICOMCORE_STANDARD_IMPLEMENTATION.md#verification-method-reuse-for-every-module),
 applied to the tools' *surface*: every tool is an adapter over a DICOMKit engine that was verified in

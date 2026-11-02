@@ -1,0 +1,72 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button (selected) Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-study, Help: Study-level organize, summary, check, stats, compare
+			24 button Description: dicom-uid, Help: Generate, validate, lookup, and regenerate UIDs
+			25 button (selected) Description: dicom-script, Help: Dry-run, validate, and generate script templates; live execution uses the CLI
+			26 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			27 split group
+				28 container
+					29 scroll area
+						30 text Scripting.  Parameters Input Script File
+						31 text field (settable) Description: Script File, Placeholder: workflow.dcmscript, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt
+						32 button Description: Browse for Script File, Help: Opens a file picker dialog
+						33 text DICOM Script Language (.dcmscript) file to preview or validate; Workshop does not execute nested commands Parameters Operation
+						34 Operation
+							35 radio button Description: run, Value: 0
+							36 radio button Description: validate, Value: 1
+							37 radio button Description: template, Value: 0
+						38 text run: preview a script with Dry Run enabled; validate: check script syntax and tool names; template: generate a starter script. Live execution is available through the CLI only. Options
+						39 checkbox Description: Verbose, Value: 0
+					40 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					41 button Description: Validate command, Help: Runs the selected Workshop action
+				42 splitter (disabled, settable, float) 460
+				43 container
+					44 text Command Preview Valid $ Select a tool to build a command
+					45 button Description: Copy command, Help: Copies the command to the clipboard
+					46 text Console IDLE
+					47 button (disabled) Clear console output
+					48 image Description: Terminal Command Prompt, ID: terminal
+					49 text Console output will appear here History
+					50 button Clear
+					51 scroll area
+						52 text dicom-validate dicom-convert dicom-convert dicom-convert dicom-convert dicom-convert dicom-convert dicom-anon dicom-anon dicom-script
+	53 toolbar
+		54 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		55 search text field (settable) Search features
+			56 button Search
+	57 close button
+	58 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	59 minimize button
+	60 text DICOM Studio
+61 menu bar
+	62 DICOMStudio
+	63 File
+	64 Edit
+	65 View
+	66 Image
+	67 Window
+	68 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

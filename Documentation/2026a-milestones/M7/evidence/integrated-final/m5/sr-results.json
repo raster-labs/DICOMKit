@@ -1,0 +1,98 @@
+[
+  {
+    "display" : "10:15:30.123456",
+    "label" : "TIME fraction",
+    "raw" : "101530.123456",
+    "vr" : "TM"
+  },
+  {
+    "display" : "10:15:30.123457",
+    "label" : "TIME next fraction",
+    "raw" : "101530.123457",
+    "vr" : "TM"
+  },
+  {
+    "display" : "10:15:30.120000",
+    "label" : "TIME trailing zeros",
+    "raw" : "101530.120000",
+    "vr" : "TM"
+  },
+  {
+    "display" : "10",
+    "label" : "TIME hour",
+    "raw" : "10",
+    "vr" : "TM"
+  },
+  {
+    "display" : "10:15",
+    "label" : "TIME minute",
+    "raw" : "1015",
+    "vr" : "TM"
+  },
+  {
+    "display" : "2026-10-24 10:15:30.123456 +0530",
+    "label" : "DATETIME positive offset",
+    "raw" : "20261024101530.123456+0530",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10-24 10:15:30.123456 -0330",
+    "label" : "DATETIME negative offset",
+    "raw" : "20261024101530.123456-0330",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026",
+    "label" : "DATETIME year",
+    "raw" : "2026",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10",
+    "label" : "DATETIME month",
+    "raw" : "202610",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10-24",
+    "label" : "DATETIME date",
+    "raw" : "20261024",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10-24 10",
+    "label" : "DATETIME hour",
+    "raw" : "2026102410",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10-24 10:15",
+    "label" : "DATETIME minute",
+    "raw" : "202610241015",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026-10-24 10:15:30.120000 +0000",
+    "label" : "DATETIME zeros UTC",
+    "raw" : "20261024101530.120000+0000",
+    "vr" : "DT"
+  },
+  {
+    "display" : "2026 +0530",
+    "label" : "DATETIME partial offset",
+    "raw" : "2026+0530",
+    "vr" : "DT"
+  },
+  {
+    "display" : "101530.1234567",
+    "label" : "Malformed TIME retained",
+    "raw" : "101530.1234567",
+    "vr" : "TM"
+  },
+  {
+    "display" : "20260230101530+0530",
+    "label" : "Malformed DATETIME retained",
+    "raw" : "20260230101530+0530",
+    "vr" : "DT"
+  }
+]

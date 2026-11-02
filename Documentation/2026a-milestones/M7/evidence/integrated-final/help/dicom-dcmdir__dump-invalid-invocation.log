@@ -1,0 +1,4 @@
+Error: Missing expected argument '<dicomdir-path>'
+Help:  <dicomdir-path>  Path to DICOMDIR file
+Usage: dicom-dcmdir dump <dicomdir-path> [--format <format>] [--verbose]
+  See 'dicom-dcmdir dump --help' for more information.

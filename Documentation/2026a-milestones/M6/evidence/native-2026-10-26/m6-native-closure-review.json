@@ -1,0 +1,167 @@
+{
+  "recordedUTC": "2026-10-26T07:39:12.909405+00:00",
+  "purpose": "Final M6 closure review against accepted PLAN and final native SCP receipt",
+  "checks": [
+    {
+      "check": "Final native Raw off/on changes only --raw",
+      "status": "Passed",
+      "detail": {
+        "off": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "ANY-SCP",
+          "--timeout",
+          "60",
+          "--format",
+          "text",
+          "--verbose",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--bit-depth",
+          "8",
+          "--dry-run",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:1",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+        ],
+        "on": [
+          "dicom-print",
+          "send",
+          "--aet",
+          "M7NATIVE",
+          "--called-aet",
+          "ANY-SCP",
+          "--timeout",
+          "60",
+          "--format",
+          "text",
+          "--verbose",
+          "--copies",
+          "1",
+          "--film-size",
+          "14x17",
+          "--orientation",
+          "portrait",
+          "--priority",
+          "medium",
+          "--medium",
+          "paper",
+          "--magnification",
+          "replicate",
+          "--film-destination",
+          "processor",
+          "--color",
+          "grayscale",
+          "--frame",
+          "1",
+          "--raw",
+          "--bit-depth",
+          "8",
+          "--dry-run",
+          "--retries",
+          "0",
+          "--",
+          "pacs://127.0.0.1:1",
+          "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-fixtures/gray8.dcm"
+        ]
+      }
+    },
+    {
+      "check": "Final native dry-run succeeds without print submission",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native SCP denies nonallowed AE with explicit association refusal",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native SCP permits allowed AE and reports exact NORMAL keywords",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native running form disables fields and exposes Stop",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native stopped form restores Start and fields",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native Stop releases actual listener",
+      "status": "Passed",
+      "detail": null
+    },
+    {
+      "check": "Native menu screenshot visually readable at240px",
+      "status": "Passed",
+      "detail": "Reviewer inspected send-narrow.png: checkbox indicators, complete wrapped labels/help, and Run are within x220..460. No simultaneous view of offscreen fields is implied."
+    },
+    {
+      "check": "Final SCP: native_success",
+      "status": "Passed",
+      "evidence": "cli-final-controls/menu-final-scp-status.json"
+    },
+    {
+      "check": "Final SCP: native_menu_status",
+      "status": "Passed",
+      "evidence": "cli-final-controls/menu-final-scp-status.json"
+    },
+    {
+      "check": "Final SCP: exit_zero",
+      "status": "Passed",
+      "evidence": "cli-final-controls/menu-final-scp-status.json"
+    },
+    {
+      "check": "Final SCP: no_diagnostic",
+      "status": "Passed",
+      "evidence": "cli-final-controls/menu-final-scp-status.json"
+    },
+    {
+      "check": "Final SCP: complete_fields_equal",
+      "status": "Passed",
+      "evidence": "cli-final-controls/menu-final-scp-status.json"
+    }
+  ],
+  "counts": {
+    "Passed": 13,
+    "Failed": 0
+  },
+  "requiredRemaining": [],
+  "notAdditionalSoftwareGates": [
+    "Keyboard/Space platform interaction: supplementary limit, not an original required acceptance criterion.",
+    "Physical film/printer/CUPS/calibration quality: explicitly separate unqualified environment scope."
+  ],
+  "preservedGates": [
+    "Actual packaged both-tool/all-command evidence, option contract comparisons, lifecycle, independent direction-specific peers and finite pixel/output qualification remain required and are mapped in M6-closure-draft.md."
+  ],
+  "identity": "final-qualified-native-identity.json",
+  "sourceScopeReuse": "Identity receipt proves shared print code unchanged since first repair, stable dispatch prefix and generic grants after print early return.",
+  "finalSCPReceipt": "ui-menu-final/scp-status-final.txt",
+  "conclusion": "All eight M6 criteria passed for the finite macOS software scope; M7 is not complete."
+}

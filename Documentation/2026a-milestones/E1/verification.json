@@ -1,0 +1,89 @@
+{
+  "recorded_utc": "2026-10-26T12:06:22.688227+00:00",
+  "baseline_commit": "4e5ca590275a8ff77a29e5bb4e0804c84f692642",
+  "branch": "codex/dicom-2026a-milestones",
+  "local_result": "Passed",
+  "source_manifest": "source-hashes.json",
+  "artifact_manifest": "evidence/artifact-hashes.json",
+  "checks": [
+    {
+      "name": "MPPS regression",
+      "result": "Passed",
+      "reported": 93,
+      "executed_passes": 92,
+      "skipped": 1,
+      "skip_reason": "Manual capture server is not an automated acceptance test; independent native peer used instead.",
+      "evidence": "evidence/network-tests-qualified.log"
+    },
+    {
+      "name": "Affected Studio regression",
+      "result": "Passed",
+      "swift_testing_reported_passes": 131,
+      "xctest_executed_passes": 11,
+      "skipped": 0,
+      "evidence": "evidence/studio-tests-qualified.log"
+    },
+    {
+      "name": "Audit regression",
+      "result": "Passed",
+      "executed_passes": 48,
+      "evidence": "evidence/audit-tests.log"
+    },
+    {
+      "name": "Independent CLI MPPS",
+      "result": "Passed",
+      "actions": 17,
+      "assertions": 56,
+      "wire_requests": 14,
+      "evidence": "evidence/cli-peer-qualified/results.json"
+    },
+    {
+      "name": "Independent Workshop MPPS",
+      "result": "Passed",
+      "actions": 19,
+      "assertions": 54,
+      "wire_requests_including_external_cli_seed": 14,
+      "evidence": "evidence/workshop-peer-retained/workshop-verification.json",
+      "retained_actions": "evidence/workshop-peer-retained/workshop-actions.json",
+      "harness_log": "evidence/workshop-retained-test.log"
+    },
+    {
+      "name": "Actual packaged Workshop",
+      "result": "Passed",
+      "actions": 6,
+      "native_requests": 4,
+      "cli_seed_requests": 1,
+      "local_refusals": 2,
+      "wire_assertions": 45,
+      "evidence": [
+        "evidence/native-observations.json",
+        "evidence/native-peer/native-wire-review.json",
+        "evidence/native-peer/cleanup.json",
+        "evidence/app-build.log",
+        "evidence/app-signing.log",
+        "evidence/app-process-identity.log"
+      ]
+    }
+  ],
+  "counting_policy": "Framework, process, wire and native counts cover overlapping behavior and are not added together.",
+  "preserved_attempts": [
+    "Initial sandbox compiler-cache refusal",
+    "First network test compilation failed on missing test-only argument; repaired",
+    "Network run stalled; a mock-peer readiness-handler race was repaired and the isolated/final runs passed; no stack trace establishes the precise original stall location",
+    "Earlier capture fixture reused a terminal UID; corrected to distinct UIDs",
+    "Manual capture server inadvertently activated; stopped through its designated file; its empty run is not accepted evidence",
+    "Initial CLI peer bind denial and incorrect build-directory path",
+    "Initial Workshop summary filename overwrote action transcript; final verifier writes separate summary and the targeted 19-action run retained all action records"
+  ],
+  "limits": [
+    "macOS arm64, bounded synthetic software peers",
+    "No production route added for dormant metadata",
+    "No all-platform, external hospital system, physical device or complete IOD conformance claim",
+    "Original M0\u2013M7 evidence retains its source/epoch boundaries"
+  ],
+  "remote_CI": {
+    "state_at_document_creation": "Pending next pushed E1 commit",
+    "receipt_location": "Task outputs after push; no extra documentation-only commit required"
+  },
+  "merge_authorized": false
+}

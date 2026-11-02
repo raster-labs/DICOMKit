@@ -1,0 +1,20 @@
+DICOM Print Tool v1.4.5
+=======================
+Server: 127.0.0.1:1
+Calling AE Title: M6WORKSHOP
+Called AE Title: ANY-SCP
+Number of Copies: 1
+Film Size ID: 14INX17IN
+Film Orientation: PORTRAIT
+Print Priority: MED
+Medium Type: PAPER
+Film Destination: PROCESSOR
+Magnification Type: REPLICATE
+Color Mode: GRAYSCALE
+Retries: 2
+Mode: DRY RUN (no files will be printed)
+
+Found 1 file(s) to print
+  [1] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-smoke/fixtures/gray8.dcm
+
+Dry run complete. Use without --dry-run to print files.

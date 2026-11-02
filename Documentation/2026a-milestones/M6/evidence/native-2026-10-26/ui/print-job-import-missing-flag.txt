@@ -1,0 +1,20 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: dicom-print job pacs://127.0.0.1:21113 1.2.826.0.1.3680043.10.511.4.1792992311950314.969050 --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json
+			5 scroll bar (disabled, settable, float) 0
+		6 text CommandError(commandStack: [DICOMPrintCommandSupport.PrintSCUCommand, DICOMPrintCommandSupport.SCUJobCommand], parserError: ArgumentParser.ParserError.noValue(forKey: jobId))
+		7 button Cancel
+		8 button Import
+9 menu bar
+	10 DICOMStudio
+	11 File
+	12 Edit
+	13 View
+	14 Image
+	15 Window
+	16 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: dicom-print job pacs://127.0.0.1:21113 1.2.826.0.1.3680043.10.511.4.1792992311950314.969050 --aet M7NATIVE --called-aet M7CLI --timeout 5 --format json

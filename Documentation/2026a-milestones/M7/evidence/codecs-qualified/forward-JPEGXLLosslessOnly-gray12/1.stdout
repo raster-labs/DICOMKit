@@ -1,0 +1,6 @@
+JPEG XL file format container (ISO/IEC 18181-2)
+JPEG XL image, 64x48, (possibly) lossless, 16-bit Grayscale
+Color space: Grayscale
+White point: D65
+Transfer function: sRGB
+Rendering intent: Relative

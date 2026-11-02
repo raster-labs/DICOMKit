@@ -1,0 +1,15 @@
+{
+  "method": "POST",
+  "path": "/dicom-web/workitems",
+  "headers": {
+    "Host": "127.0.0.1:61086",
+    "Content-Type": "application/dicom+json",
+    "Connection": "keep-alive",
+    "Accept": "application/dicom+json",
+    "User-Agent": "DICOMKit/1.0",
+    "Content-Length": "248",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept-Language": "en-US,en;q=0.9"
+  },
+  "body": "{\"00741200\":{\"Value\":[\"MEDIUM\"],\"vr\":\"CS\"},\"00404005\":{\"Value\":[\"20261024103000.123456+0530\"],\"vr\":\"DT\"},\"00741000\":{\"vr\":\"CS\",\"Value\":[\"SCHEDULED\"]},\"00741204\":{\"Value\":[\"M2 synthetic schedule\"],\"vr\":\"LO\"},\"00404041\":{\"Value\":[\"READY\"],\"vr\":\"CS\"}}"
+}

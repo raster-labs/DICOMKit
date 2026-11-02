@@ -1,0 +1,2163 @@
+{
+  "schema_version": 1,
+  "milestone": "M4",
+  "kind": "Independent acceptance review, reconciled with final local evidence",
+  "reviewed_at_utc": "2026-10-24T13:17:28.452996+00:00",
+  "summary": {
+    "criteria": 15,
+    "Passed": 14,
+    "missing_criteria": 0,
+    "Not applicable": 1
+  },
+  "criteria": [
+    {
+      "criterion_id": "NET-05-A-AC01",
+      "assertion": "Loopback test with many delayed matches: cancel after the first pending response, observe a final FE00 and no newly generated matches after cancellation is processed.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testFindCancelMidStreamStopsAfterProcessedBoundary",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 233
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testFindCancelBeforeFirstResultIncludingSamePDUMessages",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 231
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testFindCancelAtCompletionRaceHasOneFinalResponse",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 229
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/find-midstream",
+        "evidence/cancellation-wire/find-before-first",
+        "evidence/cancellation-wire/find-completion-race",
+        {
+          "campaign": "clients",
+          "case_id": "CLIENTS-01"
+        },
+        {
+          "campaign": "clients",
+          "case_id": "CLIENTS-02"
+        }
+      ],
+      "rationale": "Five delayed matches with deterministic checkpoints: before-first yields FE00 immediately; midstream sends one pending then FE00; completion race sends five pending then exactly one FE00. Real ServerSession loopback; independent captured command parsing confirms statuses. CLI/Workshop controlled outcomes are supplementary, not proof they originated a C-CANCEL.",
+      "supplementary_packaged_gui_cases": [
+        "GUI-01",
+        "GUI-02"
+      ]
+    },
+    {
+      "criterion_id": "NET-05-A-AC02",
+      "assertion": "Cancellation of a different message ID does not cancel the active request; subsequent legal association use remains possible.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testWrongIDAndContextIgnoredAndLateCancelDoesNotPoisonReusedID",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 245
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/find-wrong-and-reused-id"
+      ],
+      "rationale": "Wrong message ID and wrong presentation context are ignored. Both original and reused message ID requests return five matches plus success; intervening C-ECHO succeeds after late cancel."
+    },
+    {
+      "criterion_id": "NET-05-A-AC03",
+      "assertion": "Allow already-sent/in-flight pending responses before FE00; do not assert instantaneous zero additional bytes.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testFindCancelMidStreamStopsAfterProcessedBoundary",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 233
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testFindCancelAtCompletionRaceHasOneFinalResponse",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 229
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/find-midstream",
+        "evidence/cancellation-wire/find-completion-race"
+      ],
+      "rationale": "Tests allow previously transmitted pending responses and assert the no-new-match boundary only after a deterministic post-send checkpoint and processed cancellation. They do not require instantaneous absence of all in-flight bytes."
+    },
+    {
+      "criterion_id": "NET-05-B-AC01",
+      "assertion": "Use a delayed Storage SCP and several instances; cancel mid-transfer, then verify FE00, no further initiated stores, and exact completed/failed/warning counts.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveCancelDuringMixedStoreOutcomesPreservesCountersAndFailedUIDs",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 241
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testCancelledMoveToSilentDestinationHasBoundedSettlementAndCleanup",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 227
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/move-mixed-midstream",
+        "evidence/cancellation-wire/move-silent-destination",
+        {
+          "campaign": "clients",
+          "case_id": "CLIENTS-03"
+        }
+      ],
+      "rationale": "Independent delayed Storage SCP receives only three of five requested stores in the mixed case. After cancellation, in-flight third store settles, FE00 reports completed 1 / failed 1 / warning 1; no fourth store starts. Silent destination deadline reports one failed attempted store and association reuse succeeds.",
+      "supplementary_packaged_gui_cases": [
+        "GUI-03",
+        "GUI-04"
+      ]
+    },
+    {
+      "criterion_id": "NET-05-B-AC02",
+      "assertion": "If Remaining is included, it equals sub-operations not initiated due to cancellation.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveCancelBeforeFirstStoreReportsAllRemaining",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 239
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveCancelDuringMixedStoreOutcomesPreservesCountersAndFailedUIDs",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 241
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveWrongIDIgnoredAndCancelAtCompletionPreservesAllCompleted",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 243
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/move-before-first",
+        "evidence/cancellation-wire/move-mixed-midstream",
+        "evidence/cancellation-wire/move-completion-race"
+      ],
+      "rationale": "Captured FE00 Remaining is 5 before any store, 2 after three initiated stores, 0 after all five. Mixed completed/failed/warning counters sum to the three initiated stores."
+    },
+    {
+      "criterion_id": "NET-05-B-AC03",
+      "assertion": "Mix successful/warning/failed stores before cancellation and verify counter classes and Failed SOP Instance UID List rules.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveCancelDuringMixedStoreOutcomesPreservesCountersAndFailedUIDs",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 241
+        },
+        {
+          "test": "dicom_serverTests.ServerCancellationTests.testMoveWrongIDIgnoredAndCancelAtCompletionPreservesAllCompleted",
+          "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 243
+        }
+      ],
+      "evidence": [
+        "evidence/cancellation-wire/move-mixed-midstream",
+        "evidence/cancellation-wire/move-completion-race"
+      ],
+      "rationale": "Mixed responses success/B000/A700 yield completed 1 / warning 1 / failed 1. Failed SOP Instance UID List contains only 2.25.401.1.3 and no Specific Character Set. All-completed cancellation has no failure identifier."
+    },
+    {
+      "criterion_id": "NET-09-A-AC01",
+      "assertion": "OPTIONS at the configured service base with supported Accept returns 200 and a parseable, structurally conforming capabilities payload.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testServiceBaseProducesWADLJSONAndXMLWithConfiguredBase",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 54
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-01"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-02"
+        },
+        "evidence/capabilities/schema-validation.log",
+        "evidence/capabilities/capabilities.xml",
+        "evidence/capabilities/capabilities.json"
+      ],
+      "rationale": "Configured base paths produce 200 JSON/XML WADL. JSON structure and XML/JSON method parity checked. Saved XML independently validates against pinned official WADL XSD with local XML schema catalog; schema_validation.status=passed."
+    },
+    {
+      "criterion_id": "NET-09-A-AC02",
+      "assertion": "Check advertised resource methods against implemented handlers and test content negotiation/error responses.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testEveryAdvertisedGETRunsAgainstMinimalFixtureAndDeclaredMediaType",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 48
+        },
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testAdvertisedUPSCreateAndUpdateResponsesMatchImplementedTargets",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 44
+        },
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testNegotiationHonorsWeightsSpecificExclusionsAndUTF8",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 52
+        },
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testInvalidCapabilitiesRequestsAndUnknownPrefixesFailExplicitly",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 50
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-03"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-04"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-05"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-06"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-07"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-08"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-09"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-10"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-11"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-12"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-13"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-16"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-17"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-18"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-19"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-20"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-21"
+        }
+      ],
+      "rationale": "Every advertised method is checked against routing; every advertised GET and declared response media type is executed with synthetic storage/UPS fixtures. UPS create/update response contracts are exercised. HTTP negotiation/error cases cover weighting, exclusions, charset, invalid query/body and method."
+    },
+    {
+      "criterion_id": "NET-09-A-AC03",
+      "assertion": "A browser CORS preflight remains valid without swallowing a standard capabilities request.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testCORSPreflightIsDistinctFromOriginBearingCapabilities",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 46
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-14"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-15"
+        }
+      ],
+      "rationale": "CORS preflight is 204 with allow headers and no body; ordinary Origin-bearing OPTIONS capabilities request remains 200 with negotiated payload."
+    },
+    {
+      "criterion_id": "NET-09-B-AC01",
+      "assertion": "For each advertised true retrieval capability, execute a minimal valid request against an appropriate fixture and verify it is implemented.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testEveryAdvertisedGETRunsAgainstMinimalFixtureAndDeclaredMediaType",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 48
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-16"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-17"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-18"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-19"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-20"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-21"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-28"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-29"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-30"
+        }
+      ],
+      "rationale": "All 16 advertised GET targets are asserted in the focused fixture test, including each retrieval route/media type. Six external HTTP dataset/metadata retrieval routes return 200; CLI study/series/instance downloads equal fixture bytes.",
+      "supplementary_packaged_gui_cases": [
+        "GUI-05"
+      ]
+    },
+    {
+      "criterion_id": "NET-09-B-AC02",
+      "assertion": "With the current unsupported bulk-data handler, both private and standard capability views disclose it as unavailable.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "DICOMWebTests.M4CapabilitiesTests.testUnsupportedRetrievalIsAbsentAndReturns501",
+          "source": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+          "log": "evidence/DICOMWebTests.log",
+          "line": 56
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-22"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-23"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-24"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-25"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-26"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-27"
+        }
+      ],
+      "rationale": "Unsupported bulk/rendered/thumbnail/frame handlers return 501. Standard WADL omits those resource capabilities; both private capability views declare bulkdata=false and rendered=false."
+    },
+    {
+      "criterion_id": "NET-09-B-AC03",
+      "assertion": "Implementing bulk data later requires real payload/media-type acceptance cases before changing the capability flag.",
+      "result": "Not applicable",
+      "tests": [],
+      "evidence": [
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-22"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-26"
+        },
+        {
+          "campaign": "capabilities",
+          "case_id": "CAPABILITIES-27"
+        }
+      ],
+      "rationale": "Condition not triggered: M4 does not implement bulk-data retrieval and keeps the capability unavailable. Retain this criterion as a mandatory future gate: real bulk payload and media-type acceptance cases must pass before advertising support. This is neither an executed pass nor a waiver."
+    },
+    {
+      "criterion_id": "NET-10-A-AC01",
+      "assertion": "Store a synthetic instance, stop the process, restart with the same data directory and configured durable mode: FIND locates it and GET/MOVE retrieve the same SOP identity.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testFreshManagersReindexSameIdentityAndExactStoredBytes",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 206
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testServerConcurrentStopThenSameObjectRestartRetainsExclusiveOwnership",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 214
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testNativeSyntaxesAndNestedSequenceEnvelopesRemainAccepted",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 212
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-01"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-02"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-06"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-07"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-08"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-09"
+        },
+        "evidence/durability/workshop-durability.json",
+        "evidence/durability/workshop.log"
+      ],
+      "rationale": "Real dicom-server process stores a synthetic instance, terminates/restarts in filesystem mode, and CLI FIND/GET/MOVE recover the same SOP identity and exact dataset hash. FIND also succeeds after SIGKILL/restart. Three Workshop ViewModel routes succeed against restarted server. Process restart durability only; no power-loss qualification.",
+      "supplementary_packaged_gui_cases": [
+        "GUI-06",
+        "GUI-07"
+      ]
+    },
+    {
+      "criterion_id": "NET-10-A-AC02",
+      "assertion": "Reindex handles duplicate SOP UIDs and unreadable/corrupt files deterministically with visible errors; it does not silently claim a complete index.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testDuplicateUIDPathsFailDeterministicallyWithoutPartialIndex",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 196
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testCorruptAndUnreadableFilesPreventCompleteIndex",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 188
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testExactRetransmissionIsIdempotentAndConflictPreservesOriginal",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 202
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testMissingIndexedFileMakesFindAndRetrieveFailVisibly",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 210
+        },
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testEnvelopeRejectsDuplicateTagsAndDamagedSequenceItems",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 200
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-03"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-04"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-10"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-11"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-12"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-13"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-14"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-15"
+        }
+      ],
+      "rationale": "Fresh executable startup visibly refuses duplicate UID, corrupt/truncated/trailing-garbage/unreadable files and symlinks. Focused tests verify no usable partial index, idempotent identical retransmission, conflict preservation and missing indexed file errors."
+    },
+    {
+      "criterion_id": "NET-10-A-AC03",
+      "assertion": "If durable SQLite is unavailable, startup clearly refuses that mode or explicitly selects volatile behavior; PostgreSQL help and error behavior agree.",
+      "result": "Passed",
+      "tests": [
+        {
+          "test": "dicom_serverTests.M4DurabilityTests.testDefaultAndExplicitBackendContracts",
+          "source": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+          "log": "evidence/dicom-serverTests.log",
+          "line": 190
+        }
+      ],
+      "evidence": [
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-16"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-17"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-18"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-19"
+        },
+        {
+          "campaign": "durability",
+          "case_id": "DURABILITY-20"
+        },
+        "../../../Sources/dicom-server/DICOMServer.swift",
+        "../../../Sources/dicom-server/README.md"
+      ],
+      "rationale": "Default durable mode is explicitly filesystem reindex. SQLite and PostgreSQL command/backend URL modes refuse startup with clear diagnostics; help names them unimplemented and points to filesystem. This refusal is only AC03 evidence: AC01 independently establishes actual durable reindex behavior."
+    }
+  ],
+  "campaigns": {
+    "clients": {
+      "path": "evidence/clients/results.json",
+      "sha256": "6a3f6b843d9f5c0a2a7d91a7fe242f5538fd3f5b2d4d5d27fb593ac9b0e0d0ee",
+      "cases": [
+        {
+          "id": "CLIENTS-01",
+          "json_pointer": "/records/0",
+          "name": "find-empty",
+          "exit": 1
+        },
+        {
+          "id": "CLIENTS-02",
+          "json_pointer": "/records/1",
+          "name": "find-partial",
+          "exit": 1
+        },
+        {
+          "id": "CLIENTS-03",
+          "json_pointer": "/records/2",
+          "name": "move-cancel",
+          "exit": 1
+        },
+        {
+          "id": "CLIENTS-04",
+          "json_pointer": "/records/3",
+          "name": "get-cancel",
+          "exit": 1
+        }
+      ]
+    },
+    "durability": {
+      "path": "evidence/durability/results.json",
+      "sha256": "ce342934abc18e36894cef2dc279669d70beb7b4573c8fb412829fee7ec9875e",
+      "cases": [
+        {
+          "id": "DURABILITY-01",
+          "json_pointer": "/records/0",
+          "name": "store",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-02",
+          "json_pointer": "/records/1",
+          "name": "find-before-restart",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-03",
+          "json_pointer": "/records/2",
+          "name": "identical-retransmission",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-04",
+          "json_pointer": "/records/3",
+          "name": "conflicting-retransmission",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-05",
+          "json_pointer": "/records/4",
+          "name": "exclusive-process-lock",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-06",
+          "json_pointer": "/records/5",
+          "name": "find-after-restart",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-07",
+          "json_pointer": "/records/6",
+          "name": "get-after-restart",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-08",
+          "json_pointer": "/records/7",
+          "name": "move-after-restart",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-09",
+          "json_pointer": "/records/8",
+          "name": "find-after-kill",
+          "exit": 0
+        },
+        {
+          "id": "DURABILITY-10",
+          "json_pointer": "/records/9",
+          "name": "duplicate-uid",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-11",
+          "json_pointer": "/records/10",
+          "name": "corrupt-file",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-12",
+          "json_pointer": "/records/11",
+          "name": "truncated-file",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-13",
+          "json_pointer": "/records/12",
+          "name": "trailing-garbage",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-14",
+          "json_pointer": "/records/13",
+          "name": "symbolic-link",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-15",
+          "json_pointer": "/records/14",
+          "name": "unreadable-file",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-16",
+          "json_pointer": "/records/15",
+          "name": "refuse-sqlite",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-17",
+          "json_pointer": "/records/16",
+          "name": "refuse-postgres",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-18",
+          "json_pointer": "/records/17",
+          "name": "refuse-postgresql",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-19",
+          "json_pointer": "/records/18",
+          "name": "refuse-url-sqlite",
+          "exit": 1
+        },
+        {
+          "id": "DURABILITY-20",
+          "json_pointer": "/records/19",
+          "name": "refuse-url-postgres",
+          "exit": 1
+        }
+      ]
+    },
+    "capabilities": {
+      "path": "evidence/capabilities/results.json",
+      "sha256": "7896f706f31087690534a516fa38829ea083339f254150d73dd6c207c66de072",
+      "cases": [
+        {
+          "id": "CAPABILITIES-01",
+          "json_pointer": "/cases/0",
+          "name": "capabilities-json",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-02",
+          "json_pointer": "/cases/1",
+          "name": "capabilities-xml",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-03",
+          "json_pointer": "/cases/2",
+          "name": "missing-accept",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 406
+        },
+        {
+          "id": "CAPABILITIES-04",
+          "json_pointer": "/cases/3",
+          "name": "unacceptable",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 406
+        },
+        {
+          "id": "CAPABILITIES-05",
+          "json_pointer": "/cases/4",
+          "name": "wildcard",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-06",
+          "json_pointer": "/cases/5",
+          "name": "weighted",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-07",
+          "json_pointer": "/cases/6",
+          "name": "specific-exclusion",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-08",
+          "json_pointer": "/cases/7",
+          "name": "all-excluded",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 406
+        },
+        {
+          "id": "CAPABILITIES-09",
+          "json_pointer": "/cases/8",
+          "name": "unsupported-charset",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 406
+        },
+        {
+          "id": "CAPABILITIES-10",
+          "json_pointer": "/cases/9",
+          "name": "utf8",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-11",
+          "json_pointer": "/cases/10",
+          "name": "query-refusal",
+          "method": "OPTIONS",
+          "path": "?offset=1",
+          "status": 400
+        },
+        {
+          "id": "CAPABILITIES-12",
+          "json_pointer": "/cases/11",
+          "name": "body-refusal",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 400
+        },
+        {
+          "id": "CAPABILITIES-13",
+          "json_pointer": "/cases/12",
+          "name": "method-refusal",
+          "method": "PUT",
+          "path": "/studies",
+          "status": 405
+        },
+        {
+          "id": "CAPABILITIES-14",
+          "json_pointer": "/cases/13",
+          "name": "cors-preflight",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 204
+        },
+        {
+          "id": "CAPABILITIES-15",
+          "json_pointer": "/cases/14",
+          "name": "origin-bearing-capabilities",
+          "method": "OPTIONS",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-16",
+          "json_pointer": "/cases/15",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-17",
+          "json_pointer": "/cases/16",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401/metadata",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-18",
+          "json_pointer": "/cases/17",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-19",
+          "json_pointer": "/cases/18",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/metadata",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-20",
+          "json_pointer": "/cases/19",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-21",
+          "json_pointer": "/cases/20",
+          "name": "advertised-retrieve",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/metadata",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-22",
+          "json_pointer": "/cases/21",
+          "name": "unavailable-bulkdata",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/bulkdata",
+          "status": 501
+        },
+        {
+          "id": "CAPABILITIES-23",
+          "json_pointer": "/cases/22",
+          "name": "unavailable-rendered",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/rendered",
+          "status": 501
+        },
+        {
+          "id": "CAPABILITIES-24",
+          "json_pointer": "/cases/23",
+          "name": "unavailable-thumbnail",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/thumbnail",
+          "status": 501
+        },
+        {
+          "id": "CAPABILITIES-25",
+          "json_pointer": "/cases/24",
+          "name": "unavailable-frames/1",
+          "method": "GET",
+          "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/frames/1",
+          "status": 501
+        },
+        {
+          "id": "CAPABILITIES-26",
+          "json_pointer": "/cases/25",
+          "name": "private-capabilities",
+          "method": "GET",
+          "path": "",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-27",
+          "json_pointer": "/cases/26",
+          "name": "private-capabilities",
+          "method": "GET",
+          "path": "/capabilities",
+          "status": 200
+        },
+        {
+          "id": "CAPABILITIES-28",
+          "json_pointer": "/cases/27",
+          "name": "cli-retrieve-study",
+          "exit": 0
+        },
+        {
+          "id": "CAPABILITIES-29",
+          "json_pointer": "/cases/28",
+          "name": "cli-retrieve-series",
+          "exit": 0
+        },
+        {
+          "id": "CAPABILITIES-30",
+          "json_pointer": "/cases/29",
+          "name": "cli-retrieve-instance",
+          "exit": 0
+        }
+      ]
+    }
+  },
+  "default_targeted_logs_by_framework": [
+    {
+      "log": "evidence/dicom-queryTests.log",
+      "sha256": "71ca2374625d2511f4d71142eb8f38040c174d443a31d78edebd6390ee218982",
+      "xctest_passed": 14,
+      "xctest_skipped": 0,
+      "xctest_failed": 0,
+      "swift_testing_passed": 0,
+      "skipped_methods": []
+    },
+    {
+      "log": "evidence/dicom-wadoTests.log",
+      "sha256": "8fead22f8c56a79996ff61b12b706a5ed1742a22c17709a4a753c38af89ba0c3",
+      "xctest_passed": 27,
+      "xctest_skipped": 0,
+      "xctest_failed": 0,
+      "swift_testing_passed": 0,
+      "skipped_methods": []
+    },
+    {
+      "log": "evidence/DICOMStudioTests.log",
+      "sha256": "ebac65ce13d687c4c0d5a34be5d9aa590746cdbf5ab26b5649f64d588c3af5df",
+      "xctest_passed": 0,
+      "xctest_skipped": 2,
+      "xctest_failed": 0,
+      "swift_testing_passed": 142,
+      "skipped_methods": [
+        "DICOMStudioTests.M4ClientOutcomeHarnessTests.testControlledCancellationOutcomes",
+        "DICOMStudioTests.M4ClientOutcomeHarnessTests.testRestartedServerClients"
+      ]
+    },
+    {
+      "log": "evidence/DICOMWebTests.log",
+      "sha256": "b310daa1d73f90fa34173b640543bd4225f20200319d3a24059d785806ecc5a8",
+      "xctest_passed": 22,
+      "xctest_skipped": 1,
+      "xctest_failed": 0,
+      "swift_testing_passed": 89,
+      "skipped_methods": [
+        "DICOMWebTests.M4CapabilitiesProcessHarnessTests.testCapabilitiesProcessHarness"
+      ]
+    },
+    {
+      "log": "evidence/DICOMNetworkTests.log",
+      "sha256": "971e941e340ec0e788b4c4442f17f9d5c3cf741dd698421a8b5b17e5a9b6a96d",
+      "xctest_passed": 106,
+      "xctest_skipped": 2,
+      "xctest_failed": 0,
+      "swift_testing_passed": 0,
+      "skipped_methods": [
+        "DICOMNetworkTests.QueryRetrieveCLIStandardTests.testQRQueryHelpNamesStandardConcepts",
+        "DICOMNetworkTests.QueryRetrieveCLIStandardTests.testQRResumeExitsNonZeroWhenAStudyFails"
+      ]
+    },
+    {
+      "log": "evidence/dicom-serverTests.log",
+      "sha256": "82309851bb110e4c1e44cf7675f0bc18310741957a3dda63872dede3a07f2f44",
+      "xctest_passed": 101,
+      "xctest_skipped": 0,
+      "xctest_failed": 0,
+      "swift_testing_passed": 0,
+      "skipped_methods": []
+    },
+    {
+      "log": "evidence/dicom-retrieveTests.log",
+      "sha256": "1b936be44eebbfa0b3289bb9a9c9cbae7414cd1abceabae6ad3d92d5fab5b0d2",
+      "xctest_passed": 9,
+      "xctest_skipped": 0,
+      "xctest_failed": 0,
+      "swift_testing_passed": 0,
+      "skipped_methods": []
+    }
+  ],
+  "framework_counts": {
+    "regular_focused_unique_passed": 512,
+    "regular_xctest_unique_passed": 281,
+    "regular_swift_testing_passed": 231,
+    "separate_opt_in_xctest_passed": 3,
+    "by_target": {
+      "dicom-queryTests": {
+        "XCTest": 14,
+        "SwiftTesting": 0,
+        "total": 14
+      },
+      "dicom-wadoTests": {
+        "XCTest": 27,
+        "SwiftTesting": 0,
+        "total": 27
+      },
+      "DICOMStudioTests": {
+        "XCTest": 0,
+        "SwiftTesting": 142,
+        "total": 142
+      },
+      "DICOMWebTests": {
+        "XCTest": 22,
+        "SwiftTesting": 89,
+        "total": 111
+      },
+      "DICOMNetworkTests": {
+        "XCTest": 108,
+        "SwiftTesting": 0,
+        "total": 108
+      },
+      "dicom-serverTests": {
+        "XCTest": 101,
+        "SwiftTesting": 0,
+        "total": 101
+      },
+      "dicom-retrieveTests": {
+        "XCTest": 9,
+        "SwiftTesting": 0,
+        "total": 9
+      }
+    }
+  },
+  "CLI_standard_rerun": {
+    "path": "evidence/CLIStandard-rerun.log",
+    "sha256": "bca82813eb5c4e54d094d3f1d6769cffbc10b1324bed477e88f0159212ddf4a7",
+    "passed_methods": 8,
+    "additional_unique_passes": 2,
+    "repeated_passes": 6
+  },
+  "activated_harnesses": [
+    {
+      "path": "evidence/clients/workshop.log",
+      "sha256": "b57d3a8d90562997c50822cbb739029d766826b2d6717e8779c1cdf9b77795e5",
+      "passed_methods": 1,
+      "method": "testControlledCancellationOutcomes"
+    },
+    {
+      "path": "evidence/durability/workshop.log",
+      "sha256": "66c9d2fba09d8a2625fc1c5b6112b846a7ef06391c8b72a293aeb56ef6809aab",
+      "passed_methods": 1,
+      "method": "testRestartedServerClients"
+    },
+    {
+      "path": "evidence/capabilities/swift-bridge.log",
+      "sha256": "5c35279f5e08910241c9961abb6a76ca61e6046226492b51dcb9ef3cfab657d2",
+      "passed_methods": 1,
+      "method": "testCapabilitiesProcessHarness"
+    }
+  ],
+  "python_audit_tests": {
+    "path": "evidence/audit-regressions.log",
+    "sha256": "12bd027dc38747ac686d24c473334e6b3a3c76287dcf08695111dc7d305809f9",
+    "passed": 30
+  },
+  "packaged_gui": {
+    "verification_path": "evidence/ui/ui-verification.json",
+    "sha256": "98b3f9c43e05ef83f0f05910d49a424b14a9a1fe2f0e1e250eeb83d6dcb4e0fd",
+    "cases": [
+      {
+        "case_id": "GUI-01",
+        "name": "find-empty",
+        "packaged_status": "ERROR",
+        "cli_exit": 1,
+        "ax_evidence": "evidence/ui/01-find-empty.txt",
+        "ax_sha256": "e1958f23f61c1475be3f343709b14fa5848c21345d0f5bfa1890d486996f5da1",
+        "screenshot": null,
+        "screenshot_sha256": null,
+        "cli_stdout": "evidence/ui/01-find-empty.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/01-find-empty.cli.stderr.txt",
+        "cli_stdout_sha256": "2ba33ca0557f1bb5b7ba88d67f9d0093c7185a36ec51fe2b7bd9372d3e001d6d",
+        "cli_stderr_sha256": "eeabcd66c20c51e8b2c52e8dac28231133beef4766472c5ddc0ec300d91c22e7"
+      },
+      {
+        "case_id": "GUI-02",
+        "name": "find-partial",
+        "packaged_status": "ERROR",
+        "cli_exit": 1,
+        "ax_evidence": "evidence/ui/02-find-partial.txt",
+        "ax_sha256": "7fd1728d414c8ede4ddad2b6ae3ab210bb5093dbf1a3c37a86e428e8b6e7cc84",
+        "screenshot": "evidence/ui/02-find-partial.png",
+        "screenshot_sha256": "e870406c64940432353952be89103b787a798406db5a50da5d87b38545a81576",
+        "cli_stdout": "evidence/ui/02-find-partial.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/02-find-partial.cli.stderr.txt",
+        "cli_stdout_sha256": "d34c19d98322f691e762bc7d88d888b6bf921b30bdf0b5bc8ad1c94629142189",
+        "cli_stderr_sha256": "7d6f611cbd7250c23fb32e12416f87f96b9af40dfec1732fdb46d69c6938ca16"
+      },
+      {
+        "case_id": "GUI-03",
+        "name": "move-cancel",
+        "packaged_status": "ERROR",
+        "cli_exit": 1,
+        "ax_evidence": "evidence/ui/03-move-cancel.txt",
+        "ax_sha256": "14b65c7a7c9a8bcfd16fc84cd5527365b1db4bb570c5280264f74dd92dc12ea4",
+        "screenshot": "evidence/ui/03-move-cancel.png",
+        "screenshot_sha256": "2c80e39028a3d93ad8dc32e3eea185e0774d6c25c2caf18beb4ac31f183aa428",
+        "cli_stdout": "evidence/ui/03-move-cancel.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/03-move-cancel.cli.stderr.txt",
+        "cli_stdout_sha256": "2e389317e8c2219e95150acd0c36e65a2a5d0a5c28f4523b780751ad7af104c7",
+        "cli_stderr_sha256": "ccacff14e55bfb27bf7336b61b50534a6045d24d53004c6aab1378055dc4fb8e"
+      },
+      {
+        "case_id": "GUI-04",
+        "name": "get-cancel",
+        "packaged_status": "ERROR",
+        "cli_exit": 1,
+        "ax_evidence": "evidence/ui/04-get-cancel.txt",
+        "ax_sha256": "df643e216ebffac99faa93900d35e2264984475017cf48bda663f027ae293e1c",
+        "screenshot": "evidence/ui/04-get-cancel.png",
+        "screenshot_sha256": "b24fedb2606df5599edc136751067a0fa24dbe05f8a015fdbbd139ec933123ca",
+        "cli_stdout": "evidence/ui/04-get-cancel.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/04-get-cancel.cli.stderr.txt",
+        "cli_stdout_sha256": "01b85ddd129c64b5bf0fcaadd5fccb7f98b8b71d0bdaee3ae2b783f5c9fefd8f",
+        "cli_stderr_sha256": "f01ba37bb56983d5c8b43f1f0c0faad7cfe231014fddf6d5aeec549382db6467"
+      },
+      {
+        "case_id": "GUI-05",
+        "name": "wado-retrieve",
+        "packaged_status": "SUCCESS",
+        "cli_exit": 0,
+        "ax_evidence": "evidence/ui/05-wado-retrieve.txt",
+        "ax_sha256": "581422b83158e3ffbbc9f3600431db3edf7203b571ad6ee993a64cb04edb91d0",
+        "screenshot": "evidence/ui/05-wado-retrieve.png",
+        "screenshot_sha256": "1354f05357a1c072fd5a437366ecbb44730252f09898d8a9af53eb31fcf43e9b",
+        "cli_stdout": "evidence/ui/05-wado-retrieve.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/05-wado-retrieve.cli.stderr.txt",
+        "cli_stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "cli_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case_id": "GUI-06",
+        "name": "restart-query",
+        "packaged_status": "SUCCESS",
+        "cli_exit": 0,
+        "ax_evidence": "evidence/ui/06-restart-query.txt",
+        "ax_sha256": "2cc41d0e85dfe541dcfca8f5dd909b077ef551dfce2b255a41ed533380c344b3",
+        "screenshot": "evidence/ui/06-restart-query.png",
+        "screenshot_sha256": "70480ee2dd87bce64918c44383f42aa3d223655dec801cf573d7e5a99c474c73",
+        "cli_stdout": "evidence/ui/06-restart-query.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/06-restart-query.cli.stderr.txt",
+        "cli_stdout_sha256": "5122759c3a6ab5cac9f7412ebcd26f635cc90715934ee3e22c83f09fab406cb2",
+        "cli_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "case_id": "GUI-07",
+        "name": "restart-get",
+        "packaged_status": "SUCCESS",
+        "cli_exit": 0,
+        "ax_evidence": "evidence/ui/07-restart-get.txt",
+        "ax_sha256": "a4af41b7f59a389fe0e8de3859bafb1ef813a94531707460f591c99014fcbfbe",
+        "screenshot": "evidence/ui/07-restart-get.png",
+        "screenshot_sha256": "2b4e52d7ebd3faf882b36ab375df08002a1a39e3c4f53f6ba83db4b61e846d85",
+        "cli_stdout": "evidence/ui/07-restart-get.cli.stdout.txt",
+        "cli_stderr": "evidence/ui/07-restart-get.cli.stderr.txt",
+        "cli_stdout_sha256": "fc4c593867ee985106645626331629799096bc4658a1fb468b8db882624c07ba",
+        "cli_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "qualified_gui_cases": 7,
+    "qualified_cli_replays": 7,
+    "independent_visual_review": "Six saved screenshots visually inspected for expected ERROR/SUCCESS status and available FE00/count/retrieval output; first empty-FIND case verified from full AX snapshot. AX deltas may omit retained text; no whole-console byte-equality claim.",
+    "request_identifier_pairs": [
+      {
+        "gui": "evidence/ui/peer/request-001.identifier.bin",
+        "cli": "evidence/ui/peer/request-008.identifier.bin",
+        "equal_bytes": true,
+        "sha256": "755c8294cc893a4f681aa6ff502a5b5fb34d79fd7a16720146d7811cc8572939"
+      },
+      {
+        "gui": "evidence/ui/peer/request-002.identifier.bin",
+        "cli": "evidence/ui/peer/request-009.identifier.bin",
+        "equal_bytes": true,
+        "sha256": "58ba689f37836cf652811114ab3e7f77e16b8fc8038cb265e4a698ac812898a5"
+      },
+      {
+        "gui": "evidence/ui/peer/request-003.identifier.bin",
+        "cli": "evidence/ui/peer/request-010.identifier.bin",
+        "equal_bytes": true,
+        "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+      },
+      {
+        "gui": "evidence/ui/peer/request-004.identifier.bin",
+        "cli": "evidence/ui/peer/request-011.identifier.bin",
+        "equal_bytes": true,
+        "sha256": "fd47d5f445bbd9c54e62b1c90f38a82c37ef6ac5e97932c70415c7970f4f091a"
+      }
+    ],
+    "retrieved_files": [
+      {
+        "path": "evidence/ui/wado-files/2.25.401.1.1.dcm",
+        "file_sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc"
+      },
+      {
+        "path": "evidence/ui/cli-wado/instance_2.25.401.1.1.dcm",
+        "file_sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc"
+      },
+      {
+        "path": "evidence/ui/restart-get/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+        "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+      },
+      {
+        "path": "evidence/ui/cli-get/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+        "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+      }
+    ],
+    "peer_requests": 11,
+    "peer_normal_releases": 11,
+    "peer_aborts": 0,
+    "initial_cli_probes_not_counted_as_additional_cases": 3
+  },
+  "skip_accounting": {
+    "initial_default_xctest_passed": 279,
+    "initial_default_xctest_skipped": 5,
+    "initial_default_xctest_failed": 0,
+    "later_CLI_rerun_resolved_skips": 2,
+    "separately_activated_harness_resolved_skips": 3,
+    "remaining_unexecuted_methods": [],
+    "note": "Initial counts concern XCTest only. Swift Testing contributes 89 Web and 142 Studio passes. The later 8-method CLI rerun adds 2 unique passes and repeats 6; three opt-in XCTest harness methods execute separately. All five initial skips now have explicit passing runs. Regular unique focused total is 512; opt-in 3 and Python audit 30 are additional, distinct counts."
+  },
+  "source_integrity": {
+    "manifest": "source-hashes.json",
+    "manifest_sha256": "1c0a467bc2f99aec07e5a8461998118aeb4545c85e6a11a6669824373dd28c92",
+    "entries": [
+      {
+        "path": "../../../.github/workflows/service-reliability.yml",
+        "expected_sha256": "bed6c02d012242648165a61d44ad18eec15071fde707788569e149c96d8a6a70",
+        "actual_sha256": "bed6c02d012242648165a61d44ad18eec15071fde707788569e149c96d8a6a70",
+        "matches": true
+      },
+      {
+        "path": "../../../DICOMStudio.xcodeproj/project.pbxproj",
+        "expected_sha256": "4ffa68f90248634b14a156a352e064142ae598e8923940522e42b96f2732e4ea",
+        "actual_sha256": "4ffa68f90248634b14a156a352e064142ae598e8923940522e42b96f2732e4ea",
+        "matches": true
+      },
+      {
+        "path": "../../../Package.resolved",
+        "expected_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+        "actual_sha256": "f42c82a74f4a24ff353f3d8c5df4e9893f11dab9514bdd6e57335dd105eb5500",
+        "matches": true
+      },
+      {
+        "path": "../../../Package.swift",
+        "expected_sha256": "ab4a9830940574fa2ea8c2cd201afbe26b53cd99e0321245dc1015289b6cfaaa",
+        "actual_sha256": "ab4a9830940574fa2ea8c2cd201afbe26b53cd99e0321245dc1015289b6cfaaa",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/Fixtures/WADL/sources.json",
+        "expected_sha256": "8fc5a5e9c7e8c7e579d318853d26c77e8519adfc7f65513dcb5678caaa3c93c6",
+        "actual_sha256": "8fc5a5e9c7e8c7e579d318853d26c77e8519adfc7f65513dcb5678caaa3c93c6",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/Fixtures/WADL/wadl.xsd",
+        "expected_sha256": "125b6727e8181da7b8fe4f598a5e8241606d20a71f5bcb173f6ddfe9dc41e94e",
+        "actual_sha256": "125b6727e8181da7b8fe4f598a5e8241606d20a71f5bcb173f6ddfe9dc41e94e",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/Fixtures/WADL/xml.xsd",
+        "expected_sha256": "61960fb3131e38022caad5360e2f33a3382578ab3c80cd58bd74320ede61b20c",
+        "actual_sha256": "61960fb3131e38022caad5360e2f33a3382578ab3c80cd58bd74320ede61b20c",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/cli_contracts.py",
+        "expected_sha256": "a3913d5b178108cb6ee86edfd2efb5b6723e7dbb223b66cdc265547c367e5cf2",
+        "actual_sha256": "a3913d5b178108cb6ee86edfd2efb5b6723e7dbb223b66cdc265547c367e5cf2",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/m4_client_outcome_peer.py",
+        "expected_sha256": "f5af9e44db1a4a7c41baf024513744d104c30c2d710ee69c5c26c8b2b390e9b0",
+        "actual_sha256": "f5af9e44db1a4a7c41baf024513744d104c30c2d710ee69c5c26c8b2b390e9b0",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/verify_m4.sh",
+        "expected_sha256": "3a40f01cdbf5c88eec5e14ba5913c9b40544b43d5a1bba7af25be7ec2cbd01f2",
+        "actual_sha256": "3a40f01cdbf5c88eec5e14ba5913c9b40544b43d5a1bba7af25be7ec2cbd01f2",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/verify_m4_capabilities.py",
+        "expected_sha256": "a465a53e74ffc32e0b6185593df9cb6bef44136a5719d78a27fc84403a19702b",
+        "actual_sha256": "a465a53e74ffc32e0b6185593df9cb6bef44136a5719d78a27fc84403a19702b",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/verify_m4_clients.py",
+        "expected_sha256": "bd3d0438020ae39bc590338c57a82c26ee461a2c3b44b6796558196dedb64e16",
+        "actual_sha256": "bd3d0438020ae39bc590338c57a82c26ee461a2c3b44b6796558196dedb64e16",
+        "matches": true
+      },
+      {
+        "path": "../../../Scripts/verify_m4_durability.py",
+        "expected_sha256": "43367ce9a8e507fa890c4362217716b0e48d392a20cc2e43450dccbf1e153a31",
+        "actual_sha256": "43367ce9a8e507fa890c4362217716b0e48d392a20cc2e43450dccbf1e153a31",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMNetwork/NetworkConsoleFormatter.swift",
+        "expected_sha256": "a6c2c5f67622518e3da7d933363a83a52704fb81fa5483162e3b91121d5619a8",
+        "actual_sha256": "a6c2c5f67622518e3da7d933363a83a52704fb81fa5483162e3b91121d5619a8",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMNetwork/QueryCancelledError.swift",
+        "expected_sha256": "85f2e33f1b375986b5f1f0f94f23a2b52d8a464dbb86d72cd8e8305bd0c71236",
+        "actual_sha256": "85f2e33f1b375986b5f1f0f94f23a2b52d8a464dbb86d72cd8e8305bd0c71236",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMNetwork/QueryService.swift",
+        "expected_sha256": "ecf264e3ff03d95183b72408de7af55f4d2def3fd37eccaaf0afc5166eaf92a1",
+        "actual_sha256": "ecf264e3ff03d95183b72408de7af55f4d2def3fd37eccaaf0afc5166eaf92a1",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMNetwork/RetrieveService.swift",
+        "expected_sha256": "3adac54653c1b5c9eb5e0c7cd93e79d0ce7dd31c1c822fd2c32ca6832107d9a9",
+        "actual_sha256": "3adac54653c1b5c9eb5e0c7cd93e79d0ce7dd31c1c822fd2c32ca6832107d9a9",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift",
+        "expected_sha256": "cf83bb3b3bbe4707428bc3b5c42814e1bf07d010e488af9e7a04412dece0f42a",
+        "actual_sha256": "cf83bb3b3bbe4707428bc3b5c42814e1bf07d010e488af9e7a04412dece0f42a",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMWeb/DICOMwebCapabilities.swift",
+        "expected_sha256": "66c370a822730c8912a19e1cab77e8fd33975cac59384b5d99887d333d73653f",
+        "actual_sha256": "66c370a822730c8912a19e1cab77e8fd33975cac59384b5d99887d333d73653f",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMWeb/Server/DICOMwebCapabilitiesDescription.swift",
+        "expected_sha256": "b7a7df03d4ce0ea2ae70c71309244f46f6f89ee66355d9533592decc25c8a757",
+        "actual_sha256": "b7a7df03d4ce0ea2ae70c71309244f46f6f89ee66355d9533592decc25c8a757",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/DICOMWeb/Server/DICOMwebServer.swift",
+        "expected_sha256": "0b1de94785ea9e7f5c16434118ccfa193f5dacc3c272c9c7177926af319f2b09",
+        "actual_sha256": "0b1de94785ea9e7f5c16434118ccfa193f5dacc3c272c9c7177926af319f2b09",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-query/DICOMQuery.swift",
+        "expected_sha256": "c6ade29999bf4e37f60037098cd187db30cb46ad6de36003d0390a3503b0484d",
+        "actual_sha256": "c6ade29999bf4e37f60037098cd187db30cb46ad6de36003d0390a3503b0484d",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-query/README.md",
+        "expected_sha256": "0efe493da0e019a7cb42cb680dfb92fb381bcfe5e04410292f39998c9b2f793f",
+        "actual_sha256": "0efe493da0e019a7cb42cb680dfb92fb381bcfe5e04410292f39998c9b2f793f",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-retrieve/README.md",
+        "expected_sha256": "22e9556ad7d19cdc7e8d4fce2fd7a57f5b0cd3d910b36c941fbe42295bc7079e",
+        "actual_sha256": "22e9556ad7d19cdc7e8d4fce2fd7a57f5b0cd3d910b36c941fbe42295bc7079e",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-retrieve/RetrieveExecutor.swift",
+        "expected_sha256": "7ddf17a10d4cf82bbf7aae9dc7ca1843554c48ab7bd3ec1a0603cbabf2cd0158",
+        "actual_sha256": "7ddf17a10d4cf82bbf7aae9dc7ca1843554c48ab7bd3ec1a0603cbabf2cd0158",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/DATABASE_SCHEMA.md",
+        "expected_sha256": "27af9811f5ee64fb9aa203f04e2650ec27ea8809295539ed0626f08162768316",
+        "actual_sha256": "27af9811f5ee64fb9aa203f04e2650ec27ea8809295539ed0626f08162768316",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/DEPLOYMENT_GUIDE.md",
+        "expected_sha256": "9928cc88a4bde0921d2541ba84f9b5804fa6331a81e366eb651ca8cbb13533a8",
+        "actual_sha256": "9928cc88a4bde0921d2541ba84f9b5804fa6331a81e366eb651ca8cbb13533a8",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/DICOMServer.swift",
+        "expected_sha256": "48d524cbf996dabbbaddd975ed77499b0151808c32acb6ba8e09bac17edc9956",
+        "actual_sha256": "48d524cbf996dabbbaddd975ed77499b0151808c32acb6ba8e09bac17edc9956",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/DatabaseManager.swift",
+        "expected_sha256": "719d98d15be8010238fb44278d33899d95b84f3f2c9cab5de0f9c535c298d52b",
+        "actual_sha256": "719d98d15be8010238fb44278d33899d95b84f3f2c9cab5de0f9c535c298d52b",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/PACSServer.swift",
+        "expected_sha256": "28ae316f13a5d2894ff496a2368506e381fc3d74c5f82daec34f992166f53848",
+        "actual_sha256": "28ae316f13a5d2894ff496a2368506e381fc3d74c5f82daec34f992166f53848",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/README.md",
+        "expected_sha256": "ae39417643384449718bdd503112eb6476dcdc25b8dc9cd3a4fbc622c92a707b",
+        "actual_sha256": "ae39417643384449718bdd503112eb6476dcdc25b8dc9cd3a4fbc622c92a707b",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/ServerConfiguration.swift",
+        "expected_sha256": "66d531ef05b224505d6953b24feffd494d29ce06049783bfcdfc326609a29852",
+        "actual_sha256": "66d531ef05b224505d6953b24feffd494d29ce06049783bfcdfc326609a29852",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/ServerSession.swift",
+        "expected_sha256": "6fde1c90dab7c85800a3748ff7b257d06bbf3aea3e0c54b5fd2bb644bc13a18e",
+        "actual_sha256": "6fde1c90dab7c85800a3748ff7b257d06bbf3aea3e0c54b5fd2bb644bc13a18e",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/StorageManager.swift",
+        "expected_sha256": "214a852bc27a737803f1cd9d71f915ef0d7521d78c80a200b3114886b4e420f8",
+        "actual_sha256": "214a852bc27a737803f1cd9d71f915ef0d7521d78c80a200b3114886b4e420f8",
+        "matches": true
+      },
+      {
+        "path": "../../../Sources/dicom-server/StoredFileEnvelope.swift",
+        "expected_sha256": "7f0900482ea30727ba04f5d7968eb45cf7582f62ab667d151b8095abb3733fc2",
+        "actual_sha256": "7f0900482ea30727ba04f5d7968eb45cf7582f62ab667d151b8095abb3733fc2",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMNetworkTests/QueryCancellationOutcomeTests.swift",
+        "expected_sha256": "9d03ad45ce21a8840271fc112e4a0fb7de385193972fe13ab339df0f629c6a4d",
+        "actual_sha256": "9d03ad45ce21a8840271fc112e4a0fb7de385193972fe13ab339df0f629c6a4d",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMStudioTests/M4ClientOutcomeHarnessTests.swift",
+        "expected_sha256": "627b1708f2ab74ab9a7d3a8ab64b04974844fe090c55958f8d5fa5fd56885573",
+        "actual_sha256": "627b1708f2ab74ab9a7d3a8ab64b04974844fe090c55958f8d5fa5fd56885573",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMWebTests/CapabilitiesTests.swift",
+        "expected_sha256": "d977d7ec4f1a32ec7b6722b647069aea149bf6fded54c0422f9e6d31ef16cf15",
+        "actual_sha256": "d977d7ec4f1a32ec7b6722b647069aea149bf6fded54c0422f9e6d31ef16cf15",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMWebTests/DICOMwebServerTests.swift",
+        "expected_sha256": "9fba8121f5a2b5ae1c99be912edacafab64ea1021a7c7508a4cc6af711480373",
+        "actual_sha256": "9fba8121f5a2b5ae1c99be912edacafab64ea1021a7c7508a4cc6af711480373",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMWebTests/M4CapabilitiesProcessHarnessTests.swift",
+        "expected_sha256": "b244c901f59a40c19a62aea9574065f0faa1821aaecb21f8cc0992851343e26f",
+        "actual_sha256": "b244c901f59a40c19a62aea9574065f0faa1821aaecb21f8cc0992851343e26f",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/DICOMWebTests/M4CapabilitiesTests.swift",
+        "expected_sha256": "4352adc882c7eb5d39784f361dd036216d95b32995ddd4d792848cfaa9bfda59",
+        "actual_sha256": "4352adc882c7eb5d39784f361dd036216d95b32995ddd4d792848cfaa9bfda59",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/dicom-serverTests/DICOMServerStandardTests.swift",
+        "expected_sha256": "79cc2d607bebd7ea4e612e0c1fc2c3e5adbe3a3ec5cc9ac743cd27474cbe0883",
+        "actual_sha256": "79cc2d607bebd7ea4e612e0c1fc2c3e5adbe3a3ec5cc9ac743cd27474cbe0883",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/dicom-serverTests/DICOMServerTests.swift",
+        "expected_sha256": "4de20915091072958460726096a53685ed9c9d04a6c87e5247fcb5fc8773e885",
+        "actual_sha256": "4de20915091072958460726096a53685ed9c9d04a6c87e5247fcb5fc8773e885",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/dicom-serverTests/M4DurabilityTests.swift",
+        "expected_sha256": "d980bdb4f440bf78624ae7a5d96a6595d45f58b64b2a5e69676e6f6907ed699f",
+        "actual_sha256": "d980bdb4f440bf78624ae7a5d96a6595d45f58b64b2a5e69676e6f6907ed699f",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/dicom-serverTests/ServerCancellationTestPeer.swift",
+        "expected_sha256": "ffaedae788b6ebc73a3b8cfb69f1a9a1d72eda457c1403a2e1f5635c4c94513b",
+        "actual_sha256": "ffaedae788b6ebc73a3b8cfb69f1a9a1d72eda457c1403a2e1f5635c4c94513b",
+        "matches": true
+      },
+      {
+        "path": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+        "expected_sha256": "ff97b66fff651da085746aed7a2448971eb9088690ab9e8e164f139b226f017e",
+        "actual_sha256": "ff97b66fff651da085746aed7a2448971eb9088690ab9e8e164f139b226f017e",
+        "matches": true
+      }
+    ],
+    "all_match": true,
+    "repair_provenance": "Final manifest supersedes the earlier pre-repair freeze. Final macOS alias/realpath StorageManager repair + test preceded server 101-pass rerun; PostgreSQL CLI/URL diagnostic expectation repair preceded durability 20-case rerun. Final CI ordering/support edits are included in this manifest."
+  },
+  "additional_regression_gates": [
+    {
+      "test": "dicom_serverTests.ServerCancellationTests.testGetCancellationStillWaitsForActualStoreResponseAndAllowsReuse",
+      "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+      "log": "evidence/dicom-serverTests.log",
+      "line": 235
+    },
+    {
+      "test": "dicom_serverTests.ServerCancellationTests.testGetDisconnectResumesOutstandingStoreWaiter",
+      "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+      "log": "evidence/dicom-serverTests.log",
+      "line": 237
+    },
+    {
+      "test": "dicom_serverTests.ServerCancellationTests.testCancelledGetWithSilentStoreResponseFinishesAndAllowsReuse",
+      "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+      "log": "evidence/dicom-serverTests.log",
+      "line": 225
+    },
+    {
+      "test": "dicom_serverTests.ServerCancellationTests.testCancelledGetDuringIncompleteStoreSendClosesAndDrainsWorker",
+      "source": "../../../Tests/dicom-serverTests/ServerCancellationTests.swift",
+      "log": "evidence/dicom-serverTests.log",
+      "line": 223
+    }
+  ],
+  "binary_integrity": [
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+      "recorded_sha256": "d5fb3e1b6bdcc7c5e6566056df2e4e622f72e84bb14a937456a5f32645aa9cf1",
+      "actual_sha256": "d5fb3e1b6bdcc7c5e6566056df2e4e622f72e84bb14a937456a5f32645aa9cf1",
+      "matches": true
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-retrieve",
+      "recorded_sha256": "18ee1b4767aab515468b3a3c3a5dd659a67c5caaeb103ce6d9b57dd5ddbc4a77",
+      "actual_sha256": "18ee1b4767aab515468b3a3c3a5dd659a67c5caaeb103ce6d9b57dd5ddbc4a77",
+      "matches": true
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+      "recorded_sha256": "22dd4369252d563629692d2f8a12f1218e230e6aebcfb823b3fe209c468c64a0",
+      "actual_sha256": "22dd4369252d563629692d2f8a12f1218e230e6aebcfb823b3fe209c468c64a0",
+      "matches": true
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-send",
+      "recorded_sha256": "22c90ceadfce67e67c36a5375d9dff2718ed0b36cfec996be4b0c0a092a21f5d",
+      "actual_sha256": "22c90ceadfce67e67c36a5375d9dff2718ed0b36cfec996be4b0c0a092a21f5d",
+      "matches": true
+    },
+    {
+      "path": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+      "recorded_sha256": "1cf4d024ae7139f86d5219c0d821878670af4411e1e3335a68307d24217d1fad",
+      "actual_sha256": "1cf4d024ae7139f86d5219c0d821878670af4411e1e3335a68307d24217d1fad",
+      "matches": true
+    }
+  ],
+  "wire_command_audit": [
+    {
+      "path": "evidence/cancellation-wire/find-before-first/response-001.command.bin",
+      "sha256": "c6f86912251cad4e13e3fe960125827832183108413f20efa344970291a54c16",
+      "command": 32800,
+      "status": 65024,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-before-first/response-002.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-001.command.bin",
+      "sha256": "cdc7a14a19f8414ffed828aca0438bf2a2a6e022e6f1c67f8ee25f27c5024679",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-002.command.bin",
+      "sha256": "cdc7a14a19f8414ffed828aca0438bf2a2a6e022e6f1c67f8ee25f27c5024679",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-003.command.bin",
+      "sha256": "cdc7a14a19f8414ffed828aca0438bf2a2a6e022e6f1c67f8ee25f27c5024679",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-004.command.bin",
+      "sha256": "cdc7a14a19f8414ffed828aca0438bf2a2a6e022e6f1c67f8ee25f27c5024679",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-005.command.bin",
+      "sha256": "cdc7a14a19f8414ffed828aca0438bf2a2a6e022e6f1c67f8ee25f27c5024679",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-006.command.bin",
+      "sha256": "6ce6fc2313f0449b6defc7a1763e9016de5a110fd1297f31b6b5a90c2f1a9f02",
+      "command": 32800,
+      "status": 65024,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-completion-race/response-007.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-midstream/response-001.command.bin",
+      "sha256": "78d814ea6e5f0ee98a0a309155b6d759800b0656af8de8c8d2f807e0630fd7a6",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-midstream/response-002.command.bin",
+      "sha256": "1f740ee935172ec2288fbd26a7afcee03bca1cdbf7d36c7a5899ef661c088a53",
+      "command": 32800,
+      "status": 65024,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-midstream/response-003.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-001.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-002.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-003.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-004.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-005.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-006.command.bin",
+      "sha256": "8d70df7bef08120df52a853f648f28929fa23c63e011022e59afa2c4f6a69e02",
+      "command": 32800,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-007.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-008.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-009.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-010.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-011.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-012.command.bin",
+      "sha256": "e74c9a3244148ee8ecbded2a5a219d18ab6fdfcbd4c15c10c6a470e917285125",
+      "command": 32800,
+      "status": 65280,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/find-wrong-and-reused-id/response-013.command.bin",
+      "sha256": "8d70df7bef08120df52a853f648f28929fa23c63e011022e59afa2c4f6a69e02",
+      "command": 32800,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/get-cancel-reuse/response-001.command.bin",
+      "sha256": "1ef217d882724e4183db881c3f5e22a432aba5e4c500b16c98ce2fc5128e4889",
+      "command": 1,
+      "status": null,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/get-cancel-reuse/response-002.command.bin",
+      "sha256": "8641522c42cb1f56c6747478cc8224a7fb1cd23d53296c8d99c4922991a223c0",
+      "command": 32784,
+      "status": 65024,
+      "remaining": 4,
+      "completed": 0,
+      "failed": 0,
+      "warning": 1
+    },
+    {
+      "path": "evidence/cancellation-wire/get-cancel-reuse/response-003.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/get-disconnect-cleanup/response-001.command.bin",
+      "sha256": "1ef217d882724e4183db881c3f5e22a432aba5e4c500b16c98ce2fc5128e4889",
+      "command": 1,
+      "status": null,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/get-silent-response/response-001.command.bin",
+      "sha256": "1ef217d882724e4183db881c3f5e22a432aba5e4c500b16c98ce2fc5128e4889",
+      "command": 1,
+      "status": null,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/get-silent-response/response-002.command.bin",
+      "sha256": "b5e8864b5b0838862539346ece510d560f78f3a45ad12704fdb3940cb0be8b99",
+      "command": 32784,
+      "status": 65024,
+      "remaining": 4,
+      "completed": 0,
+      "failed": 1,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/get-silent-response/response-003.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/move-before-first/response-001.command.bin",
+      "sha256": "bdef54b48a4bf237035b6fb289c1f790179e8604c5a1c2d33fd7e34c5d87c862",
+      "command": 32801,
+      "status": 65024,
+      "remaining": 5,
+      "completed": 0,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-before-first/response-002.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-001.command.bin",
+      "sha256": "e0a6a8c5e24570bd795b18e91f4c48e4aca4085a3135ca8a6364b7d53a6e2595",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 4,
+      "completed": 1,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-002.command.bin",
+      "sha256": "a75ee8cff6d34110eca277de27957d2ced2bd816607a682bba820bbe5ddc84f2",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 3,
+      "completed": 2,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-003.command.bin",
+      "sha256": "fcb1baae0748038dcdfbe54325659769e24c0c1a2a3045573da022b41478f341",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 2,
+      "completed": 3,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-004.command.bin",
+      "sha256": "d612c282a4a3d682e53a207d954fe57ef9723fa68b632a3f50657f2666d1dde6",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 1,
+      "completed": 4,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-005.command.bin",
+      "sha256": "5ad1f4997dc1a46ea642691abef741f4b81671063e6b9c39f88c55a3a02f4996",
+      "command": 32801,
+      "status": 65024,
+      "remaining": 0,
+      "completed": 5,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-completion-race/response-006.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/move-mixed-midstream/response-001.command.bin",
+      "sha256": "8136097554eeeca0174013628064bf7c8790a509b1077fa8ef71294e922a0c9b",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 4,
+      "completed": 1,
+      "failed": 0,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-mixed-midstream/response-002.command.bin",
+      "sha256": "5ba801a858d7d03188caa748f5832b07a412a098a968a3c194d18766a0c5ab43",
+      "command": 32801,
+      "status": 65280,
+      "remaining": 3,
+      "completed": 1,
+      "failed": 0,
+      "warning": 1
+    },
+    {
+      "path": "evidence/cancellation-wire/move-mixed-midstream/response-003.command.bin",
+      "sha256": "0089714aa218e4c84f58ce17b73d6e274d85bd67c7afcc43b000f963fc0c409f",
+      "command": 32801,
+      "status": 65024,
+      "remaining": 2,
+      "completed": 1,
+      "failed": 1,
+      "warning": 1
+    },
+    {
+      "path": "evidence/cancellation-wire/move-mixed-midstream/response-004.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    },
+    {
+      "path": "evidence/cancellation-wire/move-silent-destination/response-001.command.bin",
+      "sha256": "07890f3e193b554a16514e6d8ac8a2364a6e7b5041b85fac9ceb7e0aadd392d5",
+      "command": 32801,
+      "status": 65024,
+      "remaining": 4,
+      "completed": 0,
+      "failed": 1,
+      "warning": 0
+    },
+    {
+      "path": "evidence/cancellation-wire/move-silent-destination/response-002.command.bin",
+      "sha256": "13c1266255ae3aec2002de240d7fbbe399f6ccfa724358dad562001348a2f614",
+      "command": 32816,
+      "status": 0,
+      "remaining": null,
+      "completed": null,
+      "failed": null,
+      "warning": null
+    }
+  ],
+  "restart_dataset_integrity": [
+    {
+      "path": "evidence/durability/store/1.2.826.0.1.3680043.10.543.301/1.2.826.0.1.3680043.10.543.301.1/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+    },
+    {
+      "path": "evidence/durability/get/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+    },
+    {
+      "path": "evidence/durability/move-store/1.2.826.0.1.3680043.10.543.301/1.2.826.0.1.3680043.10.543.301.1/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+    },
+    {
+      "path": "evidence/durability/workshop-get/1.2.826.0.1.3680043.10.543.301.1.1.dcm",
+      "dataset_sha256": "c5c931cdd6129bcae78830f714fa84f52577682c10156039cd6b67619c7bb963"
+    }
+  ],
+  "limits": [
+    "Synthetic local loopback fixtures only; external PACS interoperability is not established.",
+    "Controlled CLI/Workshop FE00 campaigns validate outcome presentation; real server cancellation is established by separate ServerCancellationTests.",
+    "DICOMStudio ViewModel runtime evidence is distinct from the seven packaged-app GUI actions and seven final CLI replays. Saved screenshots/AX, request identifiers and retrieved file hashes were independently reviewed. No user cancel button was added; controlled FE00 responses exercise client presentation.",
+    "Capabilities HTTP transport is a test adapter calling the real Swift request handler; no production HTTP listener was added.",
+    "No bulk-data implementation or successful bulk payload acceptance is claimed; NET-09-B-AC03 remains a future mandatory condition.",
+    "Durability covers completed stores and process SIGTERM/SIGKILL restart, not power-loss or every storage/filesystem fault.",
+    "No additional build, product edit, documentation edit or ledger edit was performed by this review."
+  ]
+}

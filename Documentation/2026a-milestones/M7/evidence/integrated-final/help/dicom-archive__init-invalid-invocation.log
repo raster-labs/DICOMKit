@@ -1,0 +1,4 @@
+Error: Missing expected argument '--path <path>'
+Help:  --path <path>  Path for the new archive directory
+Usage: dicom-archive init --path <path> [--force]
+  See 'dicom-archive init --help' for more information.

@@ -1,0 +1,4 @@
+
+						48 text field (settable) Description: Base URL, Placeholder: e.g. https://pacs.hospital.com/dicom-web, Value: # in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)
+# dicom-wado query http://127.0.0.1:60241/dicom-web --level study --patient-name 'Müller*
+# literal; $(touch SHOULD_NOT_RUN)' --limit 100 --offset 0 --format table

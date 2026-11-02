@@ -1,0 +1,26 @@
+[
+  {
+    "AccessionNumber" : "M7MWL001",
+    "Modality" : "CT",
+    "PatientBirthDate" : "19800101",
+    "PatientID" : "M7MWL",
+    "PatientName" : "M7^MWL^Synthetic",
+    "PatientSex" : "O",
+    "ReferringPhysicianName" : "TEST^PHYSICIAN",
+    "RequestedProcedureDescription" : "Synthetic MWL range capture",
+    "RequestedProcedureID" : "RP-M7",
+    "RequestingPhysician" : "TEST^PHYSICIAN",
+    "ScheduledPerformingPhysician" : "TEST^PHYSICIAN",
+    "ScheduledPerformingPhysicianName" : "TEST^PHYSICIAN",
+    "ScheduledProcedureStepDescription" : "Synthetic CT",
+    "ScheduledProcedureStepID" : "SPS-M7",
+    "ScheduledProcedureStepStartDate" : "20261024",
+    "ScheduledProcedureStepStartTime" : "101530",
+    "ScheduledStationAETitle" : "M7MWL",
+    "SPSDescription" : "Synthetic CT",
+    "SPSID" : "SPS-M7",
+    "SPSStartDate" : "20261024",
+    "SPSStartTime" : "101530",
+    "StudyInstanceUID" : "2.25.770001"
+  }
+]

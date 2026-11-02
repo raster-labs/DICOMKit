@@ -1,0 +1,21 @@
+OVERVIEW: Decode a JP3D volumetric document back to individual DICOM slices
+
+Reads a JP3D DICOM document, decodes the JP3D codestream, and writes one
+DICOM file per slice into the output directory.
+
+Output files are named slice_0000.dcm, slice_0001.dcm, …
+
+Example:
+  dicom-3d decode-volume volume.jp3d.dcm --output ./decoded/
+
+USAGE: dicom-3d decode-volume <input-path> --output <output> [--verbose]
+
+ARGUMENTS:
+  <input-path>            JP3D DICOM document file to decode
+
+OPTIONS:
+  -o, --output <output>   Output directory for decoded DICOM slices
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

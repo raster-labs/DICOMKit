@@ -1,0 +1,15 @@
+DICOM Retrieve (C-GET)
+======================
+  Server:            127.0.0.1:52881
+  Calling AE Title:  M4CLIENT
+  Called AE Title:   M4PEER
+  Method:            C-GET
+  Level:             STUDY
+  Study UID:         2.25.404
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/clients/received
+  Organization:      Flat
+  Timeout:           5s
+
+Executing C-GET...
+
+C-GET cancelled — 0 file(s) received before cancellation

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 938, in main
+    function(case);record['status']='passed'
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 865, in <lambda>
+    ('PY-F08','DICOMKit SCU to pynetdicom: rejected required LUT prevents print',lambda c:py_forward(c,'no-lut')),
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 734, in py_forward
+    require('LUT' in (result.stderr()+result.stdout()).upper(),'required LUT refusal diagnostic missing')
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m6_print_interop.py", line 55, in require
+    raise AssertionError(message)
+AssertionError: required LUT refusal diagnostic missing

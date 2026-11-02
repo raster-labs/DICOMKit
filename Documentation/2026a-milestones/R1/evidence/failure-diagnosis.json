@@ -1,0 +1,737 @@
+{
+  "original_head": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+  "job": 121495610293,
+  "source_log": "work/reconcile-ci/scheduled-job-121495610293.log",
+  "sha256": "048cd5f0b8582d9368369f1192fe350fb51d519b5a4b9039e6b5b53b933de185",
+  "build_completed": true,
+  "compiler_errors_observed": false,
+  "executions": [
+    {
+      "command": "2026-10-26T09:31:00.7671700Z ##[group]Run swift test -v --parallel",
+      "failed_xctest_cases": [
+        {
+          "line": 39984,
+          "text": "2026-10-26T09:51:15.6252500Z Test Case '-[dicom_anonTests.AnonOptionContractTests testVisualFeaturesEndToEnd]' failed (2.336 seconds)."
+        },
+        {
+          "line": 48559,
+          "text": "2026-10-26T09:51:15.8083160Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testBackupLandsNextToOutput]' failed (1.860 seconds)."
+        },
+        {
+          "line": 48584,
+          "text": "2026-10-26T09:51:15.8088680Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testAuditLogWrittenAndAnnouncedWhenVerboseAndCarriesNoValues]' failed (1.865 seconds)."
+        },
+        {
+          "line": 48597,
+          "text": "2026-10-26T09:51:15.8091800Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDefaultRunAppliesTheBasicProfileAndAttests]' failed (0.316 seconds)."
+        },
+        {
+          "line": 48610,
+          "text": "2026-10-26T09:51:15.8095260Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testBurnedInAnnotationYesWithNoLocatableRegionIsRefusedNotGuessed]' failed (0.318 seconds)."
+        },
+        {
+          "line": 48623,
+          "text": "2026-10-26T09:51:15.8098390Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDirectoryOutputForSingleFileWritesInsideItUnderInputName]' failed (0.316 seconds)."
+        },
+        {
+          "line": 48685,
+          "text": "2026-10-26T09:51:15.8120350Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines]' failed (0.339 seconds)."
+        },
+        {
+          "line": 48698,
+          "text": "2026-10-26T09:51:15.8127060Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDryRunPrintsPlanTableAndWritesNothing]' failed (0.256 seconds)."
+        },
+        {
+          "line": 48723,
+          "text": "2026-10-26T09:51:15.8132840Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionOverridesTheTrustedNo]' failed (0.253 seconds)."
+        },
+        {
+          "line": 48748,
+          "text": "2026-10-26T09:51:15.8137920Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionBlanksPixelsBeforeHeaderPass]' failed (0.273 seconds)."
+        },
+        {
+          "line": 48809,
+          "text": "2026-10-26T09:51:15.8149290Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testRecompressAfterExplicitRegion]' failed (0.209 seconds)."
+        },
+        {
+          "line": 48894,
+          "text": "2026-10-26T09:51:15.8167810Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testRetentionOptionsReachTheOutput]' failed (0.220 seconds)."
+        },
+        {
+          "line": 48907,
+          "text": "2026-10-26T09:51:15.8170700Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testSingleFileNeedsOutputUnlessDryRun]' failed (0.220 seconds)."
+        },
+        {
+          "line": 48932,
+          "text": "2026-10-26T09:51:15.8175530Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testWriterHookNoteReachesWarnings]' failed (0.251 seconds)."
+        },
+        {
+          "line": 48983,
+          "text": "2026-10-26T09:51:15.8187760Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testUIDsStayConsistentAcrossADirectory]' failed (0.526 seconds)."
+        },
+        {
+          "line": 64750,
+          "text": "2026-10-26T09:51:16.2254250Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testClassifyKeepsLateralityWhileRedactingTheBanner]' failed (0.276 seconds)."
+        },
+        {
+          "line": 64763,
+          "text": "2026-10-26T09:51:16.2258040Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testClassifyUsesTheFilesOwnHeaderTerms]' failed (0.311 seconds)."
+        },
+        {
+          "line": 64776,
+          "text": "2026-10-26T09:51:16.2261810Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testCleanWithDetectionRedactsEverythingDetectedOnEveryFrame]' failed (0.272 seconds)."
+        },
+        {
+          "line": 64801,
+          "text": "2026-10-26T09:51:16.2268380Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testDetectionOnlyReportsAndFlagsUnredactedText]' failed (0.281 seconds)."
+        },
+        {
+          "line": 64826,
+          "text": "2026-10-26T09:51:16.2274400Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testConcatenationSweepUnionsRegionsAcrossParts]' failed (0.282 seconds)."
+        },
+        {
+          "line": 64851,
+          "text": "2026-10-26T09:51:16.2279410Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testDryRunWithDetectionPrintsTheTableAndWritesNothing]' failed (0.222 seconds)."
+        },
+        {
+          "line": 64900,
+          "text": "2026-10-26T09:51:16.2288220Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testExplicitAndDetectedRegionsUnion]' failed (0.247 seconds)."
+        },
+        {
+          "line": 64937,
+          "text": "2026-10-26T09:51:16.2295600Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testLabelStyleOutputReadsAsTheStampAndNeverTheOriginal]' failed (0.261 seconds)."
+        },
+        {
+          "line": 64950,
+          "text": "2026-10-26T09:51:16.2298870Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testOcrAllFramesScansEveryFrame]' failed (0.247 seconds)."
+        },
+        {
+          "line": 64975,
+          "text": "2026-10-26T09:51:16.2305670Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressLossyCodecWarnsAndKeepsRectsBlank]' failed (0.230 seconds)."
+        },
+        {
+          "line": 65000,
+          "text": "2026-10-26T09:51:16.2313000Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceMirrorsALosslessSourceExactly]' failed (0.827 seconds)."
+        },
+        {
+          "line": 65013,
+          "text": "2026-10-26T09:51:16.2318160Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnUncompressedSourcesIsParity]' failed (0.348 seconds)."
+        },
+        {
+          "line": 65026,
+          "text": "2026-10-26T09:51:16.2321680Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnALossySourceIsSecondGeneration]' failed (0.665 seconds)."
+        },
+        {
+          "line": 65063,
+          "text": "2026-10-26T09:51:16.2330420Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testReplaceFallsBackWhenTheHeaderRemovesTheAttributeOrTheTextIsUncertain]' failed (0.288 seconds)."
+        },
+        {
+          "line": 65076,
+          "text": "2026-10-26T09:51:16.2333560Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testReplaceStyleUsesTheHeaderEnginesOwnValues]' failed (0.249 seconds)."
+        },
+        {
+          "line": 65113,
+          "text": "2026-10-26T09:51:16.2345240Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testSinglePartWarnsThatCoverageIsIncompleteOnlyWhenOCRRuns]' failed (0.249 seconds)."
+        },
+        {
+          "line": 65150,
+          "text": "2026-10-26T09:51:16.2358670Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testTextOnlyBlanksOnlyTheFlaggedTextAndSaysSo]' failed (0.264 seconds)."
+        },
+        {
+          "line": 65487,
+          "text": "2026-10-26T09:51:16.2445180Z Test Case '-[DICOMKitTests.PixelRedactionCompressionMatrixTests testEverySourceEncodingIsDecodedMaskedOnEveryFrameAndReemittedUncompressed]' failed (0.204 seconds)."
+        },
+        {
+          "line": 66028,
+          "text": "2026-10-26T09:51:16.2555820Z Test Case '-[DICOMKitTests.PixelRedactionCompressionMatrixTests testColourJPEGSourceLeavesConsistentPhotometricAndNoText]' failed (3.391 seconds)."
+        },
+        {
+          "line": 71922,
+          "text": "2026-10-26T09:51:16.4264550Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testBlankFrameYieldsNoRegions]' failed (0.553 seconds)."
+        },
+        {
+          "line": 71959,
+          "text": "2026-10-26T09:51:16.4273600Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testDetectionsCarryTheFrameIndexOfTheSampledFrame]' failed (0.510 seconds)."
+        },
+        {
+          "line": 71984,
+          "text": "2026-10-26T09:51:16.4278670Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testDetectPlanRedactRemovesTheTextFromEveryFrame]' failed (0.498 seconds)."
+        },
+        {
+          "line": 71997,
+          "text": "2026-10-26T09:51:16.4285930Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeRedactionKeepsFunctionalGroupsByteStable]' failed (0.529 seconds)."
+        },
+        {
+          "line": 72010,
+          "text": "2026-10-26T09:51:16.4288980Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeOCRHonoursEachFramesOwnVOI]' failed (0.501 seconds)."
+        },
+        {
+          "line": 72023,
+          "text": "2026-10-26T09:51:16.4292110Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testExplicitFrameIndicesAreHonouredAndOutOfRangeIgnored]' failed (0.466 seconds)."
+        },
+        {
+          "line": 72084,
+          "text": "2026-10-26T09:51:16.4304500Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testMidLoopOnlyTextNeedsAllFramesSampling]' failed (0.329 seconds)."
+        },
+        {
+          "line": 72121,
+          "text": "2026-10-26T09:51:16.4311890Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testVisionFindsPlantedTextAndTheRegionCoversTheGlyphsWithDilation]' failed (0.346 seconds)."
+        },
+        {
+          "line": 90781,
+          "text": "2026-10-26T09:51:17.0166670Z Test Case '-[DICOMNetworkTests.PrintCLIEndToEndTests testSendFailureExitsNonZero]' failed (32.324 seconds)."
+        },
+        {
+          "line": 90830,
+          "text": "2026-10-26T09:51:17.0182780Z Test Case '-[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout]' failed (30.366 seconds)."
+        }
+      ],
+      "swift_testing_issue_count": 136,
+      "swift_testing_all_missing_bin": true,
+      "first_swift_issue": {
+        "line": 124395,
+        "text": "2026-10-26T09:51:26.9629310Z \u2718 Test \"dicom-split: every option combination matches the terminal\" (aka 'split(_:verbose:)') recorded an issue with 2 arguments c \u2192 split defaults, verbose \u2192 false at SplitMergeWorkshopCLIParityTests.swift:293:26: Expectation failed: Self.binDir"
+      },
+      "runtime_error_lines": [
+        {
+          "line": 39983,
+          "text": "2026-10-26T09:51:15.6250750Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[dicom_anonTests.AnonOptionContractTests testVisualFeaturesEndToEnd] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48558,
+          "text": "2026-10-26T09:51:15.8082840Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testBackupLandsNextToOutput] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48583,
+          "text": "2026-10-26T09:51:15.8088290Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testAuditLogWrittenAndAnnouncedWhenVerboseAndCarriesNoValues] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48596,
+          "text": "2026-10-26T09:51:15.8091210Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDefaultRunAppliesTheBasicProfileAndAttests] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48609,
+          "text": "2026-10-26T09:51:15.8094780Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:316: error: -[DICOMKitTests.AnonymizationWorkflowTests testBurnedInAnnotationYesWithNoLocatableRegionIsRefusedNotGuessed] : failed - recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")"
+        },
+        {
+          "line": 48622,
+          "text": "2026-10-26T09:51:15.8097920Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryOutputForSingleFileWritesInsideItUnderInputName] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48637,
+          "text": "2026-10-26T09:51:15.8102910Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:405: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 48653,
+          "text": "2026-10-26T09:51:15.8114740Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:406: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 48669,
+          "text": "2026-10-26T09:51:15.8117670Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:408: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 48697,
+          "text": "2026-10-26T09:51:15.8126000Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDryRunPrintsPlanTableAndWritesNothing] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48722,
+          "text": "2026-10-26T09:51:15.8132450Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionOverridesTheTrustedNo] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48747,
+          "text": "2026-10-26T09:51:15.8137560Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionBlanksPixelsBeforeHeaderPass] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48808,
+          "text": "2026-10-26T09:51:15.8149000Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testRecompressAfterExplicitRegion] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48893,
+          "text": "2026-10-26T09:51:15.8167510Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testRetentionOptionsReachTheOutput] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48906,
+          "text": "2026-10-26T09:51:15.8170280Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testSingleFileNeedsOutputUnlessDryRun] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 48931,
+          "text": "2026-10-26T09:51:15.8175230Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testWriterHookNoteReachesWarnings] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64749,
+          "text": "2026-10-26T09:51:16.2253750Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testClassifyKeepsLateralityWhileRedactingTheBanner] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64762,
+          "text": "2026-10-26T09:51:16.2257640Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testClassifyUsesTheFilesOwnHeaderTerms] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64775,
+          "text": "2026-10-26T09:51:16.2261420Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testCleanWithDetectionRedactsEverythingDetectedOnEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64800,
+          "text": "2026-10-26T09:51:16.2267940Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testDetectionOnlyReportsAndFlagsUnredactedText] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64825,
+          "text": "2026-10-26T09:51:16.2273800Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testConcatenationSweepUnionsRegionsAcrossParts] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64850,
+          "text": "2026-10-26T09:51:16.2279050Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testDryRunWithDetectionPrintsTheTableAndWritesNothing] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64899,
+          "text": "2026-10-26T09:51:16.2287760Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testExplicitAndDetectedRegionsUnion] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64936,
+          "text": "2026-10-26T09:51:16.2295200Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testLabelStyleOutputReadsAsTheStampAndNeverTheOriginal] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64949,
+          "text": "2026-10-26T09:51:16.2298570Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testOcrAllFramesScansEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64974,
+          "text": "2026-10-26T09:51:16.2304640Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressLossyCodecWarnsAndKeepsRectsBlank] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 64999,
+          "text": "2026-10-26T09:51:16.2312120Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceMirrorsALosslessSourceExactly] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65012,
+          "text": "2026-10-26T09:51:16.2317800Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnUncompressedSourcesIsParity] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65025,
+          "text": "2026-10-26T09:51:16.2321240Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnALossySourceIsSecondGeneration] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65062,
+          "text": "2026-10-26T09:51:16.2329950Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testReplaceFallsBackWhenTheHeaderRemovesTheAttributeOrTheTextIsUncertain] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65075,
+          "text": "2026-10-26T09:51:16.2333210Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testReplaceStyleUsesTheHeaderEnginesOwnValues] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65112,
+          "text": "2026-10-26T09:51:16.2344800Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testSinglePartWarnsThatCoverageIsIncompleteOnlyWhenOCRRuns] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65149,
+          "text": "2026-10-26T09:51:16.2358300Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testTextOnlyBlanksOnlyTheFlaggedTextAndSaysSo] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 65486,
+          "text": "2026-10-26T09:51:16.2444500Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelRedactionCompressionMatrixTests testEverySourceEncodingIsDecodedMaskedOnEveryFrameAndReemittedUncompressed] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 66027,
+          "text": "2026-10-26T09:51:16.2554950Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelRedactionCompressionMatrixTests testColourJPEGSourceLeavesConsistentPhotometricAndNoText] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 71921,
+          "text": "2026-10-26T09:51:16.4263030Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testBlankFrameYieldsNoRegions] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 71958,
+          "text": "2026-10-26T09:51:16.4273250Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testDetectionsCarryTheFrameIndexOfTheSampledFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 71983,
+          "text": "2026-10-26T09:51:16.4278330Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testDetectPlanRedactRemovesTheTextFromEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 71996,
+          "text": "2026-10-26T09:51:16.4285440Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeRedactionKeepsFunctionalGroupsByteStable] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 72009,
+          "text": "2026-10-26T09:51:16.4288640Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeOCRHonoursEachFramesOwnVOI] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 72022,
+          "text": "2026-10-26T09:51:16.4291740Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testExplicitFrameIndicesAreHonouredAndOutOfRangeIgnored] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 72083,
+          "text": "2026-10-26T09:51:16.4304120Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testMidLoopOnlyTextNeedsAllFramesSampling] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 72120,
+          "text": "2026-10-26T09:51:16.4311370Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testVisionFindsPlantedTextAndTheRegionCoversTheGlyphsWithDilation] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 90779,
+          "text": "2026-10-26T09:51:17.0165830Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMNetworkTests/PrintCLIEndToEndTests.swift:189: error: -[DICOMNetworkTests.PrintCLIEndToEndTests testSendFailureExitsNonZero] : XCTAssertTrue failed - printer diagnostic text must reach the user; stderr: Error: ARTIM timer expired: remote peer did not respond in time"
+        },
+        {
+          "line": 90829,
+          "text": "2026-10-26T09:51:17.0181760Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMNetwork/PrintService.swift:4563: error: -[DICOMNetworkTests.PrintConformanceLoopbackTests testColorImageRoundTripsThroughThePlanarWireLayout] : failed: caught error: \"ARTIM timer expired: remote peer did not respond in time\""
+        }
+      ]
+    },
+    {
+      "command": "2026-10-26T09:56:07.0025490Z ##[group]Run swift test --enable-code-coverage",
+      "failed_xctest_cases": [
+        {
+          "line": 141132,
+          "text": "2026-10-26T10:14:29.9122310Z Test Case '-[dicom_anonTests.AnonOptionContractTests testVisualFeaturesEndToEnd]' failed (4.622 seconds)."
+        },
+        {
+          "line": 148340,
+          "text": "2026-10-26T10:15:38.4595240Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testAuditLogWrittenAndAnnouncedWhenVerboseAndCarriesNoValues]' failed (3.120 seconds)."
+        },
+        {
+          "line": 148343,
+          "text": "2026-10-26T10:15:38.4598780Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testBackupLandsNextToOutput]' failed (0.093 seconds)."
+        },
+        {
+          "line": 148348,
+          "text": "2026-10-26T10:15:38.4604650Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testBurnedInAnnotationYesWithNoLocatableRegionIsRefusedNotGuessed]' failed (0.111 seconds)."
+        },
+        {
+          "line": 148351,
+          "text": "2026-10-26T10:15:38.4609230Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDefaultRunAppliesTheBasicProfileAndAttests]' failed (0.123 seconds)."
+        },
+        {
+          "line": 148354,
+          "text": "2026-10-26T10:15:38.4614030Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDirectoryOutputForSingleFileWritesInsideItUnderInputName]' failed (0.158 seconds)."
+        },
+        {
+          "line": 148408,
+          "text": "2026-10-26T10:15:38.4653750Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines]' failed (0.377 seconds)."
+        },
+        {
+          "line": 148411,
+          "text": "2026-10-26T10:15:38.4657300Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testDryRunPrintsPlanTableAndWritesNothing]' failed (0.136 seconds)."
+        },
+        {
+          "line": 148414,
+          "text": "2026-10-26T10:15:38.4661040Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionBlanksPixelsBeforeHeaderPass]' failed (0.143 seconds)."
+        },
+        {
+          "line": 148417,
+          "text": "2026-10-26T10:15:38.4665380Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionOverridesTheTrustedNo]' failed (0.152 seconds)."
+        },
+        {
+          "line": 148432,
+          "text": "2026-10-26T10:15:38.4679310Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testRecompressAfterExplicitRegion]' failed (0.148 seconds)."
+        },
+        {
+          "line": 148445,
+          "text": "2026-10-26T10:15:39.1983730Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testRetentionOptionsReachTheOutput]' failed (0.098 seconds)."
+        },
+        {
+          "line": 148448,
+          "text": "2026-10-26T10:15:39.1988010Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testSingleFileNeedsOutputUnlessDryRun]' failed (0.216 seconds)."
+        },
+        {
+          "line": 148452,
+          "text": "2026-10-26T10:15:39.2002410Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testUIDsStayConsistentAcrossADirectory]' failed (0.338 seconds)."
+        },
+        {
+          "line": 148455,
+          "text": "2026-10-26T10:15:39.2006190Z Test Case '-[DICOMKitTests.AnonymizationWorkflowTests testWriterHookNoteReachesWarnings]' failed (0.162 seconds)."
+        },
+        {
+          "line": 151335,
+          "text": "2026-10-26T10:15:47.0527440Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testClassifyKeepsLateralityWhileRedactingTheBanner]' failed (0.273 seconds)."
+        },
+        {
+          "line": 151338,
+          "text": "2026-10-26T10:15:47.0537010Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testClassifyUsesTheFilesOwnHeaderTerms]' failed (0.177 seconds)."
+        },
+        {
+          "line": 151341,
+          "text": "2026-10-26T10:15:50.6661710Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testCleanWithDetectionRedactsEverythingDetectedOnEveryFrame]' failed (0.173 seconds)."
+        },
+        {
+          "line": 151346,
+          "text": "2026-10-26T10:15:50.6667870Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testConcatenationSweepUnionsRegionsAcrossParts]' failed (0.267 seconds)."
+        },
+        {
+          "line": 151349,
+          "text": "2026-10-26T10:15:50.6672260Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testDetectionOnlyReportsAndFlagsUnredactedText]' failed (0.169 seconds)."
+        },
+        {
+          "line": 151358,
+          "text": "2026-10-26T10:15:50.6681310Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testDryRunWithDetectionPrintsTheTableAndWritesNothing]' failed (0.143 seconds)."
+        },
+        {
+          "line": 151361,
+          "text": "2026-10-26T10:15:50.6690300Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testExplicitAndDetectedRegionsUnion]' failed (0.134 seconds)."
+        },
+        {
+          "line": 151368,
+          "text": "2026-10-26T10:15:50.6709610Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testLabelStyleOutputReadsAsTheStampAndNeverTheOriginal]' failed (0.135 seconds)."
+        },
+        {
+          "line": 151375,
+          "text": "2026-10-26T10:15:50.6719100Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testOcrAllFramesScansEveryFrame]' failed (0.189 seconds)."
+        },
+        {
+          "line": 151378,
+          "text": "2026-10-26T10:15:50.6722930Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressLossyCodecWarnsAndKeepsRectsBlank]' failed (0.198 seconds)."
+        },
+        {
+          "line": 151385,
+          "text": "2026-10-26T10:15:50.6729820Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceMirrorsALosslessSourceExactly]' failed (0.737 seconds)."
+        },
+        {
+          "line": 151388,
+          "text": "2026-10-26T10:15:50.6734150Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnALossySourceIsSecondGeneration]' failed (0.547 seconds)."
+        },
+        {
+          "line": 151391,
+          "text": "2026-10-26T10:15:50.6738400Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnUncompressedSourcesIsParity]' failed (0.196 seconds)."
+        },
+        {
+          "line": 151398,
+          "text": "2026-10-26T10:15:50.6752190Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testReplaceFallsBackWhenTheHeaderRemovesTheAttributeOrTheTextIsUncertain]' failed (0.149 seconds)."
+        },
+        {
+          "line": 151401,
+          "text": "2026-10-26T10:15:50.6760630Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testReplaceStyleUsesTheHeaderEnginesOwnValues]' failed (0.186 seconds)."
+        },
+        {
+          "line": 151406,
+          "text": "2026-10-26T10:15:50.6776450Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testSinglePartWarnsThatCoverageIsIncompleteOnlyWhenOCRRuns]' failed (0.227 seconds)."
+        },
+        {
+          "line": 151411,
+          "text": "2026-10-26T10:15:50.6789350Z Test Case '-[DICOMKitTests.PixelCleaningWorkflowTests testTextOnlyBlanksOnlyTheFlaggedTextAndSaysSo]' failed (0.141 seconds)."
+        },
+        {
+          "line": 151485,
+          "text": "2026-10-26T10:15:54.1459330Z Test Case '-[DICOMKitTests.PixelRedactionCompressionMatrixTests testColourJPEGSourceLeavesConsistentPhotometricAndNoText]' failed (3.000 seconds)."
+        },
+        {
+          "line": 151488,
+          "text": "2026-10-26T10:15:54.1465750Z Test Case '-[DICOMKitTests.PixelRedactionCompressionMatrixTests testEverySourceEncodingIsDecodedMaskedOnEveryFrameAndReemittedUncompressed]' failed (0.172 seconds)."
+        },
+        {
+          "line": 152662,
+          "text": "2026-10-26T10:15:56.5482730Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testBlankFrameYieldsNoRegions]' failed (0.149 seconds)."
+        },
+        {
+          "line": 152669,
+          "text": "2026-10-26T10:15:56.5490430Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testDetectionsCarryTheFrameIndexOfTheSampledFrame]' failed (0.183 seconds)."
+        },
+        {
+          "line": 152672,
+          "text": "2026-10-26T10:15:56.5494690Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testDetectPlanRedactRemovesTheTextFromEveryFrame]' failed (0.137 seconds)."
+        },
+        {
+          "line": 152679,
+          "text": "2026-10-26T10:15:56.5502710Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeOCRHonoursEachFramesOwnVOI]' failed (0.222 seconds)."
+        },
+        {
+          "line": 152682,
+          "text": "2026-10-26T10:15:56.5507410Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeRedactionKeepsFunctionalGroupsByteStable]' failed (0.132 seconds)."
+        },
+        {
+          "line": 152685,
+          "text": "2026-10-26T10:15:56.5511730Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testExplicitFrameIndicesAreHonouredAndOutOfRangeIgnored]' failed (0.179 seconds)."
+        },
+        {
+          "line": 152692,
+          "text": "2026-10-26T10:15:56.5519110Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testMidLoopOnlyTextNeedsAllFramesSampling]' failed (0.165 seconds)."
+        },
+        {
+          "line": 152701,
+          "text": "2026-10-26T10:15:56.5528340Z Test Case '-[DICOMKitTests.TextRegionDetectorTests testVisionFindsPlantedTextAndTheRegionCoversTheGlyphsWithDilation]' failed (0.132 seconds)."
+        }
+      ],
+      "swift_testing_issue_count": 136,
+      "swift_testing_all_missing_bin": true,
+      "first_swift_issue": {
+        "line": 163938,
+        "text": "2026-10-26T10:16:14.8795480Z \u2718 Test \"dicom-split: every option combination matches the terminal\" recorded an issue with 2 arguments c \u2192 split defaults, verbose \u2192 false at SplitMergeWorkshopCLIParityTests.swift:293:26: Expectation failed: Self.binDir"
+      },
+      "runtime_error_lines": [
+        {
+          "line": 141131,
+          "text": "2026-10-26T10:14:29.9104890Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[dicom_anonTests.AnonOptionContractTests testVisualFeaturesEndToEnd] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148339,
+          "text": "2026-10-26T10:15:38.4593620Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testAuditLogWrittenAndAnnouncedWhenVerboseAndCarriesNoValues] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148342,
+          "text": "2026-10-26T10:15:38.4597500Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testBackupLandsNextToOutput] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148347,
+          "text": "2026-10-26T10:15:38.4602920Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:316: error: -[DICOMKitTests.AnonymizationWorkflowTests testBurnedInAnnotationYesWithNoLocatableRegionIsRefusedNotGuessed] : failed - recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")"
+        },
+        {
+          "line": 148350,
+          "text": "2026-10-26T10:15:38.4607170Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDefaultRunAppliesTheBasicProfileAndAttests] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148353,
+          "text": "2026-10-26T10:15:38.4612200Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryOutputForSingleFileWritesInsideItUnderInputName] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148360,
+          "text": "2026-10-26T10:15:38.4620480Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:405: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 148376,
+          "text": "2026-10-26T10:15:38.4627170Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:406: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 148392,
+          "text": "2026-10-26T10:15:38.4634790Z /Users/runner/work/DICOMKit/DICOMKit/Tests/DICOMKitTests/AnonymizationWorkflowTests.swift:408: error: -[DICOMKitTests.AnonymizationWorkflowTests testDirectoryRunMirrorsTreeAndVerboseLines] : XCTAssertTrue failed - \u2717 a.dcm: Text recognition failed: The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)"
+        },
+        {
+          "line": 148410,
+          "text": "2026-10-26T10:15:38.4655810Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testDryRunPrintsPlanTableAndWritesNothing] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148413,
+          "text": "2026-10-26T10:15:38.4659450Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionBlanksPixelsBeforeHeaderPass] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148416,
+          "text": "2026-10-26T10:15:38.4663330Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testExplicitRegionOverridesTheTrustedNo] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148431,
+          "text": "2026-10-26T10:15:38.4678000Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testRecompressAfterExplicitRegion] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148444,
+          "text": "2026-10-26T10:15:39.1980910Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testRetentionOptionsReachTheOutput] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148447,
+          "text": "2026-10-26T10:15:39.1986450Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testSingleFileNeedsOutputUnlessDryRun] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 148454,
+          "text": "2026-10-26T10:15:39.2004800Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.AnonymizationWorkflowTests testWriterHookNoteReachesWarnings] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151334,
+          "text": "2026-10-26T10:15:47.0523120Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testClassifyKeepsLateralityWhileRedactingTheBanner] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151337,
+          "text": "2026-10-26T10:15:47.0533400Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testClassifyUsesTheFilesOwnHeaderTerms] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151340,
+          "text": "2026-10-26T10:15:50.6659510Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testCleanWithDetectionRedactsEverythingDetectedOnEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151345,
+          "text": "2026-10-26T10:15:50.6666380Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testConcatenationSweepUnionsRegionsAcrossParts] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151348,
+          "text": "2026-10-26T10:15:50.6670760Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testDetectionOnlyReportsAndFlagsUnredactedText] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151357,
+          "text": "2026-10-26T10:15:50.6679680Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testDryRunWithDetectionPrintsTheTableAndWritesNothing] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151360,
+          "text": "2026-10-26T10:15:50.6686150Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testExplicitAndDetectedRegionsUnion] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151367,
+          "text": "2026-10-26T10:15:50.6705280Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testLabelStyleOutputReadsAsTheStampAndNeverTheOriginal] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151374,
+          "text": "2026-10-26T10:15:50.6717410Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testOcrAllFramesScansEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151377,
+          "text": "2026-10-26T10:15:50.6721570Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressLossyCodecWarnsAndKeepsRectsBlank] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151384,
+          "text": "2026-10-26T10:15:50.6728180Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceMirrorsALosslessSourceExactly] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151387,
+          "text": "2026-10-26T10:15:50.6732550Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnALossySourceIsSecondGeneration] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151390,
+          "text": "2026-10-26T10:15:50.6736760Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testRecompressSourceOnUncompressedSourcesIsParity] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151397,
+          "text": "2026-10-26T10:15:50.6750620Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testReplaceFallsBackWhenTheHeaderRemovesTheAttributeOrTheTextIsUncertain] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151400,
+          "text": "2026-10-26T10:15:50.6756150Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testReplaceStyleUsesTheHeaderEnginesOwnValues] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151405,
+          "text": "2026-10-26T10:15:50.6772260Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testSinglePartWarnsThatCoverageIsIncompleteOnlyWhenOCRRuns] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151410,
+          "text": "2026-10-26T10:15:50.6786270Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelCleaningWorkflowTests testTextOnlyBlanksOnlyTheFlaggedTextAndSaysSo] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151484,
+          "text": "2026-10-26T10:15:54.1457770Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelRedactionCompressionMatrixTests testColourJPEGSourceLeavesConsistentPhotometricAndNoText] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 151487,
+          "text": "2026-10-26T10:15:54.1462170Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.PixelRedactionCompressionMatrixTests testEverySourceEncodingIsDecodedMaskedOnEveryFrameAndReemittedUncompressed] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152661,
+          "text": "2026-10-26T10:15:56.5481210Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testBlankFrameYieldsNoRegions] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152668,
+          "text": "2026-10-26T10:15:56.5488930Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testDetectionsCarryTheFrameIndexOfTheSampledFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152671,
+          "text": "2026-10-26T10:15:56.5493070Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testDetectPlanRedactRemovesTheTextFromEveryFrame] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152678,
+          "text": "2026-10-26T10:15:56.5501170Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeOCRHonoursEachFramesOwnVOI] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152681,
+          "text": "2026-10-26T10:15:56.5505350Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testEnhancedMultiframeRedactionKeepsFunctionalGroupsByteStable] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152684,
+          "text": "2026-10-26T10:15:56.5510050Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testExplicitFrameIndicesAreHonouredAndOutOfRangeIgnored] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152691,
+          "text": "2026-10-26T10:15:56.5517300Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testMidLoopOnlyTextNeedsAllFramesSampling] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        },
+        {
+          "line": 152700,
+          "text": "2026-10-26T10:15:56.5526710Z /Users/runner/work/DICOMKit/DICOMKit/Sources/DICOMKit/Anonymization/TextRegionDetector.swift:229: error: -[DICOMKitTests.TextRegionDetectorTests testVisionFindsPlantedTextAndTheRegionCoversTheGlyphsWithDilation] : failed: caught error: \"recognitionFailed(\"The operation couldn\u2019t be completed. (TextRecognition.CRImageReaderError error 1.)\")\""
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "ARTIM phase and precise timing cause not proven",
+    "OCR failed on both executions; serial execution alone did not repair unavailable runtime",
+    "No product changes or Swift builds performed for this diagnosis"
+  ]
+}

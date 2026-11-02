@@ -1,0 +1,53 @@
+OVERVIEW: Perform precise medical imaging measurements on DICOM images
+
+Measure distances, areas, angles, and extract pixel statistics from DICOM
+images.
+
+Physical units come from, in this order: Pixel Spacing (0028,0030);
+the frame's Pixel Measures Sequence (0028,9110); the Sequence of
+Ultrasound Regions (0018,6011) region in cm holding the points;
+Imager Pixel Spacing (0018,1164), at the front plane of the detector
+housing; Nominal Scanned Pixel Spacing (0018,2010). Without any of
+them the result is in pixels. Spacing Values are row spacing, then
+column spacing (PS3.3 10.7.1.3).
+
+Points are x,y = column,row in the PS3.3 Table C.18.6-1 image
+coordinate system: 0,0 is the top-left corner of the top-left pixel
+and 1,1 its bottom-right corner, so a sampled point reads pixel
+floor(x),floor(y) and an ROI holds the pixels whose centres lie in it.
+
+Units: text output prints the UCUM code (PS3.16 CID 82; CID 7460
+cm, mm, um; CID 7461 cm2, mm2, um2; deg; [hnsf'U]; {pixels}) with
+the display symbol in parentheses when it differs, e.g.
+"Area: 12.0 mm2 (mm²)". JSON carries the UCUM code in unit_ucum /
+area_unit_ucum; the keys unit / area_unit (display symbols) are
+deprecated and kept unchanged. inches and px² have no UCUM code
+in PS3.16 and print the symbol only.
+
+Frames: pixel --frame-number N is 1-based (PS3.3 Table
+10-3: the first Frame is Frame number 1). --frame (0-based index)
+is deprecated.
+
+Examples:
+  dicom-measure distance ct.dcm --p1 100,200 --p2 300,400
+  dicom-measure area ct.dcm --polygon 100,100 150,200 200,200 180,120
+  dicom-measure angle ct.dcm --vertex 200,200 --p1 100,100 --p2 300,100
+  dicom-measure roi ct.dcm --rect 100,100,50,50 --statistics
+  dicom-measure hu ct.dcm --point 200,200
+  dicom-measure pixel ct.dcm --point 150,150 --frame-number 1
+
+USAGE: dicom-measure <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  distance                Measure distance between two points
+  area                    Measure area of a polygon or ellipse
+  angle                   Measure angle between two lines sharing a vertex
+  roi                     Calculate statistics within a region of interest
+  hu                      Extract Hounsfield Unit values from CT images
+  pixel                   Extract raw pixel values from DICOM images
+
+  See 'dicom-measure help <subcommand>' for detailed help.

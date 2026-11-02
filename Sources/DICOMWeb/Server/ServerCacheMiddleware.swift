@@ -154,10 +154,12 @@ public actor ServerCacheMiddleware {
         var components = [request.path]
 
         // Include sorted query parameters for consistent keys
-        let sortedParams = request.queryParameters.sorted { $0.key < $1.key }
-        for (key, value) in sortedParams {
-            components.append("\(key)=\(value)")
+        let sortedParams = request.queryItems.sorted { ($0.name, $0.value ?? "") < ($1.name, $1.value ?? "") }
+        for item in sortedParams {
+            let value = item.value ?? ""
+            components.append("\(item.name.utf8.count):\(item.name)=\(value.utf8.count):\(value)")
         }
+        components.append("malformed=\(request.hasMalformedQueryEncoding)")
 
         // Include Accept header as it affects the response format
         if let accept = request.header("Accept") {

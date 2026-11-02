@@ -1,0 +1,9 @@
+{
+  "result": "Passed",
+  "port": 65517,
+  "listener_present": false,
+  "lsof_exit": 1,
+  "peer_exit": 0,
+  "requests": 5,
+  "associations": 5
+}

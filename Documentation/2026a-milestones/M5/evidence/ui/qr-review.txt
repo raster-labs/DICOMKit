@@ -1,0 +1,46 @@
+The following is a diff from the previous accessibility tree for Window: "DICOM Studio" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 141-142
+~							144 radio button Description: auto, Value: 0
+~							145 radio button Description: review, Value: 1
+~						163 text field (settable) Description: Study Instance UID, Value: 2.25.505, Placeholder: e.g. 1.2.840.113619...
+~						187 text field (settable) Description: Output Directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-review, Placeholder: Choose a folder… (defaults to ~/Downloads/DICOMStudio)
+~						73 scroll bar (settable, float) 0.1239653512993263
+~							74 value indicator (settable, float) 0.1239653512993263
+~					85 text Console SUCCESS
++					194 button Description: Copy console output, Help: Copies the console output to the clipboard
+~					86 button Clear console output
++					195 scroll area
++						196 text $ dicom-qr 127.0.0.1:55131 --aet DICOMSTUDIO --called-aet M5SCP --review --method c-get --study-uid 2.25.505 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-review --parallel 1 --priority medium --timeout 60
+
+DICOM Query-Retrieve
+====================
+  Server:            127.0.0.1:55131
+  Calling AE Title:  DICOMSTUDIO
+  Called AE Title:   M5SCP
+  Mode:              Review
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-review
+  Timeout:           60s
+  Filters:
+    Study UID:       2.25.505
+
+Found 1 study(ies):
+
+  [1] M5^SYNTHETIC (ID: M5-001)
+      Study: BEFORE
+      Date: 20260115  Modalities in Study: CT
+      UID: 2.25.505
+
+Review complete. 1 study(ies) found.
+
++							197 text $ dicom-qr 127.0.0.1:55131 --aet DICOMSTUDIO --called-aet M5SCP --review --method c-get --study-uid 2.25.505 --output /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/ui/qr-review --parallel 1 --priority medium --timeout 60
+
+DICOM Query-Retrieve
+====================
+  Server:            127.0.0.1:55131
+  Calling AE Title:  DICOMSTUDIO
+  Called AE Title:   M5SCP
+  Mode:              Review
+  Output:            /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-i
++					198 text History
+~						91 text dicom-script dicom-script dicom-script dicom-script dicom-anon dicom-anon dicom-qr
+The focused UI element is 190 text field (settable) Description: Save State File, Placeholder: query.state

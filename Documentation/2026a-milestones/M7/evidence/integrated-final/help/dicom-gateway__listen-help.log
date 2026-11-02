@@ -1,0 +1,25 @@
+OVERVIEW: Listen for HL7 messages and convert them to DICOM
+
+Run an HL7 TCP listener that receives HL7 v2 messages and
+converts them to DICOM.
+
+Not implemented: forwarding to a PACS. --forward pacs://host:port
+is accepted but only reports what would be sent; no PS3.8
+association is opened and no C-STORE (PS3.4 Annex B) is sent.
+
+USAGE: dicom-gateway listen [--protocol <protocol>] [--port <port>] [--forward <forward>] [--message-types <message-types>] [--verbose]
+
+OPTIONS:
+  -p, --protocol <protocol>
+                          Protocol to listen for: hl7 (default: hl7)
+  --port <port>           Port to listen on (default: 2575)
+  --forward <forward>     Forward destination (e.g., pacs://server:11112). Not
+                          implemented: reports what would be sent; no C-STORE
+                          is performed
+  --message-types <message-types>
+                          Message types to process (comma-separated, e.g.,
+                          ADT,ORM)
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

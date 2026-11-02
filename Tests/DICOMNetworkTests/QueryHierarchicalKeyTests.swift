@@ -67,8 +67,9 @@ final class QueryParentLevelKeyTests: XCTestCase {
     }
 
     func test_includeParentLevelReturnKeysReaddsThemAsReturnKeys() {
-        let series = DICOMQueryService.buildQueryKeys(level: .series, patientName: "DOE*", studyUID: "1.2.3",
+        let series = DICOMQueryService.buildQueryKeys(level: .series, studyUID: "1.2.3",
                                                       includeParentLevelReturnKeys: true)
+        XCTAssertNil(series.rejectionReason, "Return keys alone do not introduce ignored match filters")
         for tag in parentTags {
             let key = series.keys.first { $0.tag == tag }
             XCTAssertNotNil(key, "\(tag) requested with the non-baseline flag")

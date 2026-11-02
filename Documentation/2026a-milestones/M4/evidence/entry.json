@@ -1,0 +1,59 @@
+{
+  "baseline": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+  "branch": "codex/dicom-2026a-milestones",
+  "remote_branch": {
+    "ref": "refs/heads/codex/dicom-2026a-milestones",
+    "node_id": "REF_kwDORJ0WHNoAJ3JlZnMvaGVhZHMvY29kZXgvZGljb20tMjAyNmEtbWlsZXN0b25lcw",
+    "url": "https://api.github.com/repos/raster-labs/DICOMKit/git/refs/heads/codex/dicom-2026a-milestones",
+    "object": {
+      "sha": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+      "type": "commit",
+      "url": "https://api.github.com/repos/raster-labs/DICOMKit/git/commits/b85c281e938ac6a0505bbfae1afc1f6619e59080"
+    }
+  },
+  "remote_main": {
+    "ref": "refs/heads/main",
+    "node_id": "REF_kwDORJ0WHK9yZWZzL2hlYWRzL21haW4",
+    "url": "https://api.github.com/repos/raster-labs/DICOMKit/git/refs/heads/main",
+    "object": {
+      "sha": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
+      "type": "commit",
+      "url": "https://api.github.com/repos/raster-labs/DICOMKit/git/commits/4b68d7e22829418c88e48dd53d98b25fee50d90d"
+    }
+  },
+  "previous_milestone_workflows": [
+    {
+      "id": 40092979297,
+      "name": "Audit tooling",
+      "head_sha": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40092979297"
+    },
+    {
+      "id": 40092979321,
+      "name": "Command safety",
+      "head_sha": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40092979321"
+    },
+    {
+      "id": 40092979325,
+      "name": "Attribute and workflow integrity",
+      "head_sha": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40092979325"
+    },
+    {
+      "id": 40092979368,
+      "name": "Query safety and filters",
+      "head_sha": "b85c281e938ac6a0505bbfae1afc1f6619e59080",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/raster-labs/DICOMKit/actions/runs/40092979368"
+    }
+  ],
+  "scope": "M4 only; stop before M5; no merge authorization"
+}

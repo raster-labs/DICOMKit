@@ -1,0 +1,17 @@
+{
+  "scope": "Test-only correction after original focused run; production unchanged.",
+  "failed_log": "print-repair-verification/DICOMStudioTests.log",
+  "failure": "One test method had21 assertion failures because unexposed NSButton.accessibilityRole() returned AXUnknown. Other native binding/state tests passed; original 220SwiftTesting passes remain recorded.",
+  "diagnostic": "checkbox-role-diagnostic-initial.log",
+  "observed": "Stock NSButton(checkboxWithTitle:...) and custom subclass both returned AXUnknown/isAccessibilityElement=false before/after NSApplication.shared and in hiddenNSWindow. No app was activated or shown. This invalidates hardcoded AXCheckBox expectation for this unit fixture.",
+  "correction": "Compare detached role against a stock native checkbox while retaining name/help/identifier, state, binding, disable and exact argv assertions. No forced production role, assertion skip or broad rerun.",
+  "mandatory_native_replacement": "On rebuilt packagedapp, root must inspect actual exposed AXCheckBox role plus semantic names and values in both printforms; keyboardSpace/focus and disabledwhileRunning/restoredafterStop. This is pending and is not established by detached unit tests.",
+  "new_test_sha256": "6232eaef35204f95d45f0ce837ef8768cb57731bf31e02a0ed470690d9fcaa23",
+  "next_focused_command": "swift test --disable-automatic-resolution --scratch-path /Volumes/DICOMKit-M1-build/spm --cache-path /Volumes/DICOMKit-M1-build/cache -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests --filter M7PrintNativeCheckboxTests > /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/print-repair-verification/DICOMStudioTests-native-checkbox-rerun.log 2>&1",
+  "preserved_diagnostic_attempts": [
+    "checkbox-role-diagnostic-compile-failure.log (initial mainactor fixture compile error, no runtime)",
+    "checkbox-role-diagnostic-initial.log (successful standalone diagnostic)",
+    "checkbox-role-diagnostic-descendant-compile-failure.log (unexecuted optional descendant extension with obsolete Swift API spelling)"
+  ],
+  "execution_boundary": "One successful standalone AppKit diagnostic only, with failed compile attempts retained. No DICOMKit build/test/product invocation by subagent."
+}

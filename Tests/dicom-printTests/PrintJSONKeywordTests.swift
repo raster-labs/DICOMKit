@@ -1,7 +1,7 @@
 import XCTest
 import DICOMNetwork
 import DICOMPrintKit
-@testable import dicom_print
+@testable import DICOMPrintCommandSupport
 
 /// P-PRINT-JSON: `status` / `job --format json` key each N-GET attribute by its PS3.6
 /// 2026a Table 6-1 keyword, beside the older tool keys (kept, deprecated, same value).
@@ -55,10 +55,10 @@ final class PrintJSONKeywordTests: XCTestCase {
     }
 
     func testHelpSaysTheOldKeysAreDeprecated() {
-        let status = StatusCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let status = SCUStatusCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
         XCTAssertTrue(status.contains("PS3.6 keyword (PrinterStatus,"))
         XCTAssertTrue(status.contains("are deprecated"))
-        let job = JobCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let job = SCUJobCommand.helpMessage().split(whereSeparator: \.isWhitespace).joined(separator: " ")
         XCTAssertTrue(job.contains("PS3.6 keyword (ExecutionStatus,"))
         XCTAssertTrue(job.contains("are deprecated"))
     }

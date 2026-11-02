@@ -1,0 +1,1 @@
+Error: Parse error at line 2: Pipelines inside conditional blocks are not supported

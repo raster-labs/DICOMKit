@@ -1,0 +1,32 @@
+OVERVIEW: ISO/IEC 15444-4 conformance check of the embedded J2K codestream
+
+Runs structural validation of the JPEG 2000 or HTJ2K codestream using
+J2KSwift's built-in conformance tester. Reports marker ordering,
+segment-length consistency, capability signalling (CAP marker for HTJ2K),
+and interoperability issues.
+
+Exit code 0 = valid, 1 = violations found, 2 = read error.
+
+Examples:
+  dicom-j2k validate scan.dcm
+  dicom-j2k validate scan.dcm --frame-number 1 --strict
+
+--json keys: TransferSyntaxUID is the PS3.6 Table 6-1 keyword;
+transferSyntaxUID is deprecated (same value). frameNumber is the Frame number
+(from 1); frame is the deprecated 0-based index.
+
+USAGE: dicom-j2k validate <input> [--frame-number <frame-number>] [--frame <frame>] [--strict] [--json]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  --frame-number <frame-number>
+                          Frame number, numbered from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --strict                Treat warnings as errors (strict mode)
+  --json                  Output results as JSON
+  --version               Show the version.
+  -h, --help              Show help information.
+

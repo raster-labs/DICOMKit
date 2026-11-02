@@ -1,0 +1,13 @@
+{
+  "authorized_items": [
+    "NET-08-A",
+    "WS-DORM-01",
+    "WS-DORM-02"
+  ],
+  "base_commit": "4e5ca590275a8ff77a29e5bb4e0804c84f692642",
+  "branch": "codex/dicom-2026a-milestones",
+  "remote_branch_head_before_work": "4e5ca590275a8ff77a29e5bb4e0804c84f692642",
+  "recorded_utc": "2026-10-26T11:38:58.718661+00:00",
+  "other_items": "Unchanged; 19 remain deferred",
+  "merge_authorized": false
+}

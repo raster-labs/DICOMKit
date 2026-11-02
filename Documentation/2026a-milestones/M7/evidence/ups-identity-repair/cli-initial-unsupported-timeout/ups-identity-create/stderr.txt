@@ -1,0 +1,3 @@
+Error: Unknown option '--timeout'
+Usage: dicom-wado ups [<options>] <base-url>
+  See 'dicom-wado ups --help' for more information.

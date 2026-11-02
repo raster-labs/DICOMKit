@@ -1,0 +1,18 @@
+error: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/outputs/DICOMKit_R3/coverage-probe/.build/out/Products/Debug/codecov doesn't exist in file system
+Test Suite 'All tests' started at 2026-10-31 15:33:19.537.
+Test Suite 'ProbeTests.xctest' started at 2026-10-31 15:33:19.542.
+Test Suite 'ProbeTests' started at 2026-10-31 15:33:19.542.
+Test Case '-[ProbeTests.ProbeTests testDouble]' started.
+Test Case '-[ProbeTests.ProbeTests testDouble]' passed (0.000 seconds).
+Test Suite 'ProbeTests' passed at 2026-10-31 15:33:19.542.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'ProbeTests.xctest' passed at 2026-10-31 15:33:19.542.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'All tests' passed at 2026-10-31 15:33:19.542.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.005) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Test swiftDouble() started.
+✔ Test swiftDouble() passed after 0.001 seconds.
+✔ Test run with 1 test in 0 suites passed after 0.001 seconds.

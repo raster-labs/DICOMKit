@@ -1,0 +1,48 @@
+[
+  {
+    "name": "populated registry",
+    "image": "ui/print-list-populated.png",
+    "cli_control": "list-control.json",
+    "console_aliases": [
+      "print-list-populated-console",
+      "print-list-console"
+    ],
+    "payload": [
+      {
+        "calledAETitle": "M7CLI",
+        "callingAETitle": "M7NATIVE",
+        "colorMode": "color",
+        "host": "127.0.0.1",
+        "isDefault": true,
+        "name": "Native; O'Neil 雪",
+        "port": 21113
+      }
+    ],
+    "sha256": "e76d8d240fc0054c0a37be580f4a2b5c9d7147d5d21f76513266632e5887d211",
+    "method": "Independent manual visual transcription from saved full-resolution native screenshot; not OCR or copied native text."
+  },
+  {
+    "name": "Printer status",
+    "image": "ui/print-status-json.png",
+    "cli_control": "status.json",
+    "console_aliases": [
+      "print-status-json-console",
+      "print-status-console"
+    ],
+    "payload": {
+      "isNormal": true,
+      "manufacturer": "DICOMKit",
+      "Manufacturer": "DICOMKit",
+      "ManufacturerModelName": "DICOM Print Emulator",
+      "model": "DICOM Print Emulator",
+      "name": "DICOMKIT-PRINTER",
+      "PrinterName": "DICOMKIT-PRINTER",
+      "PrinterStatus": "NORMAL",
+      "PrinterStatusInfo": "NORMAL",
+      "status": "NORMAL",
+      "statusInfo": "NORMAL"
+    },
+    "sha256": "a64dfdf41e81a183440d9993afc503423123fc3abdfc94306f4f4951b1790cad",
+    "method": "Independent manual visual transcription from saved full-resolution native screenshot; not OCR or copied native text."
+  }
+]

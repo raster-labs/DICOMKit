@@ -1,0 +1,45 @@
+OVERVIEW: Lightweight PACS server supporting C-ECHO, C-FIND, C-STORE, C-MOVE,
+and C-GET
+
+Run a lightweight PACS server for development, testing, and small-scale
+deployments.
+
+Supported DICOM Services:
+- C-ECHO: Verification service
+- C-FIND: Query service (PATIENT/STUDY/SERIES/IMAGE levels)
+- C-STORE: Storage service with automatic indexing
+- C-MOVE: Retrieval service
+- C-GET: Direct retrieval service
+
+Storage Backends:
+- filesystem (default): Durable Part 10 files; complete metadata reindex before
+listening
+- none: Files are stored, but FIND/GET/MOVE indexing is disabled
+- SQLite and PostgreSQL are not implemented and are explicitly refused
+
+Examples:
+  # Start server with default settings
+  dicom-server start --aet MY_PACS --port 11112
+  
+  # Start with custom data directory
+  dicom-server start --aet MY_PACS --port 11112 --data-dir /var/lib/dicom
+  
+  # Start with configuration file
+  dicom-server start --config /etc/dicom-server.conf
+  
+  # Check server status
+  dicom-server status --port 11112
+
+USAGE: dicom-server <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  start (default)         Start the DICOM server
+  status                  Check server status
+  stop                    Stop the DICOM server
+  stats                   Display server statistics
+
+  See 'dicom-server help <subcommand>' for detailed help.

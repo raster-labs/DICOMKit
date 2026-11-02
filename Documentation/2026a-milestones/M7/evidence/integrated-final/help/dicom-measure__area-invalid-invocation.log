@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-measure area <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] [--polygon <polygon> ...] [--ellipse <ellipse>]
+  See 'dicom-measure area --help' for more information.

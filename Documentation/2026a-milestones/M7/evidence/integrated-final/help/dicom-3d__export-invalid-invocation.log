@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-paths> ...'
+Help:  <input-paths>  Input DICOM files (multi-slice series)
+Usage: dicom-3d export <input-paths> ... --output <output> [--formats <formats>] [--verbose]
+  See 'dicom-3d export --help' for more information.

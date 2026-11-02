@@ -1,0 +1,67 @@
+{
+  "result": "LOCAL_FULL_SUITE_PASSED_REMOTE_PENDING",
+  "tested_source_commit": "3be6b6ef5de2210016fbb45aef2e96bcabf74ba2",
+  "branch": "codex/dicom-2026a-milestones",
+  "pull_request": "https://github.com/raster-labs/DICOMKit/pull/233",
+  "local": {
+    "focused_reported_tests": 170,
+    "focused_xctest_skips": 0,
+    "complete_debug_reported_tests": 15825,
+    "complete_debug_xctest_reported": 6287,
+    "complete_debug_swift_reported": 9538,
+    "complete_debug_xctest_skips": 54,
+    "failures": 0,
+    "optimized_test_declarations": 1,
+    "optimized_parameter_cases": 5,
+    "dcmtk_interop_tests_passed": 3,
+    "dcmtk_note": "Included in full suite; not additional tests.",
+    "repository_guard_tests": 8,
+    "audit_regressions": 56,
+    "strict_tag_audit_findings": 0,
+    "ocr_preflight_cases": 4,
+    "release_build": "passed",
+    "coverage_files": {
+      "default.profdata": {
+        "bytes": 23671280,
+        "sha256": "97767404decd68a899ce1e442d97c556c82abc0c47a2bedd2fd09eded24a5877"
+      },
+      "DICOMKit.json": {
+        "bytes": 13861778,
+        "sha256": "f626e4e5cab682a1cba53640a400351df442418fb03d64e66c8c35d70af11e5d"
+      }
+    },
+    "focused_source_commit": "7c40a3f9ad5a90574bc6a74a948ace2205e59061",
+    "release_cli_build_source_commit": "7c40a3f9ad5a90574bc6a74a948ace2205e59061",
+    "release_cli_reuse_note": "The shared-fixture follow-up changes test sources and test-only target dependencies; all production sources are unchanged."
+  },
+  "input_manifest": {
+    "path": "evidence/test-inputs.json",
+    "files": 2066,
+    "sha256": "5e2e00a121b31fdf292d3567562d1194a2ce2e05238a259c939fd7b8e1e56612"
+  },
+  "remote": {
+    "comprehensive_run_id": 41183009976,
+    "comprehensive_status_at_document_creation": "in_progress; building release CLI tools",
+    "phi_guard_run_id": 41183014026,
+    "phi_guard_result": "success",
+    "audit_run_id": 41183013908,
+    "audit_result": "success",
+    "documentation_run_id": 41183009645,
+    "documentation_result": "success",
+    "other_runs": "queued/in_progress; see snapshot"
+  },
+  "cleanup": {
+    "removed_payloads": 2043,
+    "removed_bytes": 3276556,
+    "latest_tree_scan": "evidence/no-dicom-after.json",
+    "history_purged": false,
+    "main_modified": false,
+    "old_ci_artifacts_purged": false
+  },
+  "limits": [
+    "Reported test totals include skips; this is not a claim every optional external gate ran.",
+    "No new native GUI or physical printer qualification.",
+    "Historical commits, main and old Actions artifacts are outside this tree cleanup.",
+    "Pages deployment remains deferred."
+  ]
+}

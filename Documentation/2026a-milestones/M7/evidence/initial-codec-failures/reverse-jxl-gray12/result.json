@@ -1,0 +1,32 @@
+{
+  "name": "reverse-jxl-gray12",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/cjxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/fixtures/gray12.pgm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/reverse-jxl-gray12/foreign.jxl",
+        "-d",
+        "0",
+        "-e",
+        "3"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/djxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/reverse-jxl-gray12/stream.jxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-final/reverse-jxl-gray12/foreign-decoded.png"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    }
+  ],
+  "status": "failed",
+  "error": "Independent encoder/decoder pair did not reproduce exact source samples",
+  "elapsed_seconds": 0.02284979203250259
+}

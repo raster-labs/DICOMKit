@@ -1,0 +1,32 @@
+OVERVIEW: Decompress a compressed DICOM file
+
+Decompress compressed DICOM images to a native (uncompressed) transfer syntax.
+
+Target syntaxes (native, PS3.5 A.1, A.2, A.5; A.3 retired):
+  explicit-le   Explicit VR Little Endian (default)
+  implicit-le   Implicit VR Little Endian
+  deflate       Deflated Explicit VR Little Endian
+  explicit-be   Explicit VR Big Endian (Retired) — for legacy readers only;
+                PS3.5 A.3 retired it in 2006 (described in PS3.5 2016b)
+
+Refused (exit 1): every compressed codec name (use `compress`).
+
+Examples:
+  dicom-compress decompress compressed.dcm --output uncompressed.dcm
+  dicom-compress decompress compressed.dcm --output uncompressed.dcm --syntax
+explicit-le
+
+USAGE: dicom-compress decompress <input> --output <output> [--syntax <syntax>] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  -s, --syntax <syntax>   Native target syntax: explicit-le (default),
+                          implicit-le, deflate, explicit-be (retired) (default:
+                          explicit-le)
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

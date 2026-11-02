@@ -1,0 +1,126 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 240
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button (selected) Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 split group
+				36 container
+					37 scroll area Secondary Actions: Scroll Up, Scroll Down
+						38 text MPPS.  Server
+						39 button Add new server
+						40 button Description: Save current server as default, Help: Persists hostname, port, and AE titles as defaults for all network tools
+						41 button Use manual server entry
+						46 text Parameters Parameters Operation
+						47 Operation
+							48 radio button Description: create, Value: 0
+							49 radio button Description: update, Value: 1
+						50 text MPPS operation: create a new procedure step (N-CREATE) or update an existing one (N-SET) Host --host
+						51 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						52 text MPPS SCP hostname or IP address (optionally host:port) (PS3.4 Annex F) Port --port
+						53 text field (settable) Description: Port, Value: 55615, Placeholder: 11112
+						54 text PACS server port (default: 11112) AE Title --aet
+						55 text field (settable) Description: AE Title, Value: M2VERIFY, Placeholder: MODALITY
+						56 text Local AE title identifying the modality sending MPPS notifications Called AE Title --called-aet
+						57 text field (settable) Description: Called AE Title, Value: ANY-SCP
+						58 text Remote MPPS SCP Application Entity title Study Instance UID --study-uid
+						59 text field (settable) Description: Study Instance UID, Value: 2.25.100, Placeholder: e.g. 1.2.840.113619...
+						60 text Study Instance UID (0020,000D) — required for N-CREATE; for update (N-SET) it identifies the referenced study (with --series-uid) for the Referenced SOP Sequence MPPS Instance UID --mpps-uid
+						61 text field (settable) Description: MPPS Instance UID, Value: 2.25.101, Placeholder: e.g. 1.2.840.113619...
+						62 text MPPS SOP Instance UID from a previous create — required for update (N-SET) Status --status
+						63 Status
+							64 radio button Description: COMPLETED, Value: 1
+							65 radio button Description: DISCONTINUED, Value: 0
+						66 text Final Performed Procedure Step Status (0040,0252) for the N-SET update — COMPLETED or DISCONTINUED Series Instance UID --series-uid
+						67 text field (settable) Description: Series Instance UID, Value: 2.25.102, Placeholder: e.g. 1.2.840.113619...
+						68 text Series Instance UID of the acquired images — used in N-SET for Performed Series Sequence (0008,1115) Image SOP Instance UIDs --image-uid
+						69 text field (settable) Description: Image SOP Instance UIDs, Value: 2.25.103, Placeholder: UID1; UID2
+						70 text SOP Instance UIDs of acquired images — used in N-SET for the Referenced SOP Sequence (one --image-uid per value). Separate with “ ; ”. Referenced SOP Class UID --sop-class-uid
+						71 text field (settable) Description: Referenced SOP Class UID, Value: 1.2.840.10008.5.1.4.1.1.4, Placeholder: e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)
+						72 text Actual SOP Class UID (0008,1150) of every referenced image, e.g. 1.2.840.10008.5.1.4.1.1.2 for CT. Required with --image-uid; no class is inferred Protocol Name --protocol-name
+						73 text field (settable) Description: Protocol Name, Value: M2TEST, Placeholder: UNSPECIFIED
+						74 text Protocol Name (0018,1030) — Type 1 in every Performed Series item; dcm4chee/DCMTK reject a COMPLETED step without it (default: UNSPECIFIED) Timeout (s) --timeout
+						75 pop up button Description: Timeout (s), Value: 60
+						76 text Connection timeout in seconds Options
+						77 checkbox Description: Verbose, Value: 0
+						78 disclosure triangle Description: Advanced options (5), Help: Shows additional flags for this tool, Value: off
+						79 scroll bar (settable, float) 0.9396825396825397
+							80 value indicator (settable, float) 0.9396825396825397
+							81 increment arrow button
+							82 decrement arrow button
+							83 increment page button
+							84 decrement page button
+					85 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					86 button Description: Run command, Help: Executes the constructed DICOM command
+				87 splitter (disabled, settable, float) 480
+				88 container
+					89 text Command Preview Valid $ Select a tool to build a command
+					90 button Description: Copy command, Help: Copies the command to the clipboard
+					91 text Console SUCCESS
+					92 button Description: Copy console output, Help: Copies the console output to the clipboard
+					93 button Clear console output
+					94 scroll area
+						95 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --protocol-name M2TEST --timeout 60
+
+Error: --image-uid requires --sop-class-uid from the referenced object: Referenced SOP Class UID (0008,1150) cannot be inferred from a SOP Instance UID (PS3.4 Table F.7.2-1)
+
+							96 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.4 --protocol-name M2TEST --timeout 60
+
+Updating MPPS instance (N-SET)...
+✅ MPPS instance updated
+  MPPS Instance UID: 2.25.101
+  New Status: COMPLETED
+  Referenced Images: 1
+
+					97 text History
+					98 button Clear
+					99 scroll area
+						100 text dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-mpps dicom-mpps dicom-mpps
+	101 toolbar
+		102 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		103 search text field (settable) Search features
+			104 button Search
+	105 close button
+	106 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	107 minimize button
+	108 text DICOM Studio
+109 menu bar
+	110 DICOMStudio
+	111 File
+	112 Edit
+	113 View
+	114 Image
+	115 Window
+	116 Help
+
+The focused UI element is 71 text field (settable) Description: Referenced SOP Class UID, Value: 1.2.840.10008.5.1.4.1.1.4, Placeholder: e.g. 1.2.840.10008.5.1.4.1.1.2 (CT)

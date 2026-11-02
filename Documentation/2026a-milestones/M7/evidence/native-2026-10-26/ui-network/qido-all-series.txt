@@ -1,0 +1,57 @@
+						48 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+							51 radio button Description: study, Value: 0
+							52 radio button Description: series, Value: 1
+							53 radio button Description: instance, Value: 0
+						55 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						57 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						59 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						61 pop up button Description: Modality, Value: Any
+						63 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						65 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						67 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						69 text field (settable) Description: Result Limit, Value: 100
+							72 radio button Description: none, Value: 1
+							73 radio button Description: basic, Value: 0
+							74 radio button Description: bearer, Value: 0
+							77 radio button Description: table, Value: 0
+							78 radio button Description: json, Value: 1
+							79 radio button Description: csv, Value: 0
+							80 radio button Description: dicom-json, Value: 0
+						82 checkbox Description: Verbose, Value: 0
+						83 disclosure triangle Description: Advanced options (8), Help: Shows additional flags for this tool, Value: off
+					90 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					91 button Description: Run command, Help: Runs the selected Workshop action
+					94 text Command Preview Valid $ Select a tool to build a command
+					96 text Console SUCCESS
+		108 search text field (settable) Search features
+Complete console:
+$ dicom-wado query http://127.0.0.1:60241/dicom-web --level series --limit 100 --offset 0 --format json
+
+[
+  {
+    "Modality" : "CT",
+    "NumberOfSeriesRelatedInstances" : 2,
+    "PerformedProcedureStepStartDate" : "20260115",
+    "SeriesDescription" : "CT-A",
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1",
+    "SeriesNumber" : 1,
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301"
+  },
+  {
+    "Modality" : "MR",
+    "NumberOfSeriesRelatedInstances" : 1,
+    "PerformedProcedureStepStartDate" : "20260116",
+    "SeriesDescription" : "MR-A",
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.301.2",
+    "SeriesNumber" : 2,
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301"
+  },
+  {
+    "Modality" : "CT",
+    "NumberOfSeriesRelatedInstances" : 2,
+    "SeriesDescription" : "CT-B",
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.302.1",
+    "SeriesNumber" : 3,
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.302"
+  }
+]

@@ -36,8 +36,13 @@ struct SplitMergeWorkshopCLIParityTests {
 
     nonisolated private static let root: String? = CLIToolBuilder.repoRoot()
     nonisolated private static var binDir: String? {
-        guard let root else { return nil }
-        let dir = "\(root)/.build/release"
+        let dir: String
+        if let explicit = ProcessInfo.processInfo.environment["DICOMKIT_TEST_BIN_DIR"], !explicit.isEmpty {
+            dir = explicit
+        } else {
+            guard let root else { return nil }
+            dir = "\(root)/.build/release"
+        }
         let fm = FileManager.default
         return fm.isExecutableFile(atPath: "\(dir)/dicom-split") && fm.isExecutableFile(atPath: "\(dir)/dicom-merge") ? dir : nil
     }

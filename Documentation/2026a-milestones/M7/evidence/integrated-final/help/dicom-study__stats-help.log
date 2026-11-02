@@ -1,0 +1,17 @@
+OVERVIEW: Calculate study statistics and metrics
+
+USAGE: dicom-study stats <path> [--detailed] [--format <format>]
+
+ARGUMENTS:
+  <path>                  Study directory
+
+OPTIONS:
+  --detailed              Show detailed statistics
+  -f, --format <format>   Output format: 'text' or 'json' (default: text). JSON
+                          adds PS3.6 keyword keys (StudyInstanceUID,
+                          NumberOfStudyRelatedSeries,
+                          NumberOfStudyRelatedInstances); the former keys are
+                          deprecated (default: text)
+  --version               Show the version.
+  -h, --help              Show help information.
+

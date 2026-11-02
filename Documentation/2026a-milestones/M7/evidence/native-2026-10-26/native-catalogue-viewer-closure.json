@@ -1,0 +1,39 @@
+{
+  "recorded_utc": "2026-10-26T08:00:11.540708+00:00",
+  "method": "Read-only reconciliation against original PLAN and checklist, retained native observations, source manifest and source-equivalence receipt. No new UI action or product execution. Root accepted bounded closure.",
+  "source_inputs_checked": 2060,
+  "source_mismatches": [],
+  "cases": {
+    "FINAL-01": {
+      "status": "Passed",
+      "selection_count": 35,
+      "unique_enabled_tools": 32,
+      "enabled_CLI_inventory": 41,
+      "catalogue_executions_claimed": 0,
+      "four_WADO_forms": [
+        "dicom-wado query",
+        "dicom-wado retrieve",
+        "dicom-wado store",
+        "dicom-wado ups"
+      ],
+      "basis": "All35 actual selections retain first-repair attribution. The final package source/locks/signature and launch are recorded. Later form change is print-only and final-menu native SCU/SCP actions close that delta. Generic path execution has its own current native cases and regression checks. Changed network routes remain separate pending groups; this closes provenance/inventory only."
+    },
+    "FINAL-17": {
+      "status": "Passed",
+      "SR_values_visible_and_exact": 16,
+      "native_copy_exact": true,
+      "ordinary_image_time_AX": "2026-10-24 10:15:30.123456",
+      "ordinary_image_time_visible": "2026-10-24 10:15:30.12…",
+      "basis": "Original WS-FIX07 requires SR temporal precision and signed offsets through display/copy, demonstrated by native evidence. The additional ordinary-image inspection demonstrates full lexical precision in AX. Approximately185px single-line sidebar ellipsis is explicitly bounded presentation, not changed temporal formatting. Relevant viewer sources are unchanged across qualified epochs.",
+      "visual_limit": "All six fractional digits are not simultaneously demonstrated in the narrow sidebar; no layout enhancement or full-visual-width claim is added."
+    }
+  },
+  "artifact_epoch_policy": "Original first-repair captures retain original hashes; final package identity/equivalence supports only scoped reuse, never a claim that native actions were rerun.",
+  "evidence": {
+    "catalogue": "native-catalogue-selection.json",
+    "viewer": "viewer-native-verification.json",
+    "final_identity": "../../../M6/evidence/native-2026-10-26/final-qualified-native-identity.json",
+    "equivalence": "../../../M6/evidence/native-2026-10-26/final-qualified-native-equivalence.json"
+  },
+  "scope_limit": "M7 stays open for ten native network groups and exact pushed-head remote verification."
+}

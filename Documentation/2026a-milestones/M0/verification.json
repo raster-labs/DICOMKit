@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "milestone": "M0",
+  "status": "Completed",
+  "date": "2026-10-24",
+  "branch": "codex/dicom-2026a-milestones",
+  "reviewed_product_commit": "4b68d7e22829418c88e48dd53d98b25fee50d90d",
+  "scope": "Audit tooling, synthetic fixtures, baseline and documentation only. No Swift product, package, app runtime or behavioral repair.",
+  "results": {
+    "audit_regression_tests": {
+      "status": "Passed",
+      "tests": 30,
+      "cli": 12,
+      "kit": 8,
+      "studio": 10,
+      "log": "regression-tests.log"
+    },
+    "cli_static": {
+      "status": "Passed in executed static scope",
+      "exit_code": 0,
+      "enabled_products": 41,
+      "source_directories": 42,
+      "source_only": [
+        "dicom-cloud"
+      ],
+      "declarations": 1043,
+      "extracted_command_declarations": 148,
+      "check_rows": 492,
+      "failed_checks": 0,
+      "audit_errors": 0,
+      "log": "cli-audit.log",
+      "evidence_reuse": "Completed before a later emit_contract positive-row display correction; default audit does not execute emit_contract. Check implementation and input sources unchanged by that display-only correction."
+    },
+    "kit_static": {
+      "status": "Passed in executed static scope",
+      "exit_code": 0,
+      "tag_name_matches": 165,
+      "failed_checks": 0,
+      "log": "kit-audit.log"
+    },
+    "studio_static": {
+      "status": "Completed with known coverage finding",
+      "exit_code": 1,
+      "groups": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "G5",
+        "G6"
+      ],
+      "completed_callbacks": 176,
+      "audit_errors": 0,
+      "failed_assertions": 2,
+      "unique_coverage_findings": 1,
+      "inventory": {
+        "total": 340,
+        "ST": 173,
+        "CR": 56,
+        "NST": 111,
+        "unclassified": 0,
+        "missing_sources": 0
+      },
+      "log": "studio-audit.log"
+    },
+    "baseline_capture": {
+      "status": "Passed",
+      "enabled_cli": 41,
+      "workshop_entries": 33,
+      "unique_workshop_executables": 30,
+      "studio_sources": 340,
+      "frozen_standard_parts": 13,
+      "synthetic_fixtures": 14,
+      "file": "baseline.json",
+      "sha256": "231f85e15cb8004a6d196005071425d65011b049ff53deea44b631e7ca8432ee"
+    },
+    "independent_code_review": {
+      "status": "Passed",
+      "scope": "Audit diff, negative controls, source/error isolation, scope and non-suppression; no actionable finding."
+    },
+    "swift_product_build": {
+      "status": "Not run",
+      "reason": "Product source/package inputs unchanged; full qualification belongs to later milestones."
+    },
+    "packaged_gui": {
+      "status": "Not run",
+      "reason": "M0 source inventories do not qualify GUI execution."
+    },
+    "external_interoperability": {
+      "status": "Not run",
+      "reason": "Independent peer/device preparation is documented for M7."
+    }
+  },
+  "toolchain_observed_without_build": {
+    "swift": "Apple Swift 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)",
+    "xcode": "27.0 (27A266a)",
+    "target": "arm64-apple-macosx27.0.0"
+  },
+  "known_baseline_caveat": {
+    "id": "M0-COV-01",
+    "finding": "Workshop omits the dicom-anon --profile flag; both CLI ps315/basic and Workshop use the shared Basic Profile workflow.",
+    "classification": "Literal CLI/UI coverage gap; not demonstrated policy divergence or a DICOM violation.",
+    "handling": "Both audit FAIL assertions remain visible. No exemption or product change. This caveat does not add an enhancement to the 68-item scope.",
+    "not_equivalent_to": [
+      "TB-FIX-01",
+      "TB-FIX-02"
+    ]
+  },
+  "historical_evidence": {
+    "cached_help_paths_exit_zero": 147,
+    "cached_root_help_tools": 41,
+    "cached_test_cases_passed": 504,
+    "fresh_build_equivalence": false,
+    "reexecuted_in_M0": false
+  },
+  "logs": {
+    "cli-audit.log": {
+      "sha256": "0c7d7133b5289f85af93ea886e5da38e24849454919e224aefc176517f98ab16",
+      "original_log_sha256": "948f3d10db39e4e0d263aba83d0c2aa47482f25e98c5e918343a811b26568a4e",
+      "normalization": "Only local checkout/NEMA-directory prefixes replaced with portable placeholders."
+    },
+    "kit-audit.log": {
+      "sha256": "3f77f30c03f8d0816c150fd1da91cca861e5de3e113e0e870474c87e6d593c7d",
+      "original_log_sha256": "cbfb5c621759f121cede9cc4453de3884d0ecb9455840434b00509c385c224fb",
+      "normalization": "Only local checkout/NEMA-directory prefixes replaced with portable placeholders."
+    },
+    "studio-audit.log": {
+      "sha256": "405b9e4a8b00f988ba7247895e6cf0e5f3588a57417d85b570b370679e2149f5",
+      "original_log_sha256": "c9f67ee9ec4575e2ab5a6b7f845af278c845209a5e3b278611402e9e32d22e18",
+      "normalization": "Only local checkout/NEMA-directory prefixes replaced with portable placeholders."
+    },
+    "regression-tests.log": {
+      "sha256": "141343afff93588ea4c81e4057662cdb77def62905940f5eea348c87a8b7d868",
+      "original_log_sha256": "141343afff93588ea4c81e4057662cdb77def62905940f5eea348c87a8b7d868",
+      "normalization": "Only local checkout/NEMA-directory prefixes replaced with portable placeholders."
+    }
+  },
+  "remote_verification_policy": "This file records local pre-push evidence. Consult the Audit tooling workflow on the pushed milestone commit for its independent remote result; no remote pass is claimed here.",
+  "next": "Stop before M1. Keep the same milestone branch and update documents after each separately authorized milestone."
+}

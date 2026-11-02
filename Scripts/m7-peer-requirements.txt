@@ -1,0 +1,5 @@
+# M7 independent loopback/oracle peer environment. Python 3.12 with OpenSSL TLS 1.3.
+numpy==2.5.4
+pillow==13.0.0
+pydicom==3.0.1
+pynetdicom==3.0.4

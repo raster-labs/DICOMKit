@@ -1,0 +1,27 @@
+{
+  "argv": [
+    "/opt/homebrew/bin/dcmpsprt",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/DC-R06/dcmtk.cfg",
+    "--printer",
+    "M6",
+    "--nospool",
+    "--layout",
+    "1",
+    "1",
+    "--filmsize",
+    "8INX10IN",
+    "--portrait",
+    "--annotation",
+    "M6 SYNTHETIC",
+    "--print-no-date",
+    "--print-no-name",
+    "--print-no-lighting",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/fixtures/gray8.dcm"
+  ],
+  "pid": 27175,
+  "exit_code": 0,
+  "elapsed_seconds": 0.2867918750000005,
+  "timed_out": false,
+  "stopped_by_harness": false
+}

@@ -1,0 +1,50 @@
+{
+  "recordedUTC": "2026-10-26T07:30:14.815965+00:00",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "status",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json",
+    "--format",
+    "json"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"isNormal\" : true,\n  \"manufacturer\" : \"DICOMKit\",\n  \"Manufacturer\" : \"DICOMKit\",\n  \"ManufacturerModelName\" : \"DICOM Print Emulator\",\n  \"model\" : \"DICOM Print Emulator\",\n  \"name\" : \"DICOMKIT-PRINTER\",\n  \"PrinterName\" : \"DICOMKIT-PRINTER\",\n  \"PrinterStatus\" : \"NORMAL\",\n  \"PrinterStatusInfo\" : \"NORMAL\",\n  \"status\" : \"NORMAL\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+  "stderr": "",
+  "native": {
+    "isNormal": true,
+    "manufacturer": "DICOMKit",
+    "Manufacturer": "DICOMKit",
+    "ManufacturerModelName": "DICOM Print Emulator",
+    "model": "DICOM Print Emulator",
+    "name": "DICOMKIT-PRINTER",
+    "PrinterName": "DICOMKIT-PRINTER",
+    "PrinterStatus": "NORMAL",
+    "PrinterStatusInfo": "NORMAL",
+    "status": "NORMAL",
+    "statusInfo": "NORMAL"
+  },
+  "CLI": {
+    "isNormal": true,
+    "manufacturer": "DICOMKit",
+    "Manufacturer": "DICOMKit",
+    "ManufacturerModelName": "DICOM Print Emulator",
+    "model": "DICOM Print Emulator",
+    "name": "DICOMKIT-PRINTER",
+    "PrinterName": "DICOMKIT-PRINTER",
+    "PrinterStatus": "NORMAL",
+    "PrinterStatusInfo": "NORMAL",
+    "status": "NORMAL",
+    "statusInfo": "NORMAL"
+  },
+  "checks": {
+    "native_success": true,
+    "native_menu_status": true,
+    "exit_zero": true,
+    "no_diagnostic": true,
+    "complete_fields_equal": true
+  },
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "nativeCaptureSHA256": "615b17540522fd5f4dd547fd639b3e07741f5d05e7b3189df48835b825741001",
+  "scope": "One explicitly authorized exact local status control; no network/listener/film output"
+}

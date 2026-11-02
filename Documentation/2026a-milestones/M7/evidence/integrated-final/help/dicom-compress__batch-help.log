@@ -1,0 +1,31 @@
+OVERVIEW: Batch compress or decompress DICOM files in a directory
+
+Process all DICOM files in a directory, optionally recursing into
+subdirectories.
+
+Examples:
+  dicom-compress batch input_dir/ --output output_dir/ --codec jpeg-lossless
+  dicom-compress batch input_dir/ --output output_dir/ --codec jpeg2000
+--quality high --recursive
+  dicom-compress batch input_dir/ --output output_dir/ --decompress --recursive
+
+USAGE: dicom-compress batch <input> --output <output> [--codec <codec>] [--decompress] [--quality <quality>] [--syntax <syntax>] [--recursive] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input directory path
+
+OPTIONS:
+  -o, --output <output>   Output directory path
+  -c, --codec <codec>     Target codec for compression (e.g., jpeg-lossless,
+                          jpeg2000)
+  --decompress            Decompress files instead of compressing
+  -q, --quality <quality> Quality: maximum, high, medium, low, or a value
+                          0.0-1.0
+  -s, --syntax <syntax>   Native target syntax for decompression: explicit-le
+                          (default), implicit-le, deflate, explicit-be
+                          (retired) (default: explicit-le)
+  -r, --recursive         Process subdirectories recursively
+  --verbose               Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,4 @@
+Error: Missing expected argument '--tags <tags>'
+Help:  --tags <tags>  Tags to search for (comma-separated)
+Usage: dicom-ai registry search --tags <tags> [--verbose]
+  See 'dicom-ai registry search --help' for more information.

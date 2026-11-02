@@ -1,0 +1,1594 @@
+D: $dcmtk: dcmprscu v3.7.0 2025-12-15 $
+D: 
+D: DcmDataDictionary: Loading file: /opt/homebrew/Cellar/dcmtk/3.7.0/share/dcmtk-3.7.0/dicom.dic
+D: Initializing all DICOM header attributes
+D: ---------------------------
+D: --- Application started ---
+D: ---------------------------
+I: Printer parameters for 'M6':
+I:   hostname      : 127.0.0.1
+I:   port          : 56853
+I:   description   : (none)
+I:   aetitle       : DCMKIT_M6
+I:   max pdu       : 32768
+I:   timeout       : 8
+I:   options       : none
+I:   protocol version: IPv4 only
+I:   12-bit xfer   : supported
+I:   present.lut   : supported
+I:   annotation    : supported
+I: Spooler parameters:
+I:   mode          : printer mode
+I:   copies        : 1
+I:   medium        : PAPER
+I:   destination   : PROCESSOR
+I:   label         : printer default
+I:   priority      : printer default
+I:   owner ID      : printer default
+I: transport layer security parameters:
+I:   TLS           : disabled
+I: spooling file '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m6/interop-qualified/DC-R06/dcmtk/database/SP_6adcc3c6fadd5652.dcm'
+T: DcmMetaInfo::checkAndReadPreamble() Preamble = 0x0000
+D: DcmMetaInfo::checkAndReadPreamble() TransferSyntax="Little Endian Explicit"
+T: DcmItem::insert() Element (0002,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmMetaInfo::readGroupLength() Group Length of File Meta Header = 202
+T: DcmMetaInfo::readGroupLength() returns error = Normal
+T: DcmItem::insert() Element (0002,0001) VR="OB" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0003) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0010) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0012) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0013) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::searchSubFromHere() Element (0002,0010) found
+T: DcmFileFormat::lookForXfer() TransferSyntax="Little Endian Explicit" in MetaInfo
+D: DcmDataset::read() TransferSyntax="Little Endian Explicit"
+T: DcmItem::insert() Element (0008,0012) VR="DA" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0013) VR="TM" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0016) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0020) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0030) VR="TM" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0050) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0060) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0070) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0090) VR="PN" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0010) VR="PN" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0020) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0030) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0040) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000d) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000e) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0010) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0011) VR="IS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0013) VR="IS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0010) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (2100,0070) VR="AE" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2100,0140) VR="AE" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2110,0030) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0015) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (2010,0010) VR="ST" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0030) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0040) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0050) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0060) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0130) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0150) VR="ST" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,015e) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2010,0160) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0030) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0054) VR="AE" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0020) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000d) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000e) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (0008,1140) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2020,0010) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2020,0020) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2050,0500) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0040) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2030,0010) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2030,0020) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0050) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2050,0020) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2130,0080) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DcmItem::searchSubFromHere() Element (0008,0016) found
+T: DcmItem::searchSubFromHere() Element (0008,0060) found
+T: DcmItem::searchSubFromHere() Element (0010,0010) found
+T: DcmItem::searchSubFromHere() Element (0010,0020) found
+T: DcmItem::searchSubFromHere() Element (0010,0030) found
+T: DcmItem::searchSubFromHere() Element (0010,0040) found
+T: DcmItem::searchSubFromHere() Element (0020,000d) found
+T: DcmItem::searchSubFromHere() Element (0008,0020) found
+T: DcmItem::searchSubFromHere() Element (0008,0030) found
+T: DcmItem::searchSubFromHere() Element (0008,0090) found
+T: DcmItem::searchSubFromHere() Element (0020,0010) found
+T: DcmItem::searchSubFromHere() Element (0008,0050) found
+T: DcmItem::searchSubFromHere() Element (0020,000e) found
+T: DcmItem::searchSubFromHere() Element (0020,0011) found
+T: DcmItem::searchSubFromHere() Element (0008,0070) found
+T: DcmItem::searchSubFromHere() Element (0020,0013) found
+T: DcmItem::searchSubFromHere() Element (0008,0018) found
+T: DcmItem::searchSubFromHere() Element (0008,0012) found
+T: DcmItem::searchSubFromHere() Element (0008,0013) found
+T: DcmItem::searchSubFromHere() Element (2130,0080) found
+T: DcmItem::searchSubFromHere() Element (2050,0020) found
+T: DcmItem::searchSubFromHere() Element (0008,0018) found
+T: DcmItem::searchSubFromHere() Element (2130,0030) found
+T: DcmItem::searchSubFromHere() Element (2010,0010) found
+T: DcmItem::searchSubFromHere() Element (2010,0030) found
+T: DcmItem::searchSubFromHere() Element (2010,0040) found
+T: DcmItem::searchSubFromHere() Element (2010,0050) found
+T: DcmItem::searchSubFromHere() Element (2010,0060) found
+T: DcmItem::searchSubFromHere() Element (2010,0130) found
+T: DcmItem::searchSubFromHere() Element (2010,0150) found
+T: DcmItem::searchSubFromHere() Element (2010,015e) found
+T: DcmItem::searchSubFromHere() Element (2010,0160) found
+T: DcmItem::searchSubFromHere() Element (2130,0040) found
+T: DcmItem::searchSubFromHere() Element (0008,0018) found
+T: DcmItem::searchSubFromHere() Element (2020,0010) found
+T: DcmItem::searchSubFromHere() Element (2020,0020) found
+T: DcmItem::searchSubFromHere() Element (0008,1140) found
+T: DcmItem::searchSubFromHere() Element (0008,0054) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1155) found
+T: DcmItem::searchSubFromHere() Element (0020,000d) found
+T: DcmItem::searchSubFromHere() Element (0020,000e) found
+T: DcmItem::searchSubFromHere() Element (0010,0020) found
+T: DcmItem::searchSubFromHere() Element (2050,0500) found
+T: DcmItem::searchSubFromHere() Element (0008,1155) found
+T: DcmItem::searchSubFromHere() Element (2130,0050) found
+T: DcmItem::searchSubFromHere() Element (0008,0018) found
+T: DcmItem::searchSubFromHere() Element (2030,0010) found
+T: DcmItem::searchSubFromHere() Element (2030,0020) found
+T: DcmItem::searchSubFromHere() Element (2130,0010) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (2130,0015) found
+T: DcmItem::searchSubFromHere() Element (2100,0070) found
+T: DcmItem::searchSubFromHere() Element (2100,0140) found
+T: DcmItem::searchSubFromHere() Element (2110,0030) found
+I: Requesting Association
+T: DUL  FSM Table: State: 1 Event: 0
+T: DUL  Event:  A-ASSOCIATE request (local user)
+T: DUL  Action: AE 1 Transport Connect
+T: Receiving data via select()
+D: setting network send timeout to 60 seconds
+D: setting network receive timeout to 60 seconds
+T: checking whether environment variable TCP_BUFFER_LENGTH is set
+T:   environment variable TCP_BUFFER_LENGTH not set, using the system defaults
+T: checking whether environment variable TCP_NODELAY is set
+T:   environment variable TCP_NODELAY not set, using the default value (0)
+T: DUL  FSM Table: State: 4 Event: 1
+T: DUL  Event:  Transport conn confirmation (local)
+T: DUL  Action: AE 2 Send Associate RQ PDU
+D: Constructing Associate RQ PDU
+T: setting timeout for first PDU to be read to 30 seconds
+T: Read PDU HEAD TCP: 02 00 00 00 00 ff
+T: Read PDU HEAD TCP: type: 02, length: 255 (ff)
+T: DUL  FSM Table: State: 5 Event: 2
+T: DUL  Event:  A-ASSOCIATE-AC PDU (on transport)
+T: DUL  Action: AE 3 Associate Confirmation Accept
+D: PDU Type: Associate Accept, PDU Length: 255 + 6 bytes PDU header
+D:   02  00  00  00  00  ff  00  01  00  00  44  43  4d  4b  49  54
+D:   5f  4d  36  20  20  20  20  20  20  20  4d  36  44  43  4d  54
+D:   4b  20  20  20  20  20  20  20  20  20  00  00  00  00  00  00
+D:   00  00  00  00  00  00  00  00  00  00  00  00  00  00  00  00
+D:   00  00  00  00  00  00  00  00  00  00  10  00  00  15  31  2e
+D:   32  2e  38  34  30  2e  31  30  30  30  38  2e  33  2e  31  2e
+D:   31  2e  31  21  00  00  1b  01  00  00  00  40  00  00  13  31
+D:   2e  32  2e  38  34  30  2e  31  30  30  30  38  2e  31  2e  32
+D:   2e  31  21  00  00  1b  03  00  00  00  40  00  00  13  31  2e
+D:   32  2e  38  34  30  2e  31  30  30  30  38  2e  31  2e  32  2e
+D:   31  21  00  00  1b  05  00  00  00  40  00  00  13  31  2e  32
+D:   2e  38  34  30  2e  31  30  30  30  38  2e  31  2e  32  2e  31
+D:   50  00  00  41  51  00  00  04  00  01  00  00  52  00  00  22
+D:   31  2e  32  2e  38  32  36  2e  30  2e  31  2e  33  36  38  30
+D:   30  34  33  2e  31  30  2e  35  31  31  2e  33  2e  30  2e  35
+D:   2e  30  55  00  00  0f  44  49  43  4f  4d  4b  49  54  5f  50
+D:   52  54  53  43  50
+D: Parsing an A-ASSOCIATE PDU
+T: PDU type: 2 (A-ASSOCIATE AC), PDU Length: 255
+T: DICOM Protocol: 1
+T: Called AP Title:  DCMKIT_M6
+T: Calling AP Title: M6DCMTK
+T: Parsing remaining 187 bytes of A-ASSOCIATE PDU
+T: Next item type: 10
+T: Subitem parse: Type 10, Length 0021, Content: 1.2.840.10008.3.1.1.1
+T: Successfully parsed Application Context
+T: Parsing remaining 162 bytes of A-ASSOCIATE PDU
+T: Next item type: 21
+T: Parsing Presentation Context: (21), Length: 27
+T: Presentation Context ID: 01
+T: Parsing remaining 23 bytes of Presentation Context
+T: Next item type: 40
+T: Subitem parse: Type 40, Length 0019, Content: 1.2.840.10008.1.2.1
+T: Successfully parsed Transfer Syntax
+T: Successfully parsed Presentation Context
+T: Parsing remaining 131 bytes of A-ASSOCIATE PDU
+T: Next item type: 21
+T: Parsing Presentation Context: (21), Length: 27
+T: Presentation Context ID: 03
+T: Parsing remaining 23 bytes of Presentation Context
+T: Next item type: 40
+T: Subitem parse: Type 40, Length 0019, Content: 1.2.840.10008.1.2.1
+T: Successfully parsed Transfer Syntax
+T: Successfully parsed Presentation Context
+T: Parsing remaining 100 bytes of A-ASSOCIATE PDU
+T: Next item type: 21
+T: Parsing Presentation Context: (21), Length: 27
+T: Presentation Context ID: 05
+T: Parsing remaining 23 bytes of Presentation Context
+T: Next item type: 40
+T: Subitem parse: Type 40, Length 0019, Content: 1.2.840.10008.1.2.1
+T: Successfully parsed Transfer Syntax
+T: Successfully parsed Presentation Context
+T: Parsing remaining 69 bytes of A-ASSOCIATE PDU
+T: Next item type: 50
+T: Parsing user info field (50), Length: 65
+T: Parsing remaining 65 bytes of User Information
+T: Next item type: 51
+T: Maximum PDU Length: 65536
+T: Successfully parsed Maximum PDU Length
+T: Parsing remaining 57 bytes of User Information
+T: Next item type: 52
+T: Subitem parse: Type 52, Length 0034, Content: 1.2.826.0.1.3680043.10.511.3.0.5.0
+T: Parsing remaining 19 bytes of User Information
+T: Next item type: 55
+T: Subitem parse: Type 55, Length 0015, Content: DICOMKIT_PRTSCP
+T: Successfully parsed User Information
+I: Association accepted (Max Send PDV: 65524)
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-GET RQ
+D: Message ID                    : 1
+D: Requested SOP Class UID       : PrinterSOPClass
+D: Requested SOP Instance UID    : 1.2.840.10008.5.1.1.17
+D: Data Set                      : none
+D: Attribute Identifier List     : none
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =PrinterSOPClass                         #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 272                                      #   2, 1 CommandField
+T: (0000,0110) US 1                                        #   2, 1 MessageID
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,1001) UI =PrinterSOPInstance                      #  22, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 102 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 76
+T: Read PDU HEAD TCP: type: 04, length: 118 (76)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (112 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =PrinterSOPClass                         #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33040                                    #   2, 1 CommandField
+T: (0000,0120) US 1                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 0                                        #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI =PrinterSOPInstance                      #  22, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+T: Read PDU HEAD TCP: 04 00 00 00 00 9a
+T: Read PDU HEAD TCP: type: 04, length: 154 (9a)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Explicit"
+T: DcmItem::insert() Element (0008,0070) VR="LO" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1090) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,1000) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,1020) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,1200) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,1201) VR="TM" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2110,0010) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2110,0020) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (2110,0030) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveDataSetInMemory: 148 bytes read (last: YES)
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-GET RSP
+D: Message ID Being Responded To : 1
+D: Affected SOP Class UID        : PrinterSOPClass
+D: Affected SOP Instance UID     : 1.2.840.10008.5.1.1.17
+D: Data Set                      : present
+D: DIMSE Status                  : 0x0000: Success
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (0008,0070) LO [DICOMKit]                               #   8, 1 Manufacturer
+D: (0008,1090) LO [DICOM Print Emulator]                   #  20, 1 ManufacturerModelName
+D: (0018,1000) LO [1]                                      #   2, 1 DeviceSerialNumber
+D: (0018,1020) LO [1.0]                                    #   4, 1 SoftwareVersions
+D: (0018,1200) DA [20261024]                               #   8, 1 DateOfLastCalibration
+D: (0018,1201) TM [201215]                                 #   6, 1 TimeOfLastCalibration
+D: (2110,0010) CS [NORMAL]                                 #   6, 1 PrinterStatus
+D: (2110,0020) CS [NORMAL]                                 #   6, 1 PrinterStatusInfo
+D: (2110,0030) LO [DICOMKIT-PRINTER]                       #  16, 1 PrinterName
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (2050,0020) VR="CS" inserted at beginning
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RQ
+D: Message ID                    : 2
+D: Affected SOP Class UID        : PresentationLUTSOPClass
+D: Affected SOP Instance UID     : none
+D: Data Set                      : present
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2050,0020) CS [IDENTITY]                               #   8, 1 PresentationLUTShape
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 3
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0002) UI =PresentationLUTSOPClass                 #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 320                                      #   2, 1 CommandField
+T: (0000,0110) US 2                                        #   2, 1 MessageID
+T: (0000,0800) US 1                                        #   2, 1 CommandDataSetType
+T: 
+T: DIMSE sendDcmDataset: sending 72 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE sendDcmDataset: sending 16 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=3
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =PresentationLUTSOPClass                 #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33088                                    #   2, 1 CommandField
+T: (0000,0120) US 2                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935027228.119663] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RSP
+D: Message ID Being Responded To : 2
+D: Affected SOP Class UID        : PresentationLUTSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935027228.119663
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (2000,0030) VR="CS" inserted at beginning
+T: DcmItem::insert() Element (2000,0040) VR="CS" inserted
+T: DcmItem::insert() Element (2000,0010) VR="IS" inserted at beginning
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RQ
+D: Message ID                    : 3
+D: Affected SOP Class UID        : BasicFilmSessionSOPClass
+D: Affected SOP Instance UID     : none
+D: Data Set                      : present
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2000,0010) IS [1]                                      #   2, 1 NumberOfCopies
+D: (2000,0030) CS [PAPER]                                  #   6, 1 MediumType
+D: (2000,0040) CS [PROCESSOR]                              #  10, 1 FilmDestination
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0002) UI =BasicFilmSessionSOPClass                #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 320                                      #   2, 1 CommandField
+T: (0000,0110) US 3                                        #   2, 1 MessageID
+T: (0000,0800) US 1                                        #   2, 1 CommandDataSetType
+T: 
+T: DIMSE sendDcmDataset: sending 72 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE sendDcmDataset: sending 42 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicFilmSessionSOPClass                #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33088                                    #   2, 1 CommandField
+T: (0000,0120) US 3                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935029130.881660] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RSP
+D: Message ID Being Responded To : 3
+D: Affected SOP Class UID        : BasicFilmSessionSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935029130.881660
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (2010,0010) VR="ST" inserted at beginning
+T: DcmItem::insert() Element (2010,0040) VR="CS" inserted
+T: DcmItem::insert() Element (2010,0050) VR="CS" inserted
+T: DcmItem::insert() Element (2010,0030) VR="CS" inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmSequenceOfItems::insert() Item inserted after last position
+T: DcmItem::insert() Element (2010,0500) VR="SQ" inserted
+T: DcmItem::insert() Element (2010,015e) VR="US" inserted
+T: DcmItem::insert() Element (2010,0160) VR="US" inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmSequenceOfItems::insert() Item inserted after last position
+T: DcmItem::insert() Element (2050,0500) VR="SQ" inserted
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RQ
+D: Message ID                    : 4
+D: Affected SOP Class UID        : BasicFilmBoxSOPClass
+D: Affected SOP Instance UID     : none
+D: Data Set                      : present
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2010,0010) ST [STANDARD\1,1]                           #  12, 1 ImageDisplayFormat
+D: (2010,0030) CS [ANNOTATION]                             #  10, 1 AnnotationDisplayFormatID
+D: (2010,0040) CS [PORTRAIT]                               #   8, 1 FilmOrientation
+D: (2010,0050) CS [8INX10IN]                               #   8, 1 FilmSizeID
+D: (2010,015e) US 2000                                     #   2, 1 Illumination
+D: (2010,0160) US 10                                       #   2, 1 ReflectedAmbientLight
+D: (2010,0500) SQ (Sequence with explicit length #=1)      #   0, 1 ReferencedFilmSessionSequence
+D:   (fffe,e000) na (Item with explicit length #=2)          #   0, 1 Item
+D:     (0008,1150) UI =BasicFilmSessionSOPClass                #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935029130.881660] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: (2050,0500) SQ (Sequence with explicit length #=1)      #   0, 1 ReferencedPresentationLUTSequence
+D:   (fffe,e000) na (Item with explicit length #=2)          #   0, 1 Item
+D:     (0008,1150) UI =PresentationLUTSOPClass                 #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935027228.119663] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0002) UI =BasicFilmBoxSOPClass                    #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 320                                      #   2, 1 CommandField
+T: (0000,0110) US 4                                        #   2, 1 MessageID
+T: (0000,0800) US 1                                        #   2, 1 CommandDataSetType
+T: 
+T: DIMSE sendDcmDataset: sending 72 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE sendDcmDataset: sending 310 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicFilmBoxSOPClass                    #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33088                                    #   2, 1 CommandField
+T: (0000,0120) US 4                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 0                                        #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935031076.108910] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+T: Read PDU HEAD TCP: 04 00 00 00 03 3a
+T: Read PDU HEAD TCP: type: 04, length: 826 (33a)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Explicit"
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2010,0500) VR="SQ" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2010,0510) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2010,0520) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveDataSetInMemory: 820 bytes read (last: YES)
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-CREATE RSP
+D: Message ID Being Responded To : 4
+D: Affected SOP Class UID        : BasicFilmBoxSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935031076.108910
+D: Data Set                      : present
+D: DIMSE Status                  : 0x0000: Success
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2010,0500) SQ (Sequence with explicit length #=1)      #  98, 1 ReferencedFilmSessionSequence
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicFilmSessionSOPClass                #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935029130.881660] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: (2010,0510) SQ (Sequence with explicit length #=1)      #  98, 1 ReferencedImageBoxSequence
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicGrayscaleImageBoxSOPClass          #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031102.778515] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: (2010,0520) SQ (Sequence with explicit length #=6)      # 588, 1 ReferencedBasicAnnotationBoxSequence
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031131.52443] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031142.162258] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031153.227874] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031163.787094] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031173.723480] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =BasicAnnotationBoxSOPClass              #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935031182.813653] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::searchSubFromHere() Element (2010,0510) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1155) found
+T: DcmItem::searchSubFromHere() Element (2010,0520) found
+T: DcmItem::searchSubFromHere() Element (0008,1150) found
+T: DcmItem::searchSubFromHere() Element (0008,1155) found
+T: DcmMetaInfo::checkAndReadPreamble() Preamble = 0x0000
+D: DcmMetaInfo::checkAndReadPreamble() TransferSyntax="Little Endian Explicit"
+T: DcmItem::insert() Element (0002,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmMetaInfo::readGroupLength() Group Length of File Meta Header = 202
+T: DcmMetaInfo::readGroupLength() returns error = Normal
+T: DcmItem::insert() Element (0002,0001) VR="OB" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0003) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0010) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0012) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0002,0013) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::searchSubFromHere() Element (0002,0010) found
+T: DcmFileFormat::lookForXfer() TransferSyntax="Little Endian Explicit" in MetaInfo
+D: DcmDataset::read() TransferSyntax="Little Endian Explicit"
+T: DcmItem::insert() Element (0008,0005) VR="CS" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0008) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0012) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0013) VR="TM" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0016) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0020) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0030) VR="TM" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0050) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0060) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0090) VR="PN" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,2111) VR="ST" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0016) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,0016) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,0018) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (0008,2112) VR="SQ" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0010) VR="PN" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0020) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0030) VR="DA" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0010,0040) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,1017) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0018,101a) VR="LO" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000d) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,000e) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0010) VR="SH" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0011) VR="IS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0013) VR="IS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0020,0020) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0002) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0004) VR="CS" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0010) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0011) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0101) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0102) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0028,0103) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (7fe0,0010) VR="OW" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmItem::searchSubFromHere() Element (7fe0,0010) found
+T: DcmDataset::read() returns error = Normal
+D: transfer syntax of DICOM dataset: Little Endian Explicit (1.2.840.10008.1.2.1)
+T: DcmItem::searchSubFromHere() Element (7fe0,0010) found
+T: DcmItem::searchSubFromHere() Element (7fe0,0010) found
+T: DcmItem::searchSubFromHere() Element (0028,0004) found
+T: DcmItem::searchSubFromHere() Element (0008,0016) found
+D: filtered version of 'PhotometricInterpretation' = MONOCHROME2
+T: DcmItem::searchSubFromHere() Element (0028,0010) found
+T: DcmItem::searchSubFromHere() Element (0028,0011) found
+T: DcmItem::searchSubFromHere() Element (0028,0100) found
+T: DcmItem::searchSubFromHere() Element (0028,0101) found
+T: DcmItem::searchSubFromHere() Element (0028,0102) found
+T: DcmItem::searchSubFromHere() Element (0028,0103) found
+T: Pixel Data VR: OW, Uncompressed (LittleEndianExplicit)
+T: First frame: 0, Number of frames: 1, Total number of frames: 1
+T: Columns: 16, Rows: 16, Samples per Pixel: 1, Photometric Interpretation: MONOCHROME2
+T: Bits Allocated: 16, Bits Stored: 12, High Bit: 11, Unsigned integer
+D: reading uncompressed pixel data completely into memory
+T: Input length: 512 bytes, Pixel count: 256 (256), In: 16 bits, Out: 16 bits (unsigned)
+D: convert input pixel data: case 1b (mask & sign)
+D: determining minimum and maximum pixel values for input data
+T: DcmItem::searchSubFromHere() Element (0028,0002) found
+T: DcmItem::searchSubFromHere() Element (0008,0016) found
+T: internal representation for monochrome images: 16 bits (unsigned)
+T: overlay plane in group 0x6000 is missing or incomplete
+T: overlay plane in group 0x6002 is missing or incomplete
+T: overlay plane in group 0x6004 is missing or incomplete
+T: overlay plane in group 0x6006 is missing or incomplete
+T: overlay plane in group 0x6008 is missing or incomplete
+T: overlay plane in group 0x600a is missing or incomplete
+T: overlay plane in group 0x600c is missing or incomplete
+T: overlay plane in group 0x600e is missing or incomplete
+T: overlay plane in group 0x6010 is missing or incomplete
+T: overlay plane in group 0x6012 is missing or incomplete
+T: overlay plane in group 0x6014 is missing or incomplete
+T: overlay plane in group 0x6016 is missing or incomplete
+T: overlay plane in group 0x6018 is missing or incomplete
+T: overlay plane in group 0x601a is missing or incomplete
+T: overlay plane in group 0x601c is missing or incomplete
+T: overlay plane in group 0x601e is missing or incomplete
+D: detach pixel data
+D: re-using input buffer, do not copy pixel data
+T: DcmItem::insert() Element (2020,0010) VR="US" inserted at beginning
+T: DcmItem::insert() Element (0028,0002) VR="US" inserted at beginning
+T: DcmItem::insert() Element (0028,0004) VR="CS" inserted
+T: DcmItem::insert() Element (0028,0103) VR="US" inserted
+T: DcmItem::insert() Element (0028,0010) VR="US" inserted
+T: DcmItem::insert() Element (0028,0011) VR="US" inserted
+T: DcmItem::insert() Element (0028,0100) VR="US" inserted
+T: DcmItem::insert() Element (0028,0101) VR="US" inserted
+T: DcmItem::insert() Element (0028,0102) VR="US" inserted
+T: monochrome output image - columns: 16, rows: 16, frame: 0
+T: monochrome output values - low: 0, high: 4095
+D: applying no VOI transformation (linear scaling)
+T: intermediate pixel data - absmin: 0, absmax: 4095, absrange: 4096
+T: monochrome rendering: VOI NONE #8
+T: DcmItem::insert() Element (7fe0,0010) VR="OW" inserted
+T: DcmSequenceOfItems::insert() Item inserted after last position
+T: DcmItem::insert() Element (2020,0110) VR="SQ" inserted
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-SET RQ
+D: Message ID                    : 5
+D: Requested SOP Class UID       : BasicGrayscaleImageBoxSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935031102.778515
+D: Data Set                      : present
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2020,0010) US 1                                        #   2, 1 ImageBoxPosition
+D: (2020,0110) SQ (Sequence with explicit length #=1)      #   0, 1 BasicGrayscaleImageSequence
+D:   (fffe,e000) na (Item with explicit length #=9)          #   0, 1 Item
+D:     (0028,0002) US 1                                        #   2, 1 SamplesPerPixel
+D:     (0028,0004) CS [MONOCHROME2]                            #  12, 1 PhotometricInterpretation
+D:     (0028,0010) US 16                                       #   2, 1 Rows
+D:     (0028,0011) US 16                                       #   2, 1 Columns
+D:     (0028,0100) US 16                                       #   2, 1 BitsAllocated
+D:     (0028,0101) US 12                                       #   2, 1 BitsStored
+D:     (0028,0102) US 11                                       #   2, 1 HighBit
+D:     (0028,0103) US 0                                        #   2, 1 PixelRepresentation
+D:     (7fe0,0010) OW 0000\0010\0020\0030\0040\0050\0060\0070\0080\0090\00a0\00b0\00c0... # 512, 1 PixelData
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =BasicGrayscaleImageBoxSOPClass          #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 288                                      #   2, 1 CommandField
+T: (0000,0110) US 5                                        #   2, 1 MessageID
+T: (0000,0800) US 1                                        #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935031102.778515] #  52, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 132 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE sendDcmDataset: sending 644 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicGrayscaleImageBoxSOPClass          #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33056                                    #   2, 1 CommandField
+T: (0000,0120) US 5                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935031102.778515] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-SET RSP
+D: Message ID Being Responded To : 5
+D: Affected SOP Class UID        : BasicGrayscaleImageBoxSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935031102.778515
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (2030,0010) VR="US" inserted at beginning
+T: DcmItem::insert() Element (2030,0020) VR="LO" inserted
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-SET RQ
+D: Message ID                    : 6
+D: Requested SOP Class UID       : BasicAnnotationBoxSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935031131.52443
+D: Data Set                      : present
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2030,0010) US 1                                        #   2, 1 AnnotationPosition
+D: (2030,0020) LO [M6 SYNTHETIC]                           #  12, 1 TextString
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 5
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =BasicAnnotationBoxSOPClass              #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 288                                      #   2, 1 CommandField
+T: (0000,0110) US 6                                        #   2, 1 MessageID
+T: (0000,0800) US 1                                        #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935031131.52443] #  52, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 132 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE sendDcmDataset: sending 30 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=5
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicAnnotationBoxSOPClass              #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33056                                    #   2, 1 CommandField
+T: (0000,0120) US 6                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935031131.52443] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-SET RSP
+D: Message ID Being Responded To : 6
+D: Affected SOP Class UID        : BasicAnnotationBoxSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935031131.52443
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-ACTION RQ
+D: Message ID                    : 7
+D: Requested SOP Class UID       : BasicFilmBoxSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935031076.108910
+D: Action Type ID                : 1
+D: Data Set                      : none
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1008) VR="US" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =BasicFilmBoxSOPClass                    #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 304                                      #   2, 1 CommandField
+T: (0000,0110) US 7                                        #   2, 1 MessageID
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935031076.108910] #  52, 1 RequestedSOPInstanceUID
+T: (0000,1008) US 1                                        #   2, 1 ActionTypeID
+T: 
+T: DIMSE sendDcmDataset: sending 142 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 9e
+T: Read PDU HEAD TCP: type: 04, length: 158 (9e)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1008) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (152 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicFilmBoxSOPClass                    #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33072                                    #   2, 1 CommandField
+T: (0000,0120) US 7                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 0                                        #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935031076.108910] #  52, 1 AffectedSOPInstanceUID
+T: (0000,1008) US 1                                        #   2, 1 ActionTypeID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+T: DcmItem::searchSubFromHere() Element (0000,1008) found
+T: Read PDU HEAD TCP: 04 00 00 00 00 74
+T: Read PDU HEAD TCP: type: 04, length: 116 (74)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Explicit"
+T: DcmSequenceOfItems::readSubItem() Sub Item (fffe,e000) inserted
+T: DcmItem::insert() Element (0008,1150) VR="UI" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0008,1155) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmSequenceOfItems::read() returns error = Normal
+T: DcmItem::insert() Element (2100,0500) VR="SQ" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveDataSetInMemory: 110 bytes read (last: YES)
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-ACTION RSP
+D: Message ID Being Responded To : 7
+D: Affected SOP Class UID        : BasicFilmBoxSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935031076.108910
+D: Data Set                      : present
+D: Action Type ID                : 1
+D: DIMSE Status                  : 0x0000: Success
+D: -----------------------------------------------------------------
+D: # Dicom-Data-Set
+D: # Used TransferSyntax: Little Endian Explicit
+D: (2100,0500) SQ (Sequence with explicit length #=1)      #  98, 1 RETIRED_ReferencedPrintJobSequencePullStoredPrint
+D:   (fffe,e000) na (Item with explicit length #=2)          #  90, 1 Item
+D:     (0008,1150) UI =PrintJobSOPClass                        #  22, 1 ReferencedSOPClassUID
+D:     (0008,1155) UI [1.2.826.0.1.3680043.10.511.4.1792852935040477.482187] #  52, 1 ReferencedSOPInstanceUID
+D:   (fffe,e00d) na (ItemDelimitationItem for re-encoding)   #   0, 0 ItemDelimitationItem
+D: (fffe,e0dd) na (SequenceDelimitationItem for re-encod.) #   0, 0 SequenceDelimitationItem
+D: ======================= END DIMSE MESSAGE =======================
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RQ
+D: Message ID                    : 8
+D: Requested SOP Class UID       : BasicFilmBoxSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935031076.108910
+D: Data Set                      : none
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =BasicFilmBoxSOPClass                    #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 336                                      #   2, 1 CommandField
+T: (0000,0110) US 8                                        #   2, 1 MessageID
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935031076.108910] #  52, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 132 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicFilmBoxSOPClass                    #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33104                                    #   2, 1 CommandField
+T: (0000,0120) US 8                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935031076.108910] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RSP
+D: Message ID Being Responded To : 8
+D: Affected SOP Class UID        : BasicFilmBoxSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935031076.108910
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RQ
+D: Message ID                    : 9
+D: Requested SOP Class UID       : BasicFilmSessionSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935029130.881660
+D: Data Set                      : none
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 1
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =BasicFilmSessionSOPClass                #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 336                                      #   2, 1 CommandField
+T: (0000,0110) US 9                                        #   2, 1 MessageID
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935029130.881660] #  52, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 132 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=1
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =BasicFilmSessionSOPClass                #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33104                                    #   2, 1 CommandField
+T: (0000,0120) US 9                                        #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935029130.881660] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RSP
+D: Message ID Being Responded To : 9
+D: Affected SOP Class UID        : BasicFilmSessionSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935029130.881660
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+D: ===================== OUTGOING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RQ
+D: Message ID                    : 10
+D: Requested SOP Class UID       : PresentationLUTSOPClass
+D: Requested SOP Instance UID    : 1.2.826.0.1.3680043.10.511.4.1792852935027228.119663
+D: Data Set                      : none
+D: ======================= END DIMSE MESSAGE =======================
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::insert() Element (0000,0110) VR="US" inserted
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::insert() Element (0000,0003) VR="UI" inserted
+T: DcmItem::insert() Element (0000,1001) VR="UI" inserted
+T: DIMSE Command to be sent on Presentation Context ID: 3
+T: DIMSE Command to send:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Explicit
+T: (0000,0000) UL 0                                        #   4, 1 CommandGroupLength
+T: (0000,0003) UI =PresentationLUTSOPClass                 #  22, 1 RequestedSOPClassUID
+T: (0000,0100) US 336                                      #   2, 1 CommandField
+T: (0000,0110) US 10                                       #   2, 1 MessageID
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,1001) UI [1.2.826.0.1.3680043.10.511.4.1792852935027228.119663] #  52, 1 RequestedSOPInstanceUID
+T: 
+T: DIMSE sendDcmDataset: sending 132 bytes
+T: DUL  FSM Table: State: 6 Event: 8
+T: DUL  Event:  P-DATA request primitive
+T: DUL  Action: DT 1 Send P DATA PDU
+T: DIMSE receiveCommand
+T: Read PDU HEAD TCP: 04 00 00 00 00 94
+T: Read PDU HEAD TCP: type: 04, length: 148 (94)
+T: DUL  FSM Table: State: 6 Event: 9
+T: DUL  Event:  P-DATA-TF PDU (on transport)
+T: DUL  Action: DT 2 Indicate P DATA PDU Received
+D: DcmDataset::read() TransferSyntax="Little Endian Implicit"
+T: DcmItem::insert() Element (0000,0000) VR="UL" inserted at beginning
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0002) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0100) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0120) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0800) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,0900) VR="US" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::insert() Element (0000,1000) VR="UI" inserted
+T: DcmItem::readSubItem() returns error = Normal
+T: DcmItem::read() returns error = Normal
+T: DcmDataset::read() returns error = Normal
+T: DIMSE receiveCommand: 1 PDVs (142 bytes), PresID=3
+T: DIMSE Command Received:
+T: 
+T: # Dicom-Data-Set
+T: # Used TransferSyntax: Little Endian Implicit
+T: (0000,0002) UI =PresentationLUTSOPClass                 #  22, 1 AffectedSOPClassUID
+T: (0000,0100) US 33104                                    #   2, 1 CommandField
+T: (0000,0120) US 10                                       #   2, 1 MessageIDBeingRespondedTo
+T: (0000,0800) US 257                                      #   2, 1 CommandDataSetType
+T: (0000,0900) US 0                                        #   2, 1 Status
+T: (0000,1000) UI [1.2.826.0.1.3680043.10.511.4.1792852935027228.119663] #  52, 1 AffectedSOPInstanceUID
+T: 
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0100) found
+T: DcmItem::searchSubFromHere() Element (0000,0120) found
+T: DcmItem::searchSubFromHere() Element (0000,0800) found
+T: DcmItem::searchSubFromHere() Element (0000,0900) found
+T: DcmItem::searchSubFromHere() Element (0000,0002) found
+T: DcmItem::searchSubFromHere() Element (0000,1000) found
+D: ===================== INCOMING DIMSE MESSAGE ====================
+D: Message Type                  : N-DELETE RSP
+D: Message ID Being Responded To : 10
+D: Affected SOP Class UID        : PresentationLUTSOPClass
+D: Affected SOP Instance UID     : 1.2.826.0.1.3680043.10.511.4.1792852935027228.119663
+D: Data Set                      : none
+D: DIMSE Status                  : 0x0000: Success
+D: ======================= END DIMSE MESSAGE =======================
+T: DUL  FSM Table: State: 6 Event: 10
+T: DUL  Event:  A-RELEASE request primitive
+T: DUL  Action: AR 1 Send Release RQ
+T: Read PDU HEAD TCP: 06 00 00 00 00 04
+T: Read PDU HEAD TCP: type: 06, length: 4 (04)
+T: DUL  FSM Table: State: 7 Event: 12
+T: DUL  Event:  A-RELEASE-RP PDU (on transport)
+T: DUL  Action: AR 3 Confirm Release
+I: Application terminated

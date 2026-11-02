@@ -1,0 +1,306 @@
+{
+  "passed": true,
+  "process_cases": 23,
+  "retained_toolbox_argv_cases": 12,
+  "fixture_sha256": "f1bf35d6bfccaf8367cc1c7ac14fc98ce2253ca13262b0803719d08e9189b451",
+  "records": [
+    {
+      "name": "anon-ps315",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-ps315.dcm",
+        "--profile",
+        "ps315"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "bea3c8a4130369eb0ebcd6e9b521471dcaf888cfe12aae329636acae9463a748"
+    },
+    {
+      "name": "anon-ps315-retain",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-ps315-retain.dcm",
+        "--profile",
+        "ps315",
+        "--retain-uids"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "d3994c4cd6aae3083966725045c9d61050cd18ba56ddec25e6029f7a12232450"
+    },
+    {
+      "name": "anon-basic",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-basic.dcm",
+        "--profile",
+        "basic"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "f7c6d3e42151505ec3aab6050e580ddc2c8226fdcdbc724348cd3e8380b6a409"
+    },
+    {
+      "name": "anon-basic-retain",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-basic-retain.dcm",
+        "--profile",
+        "basic",
+        "--retain-uids"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "d3994c4cd6aae3083966725045c9d61050cd18ba56ddec25e6029f7a12232450"
+    },
+    {
+      "name": "anon-all-current-controls",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-all-current-controls.dcm",
+        "--profile",
+        "ps315",
+        "--shift-dates=-30",
+        "--retain-uids",
+        "--remove",
+        "0008,0050",
+        "--replace",
+        "0008,1030=SYNTHETIC",
+        "--backup",
+        "--audit-log",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/audit.log"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "8a11b237a30f0e9ba2d34e52d4cf1d1a30fba28c1cbfc06a84321b224fe4afe7"
+    },
+    {
+      "name": "anon-dry-run",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-dry-run.dcm",
+        "--profile",
+        "ps315",
+        "--dry-run"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0"
+    },
+    {
+      "name": "anon-recursive",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input-directory",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anon-recursive",
+        "--profile",
+        "ps315",
+        "--recursive"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0",
+      "output_sha256": "7bf845ea5bb41ca864fd85778bdafe98e17fe7bd574c2dfe8df237b785cbd059"
+    },
+    {
+      "name": "template-workflow",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "workflow"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-workflow-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/workflow.dscript"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-pipeline",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "pipeline"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-pipeline-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/pipeline.dscript"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-query",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "query"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-query-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/query.dscript"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-archive",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "archive"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-archive-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/archive.dscript"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-anonymize",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "anonymize"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "template-anonymize-validate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "validate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/anonymize.dscript"
+      ],
+      "exit": 0,
+      "expected_success": true,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "retired-profile-clinical",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--profile",
+        "clinical-trial"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0"
+    },
+    {
+      "name": "retired-profile-research",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--profile",
+        "research"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0"
+    },
+    {
+      "name": "retired-regenerate",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--regenerate-uids"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0"
+    },
+    {
+      "name": "retired-keep",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-anon",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/input.dcm",
+        "--keep",
+        "PatientName"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "dd18992eef26b40b0c468e5a47292c02ececd9a433ebf0c574bc0966de810ed0"
+    },
+    {
+      "name": "missing-template",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    },
+    {
+      "name": "retired-template-output",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-script",
+        "template",
+        "workflow",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/toolbox-cli/invalid-template.txt"
+      ],
+      "exit": 64,
+      "expected_success": false,
+      "binary_sha256": "fd0498b647c4c1107223eb9f83454f0692f9e273676279b262b042d59ca90c6a"
+    }
+  ],
+  "scope": "Synthetic metadata-only Part 10 data, no pixel/OCR or complete IOD claim; Toolbox library is not linked into DICOMStudio."
+}

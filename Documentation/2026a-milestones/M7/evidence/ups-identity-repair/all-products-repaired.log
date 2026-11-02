@@ -1,0 +1,31 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 2253]
+[Planning 2010 / 2253]
+[Planning deferred tasks]
+[Starting]
+[2 / 151]
+[2 / 70] DICOMKit_DICOMRenderKit
+[10 / 22] DICOMWeb-product
+[10 / 23] dicom-wado-product
+[10 / 23] dicom-json-product
+[17 / 30] DICOMStudio
+[17 / 30] dicom-query-product
+[25 / 46] dicom-query-product
+[31 / 46] dicom-query-product
+[32 / 46] dicom-xml-product
+[34 / 47] DICOMStudio
+[38 / 47] dicom-json-product
+[38 / 47] dicom-xml-product
+[40 / 47] DICOMStudio
+[40 / 47] dicom-json-product
+[41 / 47]
+[42 / 47] dicom-json-product
+[44 / 49] dicom-xml-product
+[45 / 50] DICOMStudio
+[47 / 50] DICOMStudio
+[49 / 50] DICOMStudio
+[50 / 50] DICOMStudio-product
+[52 / 52] dicom-wado-product
+[54 / 54] dicom-query-product
+Build complete! (39.39 sec)

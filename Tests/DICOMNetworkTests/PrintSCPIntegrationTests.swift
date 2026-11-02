@@ -54,8 +54,8 @@ final class PrintSCPIntegrationTests: XCTestCase {
         )
 
         XCTAssertTrue(result.success)
-        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.mock.job.1")
-        XCTAssertEqual(result.filmSessionUID, "1.2.826.0.1.3680043.9.mock.session.1")
+        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.9001.1.1")
+        XCTAssertEqual(result.filmSessionUID, "1.2.826.0.1.3680043.9.9001.2.1")
 
         // PS3.4 H.4: the whole job must run on ONE association.
         let associations = await scp.associationCount
@@ -257,7 +257,7 @@ final class PrintSCPIntegrationTests: XCTestCase {
         // (serialized implicit) and the film-box response's Referenced Image
         // Box Sequence (parsed implicit) must all work.
         XCTAssertTrue(result.success)
-        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.mock.job.1")
+        XCTAssertEqual(result.printJobUID, "1.2.826.0.1.3680043.9.9001.1.1")
         let released = await scp.releasedCleanly
         XCTAssertTrue(released)
     }

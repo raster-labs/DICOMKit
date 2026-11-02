@@ -1,0 +1,4 @@
+✅ C-ECHO successful
+  Remote AE: M7PEER
+  Status: Success (0x0000)
+  Round-trip time: 12 ms

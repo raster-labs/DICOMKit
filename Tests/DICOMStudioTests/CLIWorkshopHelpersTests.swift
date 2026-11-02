@@ -101,9 +101,9 @@ struct CLIWorkshopHelpersTests {
 
     // MARK: - ToolCatalogHelpers
 
-    @Test("allTools returns exactly 33 tools")
+    @Test("allTools returns exactly 35 tools")
     func testAllToolsCount() {
-        #expect(ToolCatalogHelpers.allTools().count == 33)
+        #expect(ToolCatalogHelpers.allTools().count == 35)
     }
 
     @Test("totalToolCount is 33")
@@ -819,7 +819,7 @@ struct CLIWorkshopHelpersTests {
             CLIParameterValue(parameterID: "patient-name", stringValue: "DOE^JOHN"),
         ]
         let cmd = CommandBuilderHelpers.buildCommand(toolName: "dicom-mwl", parameterValues: vals, parameterDefinitions: defs)
-        #expect(cmd.contains("--patient-name DOE^JOHN"))
+        #expect(cmd.contains("--patient-name 'DOE^JOHN'"))
     }
 
     @Test("buildCommand includes parameters without visibleWhen (always visible)")

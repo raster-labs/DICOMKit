@@ -1,0 +1,18 @@
+OVERVIEW: Compare two studies for differences
+
+USAGE: dicom-study compare <path1> <path2> [--format <format>] [--verbose]
+
+ARGUMENTS:
+  <path1>                 First study directory
+  <path2>                 Second study directory
+
+OPTIONS:
+  -f, --format <format>   Output format: 'text' or 'json' (default: text). JSON
+                          adds PS3.6 keyword keys (StudyInstanceUID,
+                          NumberOfStudyRelatedSeries,
+                          NumberOfStudyRelatedInstances); the former keys are
+                          deprecated (default: text)
+  -v, --verbose           Show verbose comparison
+  --version               Show the version.
+  -h, --help              Show help information.
+

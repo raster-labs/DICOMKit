@@ -1,0 +1,29 @@
+OVERVIEW: AI/ML integration for DICOM image analysis and enhancement
+
+Integrate AI/ML models for DICOM image analysis, enhancement, and automated
+reporting.
+Supports CoreML models on Apple platforms and ONNX models via CoreML
+conversion.
+
+Examples:
+  dicom-ai classify chest-xray.dcm --model pneumonia.mlmodel
+  dicom-ai segment abdomen-ct.dcm --model organs.mlmodel --output seg.dcm
+  dicom-ai detect brain-mri.dcm --model lesion.mlmodel --confidence 0.7
+  dicom-ai enhance noisy-image.dcm --model denoise.mlmodel
+  dicom-ai batch series/*.dcm --model classifier.mlmodel --output results.json
+
+USAGE: dicom-ai <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  classify                Perform image classification using AI models
+  segment                 Perform image segmentation using AI models
+  detect                  Perform object/lesion detection using AI models
+  enhance                 Enhance image quality using AI models
+  batch                   Batch process multiple DICOM files
+  registry                Manage AI model registry
+
+  See 'dicom-ai help <subcommand>' for detailed help.

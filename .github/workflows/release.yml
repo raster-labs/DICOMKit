@@ -194,15 +194,8 @@ jobs:
     - name: Select Xcode
       run: bash .github/scripts/select-swift-toolchain.sh
       
-    - name: Build DocC documentation
-      run: |
-        mkdir -p docs
-        swift package --allow-writing-to-directory ./docs \
-          generate-documentation --target DICOMKit \
-          --disable-indexing \
-          --transform-for-static-hosting \
-          --hosting-base-path DICOMKit \
-          --output-path ./docs
+    - name: Build and validate all DocC modules
+      run: python3 Scripts/build_docc_docs.py --output-path docs
           
     - name: Create documentation archive
       run: |

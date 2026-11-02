@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "serve",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/DC-R02/empty-config.json",
+    "--port",
+    "58678",
+    "--ae-title",
+    "DCMKIT_M6",
+    "--output",
+    "png",
+    "--output-dir",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/print-qualified/DC-R02/films",
+    "--dpi",
+    "36",
+    "--max-pixels",
+    "1024",
+    "--duration",
+    "90",
+    "--format",
+    "json",
+    "--verbose",
+    "--no-accept-color",
+    "--presentation-lut",
+    "--annotation-box"
+  ],
+  "pid": 37272,
+  "exit_code": -15,
+  "elapsed_seconds": 0.33156333300000007,
+  "timed_out": false,
+  "stopped_by_harness": true
+}

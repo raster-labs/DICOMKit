@@ -1,0 +1,140 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 button Description: dicom-print, Help: Print images, query printer and job status, and manage the Workshop printer list
+			36 button (selected) Description: dicom-printscp, Help: Receive print jobs, compose local film, and inspect printer settings
+			37 split group
+				38 container
+					39 scroll area Secondary Actions: Scroll Up, Scroll Down
+						40 text Print SCP.  Printer list: /Users/raster/Library/Containers/com.rasterlab.DICOMStudio/Data/Library/Caches/DICOMKitM7PrintQualification/printers.json. This Workshop list is separate from Print Center and may differ from the terminal's list when the app is sandboxed.
+						41 button Import Command
+						42 text Parameters Input Config --config
+						43 text field (settable) Description: Config, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json
+						44 button Description: Browse for Config, Help: Opens a file picker dialog
+						45 text Settings file to read (default: ~/.config/dicomkit/printscp.json when it exists) Parameters Command
+						46 Command
+							47 radio button Description: serve, Value: 1
+							48 radio button Description: simulate, Value: 0
+							49 radio button Description: status, Value: 0
+							50 radio button Description: queues, Value: 0
+						51 text Port --port
+						52 text field (settable) Description: Port, Value: 21114
+						53 text TCP port to listen on (default: 11113) Ae Title --ae-title
+						54 text field (settable) Description: Ae Title, Value: DCMKIT_M6
+						55 text AE title the emulator answers as (default: DCMPRINT) Film Size --film-size
+						56 button Add Film Size entry
+						57 text Film Size ID (2010,0050) to accept (repeatable; default: all). Values (the Defined Term is also accepted): 8x10, 8.5x11, 10x12, 10x14, 11x14, 11x17, 14x14, 14x17, 24x24cm, 24x30cm, a4, a3 Add one value per row. Output --output
+						58 text field (settable) Description: Output entry 1, Value: png, Placeholder: Value
+						59 button Description: Remove Output entry 1, ID: minus.circle
+						60 button Add Output entry
+						61 text Film output: png, tiff, pdf, none (repeatable) Add one value per row. Max Films --max-films
+						62 text field (settable) Max Films
+						63 text Stop after this many films (default: run until interrupted) Duration --duration
+						64 text field (settable) Description: Duration, Value: 300
+						65 text Stop after this many seconds (default: run until interrupted) Format --format
+						66 Format
+							67 radio button Description: text, Value: 0
+							68 radio button Description: json, Value: 1
+						69 text Output format: text, json (json writes one object per event to stdout) Options
+						70 checkbox Description: Save Config, Value: 0
+						71 text Output Output Dir --output-dir
+						72 text field (settable) Description: Output Dir, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-gray
+						73 button Description: Browse for Output Dir, Help: Opens a file picker dialog
+						74 text Directory written films are saved to (default: ~/Downloads/DICOMKit Films)
+						75 disclosure triangle Description: Advanced options (33), Help: Shows additional flags for this tool, Value: off
+						76 scroll bar (settable, float) 1
+							77 value indicator (settable, float) 1
+							78 increment arrow button
+							79 decrement arrow button
+							80 increment page button
+							81 decrement page button
+					82 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					83 button Description: Start command, Help: Runs the selected Workshop action
+				84 splitter (disabled, settable, float) 840
+				85 container
+					86 text Command Preview Valid $ Select a tool to build a command
+					87 button Description: Copy command, Help: Copies the command to the clipboard
+					88 text Console ERROR
+					89 button Description: Copy console output, Help: Copies the console output to the clipboard
+					90 button Clear console output
+					91 scroll area Secondary Actions: Scroll Up, Scroll Down
+						92 text $ dicom-printscp status --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json
+
+{
+  "isNormal" : true,
+  "manufacturer" : "DICOMKit",
+  "Manufacturer" : "DICOMKit",
+  "ManufacturerModelName" : "DICOM Print Emulator",
+  "model" : "DICOM Print Emulator",
+  "name" : "M7 Native Baseline",
+  "PrinterName" : "M7 Native Baseline",
+  "PrinterStatus" : "NORMAL",
+  "PrinterStatusInfo" : "NORMAL",
+  "status" : "NORMAL",
+  "statusInfo" : "NORMAL"
+}
+
+							93 text $ dicom-printscp serve --port 21114 --ae-title DCMKIT_M6 --accept-color --push-job-events --dpi 36 --max-pixels 1024 --output png --output-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/gui-independent-color --name-pattern 'native-{index}' --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/absent.json --duration 300 --format json --verbose
+
+{"level":"info","message":"Listening on port 21114 as D
+						94 scroll bar (settable, float) 0.8175182481751825
+							95 value indicator (settable, float) 0.8175182481751825
+							96 increment arrow button
+							97 decrement arrow button
+							98 increment page button
+							99 decrement page button
+					100 text History
+					101 button Clear
+					102 scroll area
+						103 text dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp dicom-printscp
+	104 toolbar
+		105 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		106 search text field (settable) Search features
+			107 button Search
+	108 close button
+	109 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	110 minimize button
+	111 text DICOM Studio
+112 menu bar
+	113 DICOMStudio
+	114 File
+	115 Edit
+	116 View
+	117 Image
+	118 Window
+	119 Help
+
+The focused UI element is 0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise

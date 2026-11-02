@@ -1,0 +1,47 @@
+name: Attribute and workflow integrity
+
+on:
+  push:
+    branches: [main, codex/dicom-2026a-milestones]
+    paths:
+      - 'Sources/DICOMCore/**'
+      - 'Sources/DICOMKit/**'
+      - 'Sources/DICOMNetwork/**'
+      - 'Sources/DICOMWeb/**'
+      - 'Sources/DICOMStudio/**'
+      - 'Sources/dicom-tags/**'
+      - 'Sources/dicom-validate/**'
+      - 'Sources/dicom-mpps/**'
+      - 'Tests/**'
+      - 'Scripts/verify_m2*'
+      - 'Package.*'
+      - '.github/workflows/attribute-integrity.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integrity:
+    name: M2 CLI, dataset and Workshop regression gates
+    runs-on: xcode-27
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Select toolchain
+        run: bash .github/scripts/select-swift-toolchain.sh 27.0
+      - name: Verify M2 against the checked out sources
+        run: bash Scripts/verify_m2.sh m2-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: attribute-integrity-${{ github.sha }}
+          # Upload reports only; runtime DICOM/wire inputs stay on the runner.
+          path: |
+            m2-verification/**/*.log
+            m2-verification/**/*.json
+            m2-verification/**/*.txt

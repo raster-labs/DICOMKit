@@ -1,0 +1,4 @@
+Error: Missing expected argument '<dicomdir-path>'
+Help:  <dicomdir-path>  Path to existing DICOMDIR file
+Usage: dicom-dcmdir update <dicomdir-path> [--add <add>] [--verbose]
+  See 'dicom-dcmdir update --help' for more information.

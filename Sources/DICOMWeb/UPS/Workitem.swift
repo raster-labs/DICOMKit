@@ -1,4 +1,5 @@
 import Foundation
+import DICOMCore
 
 // MARK: - Workitem
 
@@ -36,7 +37,27 @@ public struct Workitem: Sendable, Equatable, Codable {
     // MARK: - Scheduling
     
     /// Scheduled Procedure Step Start DateTime
-    public var scheduledStartDateTime: Date?
+    public var scheduledStartDateTime: Date? {
+        didSet { scheduledStartDICOMValue = nil }
+    }
+
+    // Preserve DT precision and the supplied offset across server storage (also
+    // Codable persistence). Replacing the Date invalidates this representation.
+    private var scheduledStartDICOMValue: String?
+
+    internal var scheduledStartDICOMString: String? {
+        if let value = scheduledStartDICOMValue { return value }
+        return scheduledStartDateTime.flatMap { DICOMDateTime(date: $0)?.dicomString }
+    }
+
+    /// Rejects malformed DT without changing the previously stored schedule.
+    internal mutating func setScheduledStartDateTime(dicomValue: String) -> Bool {
+        guard let parsed = DICOMValueRules.parseDateTime(dicomValue),
+              let date = parsed.toDate() else { return false }
+        scheduledStartDateTime = date
+        scheduledStartDICOMValue = dicomValue.trimmingCharacters(in: CharacterSet(charactersIn: " "))
+        return true
+    }
     
     /// Expected Completion DateTime
     public var expectedCompletionDateTime: Date?

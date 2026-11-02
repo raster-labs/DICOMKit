@@ -1,0 +1,35 @@
+test_check_error_and_missing_standard_are_visible_and_do_not_abort_following_check (test_cli_audit_m0.AuditReportingTests) ... ok
+test_current_anon_contract_covers_declared_flags_without_legacy_rows (test_cli_audit_m0.AuditReportingTests) ... ok
+test_inverted_contract_emission_keeps_positive_option_meaning (test_cli_audit_m0.AuditReportingTests) ... ok
+test_stale_contract_and_wrong_documented_default_still_fail (test_cli_audit_m0.AuditReportingTests) ... ok
+test_current_manifest_has_41_active_products_and_42_source_directories (test_cli_audit_m0.CLIInventoryTests) ... ok
+test_default_selection_covers_only_enabled_products (test_cli_audit_m0.CLIInventoryTests) ... ok
+test_group_selection_excludes_cloud_but_explicit_source_check_is_labeled (test_cli_audit_m0.CLIInventoryTests) ... ok
+test_manifest_ignores_disabled_products_comments_and_string_examples (test_cli_audit_m0.CLIInventoryTests) ... ok
+test_current_printscp_optional_flags_retain_nil_defaults (test_cli_audit_m0.OptionExtractionTests) ... ok
+test_inversion_help_is_not_an_inverted_flag (test_cli_audit_m0.OptionExtractionTests) ... ok
+test_inversion_uses_custom_long_name_and_optional_flag_is_nil (test_cli_audit_m0.OptionExtractionTests) ... ok
+test_nonoptional_flag_defaults_and_explicit_true_are_preserved (test_cli_audit_m0.OptionExtractionTests) ... ok
+test_alias_does_not_accept_wrong_canonical_keyword (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_alias_does_not_bypass_comment_check (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_alias_is_not_allowed_in_another_file (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_alias_with_unknown_tag_still_fails (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_alias_with_wrong_registered_tag_still_fails (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_exact_private_alias_matches (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_extracted_alias_still_reaches_vr_checks (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_unrelated_canonical_name_and_wrong_pair_are_still_checked (test_kit_audit_m0.PrivateTagAliasTests) ... ok
+test_all_six_groups_continue_after_a_group_error (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_current_inventory_is_complete (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_extractor_errors_do_not_prevent_later_checks (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_keyboard_interrupt_is_not_swallowed (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_missing_frozen_input_is_an_audit_error (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_missing_workshop_mapping_is_not_silent (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_part7_uses_this_run_inputs (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_real_findings_remain_failures (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_renamed_and_split_cli_sources_are_discovered (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+test_unknown_file_does_not_get_silently_inventoried (test_studio_audit_m0.StudioAuditM0Tests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 0.537s
+
+OK

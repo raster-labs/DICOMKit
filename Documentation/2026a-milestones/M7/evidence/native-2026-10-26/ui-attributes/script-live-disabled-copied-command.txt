@@ -1,0 +1,96 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button (selected) Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-study, Help: Study-level organize, summary, check, stats, compare
+			24 button Description: dicom-uid, Help: Generate, validate, lookup, and regenerate UIDs
+			25 button (selected) Description: dicom-script, Help: Dry-run, validate, and generate script templates; live execution uses the CLI
+			26 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			27 split group
+				28 container
+					29 scroll area Secondary Actions: Scroll Up, Scroll Down
+						30 text Scripting.  Parameters Input Script File
+						31 text field (settable) Description: Script File, Placeholder: workflow.dcmscript, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript
+						32 button Description: Browse for Script File, Help: Opens a file picker dialog
+						33 text DICOM Script Language (.dcmscript) file to preview or validate; Workshop does not execute nested commands Parameters Operation
+						34 Operation
+							35 radio button Description: run, Value: 1
+							36 radio button Description: validate, Value: 0
+							37 radio button Description: template, Value: 0
+						38 text run: preview a script with Dry Run enabled; validate: check script syntax and tool names; template: generate a starter script. Live execution is available through the CLI only. Variables --variables
+						39 text field (settable) Description: Variables, Placeholder: KEY=VALUE; KEY2=VALUE2, Value: dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript --log /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log
+						40 text Variable substitutions in KEY=VALUE format (e.g. PATIENT_ID=12345). Separate with “ ; ”. Options
+						41 checkbox Description: Parallel Execution, Value: 0
+						42 checkbox Description: Verbose, Value: 0
+						43 checkbox Description: Dry Run (required in Workshop), Value: 0
+						44 text Help: Shows additional flags for this tool, Value: Output Log File --log
+						45 text field (settable) Description: Log File, Help: Shows additional flags for this tool, Placeholder: run.log, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log
+						46 button Description: Browse for Log File, Help: Shows additional flags for this tool
+						47 text Help: Shows additional flags for this tool, Value: Optional log file path for execution output
+						48 disclosure triangle Description: Advanced options (1), Help: Shows additional flags for this tool, Value: on
+						49 scroll bar (settable, float) 0.7296416938110749
+							50 value indicator (settable, float) 0.7296416938110749
+							51 increment arrow button
+							52 decrement arrow button
+							53 increment page button
+							54 decrement page button
+					55 text Live script execution is unavailable in Workshop. Enable Dry Run, choose Validate or Template, or run the command in a terminal.
+					56 button (disabled) Description: Run command, Help: Live script execution is unavailable in Workshop. Enable Dry Run, choose Validate or Template, or run the command in a terminal.
+				57 splitter (disabled, settable, float) 460
+				58 container
+					59 text Command Preview $ Select a tool to build a command
+					60 button Description: Command copied, Help: Copies the command to the clipboard
+					61 text Console SUCCESS
+					62 button Description: Copy console output, Help: Copies the console output to the clipboard
+					63 button Clear console output
+					64 scroll area
+						65 text $ dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt --dry-run
+
+Dry run completed - no commands were actually executed
+
+							66 text $ dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/template-workflow.stdout.txt --dry-run
+
+Dry run completed - no commands were actually executed
+
+					67 text History
+					68 button Clear
+					69 scroll area
+						70 text dicom-convert dicom-convert dicom-convert dicom-convert dicom-convert dicom-anon dicom-anon dicom-script dicom-script dicom-script
+	71 toolbar
+		72 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		73 search text field (settable) Search features
+			74 button Search
+	75 close button
+	76 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	77 minimize button
+	78 text DICOM Studio
+79 menu bar
+	80 DICOMStudio
+	81 File
+	82 Edit
+	83 View
+	84 Image
+	85 Window
+	86 Help
+
+The focused UI element is 39 text field (settable) Description: Variables, Placeholder: KEY=VALUE; KEY2=VALUE2, Value: dicom-script run /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m5/workshop/valid.dcmscript --log /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/must-not-start/live.log

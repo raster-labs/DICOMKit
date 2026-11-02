@@ -1,0 +1,81 @@
+{
+  "name": "reverse-jxl-gray8",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/cjxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.pgm",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/foreign.jxl",
+        "-d",
+        "0",
+        "-e",
+        "3"
+      ],
+      "exit": 0,
+      "stdout": "0.stdout",
+      "stderr": "0.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/jxlinfo",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/stream.jxl"
+      ],
+      "exit": 0,
+      "stdout": "1.stdout",
+      "stderr": "1.stderr"
+    },
+    {
+      "argv": [
+        "/opt/homebrew/bin/djxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/stream.jxl",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/foreign-decoded.pgm",
+        "--bits_per_sample=0"
+      ],
+      "exit": 0,
+      "stdout": "2.stdout",
+      "stderr": "2.stderr"
+    },
+    {
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/foreign.dcm",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/reverse-jxl-gray8/decoded.dcm",
+        "--transfer-syntax",
+        "ExplicitVRLittleEndian"
+      ],
+      "exit": 0,
+      "stdout": "3.stdout",
+      "stderr": "3.stderr"
+    }
+  ],
+  "independent_foreign_exact": true,
+  "independent_sample_count": 3072,
+  "foreign_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.4.110"
+  },
+  "decoded_metadata": {
+    "rows": 48,
+    "columns": 64,
+    "samplesPerPixel": 1,
+    "bitsAllocated": 8,
+    "bitsStored": 8,
+    "highBit": 7,
+    "pixelRepresentation": 0,
+    "photometricInterpretation": "MONOCHROME2",
+    "planarConfiguration": null,
+    "transferSyntax": "1.2.840.10008.1.2.1"
+  },
+  "sample_count": 3072,
+  "status": "passed",
+  "elapsed_seconds": 0.05774495902005583
+}

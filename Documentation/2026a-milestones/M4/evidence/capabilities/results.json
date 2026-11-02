@@ -1,0 +1,640 @@
+{
+  "items": [
+    "NET-09-A",
+    "NET-09-B"
+  ],
+  "cases": [
+    {
+      "name": "capabilities-json",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/json",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "4718"
+      },
+      "body_sha256": "c67a77a6829b4671c6c1a845696d99d54bf6467951a2d759d4cede47103f121b",
+      "passed": true
+    },
+    {
+      "name": "capabilities-xml",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/vnd.sun.wadl+xml",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "5195"
+      },
+      "body_sha256": "8d57711bd8a9f818fe29485177d5a334d23e0b970b2405b5869cd517c6526cdb",
+      "passed": true
+    },
+    {
+      "name": "missing-accept",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 406,
+      "expected_status": 406,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "unacceptable",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 406,
+      "expected_status": 406,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "wildcard",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/json",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "4718"
+      },
+      "body_sha256": "c67a77a6829b4671c6c1a845696d99d54bf6467951a2d759d4cede47103f121b",
+      "passed": true
+    },
+    {
+      "name": "weighted",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/vnd.sun.wadl+xml",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "5195"
+      },
+      "body_sha256": "8d57711bd8a9f818fe29485177d5a334d23e0b970b2405b5869cd517c6526cdb",
+      "passed": true
+    },
+    {
+      "name": "specific-exclusion",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/vnd.sun.wadl+xml",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "5195"
+      },
+      "body_sha256": "8d57711bd8a9f818fe29485177d5a334d23e0b970b2405b5869cd517c6526cdb",
+      "passed": true
+    },
+    {
+      "name": "all-excluded",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 406,
+      "expected_status": 406,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "unsupported-charset",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 406,
+      "expected_status": 406,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "utf8",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/vnd.sun.wadl+xml",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "5195"
+      },
+      "body_sha256": "8d57711bd8a9f818fe29485177d5a334d23e0b970b2405b5869cd517c6526cdb",
+      "passed": true
+    },
+    {
+      "name": "query-refusal",
+      "method": "OPTIONS",
+      "path": "?offset=1",
+      "status": 400,
+      "expected_status": 400,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:32 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "body-refusal",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 400,
+      "expected_status": 400,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "method-refusal",
+      "method": "PUT",
+      "path": "/studies",
+      "status": 405,
+      "expected_status": 405,
+      "response_headers": {
+        "server": "BaseHTTP/0.6 Python/3.9.6",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "allow": "GET, POST",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "cors-preflight",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 204,
+      "expected_status": 204,
+      "response_headers": {
+        "server": "BaseHTTP/0.6 Python/3.9.6",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-headers": "Content-Type, Accept, Authorization",
+        "access-control-allow-methods": "GET, POST, DELETE, OPTIONS",
+        "access-control-allow-origin": "*",
+        "access-control-max-age": "86400",
+        "content-length": "0"
+      },
+      "body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "passed": true
+    },
+    {
+      "name": "origin-bearing-capabilities",
+      "method": "OPTIONS",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "allow": "GET, OPTIONS",
+        "content-type": "application/vnd.sun.wadl+xml",
+        "vary": "Accept, Accept-Charset",
+        "content-length": "5195"
+      },
+      "body_sha256": "8d57711bd8a9f818fe29485177d5a334d23e0b970b2405b5869cd517c6526cdb",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundary57DE5985CE2446F7BFD46A9010435CA7\"",
+        "content-length": "673"
+      },
+      "body_sha256": "c1a8aa55cfd1f11cd4ca017dc1016a1d954f8f4defdb75167c08f40a0d148444",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401/metadata",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/dicom+json",
+        "content-length": "398"
+      },
+      "body_sha256": "9877ad0e22bee978dee5e6f879b0476fff993f4b71fb757845f9ab7c879d4185",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundary837C6AF90EE545238BF07C362F55F5F6\"",
+        "content-length": "673"
+      },
+      "body_sha256": "a3b365da29f8af2580029aae5813762132c72ce55e5411927b3402214363d255",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/metadata",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/dicom+json",
+        "content-length": "398"
+      },
+      "body_sha256": "9877ad0e22bee978dee5e6f879b0476fff993f4b71fb757845f9ab7c879d4185",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundary8B6F7085B2414C5FA89F86C7FD2558DA\"",
+        "content-length": "673"
+      },
+      "body_sha256": "46c48f00f2dad29a502a7f7271015db69b8f6faa6dbcc3f5a847d0cd8ba47aa1",
+      "passed": true
+    },
+    {
+      "name": "advertised-retrieve",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/metadata",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/dicom+json",
+        "content-length": "398"
+      },
+      "body_sha256": "9877ad0e22bee978dee5e6f879b0476fff993f4b71fb757845f9ab7c879d4185",
+      "passed": true
+    },
+    {
+      "name": "unavailable-bulkdata",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/bulkdata",
+      "status": 501,
+      "expected_status": 501,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "52"
+      },
+      "body_sha256": "210790acaa7e479944765d94077c72c0b09508f7fcda207f5699894d7693506b",
+      "passed": true
+    },
+    {
+      "name": "unavailable-rendered",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/rendered",
+      "status": 501,
+      "expected_status": 501,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "57"
+      },
+      "body_sha256": "5ecbb2c1d4ca2b061e549d91387011fdcc251db811f04ea0f2eaa504d30cee4f",
+      "passed": true
+    },
+    {
+      "name": "unavailable-thumbnail",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/thumbnail",
+      "status": 501,
+      "expected_status": 501,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "52"
+      },
+      "body_sha256": "7d1992dfad178ef0cf92c341cef702100a932023698a31ced878be101df6f604",
+      "passed": true
+    },
+    {
+      "name": "unavailable-frames/1",
+      "method": "GET",
+      "path": "/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1/frames/1",
+      "status": 501,
+      "expected_status": 501,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "48"
+      },
+      "body_sha256": "915d927bd1e5380edebaee5e94e820dbfb1361e3821a197c17a0a7ab78b5fffd",
+      "passed": true
+    },
+    {
+      "name": "private-capabilities",
+      "method": "GET",
+      "path": "",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "1503"
+      },
+      "body_sha256": "388d9e46be3244455aaa05082482c8b3ad374401d3e2072432b8510454b1267c",
+      "passed": true
+    },
+    {
+      "name": "private-capabilities",
+      "method": "GET",
+      "path": "/capabilities",
+      "status": 200,
+      "expected_status": 200,
+      "response_headers": {
+        "server": "DICOMKit/1.0",
+        "date": "Sat, 24 Oct 2026 13:00:33 GMT",
+        "access-control-allow-origin": "*",
+        "access-control-expose-headers": "X-Total-Count",
+        "content-type": "application/json",
+        "content-length": "1503"
+      },
+      "body_sha256": "388d9e46be3244455aaa05082482c8b3ad374401d3e2072432b8510454b1267c",
+      "passed": true
+    },
+    {
+      "name": "cli-retrieve-study",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "retrieve",
+        "http://127.0.0.1:52890/dicom-web",
+        "--study",
+        "2.25.401",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/capabilities/cli-study"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc",
+      "capture": {
+        "request": {
+          "method": "GET",
+          "path": "/dicom-web/studies/2.25.401",
+          "headers": {
+            "Host": "127.0.0.1:52890",
+            "Accept": "multipart/related; type=\"application/dicom\"; transfer-syntax=1.2.840.10008.1.2.1",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+            "Accept-Encoding": "gzip, deflate",
+            "User-Agent": "DICOMKit/1.0"
+          },
+          "bodyBase64": null
+        },
+        "response": {
+          "bodyBase64": "LS0tLS0tRElDT01Cb3VuZGFyeUIwQkZCMDdDMjU4QTRBMDU4ODNFNjY4NEI1NEFEN0U1DQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2RpY29tDQpDb250ZW50LUxvY2F0aW9uOiBodHRwOi8vMTI3LjAuMC4xOjUyODkwL2RpY29tLXdlYi9zdHVkaWVzLzIuMjUuNDAxL3Nlcmllcy8yLjI1LjQwMS4xL2luc3RhbmNlcy8yLjI1LjQwMS4xLjENCg0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABESUNNAgAAAFVMBAB0AAAAAgABAE9CAAACAAAAAAECAAIAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcAAgADAFVJDAAyLjI1LjQwMS4xLjECABAAVUkUADEuMi44NDAuMTAwMDguMS4yLjEAAgASAFVJDAAyLjI1Ljk5OTQwMQAIABYAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcACAAYAFVJDAAyLjI1LjQwMS4xLjEIAGAAQ1MCAE9UEAAQAFBOFgBDQVBBQklMSVRJRVNeU1lOVEhFVElDEAAgAExPDABNNC1TWU5USEVUSUMgAA0AVUkIADIuMjUuNDAxIAAOAFVJCgAyLjI1LjQwMS4xIAATAElTAgAxIA0KLS0tLS0tRElDT01Cb3VuZGFyeUIwQkZCMDdDMjU4QTRBMDU4ODNFNjY4NEI1NEFEN0U1LS0NCg==",
+          "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "X-Total-Count",
+            "Content-Length": "673",
+            "Content-Type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundaryB0BFB07C258A4A05883E6684B54AD7E5\"",
+            "Server": "DICOMKit/1.0"
+          },
+          "status": 200
+        }
+      }
+    },
+    {
+      "name": "cli-retrieve-series",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "retrieve",
+        "http://127.0.0.1:52890/dicom-web",
+        "--study",
+        "2.25.401",
+        "--series",
+        "2.25.401.1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/capabilities/cli-series"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc",
+      "capture": {
+        "request": {
+          "method": "GET",
+          "path": "/dicom-web/studies/2.25.401/series/2.25.401.1",
+          "headers": {
+            "Host": "127.0.0.1:52890",
+            "Accept": "multipart/related; type=\"application/dicom\"; transfer-syntax=1.2.840.10008.1.2.1",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+            "Accept-Encoding": "gzip, deflate",
+            "User-Agent": "DICOMKit/1.0"
+          },
+          "bodyBase64": null
+        },
+        "response": {
+          "bodyBase64": "LS0tLS0tRElDT01Cb3VuZGFyeTA2M0IyMTQ0OEY1RjQwRUM5QkE3N0Q5Q0QyNTYyNDA5DQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2RpY29tDQpDb250ZW50LUxvY2F0aW9uOiBodHRwOi8vMTI3LjAuMC4xOjUyODkwL2RpY29tLXdlYi9zdHVkaWVzLzIuMjUuNDAxL3Nlcmllcy8yLjI1LjQwMS4xL2luc3RhbmNlcy8yLjI1LjQwMS4xLjENCg0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABESUNNAgAAAFVMBAB0AAAAAgABAE9CAAACAAAAAAECAAIAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcAAgADAFVJDAAyLjI1LjQwMS4xLjECABAAVUkUADEuMi44NDAuMTAwMDguMS4yLjEAAgASAFVJDAAyLjI1Ljk5OTQwMQAIABYAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcACAAYAFVJDAAyLjI1LjQwMS4xLjEIAGAAQ1MCAE9UEAAQAFBOFgBDQVBBQklMSVRJRVNeU1lOVEhFVElDEAAgAExPDABNNC1TWU5USEVUSUMgAA0AVUkIADIuMjUuNDAxIAAOAFVJCgAyLjI1LjQwMS4xIAATAElTAgAxIA0KLS0tLS0tRElDT01Cb3VuZGFyeTA2M0IyMTQ0OEY1RjQwRUM5QkE3N0Q5Q0QyNTYyNDA5LS0NCg==",
+          "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "X-Total-Count",
+            "Content-Length": "673",
+            "Content-Type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundary063B21448F5F40EC9BA77D9CD2562409\"",
+            "Server": "DICOMKit/1.0"
+          },
+          "status": 200
+        }
+      }
+    },
+    {
+      "name": "cli-retrieve-instance",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+        "retrieve",
+        "http://127.0.0.1:52890/dicom-web",
+        "--study",
+        "2.25.401",
+        "--series",
+        "2.25.401.1",
+        "--instance",
+        "2.25.401.1.1",
+        "--output",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/capabilities/cli-instance"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true,
+      "sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc",
+      "capture": {
+        "request": {
+          "method": "GET",
+          "path": "/dicom-web/studies/2.25.401/series/2.25.401.1/instances/2.25.401.1.1",
+          "headers": {
+            "Host": "127.0.0.1:52890",
+            "Accept": "multipart/related; type=\"application/dicom\"; transfer-syntax=1.2.840.10008.1.2.1",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Connection": "keep-alive",
+            "Accept-Encoding": "gzip, deflate",
+            "User-Agent": "DICOMKit/1.0"
+          },
+          "bodyBase64": null
+        },
+        "response": {
+          "bodyBase64": "LS0tLS0tRElDT01Cb3VuZGFyeUU1MjJFODg1NjhGRjRCMjJBQjhFMEIyOUIwNkQ0NDUxDQpDb250ZW50LVR5cGU6IGFwcGxpY2F0aW9uL2RpY29tDQpDb250ZW50LUxvY2F0aW9uOiBodHRwOi8vMTI3LjAuMC4xOjUyODkwL2RpY29tLXdlYi9zdHVkaWVzLzIuMjUuNDAxL3Nlcmllcy8yLjI1LjQwMS4xL2luc3RhbmNlcy8yLjI1LjQwMS4xLjENCg0KAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABESUNNAgAAAFVMBAB0AAAAAgABAE9CAAACAAAAAAECAAIAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcAAgADAFVJDAAyLjI1LjQwMS4xLjECABAAVUkUADEuMi44NDAuMTAwMDguMS4yLjEAAgASAFVJDAAyLjI1Ljk5OTQwMQAIABYAVUkaADEuMi44NDAuMTAwMDguNS4xLjQuMS4xLjcACAAYAFVJDAAyLjI1LjQwMS4xLjEIAGAAQ1MCAE9UEAAQAFBOFgBDQVBBQklMSVRJRVNeU1lOVEhFVElDEAAgAExPDABNNC1TWU5USEVUSUMgAA0AVUkIADIuMjUuNDAxIAAOAFVJCgAyLjI1LjQwMS4xIAATAElTAgAxIA0KLS0tLS0tRElDT01Cb3VuZGFyeUU1MjJFODg1NjhGRjRCMjJBQjhFMEIyOUIwNkQ0NDUxLS0NCg==",
+          "headers": {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "X-Total-Count",
+            "Content-Length": "673",
+            "Content-Type": "multipart/related; type=\"application/dicom\"; boundary=\"----DICOMBoundaryE522E88568FF4B22AB8E0B29B06D4451\"",
+            "Server": "DICOMKit/1.0"
+          },
+          "status": 200
+        }
+      }
+    }
+  ],
+  "passed": true,
+  "fixture_sha256": "ad47e262f80fcfa1ae13de6c356d87cdd2f38ad6bfe835bd1efc1a8b61adbcfc",
+  "binary_sha256": "1cf4d024ae7139f86d5219c0d821878670af4411e1e3335a68307d24217d1fad",
+  "http_adapter_is_test_code": true,
+  "synthetic_loopback_only": true,
+  "schema_validation": {
+    "status": "passed",
+    "exit": 0,
+    "schema_provenance": {
+      "wadl.xsd": {
+        "source": "https://www.w3.org/submissions/wadl/wadl.xsd",
+        "sha256": "125b6727e8181da7b8fe4f598a5e8241606d20a71f5bcb173f6ddfe9dc41e94e"
+      },
+      "xml.xsd": {
+        "source": "https://www.w3.org/2001/xml.xsd",
+        "sha256": "61960fb3131e38022caad5360e2f33a3382578ab3c80cd58bd74320ede61b20c"
+      }
+    }
+  }
+}

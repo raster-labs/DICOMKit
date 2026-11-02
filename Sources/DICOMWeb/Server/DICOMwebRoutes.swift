@@ -10,6 +10,10 @@ public struct DICOMwebRequest: Sendable {
     
     /// Query parameters
     public let queryParameters: [String: String]
+
+    /// Decoded query entries, preserving repeated includefield parameters.
+    public let queryItems: [URLQueryItem]
+    public let hasMalformedQueryEncoding: Bool
     
     /// HTTP headers
     public let headers: [String: String]
@@ -27,35 +31,37 @@ public struct DICOMwebRequest: Sendable {
         queryParameters: [String: String] = [:],
         headers: [String: String] = [:],
         body: Data? = nil,
-        remoteAddress: String? = nil
+        remoteAddress: String? = nil,
+        queryItems: [URLQueryItem] = []
     ) {
         self.method = method
         self.headers = headers
         self.body = body
         self.remoteAddress = remoteAddress
         
-        // Parse query parameters from path if present
+        var items = queryParameters.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) } + queryItems
+        var malformed = false
         if let queryIndex = path.firstIndex(of: "?") {
-            self.path = String(path[path.startIndex..<queryIndex])
-            var parsedParams = queryParameters
-            let queryString = String(path[path.index(after: queryIndex)...])
-            for param in queryString.split(separator: "&") {
-                let parts = param.split(separator: "=", maxSplits: 1)
-                if parts.count == 2 {
-                    let key = String(parts[0])
-                    let value = String(parts[1])
-                    if parsedParams[key] == nil {
-                        parsedParams[key] = value
-                    }
+            self.path = String(path[..<queryIndex])
+            let raw = path[path.index(after: queryIndex)...]
+            for item in raw.split(separator: "&", omittingEmptySubsequences: false) where !item.isEmpty {
+                let parts = item.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+                guard let name = String(parts[0]).removingPercentEncoding,
+                      let value = (parts.count == 2 ? String(parts[1]) : "").removingPercentEncoding else {
+                    malformed = true; continue
                 }
+                items.append(URLQueryItem(name: name, value: value))
             }
-            self.queryParameters = parsedParams
         } else {
             self.path = path
-            self.queryParameters = queryParameters
+        }
+        self.queryItems = items
+        self.hasMalformedQueryEncoding = malformed
+        self.queryParameters = items.reduce(into: [:]) { result, item in
+            if result[item.name] == nil { result[item.name] = item.value ?? "" }
         }
     }
-    
+
     /// Gets a header value (case-insensitive)
     public func header(_ name: String) -> String? {
         let lowercased = name.lowercased()

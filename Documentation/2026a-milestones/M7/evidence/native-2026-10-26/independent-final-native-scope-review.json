@@ -1,0 +1,197 @@
+{
+  "recorded_utc": "2026-10-26T08:34:16.860180+00:00",
+  "method": "Independent read-only review of original PLAN, all68 item dispositions/assertions, native28-group checklist and fresh native/CLI/network receipts. Supplemental copied argv parsed and compared to prior actual command text; fixture and saved report hashes rechecked. No product/UI/build/source/Git actions.",
+  "scope": {
+    "unique_item_ids": 68,
+    "active": 46,
+    "deferred": 22,
+    "current_completed": 45,
+    "current_in_progress": 1,
+    "no_deferred_scope_expansion": true,
+    "generic_240px_layout": "Not an original active acceptance criterion; disclose clipping while preserving observed control operability and effective values.",
+    "viewer_185px_ellipsis": "Original temporal semantics remain exact in full AX and SR copy; narrow-sidebar visual ellipsis is explicitly bounded and not a new general layout gate."
+  },
+  "network_receipts": [
+    {
+      "surface": "http",
+      "path": "work/m7/native-final-network/native-http-verification.json",
+      "sha256": "b6366c4cba4c9ed34a4b7560aac20fb6d62bbaf58616b01ecd2962a5527c4eea",
+      "native_actions": 18,
+      "CLI_actions": 18,
+      "behavioral_assertions": 254,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "FINAL06 UPS portion remains separate.",
+        "Native Basic header handling is verified; CLI has no Basic authentication flag and equivalent CLI requests omit Basic explicitly.",
+        "Synthetic capture server does not enforce credentials.",
+        "One native full-instance WADO action covers FINAL11; no additional metadata or bulkdata runtime claim.",
+        "Multiline Basic case checks copied preview only; no request was executed.",
+        "Filter return capture is a UI observation, not a new request.",
+        "Initial CT keyboard-selection attempt left Any; the first three hidden-filter cases therefore prove date/PPS behavior only. Actual later CT requests prove the modality tags."
+      ]
+    },
+    {
+      "surface": "mwl",
+      "path": "work/m7/native-final-network/native-mwl-verification.json",
+      "sha256": "a97677dc24dd593f0d49b4cb444f0b6f1e87d86463c8f1c869b3e74c21cc6891",
+      "native_actions": 5,
+      "CLI_actions": 5,
+      "behavioral_assertions": 42,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "Independent synthetic pynetdicom peer supports bounded query matching; not a full MWL SCP qualification."
+      ]
+    },
+    {
+      "surface": "find",
+      "path": "work/m7/native-final-network/native-find-verification.json",
+      "sha256": "0d323d8adb6029a380086e099a15395e3a86a6974e97bf3d918be4578c7dfda3",
+      "native_actions": 7,
+      "CLI_actions": 7,
+      "behavioral_assertions": 55,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "Cancellation results are verified separately. Independent synthetic DIMSE peer; not a general PACS."
+      ]
+    },
+    {
+      "surface": "cancel",
+      "path": "work/m7/native-final-network/native-cancel-verification.json",
+      "sha256": "e8f3669e46f21d22ace3163c2d06b72902b16b1513037ff7c888a12529a40cd0",
+      "native_actions": 4,
+      "CLI_actions": 4,
+      "behavioral_assertions": 43,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "Controlled peer-generated FE00 response tests client reporting, not a native cancellation-button origin or server C-CANCEL handling.",
+        "Peer performs no C-STORE; reported counters are controlled synthetic values.",
+        "C-GET retained Move Destination in the native preview; both wire commands correctly omit MoveDestination. CLI prints the unused option in its introductory header while Workshop omits it; terminal outcome comparison begins at Executing C-GET.",
+        "Prepared run card had reversed GET/MOVE counter expectations; the correction is retained in run-card-correction.json and the oracle uses raw terminal CommandSet bytes."
+      ]
+    },
+    {
+      "surface": "server",
+      "path": "work/m7/native-final-network/native-server-verification.json",
+      "sha256": "9d2e2e51b94ab669165b84940ebf928332f82ce93698ef125c284598e1dce58e",
+      "native_actions": 3,
+      "CLI_actions": 3,
+      "behavioral_assertions": 28,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "This is one actual native workflow across a process restart; broader durability proofs remain separate.",
+        "SIGTERM uses default process termination exit -15. Initial helper incorrectly required exit0; that failure is retained. No graceful shutdown callback or power-loss guarantee is claimed.",
+        "Stale Interactive persisted-state injection has no supported native import route and was not executed; existing model refusal test remains separately attributed.",
+        "Only output directory paths were normalized for console comparison; all other console text is identical."
+      ]
+    },
+    {
+      "surface": "mpps",
+      "path": "work/m7/native-final-network/native-mpps-verification.json",
+      "sha256": "c014c9bc2983938ca72b7126736e1551721c292673365c48c94183281557e0f4",
+      "native_actions": 4,
+      "CLI_actions": 4,
+      "behavioral_assertions": 35,
+      "receipt_passed": true,
+      "qualification_limits": [
+        "Capture SCP accepts terminal N-SET updates; this is not proof of persisted MPPS lifecycle transition from IN PROGRESS.",
+        "Only generated PPS End Date00400250 and End Time00400251 were removed before whole-dataset comparison.",
+        "Mixed-class typed API and intermediate-update enhancements remain outside the native form scope."
+      ]
+    },
+    {
+      "surface": "ups",
+      "path": "work/m7/native-final-network/native-ups-verification.json",
+      "sha256": "3c19b7ec7b43d60b2f14b28cb6b37af2928ef081905304246da24785d10ad1be",
+      "native_actions": 2,
+      "CLI_actions": 2,
+      "behavioral_assertions": 24,
+      "receipt_passed": false,
+      "qualification_limits": [
+        "Synthetic capture peer supports POST/GET only; no PUT state transition or production UPS server acceptance claim.",
+        "Native Basic request headers are verified; CLI requests intentionally omit Basic because it has no Basic flag. Server credential enforcement is not tested.",
+        "Bearer/none UPS transitions are copied-preview observations only, not additional executed requests.",
+        "The existing create-json route preserves compact DICOM DT; native Scheduled Start field expects ISO8601 and was not given compact DT.",
+        "Behavioral parity is retained, but removal of input00080018 without query identity is a product standards defect; FINAL13 remains partial pending repair."
+      ],
+      "receipt_status_at_review": "Historical behavioral parity; independent standards finding supersedes any identity normalization interpretation"
+    }
+  ],
+  "network_counts": {
+    "native_executions": 43,
+    "CLI_counterpart_executions": 43,
+    "behavioral_assertions": 481,
+    "warning": "Passing paired behavior assertions do not waive the independent UPS standards finding below."
+  },
+  "supplemental_previews": [
+    {
+      "path": "ui-network/FINAL04-info-supplementary-copied-preview.txt",
+      "sha256": "def03bb3fcbb7060dd13f25f9fbd41eb78c0311dbbdcf491073d4305f8953b4b",
+      "prior_action": "info-latin",
+      "literal_argv_exact_match": true,
+      "source_unchanged": true,
+      "new_executions": 0
+    },
+    {
+      "path": "ui-network/FINAL04-validate-supplementary-copied-preview.txt",
+      "sha256": "960b78e51b769566e38772de4fcc6a19b01bc23a422fe5025332e00916744c44",
+      "prior_action": "wrong-VR-True-json",
+      "literal_argv_exact_match": true,
+      "source_and_report_unchanged": true,
+      "new_executions": 0
+    },
+    {
+      "path": "ui-network/qido-basic-multiline-patient-preview-only.txt",
+      "sha256": "50d21eb607c26a034d3d12c54c0f6462fb3b264a951d9b47557144b80006f19e",
+      "physical_lines": 3,
+      "all_lines_commented": true,
+      "multiline_unicode_semicolon_dollar_literal_preserved": true,
+      "new_executions": 0,
+      "limit": "Earlier multiline username-only preview is not substituted for this command-value test."
+    }
+  ],
+  "native_group_recommendation": {
+    "accepted_with_stated_bounds": 27,
+    "partial": 1,
+    "partial_group": "FINAL-13",
+    "FINAL06": "Basic authentication header/preview behavior independently passes; this does not qualify UPS request identity."
+  },
+  "findings": [
+    {
+      "priority": "P1",
+      "title": "UPS create-json silently removes supplied identity and sends no Workitem UID",
+      "status": "Open; requires narrow repair or explicit unqualified route, not an oracle-only normalization",
+      "source_locations": [
+        "Sources/DICOMWeb/DICOMwebClient.swift:1543",
+        "Sources/DICOMWeb/UPS/UPSClient.swift:189",
+        "Sources/dicom-wado/DICOMWado.swift:1121",
+        "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:7788"
+      ],
+      "observed": "Both clients remove input00080018 with uid=nil, then POST /dicom-web/workitems without a workitem query parameter. The capture peer assigns an unrelated identity. DT and SCHEDULED state remain correct, but equivalent client behavior alone does not prove a standards-valid Create request.",
+      "raw_request": "work/m7/native-final-network/ups-auth/request-001.json",
+      "raw_request_sha256": "0d5ac62d99a6f6f5fb8db394f2a46243c8e8c114c7c42229517058f332658774",
+      "standard": "DICOM PS3.18 2026a 11.4.1.1 requires a Workitem UID in a Worklist-target payload; the alternative Workitem target conveys the UID using the workitem query parameter. The UID is absent from both places in the observed request.",
+      "standard_url": "https://dicom.nema.org/medical/dicom/2026a/output/html/part18.html#sect_11.4.1.1",
+      "verified_source_version": "DICOM PS3.18 2026a - Web Services; official complete HTML accessed26October2026. Section-only endpoint returned cache miss, so complete HTML section was inspected.",
+      "recommended_narrow_resolution": "Resolve a validated intended UID and convey it through the documented workitem query target before removing it from the body. Preserve supplied input identity; avoid silently accepting contradictory identities. Verify repaired CLI/native requests and refresh source/binary attribution.",
+      "impact_on_existing_items": "NET06 date/time behavior remains substantiated. Keep QUAL01/M7 open for existing UPS route qualification. Do not add an enhancement or silently alter the68-item scope."
+    }
+  ],
+  "retained_limits": [
+    "No native C-CANCEL button-origin claim: controlled peer FE00 checks client reporting; no C-STORE performed in cancellation peer.",
+    "Restart uses actual SIGTERM exit−15; no graceful-shutdown or power-loss claim.",
+    "MPPS terminal N-SET capture is not persisted lifecycle qualification; only generated PPS end date/time normalized.",
+    "Stale Interactive import has no supported native route and remains unexecuted; model refusal evidence is separately attributed.",
+    "UPS Basic auth header inspected against non-enforcing synthetic peer; CLI counterpart has no Basic flag. Bearer/none are preview-only.",
+    "UPS compact DT verified through create-json; native Scheduled Start field expects ISO8601. Generic UPS attribute update remains backend-only."
+  ],
+  "recommendation": "Do not close M7 yet. Preserve all43 native/CLI behavioral results and successful non-UPS groups; address the single discovered UPS identity issue, then qualify only affected behavior plus required identity/build evidence. Final documentation and exact pushed-head CI remain separate root/checkpoint duties.",
+  "retracted_interpretations": [
+    {
+      "source": "UPS parity receipt as it existed when first reviewed",
+      "text": "Input00080018 is omitted by both creation clients for peer-assigned identity. All other input attributes are compared exactly. Initial audit incorrectly expected that UID in POST; the failed oracle receipt is retained.",
+      "status": "Retracted interpretation; not a valid current qualification limit or oracle-only error"
+    }
+  ],
+  "amended_utc": "2026-10-26T08:43:47.684737+00:00",
+  "amendment": "Explicitly retracted the copied initial UPS oracle-only interpretation. The independent finding and M7-open recommendation remain unchanged."
+}

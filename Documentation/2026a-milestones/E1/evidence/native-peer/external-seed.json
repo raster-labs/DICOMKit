@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-mpps",
+    "create",
+    "127.0.0.1",
+    "--port",
+    "65517",
+    "--aet",
+    "E1WORKSHOP",
+    "--called-aet",
+    "E1MPPS",
+    "--timeout",
+    "5",
+    "--study-uid",
+    "2.25.8202601.9",
+    "--modality",
+    "CT",
+    "--patient-id",
+    "E1-EXTERNAL",
+    "--patient-name",
+    "\u00c9mile^EXTERNAL",
+    "--procedure-step-description",
+    "EXTERNAL BASELINE",
+    "--specific-character-set",
+    "ISO_IR 192"
+  ],
+  "exit": 0,
+  "binary_sha256": "da25ed1655841f945b3a4bc8a7e9e2c85ee2c025d178596622bf58f3f85e60c4"
+}

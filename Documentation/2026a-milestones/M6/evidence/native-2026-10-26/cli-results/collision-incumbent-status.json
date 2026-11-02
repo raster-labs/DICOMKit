@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+    "status",
+    "pacs://127.0.0.1:21114",
+    "--called-aet",
+    "COLLISION",
+    "--timeout",
+    "5",
+    "--format",
+    "json"
+  ],
+  "returncode": 64,
+  "stdout": "",
+  "stderr": "Error: Missing expected argument '--aet <aet>'\nHelp:  --aet <aet>  Local Application Entity Title (calling AE)\nUsage: dicom-print status <url> --aet <aet> [--called-aet <called-aet>] [--timeout <timeout>] [--verbose] [--format <format>]\n  See 'dicom-print status --help' for more information.\n"
+}

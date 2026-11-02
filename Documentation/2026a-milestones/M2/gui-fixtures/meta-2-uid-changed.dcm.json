@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "File Meta (0002,0003) UID '2.25.123456789' does not match dataset (0008,0018) UID '2.25.222222222'",
+          "tag" : "(0002,0003)"
+        }
+      ],
+      "filePath" : "\/private\/tmp\/dicomkit-m2-ui\/uid-changed.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

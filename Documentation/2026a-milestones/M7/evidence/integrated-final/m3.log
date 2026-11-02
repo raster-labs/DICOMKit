@@ -1,0 +1,7 @@
+Test Suite 'QIDOResourcePolicyTests' passed at 2026-10-24 20:52:10.708.
+Test Suite 'QueryFilterPreflightTests' passed at 2026-10-24 20:52:12.541.
+Test Suite 'QueryLevelOptionTests' passed at 2026-10-24 20:52:20.502.
+Test Suite 'QIDOOutgoingResourceTests' passed at 2026-10-24 20:52:23.651.
+✔ Suite "M3 Workshop QIDO effective filters" passed after 0.318 seconds.
+M3 independent probes passed: 153
+M3 DIMSE passed: 4 accepted C-FIND requests, correct STUDY/SERIES modality tags and results, matching expressions preserved, 4 refused queries with zero additional associations.

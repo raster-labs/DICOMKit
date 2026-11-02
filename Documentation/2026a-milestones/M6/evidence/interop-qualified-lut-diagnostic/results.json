@@ -1,0 +1,214 @@
+{
+  "cases": [
+    {
+      "id": "DC-F01",
+      "title": "DICOMKit SCU to DCMTK: Printer status",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F02",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 8-bit",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F03",
+      "title": "DICOMKit SCU to DCMTK: exact raw grayscale 12-bit",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F04",
+      "title": "DICOMKit SCU to DCMTK: implicit VR",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F05",
+      "title": "DICOMKit SCU to DCMTK: IDENTITY Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F06",
+      "title": "DICOMKit SCU to DCMTK: LIN OD Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-F07",
+      "title": "DICOMKit SCU to DCMTK: unavailable required LUT refuses before print",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R01",
+      "title": "DCMTK SCU to DICOMKit: 8-bit grayscale",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R02",
+      "title": "DCMTK SCU to DICOMKit: 12-bit grayscale",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R03",
+      "title": "DCMTK SCU to DICOMKit: implicit VR",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R04",
+      "title": "DCMTK SCU to DICOMKit: IDENTITY Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R05",
+      "title": "DCMTK SCU to DICOMKit: LIN OD Presentation LUT",
+      "status": "not_run"
+    },
+    {
+      "id": "DC-R06",
+      "title": "DCMTK SCU to DICOMKit: separate annotation context and literal text",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F01",
+      "title": "DICOMKit SCU to pynetdicom: exact planar color",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F02",
+      "title": "DICOMKit SCU to pynetdicom: repeated annotations",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F03",
+      "title": "DICOMKit SCU to pynetdicom: N-SET failure and cleanup",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F04",
+      "title": "DICOMKit SCU to pynetdicom: Printer FAILURE prevents print",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F05",
+      "title": "DICOMKit SCU to pynetdicom: Printer WARNING surfaced",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F06",
+      "title": "DICOMKit SCU to pynetdicom: N-ACTION warning surfaced",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F07",
+      "title": "DICOMKit SCU to pynetdicom: interleaved Done ACK and second-association Job query",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-F08",
+      "title": "DICOMKit SCU to pynetdicom: rejected required LUT prevents print",
+      "status": "passed",
+      "elapsed_seconds": 0.531368708,
+      "observations": {
+        "dimse_messages": 4,
+        "accepted_contexts": [
+          {
+            "1": {
+              "abstract": "1.2.840.10008.5.1.1.9",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 0,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "3": {
+              "abstract": "1.2.840.10008.5.1.1.1",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "5": {
+              "abstract": "1.2.840.10008.5.1.1.2",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "7": {
+              "abstract": "1.2.840.10008.5.1.1.4",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "9": {
+              "abstract": "1.2.840.10008.5.1.1.16",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "11": {
+              "abstract": "1.2.840.10008.5.1.1.14",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "13": {
+              "abstract": "1.2.840.10008.5.1.1.23",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            },
+            "15": {
+              "abstract": "1.2.840.10008.5.1.1.15",
+              "offered": [
+                "1.2.840.10008.1.2.1",
+                "1.2.840.10008.1.2"
+              ],
+              "result": 3,
+              "transfer": "1.2.840.10008.1.2.1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "PY-R01",
+      "title": "pynetdicom SCU to DICOMKit: color, mixed-VR Job Done ACK and terminal deletion",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-R02",
+      "title": "pynetdicom SCU to DICOMKit: invalid color planarity refused",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-R03",
+      "title": "pynetdicom SCU to DICOMKit: no Job context means no event",
+      "status": "not_run"
+    },
+    {
+      "id": "PY-R04",
+      "title": "pynetdicom SCU to DICOMKit: no event ACK, Job retained across associations",
+      "status": "not_run"
+    }
+  ],
+  "complete": true,
+  "passed": 1,
+  "failed": 0,
+  "not_run": 24,
+  "unqualified_peer": 0
+}

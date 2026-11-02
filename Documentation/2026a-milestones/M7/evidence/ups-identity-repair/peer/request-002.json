@@ -1,0 +1,25 @@
+{
+  "index": 2,
+  "utc": "2026-10-26T08:56:06.005710+00:00",
+  "method": "GET",
+  "target": "/cli/dicom-web/workitems/2.25.20261024001",
+  "headers": {
+    "Host": "127.0.0.1:62053",
+    "Accept": "application/dicom+json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+    "Accept-Encoding": "gzip, deflate",
+    "User-Agent": "DICOMKit/1.0"
+  },
+  "body": "",
+  "surface": "cli",
+  "uid": "2.25.20261024001",
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Length": "300",
+      "Content-Type": "application/dicom+json"
+    },
+    "body": "{\"00741200\":{\"Value\":[\"MEDIUM\"],\"vr\":\"CS\"},\"00080018\":{\"vr\":\"UI\",\"Value\":[\"2.25.20261024001\"]},\"00404041\":{\"Value\":[\"READY\"],\"vr\":\"CS\"},\"00404005\":{\"Value\":[\"20261024103000.123456+0530\"],\"vr\":\"DT\"},\"00741000\":{\"Value\":[\"SCHEDULED\"],\"vr\":\"CS\"},\"00741204\":{\"Value\":[\"M2 synthetic schedule\"],\"vr\":\"LO\"}}"
+  }
+}

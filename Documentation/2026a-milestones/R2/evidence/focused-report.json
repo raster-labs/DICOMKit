@@ -1,0 +1,322 @@
+{
+  "log": "../../outputs/DICOMKit_R2/focused-tests-repaired.log",
+  "execution_outcome": "success",
+  "xctest_products": [
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 27,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    },
+    {
+      "outcome": "passed",
+      "tests": 0,
+      "skipped": 0,
+      "failures": 0
+    }
+  ],
+  "swift_testing_products": [
+    {
+      "outcome": "passed",
+      "tests": 14
+    },
+    {
+      "outcome": "passed",
+      "tests": 16
+    },
+    {
+      "outcome": "passed",
+      "tests": 13
+    },
+    {
+      "outcome": "passed",
+      "tests": 100
+    }
+  ],
+  "errors": [],
+  "sha256": "ea16be56e83e99de48fa73e000ec6b9b59731b7ce40e4328c166f488d3df558a",
+  "reported_tests": 170,
+  "xctest_skipped": 0
+}

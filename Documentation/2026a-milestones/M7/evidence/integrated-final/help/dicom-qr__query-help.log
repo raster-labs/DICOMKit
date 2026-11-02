@@ -1,0 +1,83 @@
+OVERVIEW: Query and retrieve DICOM studies
+
+USAGE: dicom-qr query [<options>] <host> --aet <aet>
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112, the registered
+                          DICOM port; 104 is the well-known port — PS3.8 9.1.2)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --move-dest <move-dest> Move Destination (0000,0600): AE Title of the Storage
+                          SCP that receives the C-STORE sub-operations
+                          (required for C-MOVE)
+  --method <method>       Retrieval method: c-move (Study Root Query/Retrieve
+                          Information Model - MOVE) or c-get (Study Root
+                          Query/Retrieve Information Model - GET) (default:
+                          c-move) (default: c-move)
+  --patient-name <patient-name>
+                          Patient's Name (0010,0010) — wildcards * and ? per
+                          PS3.4 C.2.2.2.4 (case handling of PN matching is the
+                          SCP's)
+  --patient-id <patient-id>
+                          Patient ID (0010,0020)
+  --study-date <study-date>
+                          Study Date (0008,0020): YYYYMMDD, or a range
+                          YYYYMMDD-YYYYMMDD, -YYYYMMDD or YYYYMMDD- (PS3.4
+                          C.2.2.2.5)
+  --study-uid <study-uid> Study Instance UID (0020,000D)
+  --accession-number <accession-number>
+                          Accession Number (0008,0050)
+  --modality <modality>   Modality filter (0008,0060) — e.g. CT, MR, US, OPT.
+                          Run 'dicom-tags --list-modalities' for every DICOM
+                          2026a code.
+  --strict-modality       Reject a --modality value that is not a current DICOM
+                          Defined Term
+  --study-description <study-description>
+                          Study Description (0008,1030) — wildcards * and ? per
+                          PS3.4 C.2.2.2.4
+  -o, --output <output>   Output directory for retrieved files (default: .)
+  --hierarchical          Organize C-GET output hierarchically (<output>/<Study
+                          Instance UID>/); C-MOVE output is stored by the move
+                          destination
+  --interactive           Interactive mode - select studies to retrieve
+  --auto                  Automatic mode - retrieve all matching studies
+  --review                Review mode - query only, save state for later
+  --save-state <save-state>
+                          Save query/retrieval state to file
+  --timeout <timeout>     Connection timeout in seconds (default: 60) (default:
+                          60)
+  --parallel <parallel>   Maximum concurrent retrievals: up to N studies are
+                          retrieved at once, each on its own association;
+                          per-study lines are printed in study order (default:
+                          1) (default: 1)
+  --priority <priority>   Priority (0000,0700) of each C-MOVE-RQ / C-GET-RQ:
+                          low (0002H), medium (0000H), high (0001H) — PS3.7
+                          Tables 9.3-9 / 9.3-6 (default: medium) (values: low,
+                          medium, high; default: medium)
+  --validate              Validate retrieved files
+  --transfer-syntax <transfer-syntax>
+                          Requested transfer syntax for retrieved files —
+                          negotiated during association setup. Accepts any
+                          name/UID the shared parser understands; canonical
+                          tokens: explicit-vr-le, implicit-vr-le,
+                          explicit-vr-be, deflate, jpeg-baseline,
+                          jpeg-extended, jpeg-lossless, jpeg-lossless-sv1,
+                          jpeg2000-lossless, jpeg2000, jpeg2000-part2-lossless,
+                          jpeg2000-part2, htj2k-lossless, htj2k-rpcl, htj2k,
+                          jpeg-ls-lossless, jpeg-ls, jpeg-xl-lossless, jpeg-xl,
+                          rle-lossless.
+  --verbose               Show verbose output
+  --include-parent-keys   Non-baseline: also request parent-level attributes as
+                          return keys at SERIES/INSTANCE level (dicom-qr
+                          queries at STUDY level, where every requested key is
+                          already level-appropriate; accepted for parity with
+                          dicom-query)
+  --version               Show the version.
+  -h, --help              Show help information.
+

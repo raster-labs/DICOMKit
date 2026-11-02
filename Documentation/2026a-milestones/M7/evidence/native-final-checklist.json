@@ -1,0 +1,602 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-24T15:08:56.108909+00:00",
+  "status": "Prepared; no final native case executed by this checklist",
+  "plan": "Documentation/2026a-milestones/PLAN.md M7, cross-cutting acceptance and M6.3",
+  "source_review_base": "3ee9af8a945b76aee72f0062ffb09139bb04d8a9",
+  "final_source_revision": "To be frozen by parent after M7 repairs",
+  "current_native_blocker": "Mac locked; do not substitute older GUI, tests, copied commands or ViewModel actions",
+  "counting_policy": "Each entry is a planned case group with subcases, not an executed count. Record individual outcomes and any unavailable subcase separately. Historical M0–M5 evidence is setup/oracle context only for final GUI; unchanged automated evidence may be reused with source equivalence.",
+  "cases": [
+    {
+      "id": "FINAL-01",
+      "route": "Final packaged app provenance / Workshop catalog",
+      "item_ids": [
+        "QUAL-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Freeze final source and lockfile hashes, actual DICOMStudioApp target, app executable/debug dylib and CLI hashes. Quit old app and launch the exact final bundle path.",
+        "Confirm final Workshop catalog has 35 entries / 32 unique enabled executables of 41; distinguish the four dicom-wado forms. No claim for nine deferred tools.",
+        "Select each catalog entry at least once to inspect form/render and preview boundaries; execute the changed routes below. Generic serialization correctness remains supported by final parser/argv tests, without claiming every unchanged tool was executed."
+      ],
+      "evidence_to_keep": [
+        "Build/identity manifest",
+        "Launch record",
+        "Catalog screenshots and per-entry selection record"
+      ],
+      "kind": "provenance-and-inventory"
+    },
+    {
+      "id": "FINAL-02",
+      "route": "dicom-tags: shell serialization and scalar edit",
+      "item_ids": [
+        "WS-FIX-01",
+        "A-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use synthetic values with whitespace, apostrophe, wildcard, backslash-separated VM, dollar/semicolon literal text and a leading equals token. Copy/import where supported and execute an allowed edit.",
+        "Compare literal argv and resulting tag bytes with final CLI; no command substitution or unintended sentinel file.",
+        "Run invalid AS/DA/DT/TM/UI/VM/AE inputs in dry-run and write; reject without changing original or creating rejected output. Reuse M2 vectors, not old pass results."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-03",
+      "route": "dicom-tags: identity, charset, copy and signed values",
+      "item_ids": [
+        "A-02",
+        "A-03",
+        "A-08",
+        "A-09"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Edit SOP class and instance and verify dataset/meta identities and encoded group length.",
+        "Read/edit Latin-1, UTF-8 and Japanese ISO 2022 files; preserve leading text and nested inheritance/overrides, correct declaration/bytes.",
+        "Exercise numeric pair, parenthesized pair, compact hex and keyword copy selectors; inspect copied VR/raw bytes.",
+        "Insert signed -1 then update existing SS to -2; confirm FF FF / FE FF. Unsigned negative and overflow reject."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent file-byte inspector and CLI/GUI output comparison"
+      ]
+    },
+    {
+      "id": "FINAL-04",
+      "route": "dicom-info and dicom-validate",
+      "item_ids": [
+        "A-03",
+        "A-04",
+        "A-05",
+        "A-06",
+        "A-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Info displays Latin-1, UTF-8 and ISO 2022 names without altered leading significant text.",
+        "Validator level 1/2: valid controls, required meta empties, identity mismatch, nested invalid values/calendar dates and wrong registered VR.",
+        "Compare saved JSON reports with final CLI excluding only path/duration; verify text and JSON, strict false/true wrong-VR outcomes."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Saved report field comparison"
+      ]
+    },
+    {
+      "id": "FINAL-05",
+      "route": "dicom-mwl query",
+      "item_ids": [
+        "WS-FIX-02",
+        "WS-FIX-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Enter open-ended leading-hyphen DA and TM ranges, bounded/scalar controls and malformed forms. Preview must bind option values without interpreting a new flag.",
+        "Execute valid query against prepared peer and inspect actual SPS sequence DA/TM bytes; malformed forms reject before network. A no-peer timeout proves argument passage only, not successful MWL interoperability."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent MWL request capture/association count"
+      ]
+    },
+    {
+      "id": "FINAL-06",
+      "route": "dicom-qido / dicom-wado / dicom-stow / dicom-ups Basic authentication",
+      "item_ids": [
+        "WS-FIX-05"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "For all four stable IDs select Basic auth: preview clearly app-only and every physical line remains a comment, including multiline synthetic input.",
+        "Switch Basic/Bearer/none and confirm stable capability detection and no stale credentials. Use only synthetic credentials.",
+        "Execute each affected route once against controlled HTTP peer where supported; compare actual effective authorization header and route to permitted final CLI counterpart. Basic-only app behavior must not be falsely presented as a runnable CLI feature."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Sanitized synthetic HTTP capture"
+      ]
+    },
+    {
+      "id": "FINAL-07",
+      "route": "dicom-qido six resources and hidden-filter transitions",
+      "item_ids": [
+        "NET-03-A",
+        "NET-03-B",
+        "WS-FIX-03"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Execute all studies, all series, study series, all instances, study instances, and series instances. Correct modality matching tag and allowed resource keys.",
+        "Set PPS/series fields, switch study/series/instance scope repeatedly: hidden values absent from preview/request, restored when allowed. Study instances permits series filters.",
+        "Change tool: retained values clear. Reenter a valid request and execute it; compare with a fresh form to supplement the earlier observation-only reset.",
+        "Unsupported scoped filters refuse before dispatch or are excluded only by the documented effective-hidden-state rule; never silently broaden an explicitly accepted filter."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "HTTP query-item equality and exact expected UID sets"
+      ]
+    },
+    {
+      "id": "FINAL-08",
+      "route": "dicom-qido M3 supplement: UID lists and non-ASCII matching input",
+      "item_ids": [
+        "NET-02-E",
+        "NET-03-A",
+        "WS-FIX-03",
+        "QUAL-01"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use a valid supported resource with comma-separated UID alternatives and an actual non-ASCII matching input such as Müller*, not merely a non-ASCII result.",
+        "Verify percent encoding, exact list values, expected union within UID key and intersection with other keys, expected results and final CLI request equality.",
+        "Retain screenshot of the typed value plus captured request. This case was explicitly unexecuted in the earlier M3 packaged run."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "UID-list/non-ASCII raw URL + decoded query items"
+      ],
+      "supplement": true
+    },
+    {
+      "id": "FINAL-09",
+      "route": "dicom-query C-FIND and cancellation result reporting",
+      "item_ids": [
+        "NET-04-A",
+        "NET-05-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Study and series positive queries retain range/wildcard/modality filters; valid image query succeeds.",
+        "Image modality and patient study-level filters refuse before association and verbose query header.",
+        "Consume peer FE00 before any result and after partial results: app reports cancellation/non-success without presenting complete success; match CLI response/counters."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "DIMSE Identifier capture and association counts"
+      ]
+    },
+    {
+      "id": "FINAL-10",
+      "route": "dicom-retrieve C-MOVE / C-GET",
+      "item_ids": [
+        "NET-05-B",
+        "NET-10-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Exercise both method routes with cancelled FE00 response, including partial counters/output.",
+        "Successful retrieve from restarted filesystem-backed server returns expected dataset bytes; compare final CLI. Backend durability/restart is independently verified and not implied by the form."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Counter/status capture",
+        "Retrieved dataset hash"
+      ]
+    },
+    {
+      "id": "FINAL-11",
+      "route": "dicom-wado retrieve",
+      "item_ids": [
+        "NET-09-A",
+        "NET-09-B"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use existing instance/metadata retrieval route against production handler HTTP bridge and compare bytes/fields with CLI.",
+        "Capability negotiation remains backend HTTP evidence; do not invent a Workshop capability control. Unsupported server retrieval must surface failure if exercised, not success."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-12",
+      "route": "dicom-mpps update",
+      "item_ids": [
+        "NET-07-A"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Referenced image without explicit SOP Class rejects before association.",
+        "CT, MR and Secondary Capture successful updates send the exact class/instance pairs; compare CLI excluding generated timestamps only. Intermediate MPPS update enhancement remains deferred."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "N-SET dataset inspection"
+      ]
+    },
+    {
+      "id": "FINAL-13",
+      "route": "dicom-ups existing create/retrieve",
+      "item_ids": [
+        "NET-06-A",
+        "NET-06-B"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Create with compact scheduled DICOM DT preserving fraction/offset and retrieve against production handler or controlled capture peer; compare CLI request bytes and server result semantics.",
+        "The existing table does not expose DT; keep scheduling proof in wire/output inspection. Generic UPS attribute update has no Workshop route and remains backend-only acceptance."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "DT lexical/instant inspection"
+      ]
+    },
+    {
+      "id": "FINAL-14",
+      "route": "dicom-script template / validate / dry-run / live refusal",
+      "item_ids": [
+        "WS-FIX-04"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Live run unavailable before Run with clear CLI guidance.",
+        "Generate existing template, validate it, and dry-run it with explicit no-execution outcome.",
+        "Unknown nested command and unsupported unquoted conditional pipeline reject before logs/output side effects; no success claim. All five template contracts remain covered by final CLI/VM tests; record which templates are manually exercised."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-15",
+      "route": "dicom-qr Review / Auto",
+      "item_ids": [
+        "WS-FIX-06"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Visible options Review and Auto; no misleading Interactive selector.",
+        "Review shows matches but produces no retrieved files. Auto retrieves exact synthetic match set; compare dataset bytes with CLI.",
+        "If a persisted Interactive value can be injected through existing supported state import, it refuses; otherwise retain final model regression evidence and mark that native subcase unexecuted rather than fabricate it."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "FINAL-16",
+      "route": "dicom-anon Allow Burned-in PHI",
+      "item_ids": [
+        "WS-FIX-08"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Beginner advanced disclosure and Advanced mode display one Allow Burned-in PHI control/identity.",
+        "False override plus pixel-cleaning disabled refuses without output; true override emits one flag and a file with PatientIdentityRemoved=NO. Mode switching retains one binding."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent output tag inspection"
+      ]
+    },
+    {
+      "id": "FINAL-17",
+      "route": "SR viewer TIME/DATETIME display and copy",
+      "item_ids": [
+        "WS-FIX-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Open final synthetic SR fixture; inspect all 16 preserved partial/fraction/offset/malformed lexical cases.",
+        "Also inspect the ordinary image viewer Study Time overlay with fractional TM; shared formatting must preserve precision there as reflected by the corrected ViewerStudyDateTimeTests.",
+        "Native copy of a fraction with signed UTC offset preserves exact text; source bytes/hash unchanged."
+      ],
+      "evidence_to_keep": [
+        "Narrative screenshot/AX",
+        "Clipboard text",
+        "Source hash before/after"
+      ],
+      "surface": "Viewer, not Workshop"
+    },
+    {
+      "id": "FINAL-18",
+      "route": "dicom-convert JPEG Extended M7 repair",
+      "item_ids": [
+        "QUAL-01",
+        "QUAL-02"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Convert synthetic 8-bit monochrome to JPEGExtended through actual Workshop; independently inspect .51/SOF1 and compare decompressed pixels with CLI.",
+        "Color Extended request refuses with accurate monochrome diagnostic and no output. Strict precision mismatch remains an explicit refusal/limit.",
+        "Keep Part 2 target refusal visible; do not turn recognized catalog entries into supported codec claims.",
+        "After the native PixelData repair, convert compressed >8-allocated input to native output and verify OW, length and exact CLI-matching pixel bytes; include an odd-sized 8-bit output control if its final fix is retained."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Independent SOF/process and pixel inspector"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-status",
+      "route": "dicom-print status",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Observe Printer status JSON/text from actual peer; match CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-send",
+      "route": "dicom-print send",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Native file Browse, literal repeatable rows, reordered inputs/annotations, defaults/advanced controls, preview/copy/import and actual send.",
+        "Exercise gray/color, raw/window settings, native/RLE/JPEG inputs, all-frames/frame-2 controls, LUT/annotation acceptance/refusal and injected failure/warning. B604 remains successful submission with visible warning.",
+        "Workshop SCU -> CLI SCP and independent peer; inspect image-box data and output."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-job",
+      "route": "dicom-print job",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Query actual announced Print Job UID; visible status/counters and missing/deleted UID behavior match CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-list-printers",
+      "route": "dicom-print list-printers",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Use isolated Debug settings root; show effective registry location and compare records/schema with CLI."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-add-printer",
+      "route": "dicom-print add-printer",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Add/update default profile in isolated registry with native visible values; duplicate/error behavior matches CLI.",
+        "Relaunch final app and confirm persisted profile; ensure sandbox vs terminal locations are explicit."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCU-remove-printer",
+      "route": "dicom-print remove-printer",
+      "item_ids": [
+        "WS-COV-07"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Remove only synthetic created profile; missing profile is error and does not mutate unrelated records."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged"
+      ]
+    },
+    {
+      "id": "PRINT-SCP-status",
+      "route": "dicom-printscp status",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Resolve explicit/default configuration without listener; tri-state inherit/enabled/disabled and scalar defaults agree with CLI. Save/reload config; path shown accurately."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ]
+    },
+    {
+      "id": "PRINT-SCP-queues",
+      "route": "dicom-printscp queues",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Enumerate OS queue names without dispatch. --paper-queue without --allow-paper refuses; no physical print."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ]
+    },
+    {
+      "id": "PRINT-SCP-simulate",
+      "route": "dicom-printscp simulate",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Browse synthetic input/config/output paths; repeated output format semantics agree with CLI (one selected image format plus PDF).",
+        "PNG/TIFF decoded pixel equality; complete PDF container only unless independently raster-checked. --save-config exits before input gathering/films.",
+        "Exercise filename tokens, failed/inaccessible sink, --open native callback, and clear saved-vs-failed file reporting."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ]
+    },
+    {
+      "id": "PRINT-SCP-serve",
+      "route": "dicom-printscp serve",
+      "item_ids": [
+        "WS-COV-08"
+      ],
+      "status": "Not run on final packaged app",
+      "checks": [
+        "Start and observe actual bound port; CLI SCU -> Workshop SCP; inspect output files/events/counters.",
+        "Stop cancels/drains; port can be rebound and service restarted. Duration/max-films finish as configured.",
+        "Port collision reports error without stopping the existing listener. Leaving Workshop view and app termination stop listener/resources.",
+        "Exercise incoming color/gray, optional contexts and Print Job events with independent peer; no physical printing claim."
+      ],
+      "evidence_to_keep": [
+        "Native screenshot/AX visible effective values and result status",
+        "Copied command captured as literal argv; equivalent final CLI invocation",
+        "Independent request/file/response check where applicable; input hashes unchanged",
+        "Listener/process lifecycle observations"
+      ]
+    }
+  ],
+  "Toolbox_applicability": {
+    "status": "Not applicable to this packaged DICOMStudio target",
+    "reason": "DICOMToolbox is a separate library, not linked by DICOMStudio; no standalone Toolbox application target. Reconfirm final Package/project linkage; do not add a deferred app integration just to create a GUI gate.",
+    "required_final_non_GUI_checks": [
+      {
+        "items": [
+          "TB-FIX-04"
+        ],
+        "route": "CommandExecutor / ConsoleView model / history",
+        "checks": [
+          "Structured argv with literal shell metacharacters, one intended child, safe copied text.",
+          "Cancellation drains descendants; duplicate launch rejected; legacy string history cannot replay."
+        ]
+      },
+      {
+        "items": [
+          "TB-FIX-01",
+          "TB-FIX-02"
+        ],
+        "route": "Toolbox anonymization form/presets/history",
+        "checks": [
+          "Only current ps315/basic profile tokens; obsolete profile/flag refusal.",
+          "Default UID replacement and explicit retain-uids match real CLI output."
+        ]
+      },
+      {
+        "items": [
+          "TB-FIX-03"
+        ],
+        "route": "Toolbox script templates",
+        "checks": [
+          "All five template names passed positionally to real CLI; obsolete --output refused."
+        ]
+      }
+    ],
+    "reusable_context": [
+      "Documentation/2026a-milestones/M1/REPORT.md",
+      "Documentation/2026a-milestones/M5/REPORT.md"
+    ]
+  },
+  "backend_only_boundaries": [
+    "QIDO provider indexing/pagination/includefield and standard capabilities require final HTTP oracle checks; no new Workshop controls are authorized.",
+    "UPS generic attribute update has no Workshop route.",
+    "Server TLS refusal must be tested through actual CLI/config paths, including --tls with enableTLS=false config. No Workshop server tool is added.",
+    "Physical printer/CUPS output/calibration and unavailable platforms remain separate unqualified gates."
+  ],
+  "M3_supplements": [
+    "FINAL-08 UID-list and non-ASCII matching input is mandatory supplement from STATUS.md.",
+    "FINAL-07 executes a fresh request after tool reset; older M3 only observed cleared state."
+  ],
+  "evidence_template": {
+    "source_and_bundle_manifest": null,
+    "fixture_hashes": null,
+    "native_capture": null,
+    "effective_argv": null,
+    "CLI_replay": null,
+    "request_or_output_oracle": null,
+    "expected": null,
+    "actual": null,
+    "result": "Not run",
+    "limits": []
+  }
+}

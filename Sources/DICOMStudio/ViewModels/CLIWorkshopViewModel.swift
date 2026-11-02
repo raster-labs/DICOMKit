@@ -5,6 +5,11 @@
 // NEMA-verified: 2026a, checked 2026-10-06 — the 33 CLI Workshop executors read against Sources/dicom-*: every executor runs the shared DICOMKit / DICOMNetwork / DICOMWeb engine and console the CLI runs (FrameSplitter, DICOMDIRWorkflow, DICOMValidator, DICOMConverter, CompressionManager / CompressionConsole, ImageConverter / ImageConsole, EncapsulatedDocumentBuilder, PixelEditor, VideoWorkflow / VideoConsole, Anonymizer / PixelRedactor / AnonConsole, DICOMQueryService, DICOMRetrieveService, DICOMStorageService, WADO / QIDO / STOW / UPS clients), prints the CLI's lines, refusal texts and exit codes (64 usage / 1 / 2) in the CLI's order; the rules lifted out of the CLIs are called, not copied (Studio pass 2026-10-06): DICOMDIRFileSetRules (D253), DICOMValidator.iodName(forIODOption:) (D248), ArchiveMatching.studyDateKeyWarning (D249), UIDManager.RootRule (D250), DICOMImageExporter.CineFrameRate / FrameSelection / BurnedInAnnotation (D252), CompressionConsole.NativeTargetSyntax (D267), DICOMConverter.resolveTargetEncoding (D268), VideoOptionConformance / AudioChannelSourceOption (D269), PixelEditInputChecks (D270), EncapsulatedDocumentBuilder.OptionRules (D272), ImageConverter.OutputRules (D274), AnonCLI (D275), NetworkConsole.CStoreOutcome / sendStoreFailedText / retrieveFinalResponse (D261, D262), DICOMMPPSService / WorklistQueryKeys rules (D263, D264), DICOMwebOptionRules / UPSState.changeStateTarget(optionValue:) (D255, D265); directory runs exit as the CLIs (D251, D271, D273); only CLI-local texts stay mirrored (WorkshopAnonError, pdfSkippedLine, the dump / retrieve / qr / mpps refusals); script-checked by Scripts/diff_studio_g1.py (engine_calls / no_local_copy); parity pinned by SplitMergeWorkshopCLIParityTests / NetworkToolWorkshopCLIParityTests / WorkshopDirectoryRunExitTests and Scripts/diff_studio.py --group G1 (0 FAIL; the 2 former PEND rows P-STUDIO-ANON-PS315 and P-STUDIO-MWL-CREATE implemented 2026-10-06: dicom-anon runs ps315 / basic through Anonymizer.deidentify, dicom-mwl offers only query); standard values are the engines' — this file carries no table of its own
 
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 import Observation
 import DICOMCore
 import DICOMKit
@@ -16,6 +21,36 @@ import DICOMWeb
 import CoreGraphics
 import ImageIO
 #endif
+
+/// OutputAccess supplies the existing visible Downloads fallback, while Workshop
+/// holds the original grants at its execution boundary. Keeping grants out of this
+/// adapter prevents both file and directory producers from silently changing targets.
+private enum WorkshopRequestedOutput {
+    static func resolveWritableURL(forPath path: String, subfolder: String = "Output",
+                                   isDirectory: Bool = false) -> (url: URL, note: String?) {
+        OutputAccess.resolveWritableURL(forPath: path, scopedURL: nil,
+                                        subfolder: subfolder, isDirectory: isDirectory)
+    }
+
+    static func resolveWritablePath(_ path: String) -> (path: String, note: String?) {
+        // Empty output means in-place editing/default naming for the shared CLI engines.
+        guard !path.isEmpty else { return ("", nil) }
+        let result = resolveWritableURL(forPath: path)
+        return (result.url.path, result.note)
+    }
+
+    @discardableResult
+    static func write(_ data: Data, toPath path: String,
+                      subfolder: String = "Output") throws -> (url: URL, note: String?) {
+        try OutputAccess.write(data, toPath: path, scopedURL: nil, subfolder: subfolder)
+    }
+
+    @discardableResult
+    static func writeString(_ text: String, toPath path: String,
+                            subfolder: String = "Output") throws -> (url: URL, note: String?) {
+        try write(Data(text.utf8), toPath: path, subfolder: subfolder)
+    }
+}
 
 // MARK: - DICOM Part 10 File Format helpers (file-private, context-free)
 
@@ -172,6 +207,11 @@ private actor DICOMStudioSCPDelegate: StorageDelegate {
 @Observable
 public final class CLIWorkshopViewModel {
     private let service: CLIWorkshopService
+    public var isPrintCommandRunning = false
+    public var printListenerPort: UInt16?
+    public var printCancellationRequested = false
+    @ObservationIgnored var printCommandTask: Task<Void, Never>?
+
 
     /// Callback to open a retrieved file in the Viewer tab.
     /// Set by MainViewModel to wire navigation.
@@ -428,6 +468,7 @@ public final class CLIWorkshopViewModel {
     /// category's first tool — so the parameter form, command preview, and
     /// console all update to the new selection (rather than showing stale state).
     public func selectCategory(_ tab: CLIWorkshopTab) {
+        guard !isPrintCommandRunning else { return }
         activeTab = tab
         if tab == .listener {
             selectTool(id: nil)
@@ -438,6 +479,7 @@ public final class CLIWorkshopViewModel {
 
     /// Selects a tool by ID.
     public func selectTool(id: String?) {
+        guard !isPrintCommandRunning else { return }
         selectedToolID = id
         service.setSelectedToolID(id)
         // Reset parameters when tool changes
@@ -812,6 +854,13 @@ public final class CLIWorkshopViewModel {
 
     // MARK: - 16.3 Parameter Configuration
 
+    /// Commits a fully validated import to both the form and its backing state.
+    func replaceParameterValues(_ values: [CLIParameterValue]) {
+        parameterValues = values
+        service.setParameterValues(values)
+        rebuildCommandPreview()
+    }
+
     /// Sets parameter definitions for the selected tool.
     public func setParameterDefinitions(_ defs: [CLIParameterDefinition]) {
         parameterDefinitions = defs
@@ -841,6 +890,7 @@ public final class CLIWorkshopViewModel {
                 updateParameterValueSilent(parameterID: "url", value: adjusted)
             }
         }
+        reconcileFileAccessGrant(parameterID: parameterID)
         service.setParameterValues(parameterValues)
         rebuildCommandPreview()
     }
@@ -893,13 +943,86 @@ public final class CLIWorkshopViewModel {
         updateParameterValue(parameterID: parameterID, value: url.path)
     }
 
+    /// Resolve the existing ancestor with POSIX semantics. Foundation can leave
+    /// an unresolved symlink in a path whose final filename does not exist yet.
+    /// Append only the missing child names; fail closed for dangling links or an
+    /// unresolved parent traversal instead of treating their lexical path as authority.
+    private static func canonicalFileComponents(_ path: String) -> [String]? {
+        guard !path.isEmpty, !path.contains("\0") else { return nil }
+        #if canImport(Darwin) || canImport(Glibc)
+        var ancestor = (path as NSString).isAbsolutePath ? path : FileManager.default.currentDirectoryPath + "/" + path
+        var missing: [String] = []
+        while true {
+            let (resolved, resolutionError) = ancestor.withCString { pointer in
+                let result = realpath(pointer, nil)
+                return (result, errno)
+            }
+            if let resolved {
+                defer { free(resolved) }
+                return (String(cString: resolved) as NSString).pathComponents + missing
+            }
+            guard resolutionError == ENOENT else { return nil }
+            var metadata = stat()
+            // A dangling symlink exists according to lstat even though realpath
+            // cannot resolve it. Never append such a component as a new directory.
+            let (status, metadataError) = ancestor.withCString { pointer in
+                let result = lstat(pointer, &metadata)
+                return (result, errno)
+            }
+            guard status != 0, metadataError == ENOENT else { return nil }
+            let name = (ancestor as NSString).lastPathComponent
+            guard !name.isEmpty, name != ".", name != ".." else { return nil }
+            let parent = (ancestor as NSString).deletingLastPathComponent
+            guard !parent.isEmpty, parent != ancestor else { return nil }
+            missing.insert(name, at: 0)
+            ancestor = parent
+        }
+        #else
+        return nil
+        #endif
+    }
+
+    /// A Browse URL is a capability, never a replacement for a typed path. Resolve
+    /// symlinks for the containment check so a sibling prefix or an escaping link
+    /// does not cause an unrelated target to retain the old directory grant.
+    static func grant(_ url: URL, coversPath path: String) -> Bool {
+        guard !path.isEmpty else { return false }
+        // Resolve metadata while the selected capability is active. This starts
+        // only the original URL; it grants no authority to a newly typed URL.
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        guard let components = canonicalFileComponents(path),
+              let prefix = canonicalFileComponents(url.path) else { return false }
+        if components == prefix { return true }
+        var isDirectory: ObjCBool = false
+        let exists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
+        guard (exists && isDirectory.boolValue) || (!exists && url.hasDirectoryPath) else { return false }
+        return components.count > prefix.count && Array(components.prefix(prefix.count)) == prefix
+    }
+
+    private func reconcileFileAccessGrant(parameterID: String) {
+        // Print owns its lossless array paths and grants independently.
+        guard !isPrintToolSelected, let url = securityScopedURLs[parameterID] else { return }
+        let value = paramValue(parameterID)
+        let definition = parameterDefinitions.first { $0.id == parameterID }
+        if let definition, !satisfiesVisibility(definition) {
+            securityScopedURLs.removeValue(forKey: parameterID)
+            return
+        }
+        let paths = definition?.isRepeatable == true || definition?.parameterType == .arrayField
+            ? CommandBuilderHelpers.splitMultiValue(value) : [value]
+        if !paths.contains(where: { Self.grant(url, coversPath: $0) }) {
+            securityScopedURLs.removeValue(forKey: parameterID)
+        }
+    }
+
     /// Reads file data from a path, handling security-scoped resource access if needed.
     ///
     /// When the security-scoped URL for `parameterID` is a directory (e.g. the user
     /// browsed for a folder), the scope is started on the directory and the individual
     /// file at `path` is read within that scope.
     public func readFileData(at path: String, parameterID: String = "files") throws -> Data {
-        if let scopedURL = securityScopedURLs[parameterID] {
+        if let scopedURL = securityScopedURLs[parameterID], Self.grant(scopedURL, coversPath: path) {
             let accessing = scopedURL.startAccessingSecurityScopedResource()
             defer {
                 if accessing { scopedURL.stopAccessingSecurityScopedResource() }
@@ -921,9 +1044,6 @@ public final class CLIWorkshopViewModel {
     /// falls back to ~/Downloads/DICOMStudio (entitlement-allowed).
     private func resolvedOutputDir(_ rawOutput: String) -> String {
         if rawOutput == "." || rawOutput.isEmpty {
-            if let scopedURL = securityScopedURLs["output"] {
-                return scopedURL.path
-            }
             // Use ~/Downloads/DICOMStudio as the default (sandbox entitlement: downloads.read-write)
             let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
                 ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Downloads")
@@ -965,13 +1085,11 @@ public final class CLIWorkshopViewModel {
         let fm = FileManager.default
 
         // Build destination directory
-        var dirURL: URL
+        var dirURL = URL(fileURLWithPath: outputDir)
         var accessing = false
-        if let scopedURL = securityScopedURLs["output"] {
+        if let scopedURL = securityScopedURLs["output"],
+           Self.grant(scopedURL, coversPath: outputDir) {
             accessing = scopedURL.startAccessingSecurityScopedResource()
-            dirURL = scopedURL
-        } else {
-            dirURL = URL(fileURLWithPath: outputDir)
         }
         defer {
             if accessing {
@@ -1032,14 +1150,12 @@ public final class CLIWorkshopViewModel {
     @discardableResult
     public func writeOutputFile(data: Data, filename: String, outputDir: String) throws -> String {
         let fm = FileManager.default
-        var dirURL: URL
+        let dirURL = URL(fileURLWithPath: outputDir)
         var accessing = false
 
-        if let scopedURL = securityScopedURLs["output"] {
+        if let scopedURL = securityScopedURLs["output"],
+           Self.grant(scopedURL, coversPath: outputDir) {
             accessing = scopedURL.startAccessingSecurityScopedResource()
-            dirURL = scopedURL
-        } else {
-            dirURL = URL(fileURLWithPath: outputDir)
         }
         defer {
             if accessing {
@@ -1053,9 +1169,41 @@ public final class CLIWorkshopViewModel {
         return fileURL.path
     }
 
-    /// Checks whether all required parameters are satisfied.
+    /// Explains an operation that cannot be executed by Workshop. The CLI may
+    /// still support the displayed command; this is an app capability boundary.
+    public var executionUnavailableReason: String? {
+        if isPrintToolSelected { return printCommandValidationError }
+        if selectedToolID == "dicom-script" {
+            let operation = paramValue("operation")
+            if !["run", "validate", "template"].contains(operation) {
+                return "Choose Run with Dry Run enabled, Validate, or Template."
+            }
+            if operation == "run", paramValue("dryRun") != "true" {
+                return "Live script execution is unavailable in Workshop. Enable Dry Run, choose Validate or Template, or run the command in a terminal."
+            }
+        }
+        if selectedToolID == "dicom-qr", !["auto", "review"].contains(paramValue("mode")) {
+            return "Choose Auto to retrieve every matching study, or Review to list matches without retrieval. Interactive selection is unavailable in Workshop."
+        }
+        return nil
+    }
+
+    /// Labels the supported scripting actions without implying live execution.
+    public var runActionTitle: String {
+        if selectedToolID == "dicom-printscp", paramValue("subcommand") == "serve" { return "Start" }
+        guard selectedToolID == "dicom-script" else { return "Run" }
+        switch paramValue("operation") {
+        case "validate": return "Validate"
+        case "template": return "Generate Template"
+        case "run" where paramValue("dryRun") == "true": return "Dry Run"
+        default: return "Run"
+        }
+    }
+
+    /// Checks required fields and the selected in-app execution capability.
     public var isCommandValid: Bool {
-        CommandBuilderHelpers.validateRequired(
+        if isPrintToolSelected { return printCommandValidationError == nil }
+        return         executionUnavailableReason == nil && CommandBuilderHelpers.validateRequired(
             parameterValues: parameterValues,
             parameterDefinitions: parameterDefinitions
         )
@@ -1125,8 +1273,40 @@ public final class CLIWorkshopViewModel {
 
     // MARK: - 16.5 Console
 
+    /// The image CLI accepts an explicit output FILE for a single image. The
+    /// Workshop Browse control selects a folder, so expose the derived filename
+    /// in the actual field before preview/execution instead of silently changing
+    /// the target at write time. Directory and split-TIFF runs keep their folders.
+    private func normalizeImageOutputParameter() -> Bool {
+        guard selectedToolID == "dicom-image" else { return false }
+        let input = paramValue("input"), output = paramValue("output")
+        guard !input.isEmpty, !output.isEmpty else { return false }
+        let ext = (input as NSString).pathExtension.lowercased()
+        if paramValue("split-pages") == "true", ["tif", "tiff"].contains(ext) { return false }
+        let held = [securityScopedURLs["input"], securityScopedURLs["output"]].compactMap { url -> URL? in
+            guard let url, url.startAccessingSecurityScopedResource() else { return nil }
+            return url
+        }
+        defer { for url in held { url.stopAccessingSecurityScopedResource() } }
+        var inputIsDirectory: ObjCBool = false, outputIsDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: input, isDirectory: &inputIsDirectory), !inputIsDirectory.boolValue,
+              FileManager.default.fileExists(atPath: output, isDirectory: &outputIsDirectory), outputIsDirectory.boolValue else { return false }
+        // A trailing separator also protects significant spaces in the folder name
+        // from the shared resolver's trimming of the overall option string.
+        let folder = output.hasSuffix("/") ? output : output + "/"
+        let resolved = OutputPathResolver.resolveFileOutput(output: folder, input: input, fileExtension: "dcm")
+        if let index = parameterValues.firstIndex(where: { $0.parameterID == "output" }) {
+            parameterValues[index].stringValue = resolved
+        } else {
+            parameterValues.append(CLIParameterValue(parameterID: "output", stringValue: resolved))
+        }
+        reconcileFileAccessGrant(parameterID: "output")
+        return true
+    }
+
     /// Rebuilds the command preview based on current tool and parameter state.
     public func rebuildCommandPreview() {
+        if normalizeImageOutputParameter() { service.setParameterValues(parameterValues) }
         guard let tool = selectedTool() else {
             commandPreview = ""
             service.setCommandPreview("")
@@ -1173,13 +1353,18 @@ public final class CLIWorkshopViewModel {
         // the shared DICOMweb client, but the dicom-wado CLI has no basic-auth
         // flags (--token is Bearer-only) — the state is not CLI-representable,
         // so the preview must not present as paste-runnable.
-        if ["dicom-qido", "dicom-wado", "dicom-stow", "dicom-ups"].contains(tool.name) {
+        // Catalog command names include subcommands (e.g. "dicom-wado query");
+        // authentication capability belongs to the stable tool identity.
+        if ["dicom-qido", "dicom-wado", "dicom-stow", "dicom-ups"].contains(tool.id) {
             let rawAuth = values.first(where: { $0.parameterID == "auth" })?.stringValue ?? ""
             let effectiveAuth = rawAuth.isEmpty
                 ? (parameterDefinitions.first(where: { $0.id == "auth" })?.defaultValue ?? "")
                 : rawAuth
             if effectiveAuth == "basic" {
-                preview = "# in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)\n# " + preview
+                // A quoted argument can contain a newline. Comment every line
+                // so copying this app-only preview cannot run a trailing line.
+                let commented = preview.components(separatedBy: "\n").map { "# " + $0 }.joined(separator: "\n")
+                preview = "# in-app only — basic auth is not CLI-representable (dicom-wado --token is Bearer-only)\n" + commented
             }
         }
         commandPreview = preview
@@ -1264,7 +1449,7 @@ public final class CLIWorkshopViewModel {
         let noKeywords = format == .xml && paramValue("no-keywords") == "true"
 
         // dicom-json / dicom-xml check the input first (ArgumentParser ValidationError, exit 64).
-        guard FileManager.default.fileExists(atPath: (securityScopedURLs["inputPath"] ?? securityScopedURLs["input"])?.path ?? inputPath) else {
+        guard FileManager.default.fileExists(atPath: inputPath) else {
             appendConsoleOutput("Error: File not found: \(inputPath)\n")
             consoleStatus = .error; service.setConsoleStatus(.error)
             addToHistory(toolName: toolName, command: commandPreview, exitCode: 64, output: "File not found")
@@ -1310,11 +1495,11 @@ public final class CLIWorkshopViewModel {
             if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
-        // Sandbox/TCC-resilient output: prefer the picker's scoped URL; else probe the
-        // typed path and, if it's not writable (TCC), redirect to ~/Downloads/DICOMStudio.
-        let (outputURL, outRedirectNote) = OutputAccess.resolveWritableURL(
-            forPath: outputPath, scopedURL: outputScopedURL, subfolder: toolName)
+        let inputURL = URL(fileURLWithPath: inputPath)
+        // Probe the requested path while the original grant is held. If it is
+        // inaccessible, the shared writer reports its explicit Downloads fallback.
+        let (outputURL, outRedirectNote) = WorkshopRequestedOutput.resolveWritableURL(
+            forPath: outputPath, subfolder: toolName)
         if let note = outRedirectNote { appendConsoleOutput(note + "\n") }
 
         for line in DataExchangeWorkflow.headerLines(
@@ -1487,7 +1672,7 @@ private func executeDicomUIDValidate() async {
     let inputScopedURL = securityScopedURLs["file"]
     let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
     defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-    let fileURL: URL? = filePath.isEmpty ? nil : (inputScopedURL ?? URL(fileURLWithPath: filePath))
+    let fileURL: URL? = filePath.isEmpty ? nil : (URL(fileURLWithPath: filePath))
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
         // Validate via the shared DICOMKit UIDManager (PS3.5 Section 9 rules).
@@ -1606,13 +1791,9 @@ private func executeDicomUIDLookup() async {
 private func executeDicomUIDRegenerate() async {
     // <inputs> is a variadic positional list in the CLI — split with the shared
     // helper so multiple files (and the cross-file UID remapping) work like the
-    // CLI. A picked scoped URL is unioned with any typed paths.
-    var inputPaths = CommandBuilderHelpers.splitMultiValue(paramValue("inputPath"))
+    // CLI. Browse grants access; only the current field selects input files.
+    let inputPaths = CommandBuilderHelpers.splitMultiValue(paramValue("inputPath"))
     let inputScopedURL = securityScopedURLs["inputPath"]
-    if let scoped = inputScopedURL, !inputPaths.contains(scoped.path) {
-        if inputPaths.count <= 1 { inputPaths = [scoped.path] }
-        else { inputPaths.append(scoped.path) }
-    }
     guard !inputPaths.isEmpty else {
         appendConsoleOutput("Error: At least one input file is required\n")
         consoleStatus = .error; service.setConsoleStatus(.error)
@@ -1649,8 +1830,8 @@ private func executeDicomUIDRegenerate() async {
     let mapAccessing = mapScopedURL?.startAccessingSecurityScopedResource() ?? false
     defer { if mapAccessing { mapScopedURL?.stopAccessingSecurityScopedResource() } }
 
-    let effectiveOutput = outputScopedURL?.path ?? (outputPath.isEmpty ? nil : outputPath)
-    let resolvedMapPath: String? = mapScopedURL?.path ?? (exportMap.isEmpty ? nil : exportMap)
+    let effectiveOutput = (outputPath.isEmpty ? nil : outputPath)
+    let resolvedMapPath: String? = (exportMap.isEmpty ? nil : exportMap)
 
     let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
         // Mirrors the CLI's regenerate loop (dicom-uid main.swift): shared
@@ -1709,11 +1890,9 @@ private func executeDicomUIDRegenerate() async {
                     existingMappings: &globalMappings)
                 allMappings.append(contentsOf: mappings)
 
-                // Sandbox/TCC-resilient write (prefer scoped URL for a single
-                // output; else fall back to ~/Downloads with a note).
-                let writeRes = try OutputAccess.write(
-                    newData, toPath: fileOutputPath ?? inputPath,
-                    scopedURL: (isMultipleFiles ? nil : outputScopedURL), subfolder: "UIDRegenerate")
+                // Write to the requested target, with an explicit note on fallback.
+                let writeRes = try WorkshopRequestedOutput.write(
+                    newData, toPath: fileOutputPath ?? inputPath, subfolder: "UIDRegenerate")
 
                 if verbose {
                     for m in mappings {
@@ -1732,8 +1911,7 @@ private func executeDicomUIDRegenerate() async {
                 let encoder = JSONEncoder()
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
                 let mapData = try encoder.encode(allMappings)
-                let mapRes = try OutputAccess.write(mapData, toPath: mapPath,
-                                                    scopedURL: mapScopedURL, subfolder: "UIDRegenerate")
+                let mapRes = try WorkshopRequestedOutput.write(mapData, toPath: mapPath, subfolder: "UIDRegenerate")
                 if let note = mapRes.note { lines.append(note) }
                 lines.append(UIDConsole.mapExportedLine(path: mapRes.url.path))
             } catch {
@@ -1794,7 +1972,7 @@ private func executeDicomDcmdir() async {
         let inputScopedURL = securityScopedURLs["inputDirectory"]
         let inputAccessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if inputAccessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputDirectory)
+        let inputURL = URL(fileURLWithPath: inputDirectory)
 
         let outputScopedURL = securityScopedURLs["output"]
         let outputAccessing = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
@@ -1803,7 +1981,7 @@ private func executeDicomDcmdir() async {
         let copyToScopedURL = securityScopedURLs["copyTo"]
         let copyToAccessing = copyToScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if copyToAccessing { copyToScopedURL?.stopAccessingSecurityScopedResource() } }
-        let copyRoot: URL? = copyToScopedURL ?? (copyToArg.isEmpty ? nil : URL(fileURLWithPath: copyToArg))
+        let copyRoot: URL? = (copyToArg.isEmpty ? nil : URL(fileURLWithPath: copyToArg))
 
         // Resolve the OUTPUT to a DICOMDIR *file* path. When the user chose/typed a
         // folder (or a trailing-slash path), the DICOMDIR is written INSIDE it — writing
@@ -1812,7 +1990,6 @@ private func executeDicomDcmdir() async {
         // input directory. (Scope is active.)
         let intendedOutputPath: String
         if !outputArg.isEmpty { intendedOutputPath = outputArg }
-        else if let scoped = outputScopedURL { intendedOutputPath = scoped.path }
         else { intendedOutputPath = (copyRoot ?? inputURL).appendingPathComponent("DICOMDIR").path }
         let outputFilePath = DICOMDIRWorkflow.resolvedDICOMDIRPath(intendedOutputPath)
 
@@ -1900,8 +2077,7 @@ private func executeDicomDcmdir() async {
             let writtenURL: URL
             do {
                 let dicomdirData = try DICOMDIRWriter.write(result.directory)
-                let written = try OutputAccess.write(dicomdirData, toPath: outputFilePath,
-                                                     scopedURL: outputScopedURL, subfolder: "DICOMDIR")
+                let written = try WorkshopRequestedOutput.write(dicomdirData, toPath: outputFilePath, subfolder: "DICOMDIR")
                 if let note = written.note { out += note + "\n" }
                 writtenURL = written.url
             } catch {
@@ -1944,7 +2120,7 @@ private func executeDicomDcmdir() async {
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
         // Accept either a DICOMDIR file or the media directory that contains it.
-        let requestedURL = scopedURL ?? URL(fileURLWithPath: dicomdirPath)
+        let requestedURL = URL(fileURLWithPath: dicomdirPath)
         let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(requestedURL)
 
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
@@ -2013,7 +2189,7 @@ private func executeDicomDcmdir() async {
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
         // Accept either a DICOMDIR file or the media directory that contains it.
-        let requestedURL = scopedURL ?? URL(fileURLWithPath: dicomdirPath)
+        let requestedURL = URL(fileURLWithPath: dicomdirPath)
         let fileURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(requestedURL)
 
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
@@ -2075,7 +2251,7 @@ private func executeDicomDcmdir() async {
             if accessingAdd { addScopedURL?.stopAccessingSecurityScopedResource() }
         }
         let dicomdirURL = DICOMDIRWorkflow.resolvedDICOMDIRURL(
-            dirScopedURL ?? URL(fileURLWithPath: dicomdirPath))
+            URL(fileURLWithPath: dicomdirPath))
         guard FileManager.default.fileExists(atPath: dicomdirURL.path) else {
             // ArgumentParser ValidationError in the CLI (exit 64).
             let msg = "Error: DICOMDIR not found: \(dicomdirURL.path)\n"
@@ -2090,7 +2266,7 @@ private func executeDicomDcmdir() async {
             if !addPath.isEmpty { appendConsoleOutput("Adding from: \(addPath)\n") }
             appendConsoleOutput("\n")
         }
-        let effectiveAdd = addScopedURL?.path ?? (addPath.isEmpty ? nil : addPath)
+        let effectiveAdd = (addPath.isEmpty ? nil : addPath)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             var log = ""
@@ -2168,7 +2344,7 @@ private func executeDicomDcmdir() async {
             if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
 
         // run(): input exists, then directory needs --recursive (ValidationError, 64).
         var isDir: ObjCBool = false
@@ -2181,11 +2357,8 @@ private func executeDicomDcmdir() async {
             return
         }
 
-        // Resolve a sandbox-writable destination (scoped URL → ~/Downloads → fallback).
-        let (resolvedOutput, redirectNote) = SecurityViewModel.resolveWritableOutput(
-            path: outputScopedURL?.path ?? outputPath,
-            scopedURL: outputScopedURL
-        )
+        // Resolve the requested destination while the original Browse grant is held.
+        let (resolvedOutput, redirectNote) = WorkshopRequestedOutput.resolveWritablePath(outputPath)
         var preamble = ""
         if let note = redirectNote { preamble += note }
         let effectiveOutput = resolvedOutput.isEmpty ? outputPath : resolvedOutput
@@ -2271,8 +2444,7 @@ private func executeDicomDcmdir() async {
                 let finalOutputPath = outputFile(for: srcURL, specified: outURLOrPath, ext: document.documentType.fileExtension)
                 // Document bytes without the trailing padding (0042,0015).
                 let documentBytes = EncapsulatedDocumentBuilder.OptionRules.documentBytes(document.documentData, in: dicomFile.dataSet)
-                let writeRes = try OutputAccess.write(documentBytes, toPath: finalOutputPath,
-                                                      scopedURL: outputScopedURL, subfolder: "PDF/Extracted")
+                let writeRes = try WorkshopRequestedOutput.write(documentBytes, toPath: finalOutputPath, subfolder: "PDF/Extracted")
                 if let note = writeRes.note { log += note + "\n" }
                 if verbose {
                     log += "✓ Extracted \(document.documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(documentBytes.count))))\n"
@@ -2306,8 +2478,7 @@ private func executeDicomDcmdir() async {
                     instanceNumber: instanceNumber, hl7Override: hl7InstanceIdentifier)
                 let bytes = try dicomData(dataSet, sopClassUID: documentType.sopClassUID)
                 let finalOutputPath = outputFile(for: srcURL, specified: outURLOrPath, ext: "dcm")
-                let writeRes = try OutputAccess.write(bytes, toPath: finalOutputPath,
-                                                      scopedURL: outputScopedURL, subfolder: "PDF/Encapsulated")
+                let writeRes = try WorkshopRequestedOutput.write(bytes, toPath: finalOutputPath, subfolder: "PDF/Encapsulated")
                 if let note = writeRes.note { log += note + "\n" }
                 if verbose {
                     log += "✓ Encapsulated \(documentType) (\(EncapsulatedDocumentFormatting.fileSize(Int64(documentData.count))))\n"
@@ -2325,7 +2496,7 @@ private func executeDicomDcmdir() async {
             func resolvedOutputDirectory(_ dir: URL, defaultName: String, subfolder: String) throws -> URL {
                 let requested: URL = effectiveOutput.isEmpty
                     ? dir.appendingPathComponent(defaultName) : URL(fileURLWithPath: effectiveOutput)
-                let od = OutputAccess.resolveWritableURL(forPath: requested.path, scopedURL: outputScopedURL,
+                let od = WorkshopRequestedOutput.resolveWritableURL(forPath: requested.path,
                                                          subfolder: subfolder, isDirectory: true)
                 if let note = od.note { log += note + "\n" }
                 try fm.createDirectory(at: od.url, withIntermediateDirectories: true)
@@ -2512,8 +2683,8 @@ private func executeDicomDcmdir() async {
             if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
-        let outputURL = outputScopedURL ?? URL(fileURLWithPath: outputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
+        let outputURL = URL(fileURLWithPath: outputPath)
 
         // run(): input exists, read, then the operations in the CLI's order with its refusals.
         guard FileManager.default.fileExists(atPath: inputURL.path) else {
@@ -2583,7 +2754,7 @@ private func executeDicomDcmdir() async {
         if exitCode == 0, let outputData {
             do {
                 // Sandbox/TCC-resilient write (prefer scoped URL; else fall back to ~/Downloads).
-                let writeRes = try OutputAccess.write(outputData, toPath: outputPath, scopedURL: outputScopedURL, subfolder: "PixEdit")
+                let writeRes = try WorkshopRequestedOutput.write(outputData, toPath: outputPath, subfolder: "PixEdit")
                 if let note = writeRes.note { text += note + "\n" }
                 // Written / Done are verbose-gated shared lines — a non-verbose run is silent on success.
                 if verbose {
@@ -2672,9 +2843,9 @@ private func executeDicomSplit() async {
         if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
         if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
-    let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    let inputURL = URL(fileURLWithPath: inputPath)
     // Sandbox/TCC-resilient output directory (frames are written inside it).
-    let _splitOut = OutputAccess.resolveWritableURL(forPath: outputDir, scopedURL: outputScopedURL, subfolder: "SplitFrames", isDirectory: true)
+    let _splitOut = WorkshopRequestedOutput.resolveWritableURL(forPath: outputDir, subfolder: "SplitFrames", isDirectory: true)
     let outputBaseURL = _splitOut.url
     if let note = _splitOut.note { appendConsoleOutput(note + "\n") }
 
@@ -2906,15 +3077,15 @@ private func executeDicomSplit() async {
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
 
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
         // Sandbox/TCC-resilient output (series/study modes write a directory; file mode a single file).
-        let (outputURL, outRedirectNote) = OutputAccess.resolveWritableURL(
-            forPath: outputPath, scopedURL: outputScopedURL, subfolder: "Merge", isDirectory: level != "file")
+        let (outputURL, outRedirectNote) = WorkshopRequestedOutput.resolveWritableURL(
+            forPath: outputPath, subfolder: "Merge", isDirectory: level != "file")
         if let note = outRedirectNote { appendConsoleOutput(note + "\n") }
 
         // The CLI's <inputs> is a variadic positional list; the field may hold several
         // semicolon-separated roots (the preview expands the same split into positional
-        // tokens). The browsed (security-scoped) URL stands in when only one path is given.
+        // tokens). A Browse grant never substitutes another input root.
         let mergeRoots = CommandBuilderHelpers.splitMultiValue(inputPath)
         let mergeRootPaths = mergeRoots.count > 1 ? mergeRoots : [inputURL.path]
 
@@ -3043,11 +3214,11 @@ private func executeDicomArchive() async {
     if sub == "init" || sub == "import" {
         // Write subcommands: ensure the archive directory is writable (sandbox/TCC).
         // Read subcommands (list/query/check/stats) must NOT redirect.
-        let r = OutputAccess.resolveWritableURL(forPath: archivePathParam, scopedURL: archiveScopedURL, subfolder: "Archive", isDirectory: true)
+        let r = WorkshopRequestedOutput.resolveWritableURL(forPath: archivePathParam, subfolder: "Archive", isDirectory: true)
         if let note = r.note { appendConsoleOutput(note + "\n") }
         archiveURL = r.url
     } else {
-        archiveURL = archiveScopedURL ?? URL(fileURLWithPath: archivePathParam)
+        archiveURL = URL(fileURLWithPath: archivePathParam)
     }
     let archivePathResolved = archiveURL.path
 
@@ -3061,9 +3232,8 @@ private func executeDicomArchive() async {
     let verifyFiles = paramValue("verify-files") == "true"
     let flatten = paramValue("flatten") == "true"
     let filesArg = paramValue("files")
-    let filesScopedPath = filesScopedURL?.path
     let outputParam = paramValue("output")
-    let outputResolved = (outputScopedURL ?? (outputParam.isEmpty ? nil : URL(fileURLWithPath: outputParam)))?.path ?? outputParam
+    let outputResolved = outputParam
     let qPatientName = paramValue("patient-name")
     let qPatientID = paramValue("patient-id")
     let qStudyUID = paramValue("study-uid")
@@ -3110,12 +3280,8 @@ private func executeDicomArchive() async {
             case "import":
                 // The CLI's <files> is a variadic positional list — the field may hold
                 // several semicolon-separated paths (the preview expands the same split
-                // into positional tokens). A browsed (security-scoped) file is unioned
-                // with the typed paths rather than replacing them.
-                var inputs = CommandBuilderHelpers.splitMultiValue(filesArg)
-                if let scoped = filesScopedPath, !inputs.contains(scoped) {
-                    inputs.append(scoped)
-                }
+                // into positional tokens). Browse grants do not add input files.
+                let inputs = CommandBuilderHelpers.splitMultiValue(filesArg)
                 out = try ArchiveStore.importFiles(
                     into: archivePathResolved, files: inputs,
                     recursive: recursive, skipDuplicates: skipDuplicates, verbose: verbose)
@@ -3203,7 +3369,7 @@ private func executeDicomCompressInfo() async {
     let inputScopedURL = securityScopedURLs["input"]
     let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
     defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-    let fileURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    let fileURL = URL(fileURLWithPath: inputPath)
     let displayPath = inputPath
     guard FileManager.default.fileExists(atPath: fileURL.path) else {
         refuse("Error: File not found: \(fileURL.path)\n", exitCode: 64); return
@@ -3276,7 +3442,7 @@ private func executeDicomCompressCompress() async {
         if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() }
         if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
-    let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    let inputURL = URL(fileURLWithPath: inputPath)
     guard FileManager.default.fileExists(atPath: inputURL.path) else {
         let msg = "Error: Input file not found: \(inputURL.path)\n"
         appendConsoleOutput(msg)
@@ -3341,7 +3507,7 @@ private func executeDicomCompressCompress() async {
                 backend: backendPref, jpegEngine: jpegEngine)
 
             // Sandbox/TCC-resilient write (prefer scoped URL; else fall back to ~/Downloads).
-            let writeRes = try OutputAccess.write(outputData, toPath: outputPath, scopedURL: outputScopedURL, subfolder: "Compressed")
+            let writeRes = try WorkshopRequestedOutput.write(outputData, toPath: outputPath, subfolder: "Compressed")
             if let note = writeRes.note { log += note + "\n" }
             log += CompressionConsole.compressResultLine(input: inputPath, output: writeRes.url.path)
             if verbose {
@@ -3387,7 +3553,7 @@ private func executeDicomCompressDecompress() async {
         if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() }
         if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
-    let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+    let inputURL = URL(fileURLWithPath: inputPath)
     // validate(): input exists (64), then --syntax must be a native target (P-COMPRESS-SYNTAX; exit 1).
     guard FileManager.default.fileExists(atPath: inputURL.path) else {
         refuse("Error: Input file not found: \(inputURL.path)\n", exitCode: 64); return
@@ -3408,7 +3574,7 @@ private func executeDicomCompressDecompress() async {
             let start = Date()
             let outputData = try CompressionManager().decompressData(inputData, syntax: targetSyntax)
             let elapsed = Date().timeIntervalSince(start)
-            let writeRes = try OutputAccess.write(outputData, toPath: outputPath, scopedURL: outputScopedURL, subfolder: "Decompressed")
+            let writeRes = try WorkshopRequestedOutput.write(outputData, toPath: outputPath, subfolder: "Decompressed")
             if let note = writeRes.note { log += note + "\n" }
             log += CompressionConsole.decompressResultLine(input: inputPath, output: writeRes.url.path)
             if verbose {
@@ -3457,8 +3623,8 @@ private func executeDicomCompressBatch() async {
         if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() }
         if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
     }
-    let inputBase = inputScopedURL ?? URL(fileURLWithPath: inputDir)
-    let outputBase = outputScopedURL ?? URL(fileURLWithPath: outputDir)
+    let inputBase = URL(fileURLWithPath: inputDir)
+    let outputBase = URL(fileURLWithPath: outputDir)
 
     // validate(), in the CLI's order and with its texts (ValidationError, 64; --syntax refusal, 1).
     var inputIsDir: ObjCBool = false
@@ -3615,9 +3781,9 @@ private func executeDicomStudy() async {
             if aIn { inputScoped?.stopAccessingSecurityScopedResource() }
             if aOut { outputScoped?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScoped ?? URL(fileURLWithPath: input)
+        let inputURL = URL(fileURLWithPath: input)
         // Sandbox/TCC-resilient output directory (organize writes a folder tree).
-        let _orgOut = OutputAccess.resolveWritableURL(forPath: output, scopedURL: outputScoped, subfolder: "StudyOrganize", isDirectory: true)
+        let _orgOut = WorkshopRequestedOutput.resolveWritableURL(forPath: output, subfolder: "StudyOrganize", isDirectory: true)
         let outputURL = _orgOut.url
         if let note = _orgOut.note { appendConsoleOutput(note + "\n") }
 
@@ -3662,7 +3828,7 @@ private func executeDicomStudy() async {
         let scoped = securityScopedURLs["path"] ?? securityScopedURLs["inputPath"]
         let accessing = scoped?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scoped?.stopAccessingSecurityScopedResource() } }
-        let pathURL = scoped ?? URL(fileURLWithPath: path)
+        let pathURL = URL(fileURLWithPath: path)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             guard FileManager.default.fileExists(atPath: pathURL.path) else {
@@ -3708,8 +3874,8 @@ private func executeDicomStudy() async {
             if accessing { scoped?.stopAccessingSecurityScopedResource() }
             if accessingReport { reportScoped?.stopAccessingSecurityScopedResource() }
         }
-        let pathURL = scoped ?? URL(fileURLWithPath: path)
-        let reportURL: URL? = reportPath.isEmpty ? nil : (reportScoped ?? URL(fileURLWithPath: reportPath))
+        let pathURL = URL(fileURLWithPath: path)
+        let reportURL: URL? = reportPath.isEmpty ? nil : (URL(fileURLWithPath: reportPath))
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             guard FileManager.default.fileExists(atPath: pathURL.path) else {
@@ -3729,11 +3895,10 @@ private func executeDicomStudy() async {
 
             if let reportURL = reportURL {
                 let report = issues.joined(separator: "\n")
-                // Sandbox/TCC-resilient: prefer the scoped URL; else try the typed path;
+                // Sandbox/TCC-resilient: try the requested typed path;
                 // on failure fall back to ~/Downloads/DICOMStudio and note the redirect.
                 do {
-                    let res = try OutputAccess.writeString(report, toPath: reportURL.path,
-                                                           scopedURL: reportScoped, subfolder: "StudyCheck")
+                    let res = try WorkshopRequestedOutput.writeString(report, toPath: reportURL.path, subfolder: "StudyCheck")
                     out += "Report written to: \(res.url.path)\n"
                     if let note = res.note { out += note + "\n" }
                 } catch {
@@ -3765,7 +3930,7 @@ private func executeDicomStudy() async {
         let scoped = securityScopedURLs["path"] ?? securityScopedURLs["inputPath"]
         let accessing = scoped?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scoped?.stopAccessingSecurityScopedResource() } }
-        let pathURL = scoped ?? URL(fileURLWithPath: path)
+        let pathURL = URL(fileURLWithPath: path)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             guard FileManager.default.fileExists(atPath: pathURL.path) else {
@@ -3813,8 +3978,8 @@ private func executeDicomStudy() async {
             if a1 { scoped1?.stopAccessingSecurityScopedResource() }
             if a2 { scoped2?.stopAccessingSecurityScopedResource() }
         }
-        let url1 = scoped1 ?? URL(fileURLWithPath: path1)
-        let url2 = scoped2 ?? URL(fileURLWithPath: path2)
+        let url1 = URL(fileURLWithPath: path1)
+        let url2 = URL(fileURLWithPath: path2)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             guard FileManager.default.fileExists(atPath: url1.path) else {
@@ -4009,10 +4174,9 @@ private func executeDicomStudy() async {
         let typeWasExplicit = !typeRaw.isEmpty
 
         let inputScopedURL = securityScopedURLs["input"]
-        let outputScopedURL = securityScopedURLs["output"]
         let accessingIn = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
 
         // The CLI reads the input first, then validates the metadata and refuses (exit 1).
         guard FileManager.default.contents(atPath: inputURL.path) != nil else {
@@ -4078,8 +4242,7 @@ private func executeDicomStudy() async {
             // The sandbox check mirrors the CLI's: refuse an existing file unless
             // --force. Only the typed path is checked, because that is what the
             // user named; a redirect lands somewhere they have not claimed.
-            if outputScopedURL == nil,
-               FileManager.default.fileExists(atPath: outputPath), !force {
+            if FileManager.default.fileExists(atPath: outputPath), !force {
                 lines.append(VideoConsole.outputExistsLine(outputPath))
                 return (lines.joined(separator: "\n"), .inputError)
             }
@@ -4090,8 +4253,8 @@ private func executeDicomStudy() async {
             }
 
             do {
-                let written = try OutputAccess.write(
-                    data, toPath: outputPath, scopedURL: outputScopedURL, subfolder: "Video")
+                let written = try WorkshopRequestedOutput.write(
+                    data, toPath: outputPath, subfolder: "Video")
                 if let note = written.note { lines.append(note) }
                 lines.append(VideoConsole.wroteLine(written.url.path))
             } catch {
@@ -4121,7 +4284,7 @@ private func executeDicomStudy() async {
         let inputScopedURL = securityScopedURLs["input"]
         let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, VideoConsole.ExitCode) in
@@ -4164,10 +4327,9 @@ private func executeDicomStudy() async {
         let verbose = paramValue("verbose") == "true"
 
         let inputScopedURL = securityScopedURLs["dicomInput"]
-        let outputScopedURL = securityScopedURLs["videoOutput"]
         let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             () -> (String, VideoConsole.ExitCode) in
@@ -4203,8 +4365,7 @@ private func executeDicomStudy() async {
                     return exists && isDirectory.boolValue
                 }
             ).url.path
-            if outputScopedURL == nil,
-               FileManager.default.fileExists(atPath: outputPath), !force {
+            if FileManager.default.fileExists(atPath: outputPath), !force {
                 lines.append(VideoConsole.outputExistsLine(outputPath))
                 return (lines.joined(separator: "\n"), .inputError)
             }
@@ -4219,9 +4380,8 @@ private func executeDicomStudy() async {
             }
 
             do {
-                let written = try OutputAccess.write(
-                    extracted.bitstream, toPath: outputPath,
-                    scopedURL: outputScopedURL, subfolder: "Video")
+                let written = try WorkshopRequestedOutput.write(
+                    extracted.bitstream, toPath: outputPath, subfolder: "Video")
                 if let note = written.note { lines.append(note) }
                 lines.append(VideoConsole.extractedLine(
                     path: written.url.path, byteCount: extracted.bitstream.count))
@@ -4290,12 +4450,12 @@ private func executeDicomStudy() async {
             if accessingIn { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOut { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputBase = inputScopedURL ?? URL(fileURLWithPath: inputDirectory)
+        let inputBase = URL(fileURLWithPath: inputDirectory)
 
         // Resolve the destination once, so a sandbox redirect is announced before
         // the per-clip lines rather than repeated on each of them.
-        let resolvedOutput = OutputAccess.resolveWritableURL(
-            forPath: outputDir, scopedURL: outputScopedURL,
+        let resolvedOutput = WorkshopRequestedOutput.resolveWritableURL(
+            forPath: outputDir,
             subfolder: "Video", isDirectory: true)
         let outputBase = resolvedOutput.url
         let redirectNote = resolvedOutput.note
@@ -4455,7 +4615,7 @@ private func executeDicomStudy() async {
         let outputAccessing = outputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if outputAccessing { outputScopedURL?.stopAccessingSecurityScopedResource() } }
 
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: input)
+        let inputURL = URL(fileURLWithPath: input)
         guard FileManager.default.fileExists(atPath: inputURL.path) else {
             finish("Error: Input path not found: \(inputURL.path)\n", exitCode: 64)
             return
@@ -4467,14 +4627,12 @@ private func executeDicomStudy() async {
             return
         }
 
-        // Resolve the output URL: prefer a scoped bookmark; else probe the typed path and
+        // Resolve the requested output URL; probe the typed path and
         // redirect to ~/Downloads/DICOMStudio if it isn't writable (sandbox/TCC).
         var preamble = ""
         let resolvedOutputURL: URL?
-        if let scoped = outputScopedURL {
-            resolvedOutputURL = scoped
-        } else if let op = outputPath {
-            let r = OutputAccess.resolveWritableURL(forPath: op, scopedURL: nil,
+        if let op = outputPath {
+            let r = WorkshopRequestedOutput.resolveWritableURL(forPath: op,
                                                     subfolder: "ImageConversion",
                                                     isDirectory: isDir.boolValue || splitPages)
             if let note = r.note { preamble += note + "\n" }
@@ -4509,8 +4667,8 @@ private func executeDicomStudy() async {
                     studyDate: study.date, studyTime: study.time)
             }
 
-            /// Encodes one image (page) and writes it through `OutputAccess.write`: the output
-            /// Browse picker grants a FOLDER, so a typed filename must land INSIDE that grant.
+            /// Encodes one image (page) and writes it through `WorkshopRequestedOutput.write`: the output
+            /// Browse grant stays active; the current typed filename selects the target.
             func write(imageURL: URL, pageIndex: Int? = nil, outputURL: URL, studyUID: String, seriesUID: String,
                        instanceNumber: Int, patientName: String, patientID: String) throws -> URL {
                 let metadata = try makeMetadata(studyUID: studyUID, seriesUID: seriesUID, instanceNumber: instanceNumber,
@@ -4522,8 +4680,7 @@ private func executeDicomStudy() async {
                 } else {
                     data = try ImageConverter.secondaryCaptureData(imageURL: imageURL, metadata: metadata, useExif: useExif)
                 }
-                let r = try OutputAccess.write(try ImageConverter.OutputRules.finalize(data), toPath: outputURL.path,
-                                               scopedURL: outputScopedURL, subfolder: "ImageConversion")
+                let r = try WorkshopRequestedOutput.write(try ImageConverter.OutputRules.finalize(data), toPath: outputURL.path, subfolder: "ImageConversion")
                 if let note = r.note { out += note + "\n" }
                 return r.url
             }
@@ -4635,11 +4792,7 @@ private func executeDicomStudy() async {
 
             // ---- single file ----
             let finalOutputURL: URL
-            if outputScopedURL != nil, let op = outputPath {
-                // Browse granted a folder; the field may now hold folder + filename. Hand the TYPED
-                // path to OutputAccess.write, which places it inside the grant.
-                finalOutputURL = URL(fileURLWithPath: op)
-            } else if let resolved = resolvedOutputURL {
+            if let resolved = resolvedOutputURL {
                 finalOutputURL = resolved
             } else {
                 finalOutputURL = inputURL.deletingPathExtension().appendingPathExtension("dcm")
@@ -4790,9 +4943,9 @@ private func executeDicomStudy() async {
             if accessingInput { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
         // Sandbox/TCC-resilient output (single/contact-sheet/animate write a file; bulk a directory).
-        let _exportOut = OutputAccess.resolveWritableURL(forPath: outputPath, scopedURL: outputScopedURL, subfolder: "Export", isDirectory: operation == "bulk")
+        let _exportOut = WorkshopRequestedOutput.resolveWritableURL(forPath: outputPath, subfolder: "Export", isDirectory: operation == "bulk")
         let outputURL = _exportOut.url
         if let note = _exportOut.note { appendConsoleOutput(note + "\n") }
 
@@ -5144,20 +5297,33 @@ private func executeDicomStudy() async {
         let parallel = paramValue("parallel") == "true"
         let variablesParam = paramValue("variables")
         let logParam = paramValue("log")
-        let logScoped = securityScopedURLs["log"]
-        let resolvedLog: String? = logParam.isEmpty ? nil
-            : OutputAccess.resolveWritableURL(forPath: logParam, scopedURL: logScoped, subfolder: "dicom-script").url.path
 
         let scopedURL = securityScopedURLs["scriptPath"]
         let accessing = scopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { scopedURL?.stopAccessingSecurityScopedResource() } }
-        let url = scopedURL ?? URL(fileURLWithPath: scriptPath)
+        let url = URL(fileURLWithPath: scriptPath)
 
-        // Run/validate via the SHARED DICOMKit script engine (ScriptExecutor /
-        // ScriptValidator) — the exact code the dicom-script CLI runs — so the app and
-        // CLI emit byte-identical output. Output flows through the injected `log` closure
-        // (the CLI prints the same lines to stdout); execution of nested tools isn't
-        // supported in-app, so the runner throws (never reached on a dry run).
+        // OutputAccess probes/creates directories. Refuse unsupported nested
+        // command names before that preparation; the executor rechecks the same
+        // policy before opening its log. Validation never needs an output path.
+        if operation == "run" {
+            do {
+                let issues = try ScriptValidator().validateCommandNames(scriptPath: url.path)
+                if !issues.isEmpty { throw ScriptError.invalidCommand(issues.joined(separator: "; ")) }
+            } catch {
+                let message = "Error: \(error.localizedDescription)\n"
+                appendConsoleOutput(message)
+                consoleStatus = .error; service.setConsoleStatus(.error)
+                addToHistory(toolName: "dicom-script", command: commandPreview, exitCode: 1, output: message)
+                return
+            }
+        }
+        let resolvedLog: String? = operation != "run" || logParam.isEmpty ? nil
+            : WorkshopRequestedOutput.resolveWritableURL(forPath: logParam, subfolder: "dicom-script").url.path
+
+        // The shared executor checks nested command names before previewing.
+        // Validation and successful previews use the same engines and console
+        // as the CLI; no nested command is executed here.
         let (output, exitCode): (String, Int) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             var log = ""
             do {
@@ -5214,7 +5380,26 @@ private func executeDicomStudy() async {
     public func executeCommand() async {
         guard let tool = selectedTool() else { return }
         rebuildCommandPreview()
-        ensureOutputDirectories()
+        if isPrintToolSelected { await executePrintCommand(); return }
+        // Refuse unsupported states before entering Running, writing directories,
+        // or creating an execution-history entry (also covers programmatic calls).
+        if let reason = executionUnavailableReason {
+            consoleOutput = ""
+            service.setConsoleOutput("")
+            appendConsoleOutput("Cannot run in Workshop: \(reason)\n")
+            consoleStatus = .error
+            service.setConsoleStatus(.error)
+            return
+        }
+        // Hold the ORIGINAL picker capabilities across all awaited work. A command
+        // receives only its current typed paths; no derived URL is treated as a grant.
+        // Balance successful starts even when the asynchronous command is cancelled.
+        for id in Array(securityScopedURLs.keys) { reconcileFileAccessGrant(parameterID: id) }
+        let heldGrants = securityScopedURLs.values.compactMap { url -> URL? in
+            url.startAccessingSecurityScopedResource() ? url : nil
+        }
+        defer { for url in heldGrants { url.stopAccessingSecurityScopedResource() } }
+        if tool.id != "dicom-script" { ensureOutputDirectories() }
 
         consoleOutput = ""
         consoleStatus = .running
@@ -5387,7 +5572,7 @@ case "dicom-study":
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
 
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: inputURL.path, isDirectory: &isDirectory) else {
             finish(preamble + "Error: Input path not found: \(inputURL.path)\n", exitCode: 64)
@@ -5399,10 +5584,10 @@ case "dicom-study":
         }
         if !preamble.isEmpty { appendConsoleOutput(preamble) }
 
-        // Sandbox/TCC-resilient output: prefer the picker's scoped URL; else probe the typed
+        // Sandbox/TCC-resilient output: with the original grants held, probe the typed
         // path and redirect to ~/Downloads/DICOMStudio if it isn't writable. Covers both the
         // DICOM-convert Data write and the image-export CGImageDestination below.
-        let _convOut = OutputAccess.resolveWritableURL(forPath: outputPath, scopedURL: outputScopedURL, subfolder: "dicom-convert")
+        let _convOut = WorkshopRequestedOutput.resolveWritableURL(forPath: outputPath, subfolder: "dicom-convert")
         var outputURL = _convOut.url
         if let note = _convOut.note { appendConsoleOutput(note + "\n") }
 
@@ -5787,7 +5972,7 @@ case "dicom-study":
             if accessingInput  { inputScopedURL?.stopAccessingSecurityScopedResource() }
             if accessingOutput { outputScopedURL?.stopAccessingSecurityScopedResource() }
         }
-        let inputURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let inputURL = URL(fileURLWithPath: inputPath)
         // --iod takes a PS3.6 Table A-1 keyword or UID as well as the engine's own names.
         let iod: String? = iodRaw.isEmpty ? nil : DICOMValidator.iodName(forIODOption: iodRaw)
         let outputFormat: ValidationOutputFormat = format == "json" ? .json : .text
@@ -5844,11 +6029,10 @@ case "dicom-study":
                 // Directory-valued --output resolves to <dir>/<input-stem>.json|.txt by the
                 // shared resolver, the exact call dicom-validate makes.
                 let resolvedOutputPath = OutputPathResolver.resolveFileOutput(
-                    output: outputScopedURL?.path ?? outputPath, input: inputURL.path,
+                    output: outputPath, input: inputURL.path,
                     fileExtension: outputFormat == .json ? "json" : "txt")
                 do {
-                    let written = try OutputAccess.writeString(outputText, toPath: resolvedOutputPath,
-                                                               scopedURL: outputScopedURL, subfolder: "Validate")
+                    let written = try WorkshopRequestedOutput.writeString(outputText, toPath: resolvedOutputPath, subfolder: "Validate")
                     if let note = written.note { console += note + "\n" }
                 } catch {
                     return ("Error: Failed to write validation report to \(resolvedOutputPath): \(error.localizedDescription)\n", 64)
@@ -5939,14 +6123,11 @@ case "dicom-study":
         request.force = value("force") == "true"
         request.verbose = value("verbose") == "true"
 
-        // Sandbox access via the security-scoped URLs registered by the file pickers;
-        // the shared executor resolves a writable output location and then runs the
-        // exact code path the CLI runs.
-        let inputScopedURL  = securityScopedURLs["inputPath"]
-        let outputScopedURL = securityScopedURLs["output"]
+        // executeCommand holds the original picker capabilities. Do not pass them
+        // as path replacements to the other app surface's shared executor.
         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
             await SecurityViewModel.executeAnonymization(
-                request, inputScopedURL: inputScopedURL, outputScopedURL: outputScopedURL)
+                request, inputScopedURL: nil, outputScopedURL: nil)
         }.value
 
         appendConsoleOutput(output)
@@ -5979,7 +6160,7 @@ case "dicom-study":
         let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
 
-        let fileURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let fileURL = URL(fileURLWithPath: inputPath)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             do {
@@ -6181,7 +6362,7 @@ case "dicom-study":
         let accessing = inputScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessing { inputScopedURL?.stopAccessingSecurityScopedResource() } }
 
-        let fileURL = inputScopedURL ?? URL(fileURLWithPath: inputPath)
+        let fileURL = URL(fileURLWithPath: inputPath)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             do {
@@ -6347,9 +6528,6 @@ case "dicom-study":
         // repeated flags emitted in the command preview.
         let sets    = CommandBuilderHelpers.splitMultiValue(setRaw)
         let deletes = CommandBuilderHelpers.splitMultiValue(deleteRaw)
-        // --tags (copy) is a single option the CLI itself comma-splits, so plain
-        // comma splitting matches the CLI exactly here.
-        let copyTags = tagsRaw.isEmpty ? [String]() : tagsRaw.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
 
         guard !sets.isEmpty || !deletes.isEmpty || deletePrivate || !copyFromPath.isEmpty else {
             // The CLI throws the shared TagEditorError (exit 1): same text.
@@ -6372,14 +6550,11 @@ case "dicom-study":
             if accessCF  { copyFromScopedURL?.stopAccessingSecurityScopedResource() }
         }
 
-        let fileURL      = inputScopedURL ?? URL(fileURLWithPath: inputPath)
-        let copyFromURL  = copyFromPath.isEmpty ? nil : (copyFromScopedURL ?? URL(fileURLWithPath: copyFromPath))
+        let fileURL      = URL(fileURLWithPath: inputPath)
+        let copyFromURL  = copyFromPath.isEmpty ? nil : (URL(fileURLWithPath: copyFromPath))
 
         // Resolve writable output path
-        let (resolvedOutputPath, redirectNote) = SecurityViewModel.resolveWritableOutput(
-            path: outputScopedURL?.path ?? outputPath,
-            scopedURL: outputScopedURL
-        )
+        let (resolvedOutputPath, redirectNote) = WorkshopRequestedOutput.resolveWritablePath(outputPath)
         if let note = redirectNote { appendConsoleOutput(note) }
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
@@ -6387,6 +6562,7 @@ case "dicom-study":
                 guard FileManager.default.fileExists(atPath: fileURL.path) else {
                     return ("Error: \(TagEditorError.fileNotFound(fileURL.path).localizedDescription)\n", 1)
                 }
+                let copyTags = try TagEditor().parseTagSelectors(tagsRaw)
                 if let cfURL = copyFromURL, !FileManager.default.fileExists(atPath: cfURL.path) {
                     return ("Error: \(TagEditorError.fileNotFound(cfURL.path).localizedDescription)\n", 1)
                 }
@@ -6434,6 +6610,7 @@ case "dicom-study":
                     output: resolvedOutputPath, input: fileURL.path)
                 if !dryRun {
                     let modifiedFile = DICOMFile(fileMetaInformation: dicomFile.fileMetaInformation, dataSet: dataSet)
+                        .synchronizingMediaStorageUIDs()
                     let outData = try modifiedFile.write()
                     let destURL  = URL(fileURLWithPath: destPath)
                     try FileManager.default.createDirectory(
@@ -6511,8 +6688,8 @@ case "dicom-study":
             if access2 { file2ScopedURL?.stopAccessingSecurityScopedResource() }
         }
 
-        let url1 = file1ScopedURL ?? URL(fileURLWithPath: file1Path)
-        let url2 = file2ScopedURL ?? URL(fileURLWithPath: file2Path)
+        let url1 = URL(fileURLWithPath: file1Path)
+        let url2 = URL(fileURLWithPath: file2Path)
 
         let (output, exitCode) = await Task.detached(priority: .userInitiated) { () -> (String, Int) in
             // Exit status as dicom-diff (P-DIFF-1, the diff(1)/cmp(1) convention):
@@ -6798,6 +6975,13 @@ case "dicom-study":
         )
     }
 
+    /// The same effective state used by the rendered form and command preview.
+    /// Retained hidden values never reach the request builder.
+    func effectiveQIDORequest(resolvedModality: String? = nil) throws -> QIDORequest {
+        try WorkshopQIDOParameters.request(values: parameterValues, definitions: parameterDefinitions,
+                                            resolvedModality: resolvedModality)
+    }
+
     /// Executes a QIDO-RS query against a DICOMweb server — the in-app `dicom-wado query`.
     private func executeDicomQIDO() async {
         /// Refuses the run with the CLI's `Error: …` line and exit code (64 = usage).
@@ -6812,92 +6996,41 @@ case "dicom-study":
             return
         }
 
-        let levelStr = paramValue("level").lowercased()
-        let limit = Int(paramValue("limit")) ?? 100
-        let offset = Int(paramValue("offset")) ?? 0
-        let fuzzyMatching = paramValue("fuzzy-matching") == "true"
-        let strictModality = paramValue("strict-modality") == "true"
+        let effective = WorkshopQIDOParameters.effectiveValues(parameterValues, definitions: parameterDefinitions)
+        func effectiveValue(_ id: String) -> String { effective.first { $0.parameterID == id }?.stringValue ?? "" }
+        let levelStr = effectiveValue("level").lowercased()
+        let strictModality = effectiveValue("strict-modality") == "true"
         let fmt = QIDOOutputFormat(rawValue: paramValue("output-format").lowercased()) ?? .table
         let verbose = paramValue("verbose") == "true"
 
-        // PS3.18 8.3.4.4: limit and offset are unsigned (the CLI's validate(), exit 64).
-        if let message = DICOMwebOptionRules.pagingProblem(limit: limit, offset: offset) {
-            refuse(message, exitCode: 64)
-            return
-        }
-
         do {
-            let client = try DICOMwebClientFactory.makeClient(from: profile)
-
-            // The QIDO-RS query the options describe (PS3.18 10.6.1; Table 8.3.4-1), built
-            // in the CLI's order (QueryCommand.buildQuery).
-            var query = QIDOQuery().limit(limit).offset(offset)
-            if fuzzyMatching { query = query.fuzzyMatching(true) }
-            query = query.includeAllFields()
-            let patientName = paramValue("patient-name")
-            let patientID = paramValue("patient-id")
-            let studyDate = paramValue("study-date")
-            let studyUID = paramValue("study-uid")
-            let seriesUID = paramValue("series-uid")
-            let accession = paramValue("accession")
-            let studyDesc = paramValue("study-description")
-
-            if !patientName.isEmpty { query = query.patientName(patientName) }
-            if !patientID.isEmpty { query = query.patientID(patientID) }
-            if !studyDate.isEmpty { query = query.studyDate(studyDate) }
-            if !studyUID.isEmpty { query = query.studyInstanceUID(studyUID) }
-            if !seriesUID.isEmpty { query = query.seriesInstanceUID(seriesUID) }
-            if !accession.isEmpty { query = query.accessionNumber(accession) }
-            // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), then
-            // the matching key per level (PS3.18 Table 10.6.1-5): Modality (0008,0060) at
-            // series level, Modalities In Study (0008,0061) at study / instance level.
-            let resolved = Self.resolveModalityOption(paramValue("modality"), strict: strictModality, verbose: verbose)
+            let resolved = Self.resolveModalityOption(effectiveValue("modality"), strict: strictModality, verbose: verbose)
             if let message = resolved.error {
                 refuse(message, exitCode: 1)
                 return
             }
             for line in resolved.lines { appendConsoleOutput(line + "\n") }
-            if !resolved.value.isEmpty {
-                if levelStr == "series" {
-                    query = query.modality(resolved.value)
-                } else {
-                    query = query.modalitiesInStudy(resolved.value)
-                }
-            }
-            if !studyDesc.isEmpty { query = query.studyDescription(studyDesc) }
-
-            // Series-level matching keys (PS3.18 Table 10.6.1-5). The parameter
-            // definitions hide these outside the series level, so no misplaced-key
-            // warning is reachable here — unlike the CLI, where the flags can be
-            // typed at any level.
-            let ppsStartDate = paramValue("pps-start-date")
-            let ppsStartTime = paramValue("pps-start-time")
-            let qidoSPSID = paramValue("qido-sps-id")
-            let qidoRequestedProcedureID = paramValue("qido-requested-procedure-id")
-            if !ppsStartDate.isEmpty { query = query.performedProcedureStepStartDate(ppsStartDate) }
-            if !ppsStartTime.isEmpty { query = query.performedProcedureStepStartTime(ppsStartTime) }
-            if !qidoSPSID.isEmpty { query = query.scheduledProcedureStepID(qidoSPSID) }
-            if !qidoRequestedProcedureID.isEmpty {
-                query = query.requestedProcedureID(qidoRequestedProcedureID)
-            }
+            let request = try effectiveQIDORequest(resolvedModality: resolved.value)
+            let query = request.query
+            let client = try DICOMwebClientFactory.makeClient(from: profile)
 
             // --verbose mirrors the CLI's stderr chrome: a header before the query and a
             // "Found N …" line after the results. Without it, ONLY the formatted result.
             if verbose {
                 appendConsoleOutput("DICOMweb Server: \(profile.baseURL)\n")
                 appendConsoleOutput("Query Level: \(levelStr)\n")
-                appendConsoleOutput("Limit: \(limit), Offset: \(offset)\n")
+                appendConsoleOutput("Limit: \(query.toParameters()["limit"] ?? "100"), Offset: \(query.toParameters()["offset"] ?? "0")\n")
                 appendConsoleOutput("\n")
             }
 
             // Dispatch mirrors the CLI run(): when the scoping UIDs are present the
             // query is path-scoped (GET /studies/{uid}/series, /studies/{uid}/series/{uid}/instances,
-            // /studies/{uid}/instances); the root all-series/all-instances resources are
-            // optional in PS3.18 and only used when the query is unscoped.
+            // /studies/{uid}/instances). Root all-series/all-instances support is
+            // optional for proxy servers (PS3.18 Table 10.6.1-1).
             switch levelStr {
             case "series":
                 let results: QIDOSeriesResults
-                if !studyUID.isEmpty {
+                if let studyUID = request.studyUID {
                     results = try await client.searchSeries(studyUID: studyUID, query: query)
                 } else {
                     results = try await client.searchAllSeries(query: query)
@@ -6911,9 +7044,9 @@ case "dicom-study":
 
             case "instance":
                 let results: QIDOInstanceResults
-                if !studyUID.isEmpty, !seriesUID.isEmpty {
+                if let studyUID = request.studyUID, let seriesUID = request.seriesUID {
                     results = try await client.searchInstances(studyUID: studyUID, seriesUID: seriesUID, query: query)
-                } else if !studyUID.isEmpty {
+                } else if let studyUID = request.studyUID {
                     results = try await client.searchInstances(studyUID: studyUID, query: query)
                 } else {
                     results = try await client.searchAllInstances(query: query)
@@ -6935,6 +7068,8 @@ case "dicom-study":
                 addToHistory(toolName: "dicom-qido", command: commandPreview, exitCode: 0,
                              output: "\(results.results.count) studies returned\(total)")
             }
+        } catch let error as DICOMwebOptionRefusal {
+            refuse(error.message, exitCode: Int(error.exitCode))
         } catch {
             refuse(error.localizedDescription, exitCode: 1)
         }
@@ -7644,7 +7779,7 @@ case "dicom-study":
                 let jsonScopedURL = securityScopedURLs["create-json-file"]
                 let accessing = jsonScopedURL?.startAccessingSecurityScopedResource() ?? false
                 defer { if accessing { jsonScopedURL?.stopAccessingSecurityScopedResource() } }
-                let jsonURL = jsonScopedURL ?? URL(fileURLWithPath: jsonPath)
+                let jsonURL = URL(fileURLWithPath: jsonPath)
                 let jsonData = try Data(contentsOf: jsonURL)
                 guard let workitemData = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
                     refuse("Invalid JSON format in \(jsonPath)", exitCode: 64)
@@ -8108,6 +8243,21 @@ case "dicom-study":
             return
         }
 
+        // Refuse unsupported supplied filters before any output claims they were
+        // applied. Keep query matching expressions (ranges/wildcards) unchanged.
+        func buildKeys() -> QueryKeys {
+            DICOMQueryService.buildQueryKeys(
+                level: level, patientName: patientName, patientID: patientID,
+                studyDate: studyDate, modality: modality, accession: accession,
+                studyDescription: studyDesc, referringPhysician: referringPhysician,
+                studyUID: studyUID, seriesUID: seriesUID, seriesDate: seriesDate,
+                instanceUID: instanceUID, includeParentLevelReturnKeys: includeParentKeys)
+        }
+        if let reason = buildKeys().rejectionReason {
+            refuse(reason, exitCode: 64)
+            return
+        }
+
         // --modality through the shared ModalityOptionValidator (PS3.3 C.7.3.1.1.1), as the
         // CLI's run() does before any connection: alias note (verbose), retired/unknown
         // warning, or --strict-modality rejection (exit 1).
@@ -8118,62 +8268,19 @@ case "dicom-study":
         }
         modality = resolved.value
         for line in resolved.lines { appendConsoleOutput(line + "\n") }
+        let queryKeys = buildKeys()
 
         // Verbose header via the SHARED NetworkConsole formatter (DICOMNetwork), gated on
         // --verbose so a plain run is just the results table — identical to the CLI. The
         // filter list uses the same canonical order/labels as the CLI's appliedFilters().
         if verbose {
             let model = (level == .patient) ? "Patient Root" : "Study Root"
-            var filters: [(label: String, value: String)] = []
-            func addFilter(_ label: String, _ value: String) {
-                if !value.isEmpty { filters.append((label, value)) }
-            }
-            addFilter("Patient Name:", patientName)
-            addFilter("Patient ID:", patientID)
-            addFilter("Study Date:", studyDate)
-            addFilter("Modality:", modality)
-            addFilter("Study UID:", studyUID)
-            addFilter("Series UID:", seriesUID)
-            addFilter("Accession:", accession)
-            addFilter("Study Desc:", studyDesc)
-            addFilter("Referring Physician:", referringPhysician)
             appendConsoleOutput(NetworkConsole.queryHeader(
                 host: host, port: port,
                 callingAE: callingAET, calledAE: calledAET,
                 level: level, informationModel: model,
-                timeout: Int(timeout), filters: filters))
+                timeout: Int(timeout), filters: DICOMQueryService.appliedFilters(in: queryKeys)))
         }
-
-        // PS3.4 C.4.1.2.1: patient/study filters cannot be matched at SERIES or IMAGE
-        // level under the hierarchical model. The CLI warns on stderr rather than dropping
-        // them silently; the Workshop prints the SAME text (the level named by its
-        // Query/Retrieve Level (0008,0052) value, PS3.4 Table C.6.2-1) into the console.
-        let ignoredFilters = DICOMQueryService.ignoredParentLevelFilters(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, accession: accession,
-            studyDescription: studyDesc, referringPhysician: referringPhysician)
-        if !ignoredFilters.isEmpty {
-            appendConsoleOutput(
-                "Warning: \(ignoredFilters.joined(separator: ", ")) cannot be matched at \(level.rawValue) level "
-                + "under the hierarchical query model and will be ignored "
-                + "(PS3.4 C.4.1.2.1: only the Unique Keys of the levels above may be sent). "
-                + "Query at STUDY level first, then narrow with --study-uid.\n")
-        }
-
-        // Build C-FIND keys via the SHARED package mapping (DICOMNetwork) — the same
-        // code the dicom-query CLI and the CLI-parity reference use, so input→C-FIND
-        // cannot drift. Pass the SAME argument set as the CLI (incl. accession and
-        // study-description) so the keys — and therefore the result table — match.
-        let queryKeys = DICOMQueryService.buildQueryKeys(
-            level: level,
-            patientName: patientName, patientID: patientID,
-            studyDate: studyDate, modality: modality,
-            accession: accession, studyDescription: studyDesc,
-            referringPhysician: referringPhysician,
-            studyUID: studyUID, seriesUID: seriesUID,
-            seriesDate: seriesDate, instanceUID: instanceUID,
-            includeParentLevelReturnKeys: includeParentKeys)
 
         do {
             let informationModel: QueryRetrieveInformationModel = (level == .patient) ? .patientRoot : .studyRoot
@@ -8199,6 +8306,11 @@ case "dicom-study":
             service.setConsoleStatus(.success)
             addToHistory(toolName: "dicom-query", command: commandPreview, exitCode: 0,
                          output: "\(results.count) result(s) found")
+        } catch let cancellation as QueryCancelledError {
+            let fmt = QueryOutputFormat(rawValue: outputFormat) ?? .table
+            let formatter = Self.queryResultFormatter(format: fmt, level: level, csvKeywords: csvKeywords)
+            appendConsoleOutput(formatter.format(results: cancellation.partialResults))
+            refuse(cancellation.description, exitCode: 1)
         } catch {
             // ArgumentParser prints a thrown error as `Error: <description>` and exits 1.
             let errorDetail = (error as? DICOMNetworkError)?.description ?? error.localizedDescription
@@ -8937,7 +9049,7 @@ case "dicom-study":
                     }
                 }
                 // C-GET summary via the SHARED formatter (handles the 0-instances case).
-                appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount))
+                appendConsoleOutput(NetworkConsole.cGetSummary(received: receivedCount, status: finalResult?.status))
                 // PS3.4 C.4.3.2.1: same success rule as C-MOVE (Table C.4-3 wording).
                 if let result = finalResult {
                     let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)
@@ -9023,7 +9135,7 @@ case "dicom-study":
         let listScopedURL = securityScopedURLs["uid-list"]
         let accessingList = listScopedURL?.startAccessingSecurityScopedResource() ?? false
         defer { if accessingList { listScopedURL?.stopAccessingSecurityScopedResource() } }
-        let listURL = listScopedURL ?? URL(fileURLWithPath: uidListPath)
+        let listURL = URL(fileURLWithPath: uidListPath)
 
         let uids: [String]
         do {
@@ -9119,7 +9231,7 @@ case "dicom-study":
                                         throw error
                                     }
                                 }
-                                var text = NetworkConsole.cGetSummary(received: savedPaths.count)
+                                var text = NetworkConsole.cGetSummary(received: savedPaths.count, status: finalResult?.status)
                                 var failure: String?
                                 if let result = finalResult {
                                     let check = NetworkConsole.retrieveFinalResponse(result, service: .cGet)
@@ -9265,16 +9377,7 @@ case "dicom-study":
         }
         let isReviewOnly = modeStr == "review"
 
-        let modeLabel: String = {
-            switch modeStr {
-            case "auto", "automatic": return "Automatic"
-            case "review": return "Review"
-            // The app cannot prompt for a study selection, so the in-app
-            // "interactive" state retrieves every match and previews as --auto —
-            // the header reports Automatic to match the pasted command's output.
-            default: return "Automatic"
-            }
-        }()
+        let modeLabel = isReviewOnly ? "Review" : "Automatic"
 
         // Transfer syntax via the SHARED DICOMCore parser (TransferSyntax.parse) —
         // the IDENTICAL alias map the CLI uses; an unrecognized name is a usage error.
@@ -9372,8 +9475,7 @@ case "dicom-study":
                 if !saveStatePath.isEmpty {
                     do {
                         let data = try QRSessionState.encode(QRQueryState(results: results))
-                        let res = try OutputAccess.write(data, toPath: saveStatePath,
-                                                         scopedURL: securityScopedURLs["save-state"],
+                        let res = try WorkshopRequestedOutput.write(data, toPath: saveStatePath,
                                                          subfolder: "QRState")
                         if let note = res.note { appendConsoleOutput(note + "\n") }
                         appendConsoleOutput(NetworkConsole.qrStateSaved(path: res.url.path))
@@ -9407,8 +9509,7 @@ case "dicom-study":
                         outputPath: rawOutputQR,
                         hierarchical: hierarchical)
                     let data = try QRSessionState.encode(state)
-                    let res = try OutputAccess.write(data, toPath: saveStatePath,
-                                                     scopedURL: securityScopedURLs["save-state"],
+                    let res = try WorkshopRequestedOutput.write(data, toPath: saveStatePath,
                                                      subfolder: "QRState")
                     if let note = res.note { appendConsoleOutput(note + "\n") }
                 } catch {
@@ -9601,11 +9702,11 @@ case "dicom-study":
     /// the closing "Validation: N valid, M invalid" tally.
     private func qrValidateRetrievedFiles(in directory: String) {
         let fm = FileManager.default
-        var dirURL = URL(fileURLWithPath: directory)
+        let dirURL = URL(fileURLWithPath: directory)
         var accessing = false
-        if let scopedURL = securityScopedURLs["output"] {
+        if let scopedURL = securityScopedURLs["output"],
+           Self.grant(scopedURL, coversPath: directory) {
             accessing = scopedURL.startAccessingSecurityScopedResource()
-            dirURL = scopedURL
         }
         defer {
             if accessing { securityScopedURLs["output"]?.stopAccessingSecurityScopedResource() }
@@ -9842,7 +9943,7 @@ case "dicom-study":
         let studyUID = paramValue("study-uid")
         let mppsUID = paramValue("mpps-uid")
         // Status is split per operation: create offers only IN PROGRESS ("status"),
-        // update offers COMPLETED / DISCONTINUED ("status-update").
+        // update also supports intermediate IN PROGRESS or an omitted status.
         let statusStr = (operation != "update") ? paramValue("status") : paramValue("status-update")
         // N-CREATE attributes
         let patientName = paramValue("patient-name")
@@ -9872,6 +9973,7 @@ case "dicom-study":
         let operatorName = paramValue("operator-name")
         let updatePerformingPhysician = paramValue("update-performing-physician")
         let discontinuationReasonRaw = paramValue("discontinuation-reason")
+        let updateProcedureStepDescription = paramValue("update-procedure-step-description")
         let legacyNSetScheduledAttributes = paramValue("legacy-nset-scheduled-attributes") == "true"
         // Shared
         let specificCharacterSet = paramValue("specific-character-set")
@@ -9946,20 +10048,21 @@ case "dicom-study":
             refuse("Missing expected argument '--mpps-uid <mpps-uid>'", exitCode: 64)
             return
         }
+        if !isCreate, statusStr.isEmpty, updateProcedureStepDescription.isEmpty,
+           seriesUID.isEmpty, imageUIDsRaw.isEmpty {
+            refuse("An intermediate update without --status needs --procedure-step-description or a full --series-uid snapshot", exitCode: 64)
+            return
+        }
 
         // Performed Procedure Step Status (0040,0252), PS3.3 Table C.4-14; the N-CREATE
-        // starts the step IN PROGRESS (PS3.4 F.7.2.1.2), the N-SET ends it COMPLETED or
-        // DISCONTINUED (F.7.2.2.2) — dicom-mpps' parseStatus and status guards (exit 64).
-        guard let mppsStatus = DICOMMPPSService.parseStatus(statusStr.isEmpty ? (isCreate ? "IN PROGRESS" : "") : statusStr) else {
+        // starts the step IN PROGRESS; N-SET may update it while running or finish
+        // it (PS3.4 F.7.2.2). Omitted update status leaves the stored status unchanged.
+        guard let mppsStatus = DICOMMPPSService.parseStatus(statusStr.isEmpty ? "IN PROGRESS" : statusStr) else {
             refuse(DICOMMPPSService.invalidStatusMessage, exitCode: 64)
             return
         }
         if isCreate, mppsStatus != .inProgress {
             refuse("Create status must be IN PROGRESS — use 'dicom-mpps update --status COMPLETED|DISCONTINUED' to transition the step", exitCode: 64)
-            return
-        }
-        if !isCreate, mppsStatus != .completed, mppsStatus != .discontinued {
-            refuse("Update status must be COMPLETED or DISCONTINUED", exitCode: 64)
             return
         }
 
@@ -9982,12 +10085,12 @@ case "dicom-study":
         // Image references are only encoded inside a Performed Series item, which needs
         // the Study and Series Instance UIDs (PS3.4 Table F.7.2-1) — the CLI's guard.
         let imageUIDs = isCreate ? [] : CommandBuilderHelpers.splitMultiValue(imageUIDsRaw).filter { !$0.isEmpty }
-        if !isCreate, !imageUIDs.isEmpty, studyUID.isEmpty || seriesUID.isEmpty {
-            refuse("--image-uid needs --study-uid and --series-uid: Referenced Image Sequence (0008,1140) items live in a Performed Series Sequence (0040,0340) item with its Series Instance UID (0020,000E) (PS3.4 Table F.7.2-1)", exitCode: 64)
+        if let error = DICOMMPPSService.imageReferenceInputError(
+            imageUIDs: imageUIDs, studyUID: optional(studyUID), seriesUID: optional(seriesUID),
+            sopClassUID: optional(sopClassUID)
+        ) {
+            refuse(error, exitCode: 64)
             return
-        }
-        if !isCreate, !imageUIDs.isEmpty, sopClassUID.isEmpty {
-            appendConsoleOutput("warning: --sop-class-uid not given; Referenced SOP Class UID defaults to Secondary Capture (1.2.840.10008.5.1.4.1.1.7), which is non-conformant for CT/MR/… images\n")
         }
 
         // Header via the SHARED NetworkConsole formatter (DICOMNetwork) — the IDENTICAL
@@ -10123,7 +10226,9 @@ case "dicom-study":
                     performingPhysicianName: optional(updatePerformingPhysician),
                     legacyNSetScheduledStepAttributes: legacyNSetScheduledAttributes,
                     discontinuationReason: discontinuationReason,
-                    specificCharacterSet: optional(specificCharacterSet)
+                    specificCharacterSet: optional(specificCharacterSet),
+                    procedureStepDescription: optional(updateProcedureStepDescription),
+                    includeStatus: !statusStr.isEmpty
                 )
                 if let warning = result.warning {
                     appendConsoleOutput(DICOMMPPSService.warningLine(warning, operation: "N-SET"))

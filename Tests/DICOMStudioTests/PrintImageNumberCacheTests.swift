@@ -31,7 +31,7 @@ struct PrintImageNumberCacheTests {
 
         func element(group: UInt16, element: UInt16, vr: String, value: String) -> Data {
             var padded = value
-            if padded.count % 2 == 1 { padded += " " }
+            if padded.utf8.count % 2 == 1 { padded += vr == "UI" ? "\0" : " " }
             var out = Data()
             out.append(contentsOf: withUnsafeBytes(of: group.littleEndian) { Array($0) })
             out.append(contentsOf: withUnsafeBytes(of: element.littleEndian) { Array($0) })
@@ -43,9 +43,16 @@ struct PrintImageNumberCacheTests {
             return out
         }
 
-        // File meta: transfer syntax, so the parser knows how to read the rest.
-        let meta = element(group: 0x0002, element: 0x0010, vr: "UI",
-                           value: "1.2.840.10008.1.2.1")
+        let sopClass = "1.2.840.10008.5.1.4.1.1.7"
+        let sopInstance = "1.2.826.0.1.3680043.10.543.20261024.7.\(instanceNumber ?? 0)"
+        // Legal Part 10 identity and UI padding. This remains a deliberately
+        // small metadata fixture, not a complete Secondary Capture IOD.
+        var meta = Data([0x02, 0x00, 0x01, 0x00, 0x4f, 0x42, 0x00, 0x00,
+                         0x02, 0x00, 0x00, 0x00, 0x00, 0x01]) // File Meta Information Version
+        meta.append(element(group: 0x0002, element: 0x0002, vr: "UI", value: sopClass))
+        meta.append(element(group: 0x0002, element: 0x0003, vr: "UI", value: sopInstance))
+        meta.append(element(group: 0x0002, element: 0x0010, vr: "UI", value: "1.2.840.10008.1.2.1"))
+        meta.append(element(group: 0x0002, element: 0x0012, vr: "UI", value: "1.2.826.0.1.3680043.10.543.7"))
 
         // Group length is a UL — four bytes of little-endian length, rather than
         // the string payload the helper above writes.
@@ -60,6 +67,8 @@ struct PrintImageNumberCacheTests {
         withGroupLength.append(meta)
 
         // Data set: SOP class/instance and the number under test.
+        withGroupLength.append(element(group: 0x0008, element: 0x0016, vr: "UI", value: sopClass))
+        withGroupLength.append(element(group: 0x0008, element: 0x0018, vr: "UI", value: sopInstance))
         withGroupLength.append(element(group: 0x0008, element: 0x0060, vr: "CS", value: "CT"))
         if let seriesDescription {
             withGroupLength.append(element(group: 0x0008, element: 0x103E, vr: "LO",
@@ -69,9 +78,14 @@ struct PrintImageNumberCacheTests {
             withGroupLength.append(element(group: 0x0020, element: 0x0013, vr: "IS",
                                            value: String(instanceNumber)))
         }
-        withGroupLength.append(element(group: 0x0028, element: 0x0010, vr: "US", value: ""))
-
         try withGroupLength.write(to: url)
+        // Fail at fixture construction if the same metadata reader cannot
+        // parse it; cache error handling must not disguise an invalid fixture.
+        let parsed = try DICOMFile.read(from: withGroupLength, force: true,
+            options: ParsingOptions(mode: .metadataOnly, stopAfterTag: .instanceNumber))
+        #expect(parsed.dataSet.string(for: .sopClassUID) == sopClass)
+        #expect(parsed.dataSet.string(for: .sopInstanceUID) == sopInstance)
+        #expect(parsed.dataSet.string(for: .instanceNumber) == instanceNumber.map(String.init))
     }
 
     private func temporaryDirectory() throws -> URL {

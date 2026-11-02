@@ -1,0 +1,44 @@
+{
+  "id": "DC-R05",
+  "title": "DCMTK SCU to DICOMKit: LIN OD Presentation LUT",
+  "status": "passed",
+  "elapsed_seconds": 0.34006491699999986,
+  "observations": {
+    "films": [
+      {
+        "file": "film-20261024-205155-001.png",
+        "sha256": "d45d7c9601ee63238a89824982824064cea15c63850842e65305cd508e07eca0"
+      }
+    ],
+    "dimse_messages": 18,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.9",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        },
+        "3": {
+          "abstract": "1.2.840.10008.5.1.1.23",
+          "offered": [
+            "1.2.840.10008.1.2.1",
+            "1.2.840.10008.1.2.2",
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        }
+      }
+    ],
+    "received_bits": 12,
+    "received_size": [
+      16,
+      16
+    ]
+  }
+}

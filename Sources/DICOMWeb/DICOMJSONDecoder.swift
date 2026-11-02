@@ -307,7 +307,10 @@ public struct DICOMJSONDecoder: Sendable {
             valueData.append(0x20)
         }
         
+        // PS3.18 F.2.2 Note 3: JSON text is UTF-8 even when (0008,0005)
+        // retains a different source encoding as metadata.
         return DataElement(tag: tag, vr: .PN, length: UInt32(valueData.count), valueData: valueData)
+            .bindingSpecificCharacterSet("ISO_IR 192")
     }
     
     private func decodeStringValues(tag: Tag, vr: VR, values: [Any]) throws -> DataElement {
@@ -336,7 +339,10 @@ public struct DICOMJSONDecoder: Sendable {
             }
         }
         
+        // Bind the encoding of these JSON-derived bytes; the source dataset's
+        // Specific Character Set must not reinterpret them (PS3.18 F.2.2 Note 3).
         return DataElement(tag: tag, vr: vr, length: UInt32(valueData.count), valueData: valueData)
+            .bindingSpecificCharacterSet("ISO_IR 192")
     }
     
     private func decodeNumericValues(tag: Tag, vr: VR, values: [Any]) throws -> DataElement {

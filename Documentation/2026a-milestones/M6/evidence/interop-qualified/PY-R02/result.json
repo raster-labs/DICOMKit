@@ -1,0 +1,30 @@
+{
+  "id": "PY-R02",
+  "title": "pynetdicom SCU to DICOMKit: invalid color planarity refused",
+  "status": "passed",
+  "elapsed_seconds": 0.294175709000001,
+  "observations": {
+    "dimse_messages": 10,
+    "accepted_contexts": [
+      {
+        "1": {
+          "abstract": "1.2.840.10008.5.1.1.18",
+          "offered": [
+            "1.2.840.10008.1.2.1"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2.1"
+        },
+        "3": {
+          "abstract": "1.2.840.10008.5.1.1.14",
+          "offered": [
+            "1.2.840.10008.1.2"
+          ],
+          "result": 0,
+          "transfer": "1.2.840.10008.1.2"
+        }
+      }
+    ],
+    "job_uid": null
+  }
+}

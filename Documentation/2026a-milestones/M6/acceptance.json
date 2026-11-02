@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "milestone": "M6",
+  "state": "Completed",
+  "counts": {
+    "total": 8,
+    "Passed": 8,
+    "Partially verified": 0,
+    "Blocked": 0
+  },
+  "criteria": [
+    {
+      "id": "WS-COV-07-AC01",
+      "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
+      "result": "Passed",
+      "evidence": [
+        "REPORT.md",
+        "../PLAN.md"
+      ],
+      "scope_note": "Both scoped tools implemented and qualified for finite macOS software behavior. Physical output and other platforms remain unqualified."
+    },
+    {
+      "id": "WS-COV-07-AC02",
+      "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/dicom-printTests.log",
+        "evidence/qualified-v2/dicom-printscpTests.log",
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "evidence/print-cli-audit.log",
+        "evidence/print-studio-parity-audit.log",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/catalog-regression-tests.log"
+      ],
+      "scope_note": "Shared actual parser/command routes, all ten command forms, positive/negative contracts and finite CLI/VM/native execution verified. Option mapping is comprehensive; the test corpus is not every possible combination."
+    },
+    {
+      "id": "WS-COV-07-AC03",
+      "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "interop-qualification.json",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/workshop-campaign-v4/artifacts.json",
+        "evidence/workshop-image-extension/results.json",
+        "evidence/native-2026-10-26/final-qualified-native-identity.json",
+        "evidence/native-2026-10-26/m6-native-closure-review.json",
+        "evidence/native-2026-10-26/print-native-cli-parity.json",
+        "evidence/native-2026-10-26/repaired-print-controls-review.json",
+        "evidence/native-2026-10-26/final-print-controls-verification.json",
+        "evidence/native-2026-10-26/ui-menu-final/send-narrow.png",
+        "evidence/native-2026-10-26/ui-repaired/menu-final-dryrun-console.txt"
+      ],
+      "scope_note": "Visible native form values, copied literal argv, actual outputs/requests and exact equivalent CLI controls passed on synthetic inputs. Final readable menu form captured; retained unchanged-service evidence is justified by the recorded identity/equivalence."
+    },
+    {
+      "id": "WS-COV-07-AC04",
+      "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/native-2026-10-26/final-qualified-native-identity.json",
+        "evidence/native-2026-10-26/m6-native-closure-review.json",
+        "evidence/native-2026-10-26/ui-menu-final/send-dry-run.txt",
+        "evidence/native-2026-10-26/native-scu-peer-independent-review.json",
+        "evidence/native-2026-10-26/print-native-cli-parity.json",
+        "evidence/native-2026-10-26/repaired-print-controls-review.json"
+      ],
+      "scope_note": "Actual signed, sandbox-entitled packaged Workshop actions covered all existing commands for this tool. Final menu-app action and source/artifact equivalence support reuse of unchanged execution/lifecycle evidence. No Print Center or VM substitution for native action."
+    },
+    {
+      "id": "WS-COV-08-AC01",
+      "assertion": "A capability decision is recorded: implemented/qualified or explicitly excluded.",
+      "result": "Passed",
+      "evidence": [
+        "REPORT.md",
+        "../PLAN.md"
+      ],
+      "scope_note": "Both scoped tools implemented and qualified for finite macOS software behavior. Physical output and other platforms remain unqualified."
+    },
+    {
+      "id": "WS-COV-08-AC02",
+      "assertion": "If implemented, every exposed subcommand/flag has a real execution route and no unsupported operation is presented as successful.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/dicom-printTests.log",
+        "evidence/qualified-v2/dicom-printscpTests.log",
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "evidence/print-cli-audit.log",
+        "evidence/print-studio-parity-audit.log",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/catalog-regression-tests.log"
+      ],
+      "scope_note": "Shared actual parser/command routes, all ten command forms, positive/negative contracts and finite CLI/VM/native execution verified. Option mapping is comprehensive; the test corpus is not every possible combination."
+    },
+    {
+      "id": "WS-COV-08-AC03",
+      "assertion": "Compare visible form values, generated command/argv and actual request/output on synthetic inputs.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/qualified-v2/DICOMStudioTests.log",
+        "interop-qualification.json",
+        "evidence/workshop-campaign-v4/results.json",
+        "evidence/workshop-campaign-v4/artifacts.json",
+        "evidence/workshop-image-extension/results.json",
+        "evidence/native-2026-10-26/final-qualified-native-identity.json",
+        "evidence/native-2026-10-26/m6-native-closure-review.json",
+        "evidence/native-2026-10-26/scp-native-verification-post-repair.json",
+        "evidence/native-2026-10-26/repaired-print-controls-review.json",
+        "evidence/native-2026-10-26/pdf-raster-verification.json",
+        "evidence/native-2026-10-26/final-print-controls-verification.json",
+        "evidence/native-2026-10-26/ui-menu-final/scp-status-final.png",
+        "evidence/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+      ],
+      "scope_note": "Visible native form values, copied literal argv, actual outputs/requests and exact equivalent CLI controls passed on synthetic inputs. Final readable menu form captured; retained unchanged-service evidence is justified by the recorded identity/equivalence."
+    },
+    {
+      "id": "WS-COV-08-AC04",
+      "assertion": "Qualify an actual packaged-app action before claiming GUI runtime parity.",
+      "result": "Passed",
+      "evidence": [
+        "evidence/native-2026-10-26/final-qualified-native-identity.json",
+        "evidence/native-2026-10-26/m6-native-closure-review.json",
+        "evidence/native-2026-10-26/ui-menu-final/scp-status-final.txt",
+        "evidence/native-2026-10-26/cli-final-controls/menu-final-scp-status.json",
+        "evidence/native-2026-10-26/scp-native-verification-post-repair.json",
+        "evidence/native-2026-10-26/ui-final/scp-native-ae-cli-controls.json",
+        "evidence/native-2026-10-26/scp-app-quit-rebind.json"
+      ],
+      "scope_note": "Actual signed, sandbox-entitled packaged Workshop actions covered all existing commands for this tool. Final menu-app action and source/artifact equivalence support reuse of unchanged execution/lifecycle evidence. No Print Center or VM substitution for native action."
+    }
+  ],
+  "completion_rule": "All eight scoped software criteria have passing evidence. M7 final qualification, physical hardware/calibration, all-platform support and whole-standard conformance are separate and not implied.",
+  "recorded_utc": "2026-10-26T07:39:12.909405+00:00"
+}

@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-path>'
+Help:  <input-path>  JP3D DICOM document file to decode
+Usage: dicom-3d decode-volume <input-path> --output <output> [--verbose]
+  See 'dicom-3d decode-volume --help' for more information.

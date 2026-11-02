@@ -1,0 +1,4 @@
+Error: Missing expected argument '<url>'
+Help:  <url>  Printer URL (pacs://host:port)
+Usage: dicom-print status <url> --aet <aet> [--called-aet <called-aet>] [--timeout <timeout>] [--verbose] [--format <format>]
+  See 'dicom-print status --help' for more information.

@@ -1,0 +1,37 @@
+OVERVIEW: Generate Multi-Planar Reformation (MPR) images
+
+USAGE: dicom-3d mpr <input-paths> ... --output <output> [--planes <planes>] [--oblique-normal <x,y,z>] [--oblique-point <x,y,z>] [--format <format>] [--thickness <thickness>] [--interpolation <interpolation>] [--window-center <window-center>] [--window-width <window-width>] [--verbose]
+
+ARGUMENTS:
+  <input-paths>           Input DICOM files (multi-slice series)
+
+OPTIONS:
+  -o, --output <output>   Output directory or file path
+  --planes <planes>       Planes to generate: axial, sagittal, coronal (patient
+                          planes, PS3.3 C.7.6.2.1.1), oblique (needs
+                          --oblique-normal) (default: axial,sagittal,coronal)
+  --oblique-normal <x,y,z>
+                          Normal of the oblique plane as x,y,z in the patient
+                          (LPS) system: x to patient left, y to posterior, z to
+                          head (PS3.3 C.7.6.2.1.1); need not be unit length
+  --oblique-point <x,y,z> A point on the oblique plane as x,y,z in mm (LPS);
+                          default: the centre of the volume
+  --format <format>       Output format: png, dcm (derived DICOM series, Image
+                          Type DERIVED\SECONDARY) (default: png)
+  --thickness <thickness> Slice thickness in mm (planes averaged into slabs of
+                          this thickness)
+  --interpolation <interpolation>
+                          Interpolation for oblique planes: nearest, linear
+                          (trilinear). cubic is deprecated and uses linear.
+                          Axial/sagittal/coronal planes are cut along the voxel
+                          grid and are not resampled (default: linear)
+  --window-center <window-center>
+                          Window Center for display (Modality LUT output units,
+                          e.g. HU)
+  --window-width <window-width>
+                          Window Width for display (>= 1, LINEAR function,
+                          PS3.3 C.11.2.1.2.1)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

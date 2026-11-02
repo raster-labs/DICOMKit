@@ -1,0 +1,540 @@
+{
+  "schema_version": 1,
+  "milestone": "M7",
+  "status": "In progress — native qualification resumed; M6 closed, remaining M7 packaged-app checks pending",
+  "recorded_utc": "2026-10-26T07:44:13.493231+00:00",
+  "branch": "codex/dicom-2026a-milestones",
+  "source_manifest": "../M6/evidence/native-2026-10-26/final-qualified-native-source-hashes.json",
+  "artifact_manifest": "../M6/evidence/native-2026-10-26/final-qualified-native-artifact-hashes.json",
+  "integrated_regressions": {
+    "exit_code": 0,
+    "script": "Scripts/verify_m7.sh",
+    "suites": {
+      "Studio_full": {
+        "log": "evidence/integrated-final/studio-full-tests.log",
+        "XCTest_executed": 87,
+        "XCTest_skipped": 4,
+        "XCTest_failed": 0,
+        "XCTest_passed": 83,
+        "SwiftTesting_suites": 492,
+        "SwiftTesting_framework_reported_tests": 5380,
+        "SwiftTesting_overall_result": "Passed",
+        "SwiftTesting_skipped": [
+          "➜ Test \"Per-format codec comparison on SampleStudies\" skipped: \"Requires optional SampleStudies codec fixtures\""
+        ],
+        "SwiftTesting_count_note": "Framework reported run count; optional skips are not executed passes."
+      },
+      "Core_codecs": {
+        "log": "evidence/integrated-final/core-codec-tests.log",
+        "SwiftTesting_suites": 15,
+        "SwiftTesting_passed": 75
+      },
+      "Conversion_diagnostics": {
+        "log": "evidence/integrated-final/conversion-diagnostics-tests.log",
+        "XCTest_executed": 18,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 18
+      },
+      "M2_DICOMCoreTests": {
+        "log": "evidence/integrated-final/m2/DICOMCoreTests.log",
+        "XCTest_executed": 16,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 16,
+        "SwiftTesting_suites": 10,
+        "SwiftTesting_passed": 219
+      },
+      "M2_DICOMKitTests": {
+        "log": "evidence/integrated-final/m2/DICOMKitTests.log",
+        "XCTest_executed": 42,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 42,
+        "SwiftTesting_suites": 1,
+        "SwiftTesting_passed": 13
+      },
+      "M2_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m2/DICOMNetworkTests.log",
+        "XCTest_executed": 78,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 77
+      },
+      "M2_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m2/DICOMStudioTests.log",
+        "SwiftTesting_suites": 5,
+        "SwiftTesting_passed": 33
+      },
+      "M2_DICOMWebTests": {
+        "log": "evidence/integrated-final/m2/DICOMWebTests.log",
+        "XCTest_executed": 46,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 46,
+        "SwiftTesting_suites": 2,
+        "SwiftTesting_passed": 28
+      },
+      "M2_dicom-tagsTests": {
+        "log": "evidence/integrated-final/m2/dicom-tagsTests.log",
+        "XCTest_executed": 13,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 13
+      },
+      "M2_dicom-validateTests": {
+        "log": "evidence/integrated-final/m2/dicom-validateTests.log",
+        "XCTest_executed": 21,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 21
+      },
+      "M3_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m3/DICOMNetworkTests.log",
+        "XCTest_executed": 104,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 104
+      },
+      "M3_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m3/DICOMStudioTests.log",
+        "SwiftTesting_suites": 6,
+        "SwiftTesting_passed": 159
+      },
+      "M3_DICOMWebTests": {
+        "log": "evidence/integrated-final/m3/DICOMWebTests.log",
+        "XCTest_executed": 22,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 21,
+        "SwiftTesting_suites": 21,
+        "SwiftTesting_passed": 217
+      },
+      "M3_dicom-queryTests": {
+        "log": "evidence/integrated-final/m3/dicom-queryTests.log",
+        "XCTest_executed": 14,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 14
+      },
+      "M3_dicom-wadoTests": {
+        "log": "evidence/integrated-final/m3/dicom-wadoTests.log",
+        "XCTest_executed": 27,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 27
+      },
+      "M4_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m4/DICOMNetworkTests.log",
+        "XCTest_executed": 108,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 108
+      },
+      "M4_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m4/DICOMStudioTests.log",
+        "XCTest_executed": 2,
+        "XCTest_skipped": 2,
+        "XCTest_failed": 0,
+        "XCTest_passed": 0,
+        "SwiftTesting_suites": 3,
+        "SwiftTesting_passed": 142
+      },
+      "M4_DICOMWebTests": {
+        "log": "evidence/integrated-final/m4/DICOMWebTests.log",
+        "XCTest_executed": 23,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 22,
+        "SwiftTesting_suites": 12,
+        "SwiftTesting_passed": 89
+      },
+      "M4_dicom-queryTests": {
+        "log": "evidence/integrated-final/m4/dicom-queryTests.log",
+        "XCTest_executed": 14,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 14
+      },
+      "M4_dicom-retrieveTests": {
+        "log": "evidence/integrated-final/m4/dicom-retrieveTests.log",
+        "XCTest_executed": 9,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 9
+      },
+      "M4_dicom-serverTests": {
+        "log": "evidence/integrated-final/m4/dicom-serverTests.log",
+        "XCTest_executed": 105,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 105
+      },
+      "M4_dicom-wadoTests": {
+        "log": "evidence/integrated-final/m4/dicom-wadoTests.log",
+        "XCTest_executed": 27,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 27
+      },
+      "M5_DICOMRoundTripTests": {
+        "log": "evidence/integrated-final/m5/DICOMRoundTripTests.log",
+        "XCTest_executed": 28,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 28
+      },
+      "M5_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m5/DICOMStudioTests.log",
+        "XCTest_executed": 17,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 16,
+        "SwiftTesting_suites": 4,
+        "SwiftTesting_passed": 197
+      },
+      "M5_DICOMToolboxTests": {
+        "log": "evidence/integrated-final/m5/DICOMToolboxTests.log",
+        "XCTest_executed": 11,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 11,
+        "SwiftTesting_suites": 82,
+        "SwiftTesting_passed": 488
+      },
+      "M6_DICOMNetworkTests": {
+        "log": "evidence/integrated-final/m6/DICOMNetworkTests.log",
+        "XCTest_executed": 409,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 409
+      },
+      "M6_DICOMPrintKitTests": {
+        "log": "evidence/integrated-final/m6/DICOMPrintKitTests.log",
+        "XCTest_executed": 379,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 379,
+        "SwiftTesting_suites": 9,
+        "SwiftTesting_passed": 84
+      },
+      "M6_DICOMStudioTests": {
+        "log": "evidence/integrated-final/m6/DICOMStudioTests.log",
+        "XCTest_executed": 23,
+        "XCTest_skipped": 1,
+        "XCTest_failed": 0,
+        "XCTest_passed": 22
+      },
+      "M6_dicom-printTests": {
+        "log": "evidence/integrated-final/m6/dicom-printTests.log",
+        "XCTest_executed": 19,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 19
+      },
+      "M6_dicom-printscpTests": {
+        "log": "evidence/integrated-final/m6/dicom-printscpTests.log",
+        "XCTest_executed": 20,
+        "XCTest_skipped": 0,
+        "XCTest_failed": 0,
+        "XCTest_passed": 20
+      }
+    },
+    "counting": "Overlapping suite/milestone counts are not additive. Ordinary opt-in skips are not passes; separately activated harness evidence is retained.",
+    "source_epoch": "Historical24October frozen automated campaign; later26October repairs and reruns recorded separately below."
+  },
+  "static_audits": {
+    "CLI_exit_code": 0,
+    "Kit_exit_code": 0,
+    "Studio_exit_code": 1,
+    "Studio_callbacks": 178,
+    "Studio_execution_errors": 0,
+    "Studio_retained_findings": 3,
+    "audit_regressions_passed": 48,
+    "audit_only_reconciliation": "evidence/post-build-audit-reconciliation.json",
+    "findings": "evidence/studio-audit-repair-verification.json"
+  },
+  "CLI_inventory": {
+    "executables": 41,
+    "routes": 147,
+    "help_passed": 147,
+    "invalid_invocation_exit64": 147
+  },
+  "independent_codecs": {
+    "executed": 90,
+    "selected": 90,
+    "passed": 78,
+    "supported_refusal": 10,
+    "interoperability_limit": 2,
+    "failed": 0,
+    "meaning": "Only passed counts as codec qualification. Supported refusals and independently verified interoperability limits are separate. Exit0 means no unexpected failure, not complete codec support."
+  },
+  "independent_network": {
+    "passed": 34,
+    "failed": 0,
+    "evidence": "evidence/network-qualified"
+  },
+  "independent_TLS": {
+    "client_cases": 8,
+    "positive": 4,
+    "negative": 4,
+    "endpoint_controls": 8,
+    "activated_XCTest_methods": 1,
+    "evidence": "evidence/tls-qualified",
+    "full_PS3_15_profile_qualified": false
+  },
+  "independent_print": {
+    "passed": 24,
+    "failed": 0,
+    "peer_limited": 1,
+    "evidence": "evidence/print-qualified"
+  },
+  "print_Workshop": {
+    "VM_actions": 25,
+    "CLI_comparisons": 25,
+    "evidence": [
+      "evidence/workshop-qualified",
+      "evidence/workshop-images-qualified"
+    ],
+    "native_GUI_command_groups_completed": 10,
+    "native_GUI_action_count": null,
+    "native_counting": "Ten completed command groups; no invented total native action count. Historical25VM/25CLI campaign counts remain separate and overlap current evidence.",
+    "native_checkpoint": "evidence/native-2026-10-26/native-results.json"
+  },
+  "app_build": {
+    "status": "Passed",
+    "signed_with_project_sandbox_entitlements": true,
+    "native_runtime": "Resumed; audited partial M7 progress, all ten M6 print routes closed",
+    "planned_native_groups": 28,
+    "checklist": "evidence/native-final-checklist.json",
+    "current_identity": "../M6/evidence/native-2026-10-26/final-qualified-native-identity.json",
+    "current_source_equivalence": "../M6/evidence/native-2026-10-26/final-qualified-native-equivalence.json",
+    "build_log": "../M6/evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/build.log",
+    "signing_log": "../M6/evidence/native-2026-10-26/print-repair-verification/app-menu-rerun/signing.log"
+  },
+  "remote_CI": "Check the exact pushed head; local results are not remote CI.",
+  "scope_limits": [
+    "macOS arm64 synthetic qualification, not every supported platform or clinical/physical device qualification.",
+    "10 codec refusals and two strict precision interoperability limits are not codec passes.",
+    "Complete TLS profiles, mutual TLS, revocation and complete cipher matrices remain unqualified.",
+    "Physical printer/film, real CUPS dispatch, calibration and diagnostic image quality remain unqualified.",
+    "No main merge, release or deployment."
+  ],
+  "historical_qualification": {
+    "recorded_utc": "2026-10-24T15:45:23.572156+00:00",
+    "status": "In progress — native packaged GUI blocked",
+    "source_manifest": "source-hashes.json",
+    "artifact_manifest": "artifact-hashes.json",
+    "app_build": {
+      "status": "Passed",
+      "signed_with_project_sandbox_entitlements": true,
+      "native_runtime": "Blocked — Mac locked",
+      "planned_native_groups": 28,
+      "checklist": "evidence/native-final-checklist.json"
+    },
+    "meaning": "24 October automated/independent snapshot; retained unchanged. Its native lock/zero-action status is historical only."
+  },
+  "native_checkpoint_2026_10_26": {
+    "status": "In progress; no M7 completion",
+    "register_counts": {
+      "completed": 45,
+      "in_progress": 1,
+      "deferred": 22
+    },
+    "source_revision_note": "HEAD000fb888 plus explicitly hashed repair overlay; not an unchanged000fb888 binary.",
+    "ledger": "evidence/native-2026-10-26/native-results.json",
+    "audited_native_tags": {
+      "FINAL-02_actions": 20,
+      "FINAL-03_actions": 14,
+      "total_distinct_actions": 34,
+      "status": "Passed within captured synthetic scope; original interim app attribution retained through final source equivalence."
+    },
+    "native_print": {
+      "command_groups_completed": 10,
+      "scope": "M6 accepted software scope, with historical/current captures and exact reuse boundaries; no hardware claim.",
+      "final_menu_SCP_comparison": "../M6/evidence/native-2026-10-26/cli-final-controls/menu-final-scp-status.json"
+    },
+    "catalog": {
+      "selected_entries": 35,
+      "unique_enabled_tools": 32,
+      "selection_is_execution": false,
+      "FINAL-01_status": "Passed"
+    },
+    "viewer": {
+      "SR_rows": 16,
+      "copied_positive_offset_exact": true,
+      "image_fraction_AX": "10:15:30.123456",
+      "image_fraction_visible_sidebar": "10:15:30.12…",
+      "visual_limit": "185px sidebar ellipsis; not evidence of precision loss or simultaneous full-fraction visual readability.",
+      "FINAL-17_status": "Passed with retained narrow-sidebar visual bound"
+    },
+    "pending_groups": [
+      "FINAL-05",
+      "FINAL-06",
+      "FINAL-07",
+      "FINAL-08",
+      "FINAL-09",
+      "FINAL-10",
+      "FINAL-11",
+      "FINAL-12",
+      "FINAL-13",
+      "FINAL-15"
+    ],
+    "partial_reconciliation_groups": [],
+    "export_status": "Compact receipts/manifests/logs and necessary synthetic rawUI/output evidence copied into repository; byte-identical shared print/identity proof reused from M6 export.",
+    "audited_native_Info_validation": {
+      "Info_actions": 4,
+      "validation_actions": 20,
+      "total_distinct_actions": 24,
+      "independent_assertions_passed": 162,
+      "failed": 0,
+      "status": "Passed within saved synthetic scope; parent acceptance remains M7-in-progress.",
+      "evidence": "evidence/native-2026-10-26/native-FINAL-04-verification.json",
+      "limits": [
+        "Info JSON SQ is a byte preview, not flattened sequence item text. Eleven nested decoded paths are independently verified from saved file; no native Info display claim for those paths.",
+        "Full current Info parent JSON parsed and compared; child AX truncation does not limit the captured complete parent.",
+        "No UI/build/product execution by this read-only checker."
+      ]
+    },
+    "audited_native_script_anonymization_codec": {
+      "FINAL-14": {
+        "executions": 5,
+        "preflight_only": 1,
+        "assertions_passed": 30,
+        "assertions_failed": 0,
+        "evidence": "evidence/native-2026-10-26/native-FINAL-14-verification.json",
+        "limits": [
+          "Only workflow template manually exercised; allfive template contracts remain covered by separate automated evidence.",
+          "Live refusal is a disabled preflight observation; prior SUCCESS belongs to dry-run. No live native execution asserted."
+        ]
+      },
+      "FINAL-16": {
+        "executions": 2,
+        "preflight_only": 0,
+        "assertions_passed": 22,
+        "assertions_failed": 0,
+        "evidence": "evidence/native-2026-10-26/native-FINAL-16-verification.json",
+        "limits": [
+          "Earlier mode-B capture hid advanced options; it is not evidence of value loss. Final reexpanded Beginner and Advanced captures eachshow exactlyone enabledcontrol.",
+          "Generated identity UIDs differ intentionally; defined metadata/pixel semantics compared instead of whole-file bytes."
+        ]
+      },
+      "FINAL-18": {
+        "executions": 6,
+        "preflight_only": 0,
+        "assertions_passed": 44,
+        "assertions_failed": 0,
+        "evidence": "evidence/native-2026-10-26/native-FINAL-18-verification.json",
+        "limits": [
+          "Three successful outputs, two supported refusals, one strict-precision interoperability limit. Refusals nevercount ascodecpasses.",
+          "Lossy instance UID generated per run; exact codestream and otherdatasetmetadata compared. Independent decoder agreement bounded1, not exactoriginalsamples."
+        ]
+      }
+    },
+    "attribute_run_card": {
+      "executions": 71,
+      "preflight_only": 1,
+      "total_distinct_observations": 72,
+      "counting": "71 actual executions plus one disabled script preflight; never72 executions. Assertions and earlier-layer counts overlap."
+    },
+    "independent_recheck": "evidence/native-2026-10-26/independent-final-14-16-18-recheck.json",
+    "catalogue_viewer_closure": "evidence/native-2026-10-26/native-catalogue-viewer-closure.json",
+    "group_counts": {
+      "Passed": 18,
+      "Partial": 0,
+      "Not_run": 10
+    }
+  },
+  "repair_regressions_2026_10_26": {
+    "full_Studio_path_repair_v2": {
+      "log": "../M6/evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-path-repair-full-v2.log",
+      "sha256": "a138be9bcabafa41824878b34957c39353c007c9ccf5558bd149f955eb08797e",
+      "source_epoch": "Interim path repair, before later print-only menu change",
+      "XCTest_total_reported": 92,
+      "XCTest_skipped": 4,
+      "XCTest_failed": 0,
+      "XCTest_executed_passes": 88,
+      "SwiftTesting_framework_reported_tests": 5391,
+      "SwiftTesting_suites": 493,
+      "SwiftTesting_overall_result": "Passed",
+      "SwiftTesting_optional_skip": "Per-format codec comparison on SampleStudies",
+      "count_note": "Framework run count retained verbatim; optional skipped test is not an executed pass."
+    },
+    "later_print_menu_layout": {
+      "log": "../M6/evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-real-form-layout-v2.log",
+      "sha256": "e2f6964118829b770b3a7a86adfbd110dedeccb012ee6b75137e3ba297c76d49",
+      "XCTest_passed": 5,
+      "XCTest_failed": 0,
+      "scope": "Real Workshop hierarchy240/380/620 plus control binding/state tests; does not assert another full-suite execution."
+    },
+    "counting": "Do not add overlapping full/focused/older campaign counts. Source equivalence retains exact execution epoch."
+  },
+  "preserved_repair_failures": [
+    {
+      "evidence": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests.log",
+      "sha256": "f0fbc5f3a9da220de29eb84c3e26dde20db0cd857d851e40ddf277efbfd8dad4",
+      "explanation": "Invalid detached AX role oracle; stock control also AXUnknown. Corrected unit oracle and actual native role/name gate retained.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-path-repair-focused.log",
+      "sha256": "cedb70be7c717f29b50fe66f7f9a8a1345c80f2170026a48453ace179d3c19e8",
+      "explanation": "Initial path-repair compile errors retained; subsequent corrected builds pass.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-path-repair-focused-v2.log",
+      "sha256": "4a2d559ffcca88b9d301db7b472c22f985854042e9ab05db1a0f26b6d807c6ec",
+      "explanation": "Initial focused path behavior failures retained; subsequent repair/focused rerun passes.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-path-repair-full.log",
+      "sha256": "f3cf3e4948362f48fd3ccdf50573dd609dd978017952a3074214d8ef370bc9ea",
+      "explanation": "Initial full run includes real folder-only output-target regression and missing configured CLI-binary environment assertions. No pass claimed.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "../M6/evidence/native-2026-10-26/print-repair-verification/DICOMStudioTests-real-form-layout.log",
+      "sha256": "b2df3dac6dafdfea01ac30dd744de9cc8b137cc5054c8e1f71b8a94ecf137064",
+      "explanation": "Two assertions counted a divider decoration; arrangedSubviews correction keeps actual width/control bounds unchanged.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "../M6/evidence/native-2026-10-26/pdf-raster-verification.initial-cross-format-oracle.json",
+      "sha256": "2534129a0ab01f4f776ff678b9fde92cfdf9bb31743a1679d84f486306756a34",
+      "explanation": "Four failed rendered-vs-unrendered comparisons retained; corrected exact CLI/native PDF page and embedded-pixel assertions documented.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "evidence/native-2026-10-26/identity-capture-parser-failure-receipt.json",
+      "sha256": "bc8ba25b932b5265b26e2dfa2f2b90136f44bd6918241d0f7f0ac05e53d5235e",
+      "explanation": "codesign abstract text was not plist; --xml repair retains strict entitlement equality.",
+      "counted_as_pass": false
+    },
+    {
+      "evidence": "evidence/native-2026-10-26/native-FINAL-02-initial-AX-selection-error.json",
+      "sha256": "af7304291f35f5ed56339e18588777c4f80633825720fd48a508036b711d43b1",
+      "explanation": "Initial read-only parser selected stale aggregate AX; corrected semantic command/outcome selection without product rerun.",
+      "counted_as_pass": false
+    }
+  ],
+  "new_work_evidence_sha256": {
+    "../M6/evidence/native-2026-10-26/final-qualified-native-identity.json": "69cf81c116bdb25d41bd1cc0972b6286d3b27e082cc7fd9cab06853237f03ad9",
+    "../M6/evidence/native-2026-10-26/final-qualified-native-source-hashes.json": "4de84b55264946df509b49f0df78d8c172363be2eb87898f4ad7b011632db827",
+    "../M6/evidence/native-2026-10-26/final-qualified-native-artifact-hashes.json": "55891412e9d7fa5ff28a36c123f92ddbffb46188a603b0d22741941c0d6ba461",
+    "../M6/evidence/native-2026-10-26/final-qualified-native-equivalence.json": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+    "evidence/native-2026-10-26/native-FINAL-02-verification.json": "53f00ab75d41de6b18b659314e117f535a4674aced4158b79d88b172c2de7033",
+    "evidence/native-2026-10-26/native-FINAL-03-verification.json": "8838f1bcb21077112f40c0ce603d9092728e3eef1e01e5b78254114d99d2a43e",
+    "evidence/native-2026-10-26/native-FINAL-04-verification.json": "5416ca5500e71bffd2f537e988b36d555476aa1451e0a60d1afd77a2ccf953dd",
+    "evidence/native-2026-10-26/native-attribute-verification.json": "cfce777a5f0e345fcde4846030d9f9da8f346132676d62d147669dec0a7e15ec",
+    "evidence/native-2026-10-26/native-catalogue-selection.json": "72ffeb5664cf5b1ecfb266a7cddf88252e76be0af0ac54125a54b103e319b4ba",
+    "evidence/native-2026-10-26/viewer-native-verification.json": "42b0875cbf192ed96d108d75a11d03045a1ef307171f5d88b39dcc7d47855b42",
+    "../M6/evidence/native-2026-10-26/pdf-raster-verification.json": "a1306678fad91e63a6b9cdb6299cddd00465a3f9676132d66c665f83245228a8",
+    "../M6/evidence/native-2026-10-26/m6-native-closure-review.json": "a8a74ede7776b7adca360984a2f3a61d3a6c468445c5231613e7f6cbdd17ebc0",
+    "../M6/evidence/native-2026-10-26/cli-final-controls/menu-final-scp-status.json": "dcf4a21238966cd6f7f2da5be772f1551d798946458038a5bc0722a620b5077c",
+    "../M6/evidence/native-2026-10-26/final-print-controls-verification.json": "af5c9af48ae4e91e5f8facdd383f01c6e5e5c634ef997e7f6a15f359f0d2ccd0"
+  },
+  "native_evidence_index": "evidence/native-2026-10-26/evidence-index.json",
+  "native_privacy_review": "evidence/native-2026-10-26/privacy-review.json"
+}

@@ -1,5 +1,9 @@
 # DICOMStudio — DICOM Standard Implementation Report
 
+> Current implementation follow-up: [DICOM 2026a milestone status](Documentation/2026a-milestones/STATUS.md).
+> This report is historical evidence from the dates below. Its earlier “complete” status does not
+> close the 24 October 2026 behavioral findings; M0 repairs audit tooling only.
+
 Generated 2026-10-05, last updated 2026-10-06. Covers all 334 Swift files in `Sources/DICOMStudio/` (333) and `Sources/DICOMStudioApp/` (1):
 the macOS SwiftUI application over DICOMKit — the CLI Workshop (forms, executors and command previews for 29 of the
 42 `dicom-*` tools), the image viewer and its PS3.4 N.2 display pipeline, presentation states, DIMSE and DICOMweb

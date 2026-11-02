@@ -1,0 +1,12 @@
+{
+  "recorded_utc": "2026-10-26T08:07:03.444345+00:00",
+  "tool_session_id": 31210,
+  "owned_processes": [
+    "65871 /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python -B work/m7/native-mwl-peer.py work/m7/native-final-network/mwl --seconds 3600"
+  ],
+  "host": "127.0.0.1",
+  "port": 60660,
+  "called_aet": "M7MWL",
+  "script_sha256": "631317539d9b7f749869af1190708221b963a4574c02e3c768484ffdad10813d",
+  "scope": "Synthetic independent pynetdicom MWL peer; no clinical or external endpoints."
+}

@@ -1,0 +1,12 @@
+{
+  "case": "GUI-02",
+  "kind": "Operator-witnessed native UI observation",
+  "observer": "Parent/root agent operating the packaged app",
+  "observation": "The native Console displayed SUCCESS and Dry run completed - no commands were actually executed after running the synthetic valid script with Dry Run enabled.",
+  "recorded_from": "Explicit parent report during evidence reconciliation on 2026-10-24; this document compiler did not repeat the UI action.",
+  "retained_ax_limitation": "script-dry-run.txt is a no-change AX delta saved after the successful observation; it is not independent text proof of the result.",
+  "corroboration": [
+    "../workshop/workshop.json:dry-run",
+    "../DICOMStudioTests.log:M5WorkshopContractTests.testTemplateValidateAndDryRunUseSharedSupportedEngines"
+  ]
+}

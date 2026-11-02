@@ -1,0 +1,6 @@
+{
+  "host": "127.0.0.1",
+  "port": 59017,
+  "purpose": "Controlled terminal FE00 outcomes, not a cancellation-SCP oracle",
+  "synthetic": true
+}

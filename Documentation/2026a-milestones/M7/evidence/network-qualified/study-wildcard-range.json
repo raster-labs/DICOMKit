@@ -1,0 +1,57 @@
+[
+  {
+    "status": 65280,
+    "identifier": {
+      "00080020": {
+        "vr": "DA",
+        "Value": [
+          "20261024"
+        ]
+      },
+      "00080052": {
+        "vr": "CS",
+        "Value": [
+          "STUDY"
+        ]
+      },
+      "00080054": {
+        "vr": "AE",
+        "Value": [
+          "M7SERVER"
+        ]
+      },
+      "00080061": {
+        "vr": "CS",
+        "Value": [
+          "CT",
+          "MR",
+          "OT"
+        ]
+      },
+      "00100010": {
+        "vr": "PN",
+        "Value": [
+          {
+            "Alphabetic": "M7^Synthetic"
+          }
+        ]
+      },
+      "00100020": {
+        "vr": "LO",
+        "Value": [
+          "NETM7"
+        ]
+      },
+      "0020000D": {
+        "vr": "UI",
+        "Value": [
+          "2.25.700"
+        ]
+      }
+    }
+  },
+  {
+    "status": 0,
+    "identifier": null
+  }
+]

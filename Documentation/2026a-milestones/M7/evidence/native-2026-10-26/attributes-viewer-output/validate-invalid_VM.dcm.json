@@ -1,0 +1,24 @@
+{
+  "files" : [
+    {
+      "errorCount" : 1,
+      "errors" : [
+        {
+          "message" : "Rows has 2 values; PS3.6 Table 6-1 gives VM 1 [PS3.5 6.4]",
+          "tag" : "(0028,0010)"
+        }
+      ],
+      "filePath" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/integrated-final\/m2\/cli\/fixtures\/invalid_VM.dcm",
+      "isValid" : false,
+      "warningCount" : 0,
+      "warnings" : [
+
+      ]
+    }
+  ],
+  "invalidFiles" : 1,
+  "totalErrors" : 1,
+  "totalFiles" : 1,
+  "totalWarnings" : 0,
+  "validFiles" : 0
+}

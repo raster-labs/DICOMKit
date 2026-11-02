@@ -1,0 +1,549 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 540]
+[Planning deferred tasks]
+[2 / 45]
+Build complete! (0.93 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:52:10.701.
+Test Suite 'DICOMWebTests.xctest' started at 2026-10-24 20:52:10.706.
+Test Suite 'ConformanceStatementTests' started at 2026-10-24 20:52:10.706.
+Test Case '-[DICOMWebTests.ConformanceStatementTests testQIDORSConformance]' started.
+Test Case '-[DICOMWebTests.ConformanceStatementTests testQIDORSConformance]' passed (0.000 seconds).
+Test Suite 'ConformanceStatementTests' passed at 2026-10-24 20:52:10.706.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'M3QueryProcessHarnessTests' started at 2026-10-24 20:52:10.706.
+Test Case '-[DICOMWebTests.M3QueryProcessHarnessTests testQueryProcessHarness]' started.
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/M3QueryProcessHarnessTests.swift:11: -[DICOMWebTests.M3QueryProcessHarnessTests testQueryProcessHarness] : Test skipped - Run Scripts/verify_m3_queries.py for isolated process and HTTP gates
+Test Case '-[DICOMWebTests.M3QueryProcessHarnessTests testQueryProcessHarness]' skipped (0.001 seconds).
+Test Suite 'M3QueryProcessHarnessTests' passed at 2026-10-24 20:52:10.707.
+	 Executed 1 test, with 1 test skipped and 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'QIDOResourcePolicyTests' started at 2026-10-24 20:52:10.707.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testModalityIsStudyOrSeriesAttributeAndIsRejectedForSeriesInstances]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testModalityIsStudyOrSeriesAttributeAndIsRejectedForSeriesInstances]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testResourceIETruthTableFromPS318]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testResourceIETruthTableFromPS318]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testScopeRefusesEveryUnsupportedKnownFilterRatherThanDroppingIt]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testScopeRefusesEveryUnsupportedKnownFilterRatherThanDroppingIt]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testSixRoutesNeverDuplicatePathUIDsAsParentFilters]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testSixRoutesNeverDuplicatePathUIDsAsParentFilters]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testUIDListsRemainPredicatesAndMatchingExpressionsArePreserved]' started.
+Test Case '-[DICOMWebTests.QIDOResourcePolicyTests testUIDListsRemainPredicatesAndMatchingExpressionsArePreserved]' passed (0.000 seconds).
+Test Suite 'QIDOResourcePolicyTests' passed at 2026-10-24 20:52:10.708.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'QIDOServerIntegrityTests' started at 2026-10-24 20:52:10.708.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testAllResourcesRejectMalformedPaginationAndDuplicatePredicates]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testAllResourcesRejectMalformedPaginationAndDuplicatePredicates]' passed (0.030 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testCacheKeyRetainsAllRepeatedIncludeValues]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testCacheKeyRetainsAllRepeatedIncludeValues]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testCombinedDateTimeRangesIncludeMiddleDays]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testCombinedDateTimeRangesIncludeMiddleDays]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testDirectProviderPaginationIsBoundedAndStable]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testDirectProviderPaginationIsBoundedAndStable]' passed (0.010 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testKnownConditionalDefaultsAndSOPClassesInStudyAreReturned]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testKnownConditionalDefaultsAndSOPClassesInStudyAreReturned]' passed (0.008 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testLegacyProviderRefusesFilteredRequestsWithoutCallingSearch]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testLegacyProviderRefusesFilteredRequestsWithoutCallingSearch]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testLimitZeroAndFinalPageWarningsUseFilteredTotal]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testLimitZeroAndFinalPageWarningsUseFilteredTotal]' passed (0.005 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testMatchingExpressionsValidateGrammarAndLiteralWildcards]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testMatchingExpressionsValidateGrammarAndLiteralWildcards]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testParentPredicatesUIDListsAndInstanceNumberAreConjunctive]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testParentPredicatesUIDListsAndInstanceNumberAreConjunctive]' passed (0.011 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testProjectionRespectsEntityBoundariesAndPrivateCreators]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testProjectionRespectsEntityBoundariesAndPrivateCreators]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testRawRequestPreservesRepeatedFieldsAndDecodesExactlyOnce]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testRawRequestPreservesRepeatedFieldsAndDecodesExactlyOnce]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testResourceMatrixRejectsUnsupportedPredicatesInsteadOfBroadening]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testResourceMatrixRejectsUnsupportedPredicatesInsteadOfBroadening]' passed (0.001 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testReturnProjectionPreservesDefaultsRepeatedCommaAndNestedFields]' passed (0.005 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testSequencePredicatesRequireOneMatchingItem]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testSequencePredicatesRequireOneMatchingItem]' passed (0.000 seconds).
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testStudyUIDListExcludesThirdStudyForKeywordAndTag]' started.
+Test Case '-[DICOMWebTests.QIDOServerIntegrityTests testStudyUIDListExcludesThirdStudyForKeywordAndTag]' passed (0.001 seconds).
+Test Suite 'QIDOServerIntegrityTests' passed at 2026-10-24 20:52:10.783.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 0.074 (0.075) seconds
+Test Suite 'DICOMWebTests.xctest' passed at 2026-10-24 20:52:10.783.
+	 Executed 22 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.076 (0.078) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:52:10.783.
+	 Executed 22 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.076 (0.082) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "QIDOQueryAttribute Tests" started.
+◇ Suite "STOW Delegate Tests" started.
+◇ Suite "Server-Side Caching Integration Tests" started.
+◇ Suite "DICOMweb Server Tests" started.
+◇ Suite "DICOMweb Server Configuration Tests" started.
+◇ Suite "QIDOResults Tests" started.
+◇ Suite "DICOMweb Request Tests" started.
+◇ Suite "QIDOResultFormatter" started.
+◇ Suite "UPS-RS Server Handler Tests" started.
+◇ Suite "Storage Query Tests" started.
+◇ Suite "QIDOQuery Tests" started.
+◇ Suite "UPS-RS Router Tests" started.
+◇ Suite "STOW-RS Configuration Tests" started.
+◇ Suite "DICOMweb Router Tests" started.
+◇ Suite "InMemory Storage Provider Tests" started.
+◇ Suite "Server Cache Middleware Tests" started.
+◇ Suite "DICOMweb Response Tests" started.
+◇ Suite "QIDO-RS conformance" started.
+◇ Suite "304 Not Modified Response Tests" started.
+◇ Suite "QIDO Type Alias Tests" started.
+◇ Suite "STOW-RS Server Handler Tests" started.
+◇ Test "Study level attributes format" started.
+◇ Test "Store delegate default implementations exist" started.
+◇ Test "Instance level attributes format" started.
+◇ Test "Server caching invalidated on POST" started.
+◇ Test "Series level attributes format" started.
+◇ Test "Server caching invalidated on DELETE" started.
+◇ Test "Server with caching enabled returns cached responses" started.
+◇ Test "Server without caching does not add cache headers" started.
+◇ Test "Base URL generation with TLS" started.
+◇ Test "Rate limit configuration" started.
+◇ Test "CORS configuration allow all" started.
+◇ Test "Request parses Content-Type" started.
+◇ Test "Patient level attributes format" started.
+◇ Test "Development preset configuration" started.
+◇ Test "Request header lookup is case-insensitive" started.
+◇ Test "Request parses Accept header" started.
+◇ Test "Server handles If-None-Match conditional request" started.
+◇ Test "Server start and stop" started.
+◇ Test "Base URL with 0.0.0.0 replaces with localhost" started.
+◇ Test "Soft delete via HTTP DELETE with query parameter" started.
+◇ Test "Study CSV header + row match the CLI exactly" started.
+◇ Test "Base URL generation without TLS" started.
+◇ Test "Custom configuration values" started.
+◇ Test "Query with parameters" started.
+◇ Test "Server initialization" started.
+◇ Test "Default configuration values" started.
+◇ Test "Default query values" started.
+◇ Test "Retrieve non-existent study returns 404" started.
+◇ Test "Search studies returns empty array when no data" started.
+◇ Test "Empty value array returns nil for single value" started.
+◇ Test "Study JSON is pretty-printed with sorted keys" started.
+◇ Test "Study table reproduces the CLI's bordered table" started.
+◇ Test "Delete non-existent study returns 404" started.
+◇ Test "Permanent delete instance" started.
+◇ Test "D105: series table says Number of Series Related Instances (0020,1209), not # Images" started.
+◇ Test "Match create workitem route" started.
+◇ Test "Parse series result with parent study UID" started.
+◇ Test "Results container without total count less than limit" started.
+◇ Test "Create workitem with specific UID" started.
+◇ Test "Date range query" started.
+◇ Test "Retrieve specific workitem" started.
+◇ Test "Match unsubscribe workitem route" started.
+◇ Test "D105: instance table prints the whole SOP Class UID under PS3.6 names" started.
+◇ Test "Unsubscribe from workitem returns success" started.
+◇ Test "Parse instance result with basic attributes" started.
+◇ Test "D105: study table labels are PS3.6 Table 6-1 names (Modalities in Study, Number of Study Related Series)" started.
+◇ Test "Parse study result with basic attributes" started.
+◇ Test "Soft delete instance" started.
+◇ Test "Include multiple fields" started.
+◇ Test "Parse series result with instance count" started.
+◇ Test "Create workitem without UID" started.
+◇ Test "QIDOSeriesResult equality by UID" started.
+◇ Test "Handle CORS preflight" started.
+◇ Test "Soft delete series" started.
+◇ Test "Match retrieve workitem route" started.
+◇ Test "Soft delete study" started.
+◇ Test "SOP Instance UID query" started.
+◇ Test "Invalid state transition returns 409" started.
+◇ Test "Body part examined query" started.
+◇ Test "Soft delete then permanent delete" started.
+◇ Test "Search workitems returns empty when no UPS storage configured" started.
+◇ Test "Match cancel request route" started.
+◇ Test "Handle unknown route returns 404" started.
+◇ Test "Change workitem state to IN PROGRESS" started.
+◇ Test "Include single field" started.
+◇ Test "Empty study set still prints the bordered (header-only) table, like the CLI" started.
+◇ Test "Match subscribe workitem route" started.
+◇ Test "Match update workitem route (PS3.18 11.6.1: POST /workitems/{workitem}; PUT tolerated)" started.
+◇ Test "Include all fields takes precedence" started.
+◇ Test "Create duplicate workitem returns 409" started.
+◇ Test "QIDOInstanceResult equality by UID" started.
+◇ Test "QIDOQuery inequality" started.
+◇ Test "Permissive STOW configuration" started.
+◇ Test "Number of frames query" started.
+◇ Test "Studies by date range factory" started.
+◇ Test "Request cancellation for SCHEDULED workitem" started.
+◇ Test "Update workitem" started.
+◇ Test "Custom STOW configuration with allowed SOP classes" started.
+◇ Test "Well-known subscription UIDs route to the global handlers (PS3.18 Table 11.10.1-1)" started.
+◇ Test "Study time range query" started.
+◇ Test "Setting UPS storage dynamically" started.
+◇ Test "Missing Value key returns nil" started.
+◇ Test "Server configuration includes STOW config" started.
+◇ Test "Match change workitem state route" started.
+◇ Test "Patient ID query" started.
+◇ Test "Results container without total count but with limit" started.
+◇ Test "Retrieve non-existent workitem returns 404" started.
+◇ Test "Match search workitems route" started.
+◇ Test "Match suspend subscription route" started.
+◇ Test "Parse series result with basic attributes" started.
+◇ Test "Default STOW configuration" started.
+◇ Test "Strict STOW configuration" started.
+◇ Test "Parse study result with missing attributes" started.
+◇ Test "Results container empty" started.
+◇ Test "Offset query" started.
+◇ Test "Double accessor" started.
+◇ Test "Study date range empty returns unchanged query" started.
+◇ Test "Match retrieve instance route" started.
+◇ Test "Match create workitem with UID route (PS3.18 Table 11.4.1-1: /workitems?workitem=)" started.
+◇ Test "Parse study result with numeric counts" started.
+◇ Test "Capabilities include upsRS when configured" started.
+◇ Test "Query is immutable - returns new instance" started.
+◇ Test "Fuzzy matching disabled" started.
+◇ Test "Match retrieve study route" started.
+◇ Test "Subscribe to workitem returns success" started.
+◇ Test "Empty provider has no studies" started.
+◇ Test "Delete instance" started.
+◇ Test "Search workitems with query parameters" started.
+◇ Test "Match delete study route" started.
+◇ Test "SOP Class UID query" started.
+◇ Test "Study time query" started.
+◇ Test "Search workitems returns results" started.
+◇ Test "Results container with offset" started.
+◇ Test "Study Instance UID query" started.
+◇ Test "No match for wrong prefix" started.
+◇ Test "Parse study result with modalities in study" started.
+◇ Test "Integer accessor for string value" started.
+◇ Test "All query factory" started.
+◇ Test "Results container with total count - has more results" started.
+◇ Test "Match frames route" started.
+◇ Test "Get series instances" started.
+◇ Test "Delete non-existent instance returns false" started.
+◇ Test "Match retrieve series route" started.
+◇ Test "Store and retrieve instance" started.
+◇ Test "Match search studies route" started.
+◇ Test "Parse study result with patient name (PersonName format)" started.
+◇ Test "QIDOStudyResult inequality by UID" started.
+◇ Test "Fuzzy matching enabled" started.
+◇ Test "Pagination combination" started.
+◇ Test "Parse series result with description and body part" started.
+◇ Test "Results container basic properties" started.
+◇ Test "Pagination in search" started.
+◇ Test "Match study metadata route" started.
+◇ Test "No match for unknown path" started.
+◇ Test "Include all fields" started.
+◇ Test "Search studies with query" started.
+◇ Test "Parse instance result with parent UIDs" started.
+◇ Test "Study date range query" started.
+◇ Test "Accession number query" started.
+◇ Test "Match search series in study route" started.
+◇ Test "Cache key includes Accept header" started.
+◇ Test "Series description query" started.
+◇ Test "Series Instance UID query" started.
+◇ Test "Responses without body are not cached" started.
+◇ Test "Count series in study" started.
+◇ Test "Cache disabled returns nil for cached response" started.
+◇ Test "DateRange parses single value and every range form" started.
+◇ Test "Match STOW-RS store route" started.
+◇ Test "Bad request response" started.
+◇ Test "QIDOSeriesResult hashable in Set" started.
+◇ Test "Results container with total count - no more results" started.
+◇ Test "Parse instance result with image dimensions" started.
+◇ Test "OK JSON response" started.
+◇ Test "QIDOStudyResult equality by UID" started.
+◇ Test "POST responses are not cached" started.
+◇ Test "Instance number query" started.
+◇ Test "Modality query" started.
+◇ Test "String accessor for numeric value" started.
+◇ Test "If-None-Match returns 304 when ETag matches" started.
+◇ Test "Parse study result with patient ID" started.
+◇ Test "Not found response" started.
+◇ Test "QIDOStudyResult hashable in Set" started.
+◇ Test "Study, series and instance results carry Retrieve URL and Instance Availability" started.
+◇ Test "Strings accessor for multiple values" started.
+◇ Test "If-None-Match with non-matching ETag returns cached response" started.
+◇ Test "Cache enabled returns nil on first request (cache miss)" started.
+◇ Test "Study Instance UID filter accepted as keyword and as hex tag" started.
+◇ Test "Fuzzy matching default is true" started.
+◇ Test "No content response" started.
+◇ Test "Query initialization with parameters" started.
+◇ Test "Cached response includes ETag header" started.
+◇ Test "Study date range open-ended from query" started.
+◇ Test "Invalidate all clears cache" started.
+◇ Test "Referring physician name query" started.
+◇ Test "DateRange contains stored DA values" started.
+◇ Test "QIDOInstanceResult hashable in Set" started.
+◇ Test "Parse study result with all attributes" started.
+◇ Test "Cache stores and returns responses for GET requests" started.
+◇ Test "QIDOStudyResults type alias" started.
+◇ Test "304 Not Modified factory method" started.
+◇ Test "Study description query" started.
+◇ Test "POST requests are not cached" started.
+◇ Test "Include fields array" started.
+◇ Test "Fluent API chaining" started.
+◇ Test "304 Not Modified without ETag" started.
+◇ Test "Series result exposes PPS Start Time and Request Attributes Sequence" started.
+◇ Test "All query factory without limit" started.
+◇ Test "Non-200 responses are not cached" started.
+◇ Test "STOW-RS rejects multipart without boundary" started.
+◇ Test "If-None-Match with wildcard returns 304 for any cached response" started.
+◇ Test "Studies by modality factory" started.
+◇ Test "QIDOQuery equality" started.
+◇ Test "STOW-RS rejects empty request body" started.
+◇ Test "Study date query" started.
+◇ Test "Studies by patient name factory" started.
+◇ Test "STOW-RS rejects missing content type" started.
+◇ Test "Limit query" started.
+◇ Test "QIDOSeriesResults type alias" started.
+◇ Test "STOW-RS request size limit" started.
+◇ Test "Generic attribute with group and element" started.
+◇ Test "QIDOInstanceResults type alias" started.
+◇ Test "Invalidate by study UID clears cache" started.
+◇ Test "Study date range open-ended to query" started.
+◇ Test "Generic attribute with tag string" started.
+◇ Test "STOW-RS accepts application/dicom content type" started.
+◇ Test "Series number query" started.
+◇ Test "Study ID query" started.
+◇ Test "Cache statistics track hits and misses" started.
+◇ Test "Cached response includes Cache-Control header" started.
+◇ Test "Patient name query" started.
+◇ Test "Cache key includes query parameters" started.
+◇ Test "STOW-RS rejects unsupported content type" started.
+◇ Test "Patient birth date query" started.
+◇ Test "Empty query initialization" started.
+◇ Test "Patient sex query" started.
+✔ Test "Study level attributes format" passed after 0.003 seconds.
+◇ Test "StudyDate filter is honoured (undated studies do not match)" started.
+✔ Test "Store delegate default implementations exist" passed after 0.003 seconds.
+◇ Test "Query builder emits the sequence-attribute matching form" started.
+✔ Test "Instance level attributes format" passed after 0.003 seconds.
+✔ Test "Rate limit configuration" passed after 0.003 seconds.
+✔ Test "Server without caching does not add cache headers" passed after 0.003 seconds.
+✔ Test "Series level attributes format" passed after 0.003 seconds.
+✔ Test "Base URL generation with TLS" passed after 0.003 seconds.
+✔ Test "Server caching invalidated on POST" passed after 0.003 seconds.
+✔ Test "Server with caching enabled returns cached responses" passed after 0.003 seconds.
+✔ Test "Server caching invalidated on DELETE" passed after 0.003 seconds.
+✔ Test "Patient level attributes format" passed after 0.004 seconds.
+✔ Test "Development preset configuration" passed after 0.004 seconds.
+✔ Test "Request parses Content-Type" passed after 0.004 seconds.
+✔ Test "Request header lookup is case-insensitive" passed after 0.004 seconds.
+✔ Test "Server start and stop" passed after 0.004 seconds.
+✔ Test "CORS configuration allow all" passed after 0.004 seconds.
+✔ Test "Request parses Accept header" passed after 0.004 seconds.
+✔ Test "Base URL with 0.0.0.0 replaces with localhost" passed after 0.004 seconds.
+✔ Test "Server handles If-None-Match conditional request" passed after 0.004 seconds.
+✔ Test "Base URL generation without TLS" passed after 0.004 seconds.
+✔ Test "Server initialization" passed after 0.004 seconds.
+✔ Test "Query with parameters" passed after 0.004 seconds.
+✔ Test "Custom configuration values" passed after 0.004 seconds.
+✔ Test "Empty value array returns nil for single value" passed after 0.004 seconds.
+✔ Test "Retrieve non-existent study returns 404" passed after 0.004 seconds.
+✔ Test "Search studies returns empty array when no data" passed after 0.004 seconds.
+✔ Test "Study CSV header + row match the CLI exactly" passed after 0.004 seconds.
+✔ Test "Match create workitem route" passed after 0.004 seconds.
+✔ Test "Default query values" passed after 0.004 seconds.
+✔ Test "Parse series result with parent study UID" passed after 0.004 seconds.
+✔ Test "Date range query" passed after 0.004 seconds.
+✔ Test "Default configuration values" passed after 0.004 seconds.
+✔ Test "Study table reproduces the CLI's bordered table" passed after 0.004 seconds.
+✔ Test "D105: series table says Number of Series Related Instances (0020,1209), not # Images" passed after 0.004 seconds.
+✔ Test "Delete non-existent study returns 404" passed after 0.004 seconds.
+✔ Test "Parse instance result with basic attributes" passed after 0.004 seconds.
+✔ Test "Match unsubscribe workitem route" passed after 0.004 seconds.
+✔ Test "Permanent delete instance" passed after 0.004 seconds.
+✔ Test "Soft delete via HTTP DELETE with query parameter" passed after 0.004 seconds.
+✔ Test "Results container without total count less than limit" passed after 0.004 seconds.
+✔ Test "Soft delete instance" passed after 0.004 seconds.
+✔ Test "Include multiple fields" passed after 0.004 seconds.
+✔ Test "Parse study result with basic attributes" passed after 0.004 seconds.
+✔ Test "Create workitem with specific UID" passed after 0.004 seconds.
+✔ Test "Parse series result with instance count" passed after 0.004 seconds.
+✔ Test "Unsubscribe from workitem returns success" passed after 0.004 seconds.
+✔ Test "D105: instance table prints the whole SOP Class UID under PS3.6 names" passed after 0.004 seconds.
+✔ Test "QIDOSeriesResult equality by UID" passed after 0.004 seconds.
+✔ Test "Handle CORS preflight" passed after 0.004 seconds.
+✔ Test "D105: study table labels are PS3.6 Table 6-1 names (Modalities in Study, Number of Study Related Series)" passed after 0.004 seconds.
+✔ Test "Create workitem without UID" passed after 0.004 seconds.
+✔ Test "Soft delete then permanent delete" passed after 0.003 seconds.
+✔ Test "SOP Instance UID query" passed after 0.003 seconds.
+✔ Test "Handle unknown route returns 404" passed after 0.003 seconds.
+✔ Test "Search workitems returns empty when no UPS storage configured" passed after 0.003 seconds.
+✔ Test "Match retrieve workitem route" passed after 0.004 seconds.
+✔ Test "Soft delete study" passed after 0.004 seconds.
+✔ Test "Body part examined query" passed after 0.004 seconds.
+✔ Test "Invalid state transition returns 409" passed after 0.004 seconds.
+✔ Test "Match cancel request route" passed after 0.004 seconds.
+✔ Test "Soft delete series" passed after 0.004 seconds.
+✔ Test "Include single field" passed after 0.003 seconds.
+✔ Test "Include all fields takes precedence" passed after 0.004 seconds.
+✔ Test "Number of frames query" passed after 0.004 seconds.
+✔ Test "Empty study set still prints the bordered (header-only) table, like the CLI" passed after 0.004 seconds.
+✔ Test "QIDOQuery inequality" passed after 0.004 seconds.
+✔ Test "Permissive STOW configuration" passed after 0.004 seconds.
+✔ Test "Studies by date range factory" passed after 0.003 seconds.
+✔ Test "Match subscribe workitem route" passed after 0.004 seconds.
+✔ Test "Request cancellation for SCHEDULED workitem" passed after 0.004 seconds.
+✔ Test "Match update workitem route (PS3.18 11.6.1: POST /workitems/{workitem}; PUT tolerated)" passed after 0.004 seconds.
+✔ Test "Study time range query" passed after 0.003 seconds.
+✔ Test "Change workitem state to IN PROGRESS" passed after 0.004 seconds.
+✔ Test "Custom STOW configuration with allowed SOP classes" passed after 0.004 seconds.
+✔ Test "Create duplicate workitem returns 409" passed after 0.004 seconds.
+✔ Test "Update workitem" passed after 0.004 seconds.
+✔ Test "QIDOInstanceResult equality by UID" passed after 0.004 seconds.
+✔ Test "Patient ID query" passed after 0.003 seconds.
+✔ Test "Match change workitem state route" passed after 0.004 seconds.
+✔ Test "Missing Value key returns nil" passed after 0.003 seconds.
+✔ Test "Server configuration includes STOW config" passed after 0.004 seconds.
+✔ Test "Well-known subscription UIDs route to the global handlers (PS3.18 Table 11.10.1-1)" passed after 0.004 seconds.
+✔ Test "Match search workitems route" passed after 0.003 seconds.
+✔ Test "Results container without total count but with limit" passed after 0.003 seconds.
+✔ Test "Parse study result with missing attributes" passed after 0.004 seconds.
+✔ Test "Match suspend subscription route" passed after 0.004 seconds.
+✔ Test "Retrieve non-existent workitem returns 404" passed after 0.004 seconds.
+✔ Test "Default STOW configuration" passed after 0.003 seconds.
+✔ Test "Parse series result with basic attributes" passed after 0.004 seconds.
+✔ Test "Offset query" passed after 0.004 seconds.
+✔ Test "Double accessor" passed after 0.003 seconds.
+✔ Test "Setting UPS storage dynamically" passed after 0.004 seconds.
+✔ Test "Match create workitem with UID route (PS3.18 Table 11.4.1-1: /workitems?workitem=)" passed after 0.004 seconds.
+✔ Test "Strict STOW configuration" passed after 0.004 seconds.
+✔ Test "Fuzzy matching disabled" passed after 0.004 seconds.
+✔ Test "Results container empty" passed after 0.003 seconds.
+✔ Test "Retrieve specific workitem" passed after 0.004 seconds.
+✔ Test "Study date range empty returns unchanged query" passed after 0.003 seconds.
+✔ Test "Parse study result with numeric counts" passed after 0.003 seconds.
+✔ Test "Query is immutable - returns new instance" passed after 0.003 seconds.
+✔ Test "Capabilities include upsRS when configured" passed after 0.004 seconds.
+✔ Test "Match retrieve study route" passed after 0.003 seconds.
+✔ Test "Match retrieve instance route" passed after 0.004 seconds.
+✔ Test "Study time query" passed after 0.003 seconds.
+✔ Test "Match delete study route" passed after 0.004 seconds.
+✔ Test "SOP Class UID query" passed after 0.003 seconds.
+✔ Test "Empty provider has no studies" passed after 0.003 seconds.
+✔ Test "Subscribe to workitem returns success" passed after 0.004 seconds.
+✔ Test "Study Instance UID query" passed after 0.004 seconds.
+✔ Test "Search workitems with query parameters" passed after 0.003 seconds.
+✔ Test "Parse study result with modalities in study" passed after 0.003 seconds.
+✔ Test "No match for wrong prefix" passed after 0.003 seconds.
+✔ Test "All query factory" passed after 0.003 seconds.
+✔ Test "Results container with offset" passed after 0.003 seconds.
+✔ Test "Integer accessor for string value" passed after 0.003 seconds.
+✔ Test "Match retrieve series route" passed after 0.003 seconds.
+✔ Test "Get series instances" passed after 0.003 seconds.
+✔ Test "Match frames route" passed after 0.003 seconds.
+✔ Test "Delete non-existent instance returns false" passed after 0.003 seconds.
+✔ Test "Search workitems returns results" passed after 0.004 seconds.
+✔ Test "Results container with total count - has more results" passed after 0.004 seconds.
+✔ Test "QIDOStudyResult inequality by UID" passed after 0.003 seconds.
+✔ Test "Fuzzy matching enabled" passed after 0.003 seconds.
+✔ Test "Parse study result with patient name (PersonName format)" passed after 0.004 seconds.
+✔ Test "Pagination combination" passed after 0.003 seconds.
+✔ Test "Parse series result with description and body part" passed after 0.003 seconds.
+✔ Test "Match search studies route" passed after 0.004 seconds.
+✔ Test "Match study metadata route" passed after 0.003 seconds.
+✔ Test "Results container basic properties" passed after 0.003 seconds.
+✔ Test "Store and retrieve instance" passed after 0.004 seconds.
+✔ Test "Include all fields" passed after 0.004 seconds.
+✔ Test "Delete instance" passed after 0.004 seconds.
+✔ Test "Series description query" passed after 0.003 seconds.
+✔ Test "Match search series in study route" passed after 0.003 seconds.
+✔ Test "Accession number query" passed after 0.003 seconds.
+✔ Test "Search studies with query" passed after 0.003 seconds.
+✔ Test "Parse instance result with parent UIDs" passed after 0.003 seconds.
+✔ Test "Responses without body are not cached" passed after 0.003 seconds.
+✔ Test "Cache key includes Accept header" passed after 0.003 seconds.
+✔ Test "No match for unknown path" passed after 0.004 seconds.
+✔ Test "Match STOW-RS store route" passed after 0.003 seconds.
+✔ Test "Results container with total count - no more results" passed after 0.003 seconds.
+✔ Test "Cache disabled returns nil for cached response" passed after 0.004 seconds.
+✔ Test "QIDOSeriesResult hashable in Set" passed after 0.003 seconds.
+✔ Test "Bad request response" passed after 0.003 seconds.
+✔ Test "Study date range query" passed after 0.004 seconds.
+✔ Test "Count series in study" passed after 0.004 seconds.
+✔ Test "Modality query" passed after 0.003 seconds.
+✔ Test "QIDOStudyResult equality by UID" passed after 0.003 seconds.
+✔ Test "OK JSON response" passed after 0.003 seconds.
+✔ Test "POST responses are not cached" passed after 0.004 seconds.
+✔ Test "Instance number query" passed after 0.003 seconds.
+✔ Test "If-None-Match returns 304 when ETag matches" passed after 0.003 seconds.
+✔ Test "Not found response" passed after 0.003 seconds.
+✔ Test "Parse study result with patient ID" passed after 0.003 seconds.
+✔ Test "Series Instance UID query" passed after 0.004 seconds.
+✔ Test "Strings accessor for multiple values" passed after 0.003 seconds.
+✔ Test "QIDOStudyResult hashable in Set" passed after 0.003 seconds.
+✔ Test "Pagination in search" passed after 0.004 seconds.
+✔ Test "Cache enabled returns nil on first request (cache miss)" passed after 0.003 seconds.
+✔ Test "String accessor for numeric value" passed after 0.003 seconds.
+✔ Test "If-None-Match with non-matching ETag returns cached response" passed after 0.003 seconds.
+✔ Test "Fuzzy matching default is true" passed after 0.003 seconds.
+✔ Test "Parse instance result with image dimensions" passed after 0.004 seconds.
+✔ Test "No content response" passed after 0.003 seconds.
+✔ Test "Referring physician name query" passed after 0.003 seconds.
+✔ Test "Study date range open-ended from query" passed after 0.003 seconds.
+✔ Test "Query initialization with parameters" passed after 0.003 seconds.
+✔ Test "Cached response includes ETag header" passed after 0.003 seconds.
+✔ Test "Invalidate all clears cache" passed after 0.003 seconds.
+✔ Test "QIDOInstanceResult hashable in Set" passed after 0.003 seconds.
+✔ Test "Study description query" passed after 0.003 seconds.
+✔ Test "Cache stores and returns responses for GET requests" passed after 0.004 seconds.
+✔ Test "POST requests are not cached" passed after 0.003 seconds.
+✔ Test "Parse study result with all attributes" passed after 0.003 seconds.
+✔ Test "Include fields array" passed after 0.003 seconds.
+✔ Test "QIDOStudyResults type alias" passed after 0.003 seconds.
+✔ Test "Non-200 responses are not cached" passed after 0.003 seconds.
+✔ Test "All query factory without limit" passed after 0.003 seconds.
+✔ Test "304 Not Modified without ETag" passed after 0.003 seconds.
+✔ Test "Studies by modality factory" passed after 0.003 seconds.
+✔ Test "If-None-Match with wildcard returns 304 for any cached response" passed after 0.003 seconds.
+✔ Test "STOW-RS rejects multipart without boundary" passed after 0.003 seconds.
+✔ Test "304 Not Modified factory method" passed after 0.003 seconds.
+✔ Test "Series result exposes PPS Start Time and Request Attributes Sequence" passed after 0.003 seconds.
+✔ Test "Study date query" passed after 0.003 seconds.
+✔ Test "QIDOQuery equality" passed after 0.003 seconds.
+✔ Test "Studies by patient name factory" passed after 0.004 seconds.
+✔ Test "STOW-RS rejects empty request body" passed after 0.004 seconds.
+✔ Test "Fluent API chaining" passed after 0.004 seconds.
+✔ Test "Limit query" passed after 0.003 seconds.
+✔ Test "STOW-RS request size limit" passed after 0.003 seconds.
+✔ Test "Generic attribute with group and element" passed after 0.003 seconds.
+✔ Test "STOW-RS rejects missing content type" passed after 0.003 seconds.
+✔ Test "Generic attribute with tag string" passed after 0.003 seconds.
+✔ Test "QIDOSeriesResults type alias" passed after 0.004 seconds.
+✔ Test "Study date range open-ended to query" passed after 0.003 seconds.
+✔ Test "Series number query" passed after 0.003 seconds.
+✔ Test "QIDOInstanceResults type alias" passed after 0.003 seconds.
+✔ Test "Study ID query" passed after 0.003 seconds.
+✔ Test "STOW-RS accepts application/dicom content type" passed after 0.003 seconds.
+✔ Test "Invalidate by study UID clears cache" passed after 0.003 seconds.
+✔ Test "Patient name query" passed after 0.003 seconds.
+✔ Test "Cache statistics track hits and misses" passed after 0.003 seconds.
+✔ Test "Cached response includes Cache-Control header" passed after 0.003 seconds.
+✔ Test "STOW-RS rejects unsupported content type" passed after 0.003 seconds.
+✔ Test "Patient birth date query" passed after 0.003 seconds.
+✔ Test "Empty query initialization" passed after 0.003 seconds.
+✔ Test "Cache key includes query parameters" passed after 0.003 seconds.
+✔ Test "Patient sex query" passed after 0.003 seconds.
+✔ Test "Query builder emits the sequence-attribute matching form" passed after 0.002 seconds.
+✔ Suite "STOW Delegate Tests" passed after 0.006 seconds.
+✔ Suite "QIDOQueryAttribute Tests" passed after 0.006 seconds.
+✔ Suite "DICOMweb Server Configuration Tests" passed after 0.006 seconds.
+✔ Suite "DICOMweb Request Tests" passed after 0.006 seconds.
+✔ Suite "Server-Side Caching Integration Tests" passed after 0.006 seconds.
+✔ Suite "Storage Query Tests" passed after 0.006 seconds.
+✔ Suite "UPS-RS Router Tests" passed after 0.006 seconds.
+✔ Suite "DICOMweb Server Tests" passed after 0.006 seconds.
+✔ Suite "QIDOResults Tests" passed after 0.006 seconds.
+✔ Suite "UPS-RS Server Handler Tests" passed after 0.006 seconds.
+✔ Suite "DICOMweb Router Tests" passed after 0.006 seconds.
+✔ Suite "STOW-RS Configuration Tests" passed after 0.006 seconds.
+✔ Suite "InMemory Storage Provider Tests" passed after 0.006 seconds.
+✔ Suite "QIDO Type Alias Tests" passed after 0.006 seconds.
+✔ Suite "Server Cache Middleware Tests" passed after 0.006 seconds.
+✔ Suite "DICOMweb Response Tests" passed after 0.006 seconds.
+✔ Suite "304 Not Modified Response Tests" passed after 0.006 seconds.
+✔ Suite "STOW-RS Server Handler Tests" passed after 0.006 seconds.
+✔ Test "Study JSON is pretty-printed with sorted keys" passed after 0.005 seconds.
+✔ Suite "QIDOResultFormatter" passed after 0.006 seconds.
+✔ Suite "QIDOQuery Tests" passed after 0.006 seconds.
+✔ Test "DateRange parses single value and every range form" passed after 0.005 seconds.
+✔ Test "DateRange contains stored DA values" passed after 0.005 seconds.
+✔ Test "Study, series and instance results carry Retrieve URL and Instance Availability" passed after 0.029 seconds.
+✔ Test "StudyDate filter is honoured (undated studies do not match)" passed after 0.027 seconds.
+✔ Test "Study Instance UID filter accepted as keyword and as hex tag" passed after 0.030 seconds.
+✔ Suite "QIDO-RS conformance" passed after 0.031 seconds.
+✔ Test run with 217 tests in 21 suites passed after 0.032 seconds.

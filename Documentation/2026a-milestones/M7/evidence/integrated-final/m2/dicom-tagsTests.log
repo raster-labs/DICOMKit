@@ -1,0 +1,42 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 628]
+[Planning deferred tasks]
+[5 / 6] dicom-tagsTests-product
+[7 / 7] dicom-tagsTests-product
+Build complete! (1.32 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:51:30.205.
+Test Suite 'dicom-tagsTests.xctest' started at 2026-10-24 20:51:30.210.
+Test Suite 'TagEditRulesTests' started at 2026-10-24 20:51:30.210.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testDataSetRefusals]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testDataSetRefusals]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testGroup0002EditsAreRefusedByKeywordAndByTag]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testGroup0002EditsAreRefusedByKeywordAndByTag]' passed (0.035 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testHelpNamesKeywords]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testHelpNamesKeywords]' passed (0.003 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testKeywordsAreExactPS36Keywords]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testKeywordsAreExactPS36Keywords]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testLengthLimitsAreTable621]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testLengthLimitsAreTable621]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testPrivateCreatorValues]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testPrivateCreatorValues]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRefusedSetLeavesTheDataSetUntouched]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRefusedSetLeavesTheDataSetUntouched]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRepertoiresAreTable621]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testRepertoiresAreTable621]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetKeepsOrderAndSkipLinesAndHonoursDryRun]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetKeepsOrderAndSkipLinesAndHonoursDryRun]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetWritesBinaryUSForRows]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testSetWritesBinaryUSForRows]' passed (0.001 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesOutsideTheLimitsAreRefused]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesOutsideTheLimitsAreRefused]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesWithinTheLimitsAreAccepted]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testValuesWithinTheLimitsAreAccepted]' passed (0.000 seconds).
+Test Case '-[dicom_tagsTests.TagEditRulesTests testWriteVR]' started.
+Test Case '-[dicom_tagsTests.TagEditRulesTests testWriteVR]' passed (0.000 seconds).
+Test Suite 'TagEditRulesTests' passed at 2026-10-24 20:51:30.253.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.043) seconds
+Test Suite 'dicom-tagsTests.xctest' passed at 2026-10-24 20:51:30.253.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.043) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:51:30.253.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.042 (0.048) seconds

@@ -1,0 +1,1072 @@
+{
+  "recorded_utc": "2026-10-26T07:36:54.132812+00:00",
+  "native_actions_observed": 24,
+  "info_actions": 4,
+  "validation_actions": 20,
+  "checks": [
+    {
+      "case": "info-latin",
+      "assertion": "current command has complete parseable native JSON node",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "entire native Info JSON equals complete CLI JSON",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "native success outcome observed",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "native decoded PN exact Unicode value",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "native JSON preserves two significant leading spaces",
+      "passed": true
+    },
+    {
+      "case": "info-latin",
+      "assertion": "native read source unchanged and identical to paired immutable CLI output",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "current command has complete parseable native JSON node",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "entire native Info JSON equals complete CLI JSON",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "native success outcome observed",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "native decoded PN exact Unicode value",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "native JSON preserves two significant leading spaces",
+      "passed": true
+    },
+    {
+      "case": "info-japanese",
+      "assertion": "native read source unchanged and identical to paired immutable CLI output",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "current command has complete parseable native JSON node",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "entire native Info JSON equals complete CLI JSON",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "native success outcome observed",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "native decoded PN exact Unicode value",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "native JSON preserves two significant leading spaces",
+      "passed": true
+    },
+    {
+      "case": "info-utf8",
+      "assertion": "native read source unchanged and identical to paired immutable CLI output",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "current command has complete parseable native JSON node",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "entire native Info JSON equals complete CLI JSON",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "native success outcome observed",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "native decoded PN exact Unicode value",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "native JSON preserves two significant leading spaces",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "native read source unchanged and identical to paired immutable CLI output",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "native SQ representation is current byte preview, without invented flattened content",
+      "passed": true
+    },
+    {
+      "case": "info-nested-charsets",
+      "assertion": "independent nested saved-file oracle exists separately",
+      "passed": true,
+      "details": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/native-nested-charsets-independent.json"
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-base.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-empty-required-meta.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L1-uid-changed.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-base.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-empty-required-meta.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-L2-uid-changed.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_AS.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_DT.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_VM.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-invalid_calendar_date.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-AS.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-nested-invalid-date.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-odd_numeric_length.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-json",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "complete saved text validation report equals paired CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-False-text",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-json",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "complete saved text validation report equals paired CLI bytes",
+      "passed": true
+    },
+    {
+      "case": "wrong-VR-True-text",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-leap.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-partial-DT.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "native observed status matches required validation outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "native executed command matches intended validation flags",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "saved native report exists",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "complete saved validation JSON equals CLI excluding only filePath and duration",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "isValid agrees with independent expected outcome",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "error counts and full errors retained",
+      "passed": true
+    },
+    {
+      "case": "validate-valid-fraction-DT.dcm",
+      "assertion": "validator leaves source byte-identical to fixture manifest",
+      "passed": true
+    }
+  ],
+  "passed": 162,
+  "failed": 0,
+  "observed": [
+    {
+      "id": "info-latin",
+      "native_action": "read Info JSON",
+      "source_sha256": "93a1eedd5e00f0b915abc99bea01f63138660370514aa2a1407ce3d117435a89",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/info-latin-after.txt",
+      "evidence_sha256": "fc4b3f75cfa2ed23835eca80954aaf5ea28f4f26009e7c4fd095227cd7b1a9aa",
+      "complete_JSON_comparison": true,
+      "dataset_elements": 5,
+      "file_meta_elements": 6
+    },
+    {
+      "id": "info-japanese",
+      "native_action": "read Info JSON",
+      "source_sha256": "05b9874448250b8af5a257175ee713f091eb87c0137b62c22a7337d35e486269",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/info-japanese-after.txt",
+      "evidence_sha256": "812cde3ea1017570e9aaeae45da073554be18764b06388fd652cc1d0269056a5",
+      "complete_JSON_comparison": true,
+      "dataset_elements": 5,
+      "file_meta_elements": 6
+    },
+    {
+      "id": "info-utf8",
+      "native_action": "read Info JSON",
+      "source_sha256": "e54e18e2d08469f60e6bd779a61a897f724d724bc032889e6782a029d9ab0e17",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/info-utf8-after.txt",
+      "evidence_sha256": "52bfb6b507b369641d1855b7b57b920ed8cdac250cd4f3a953903c52886ea44b",
+      "complete_JSON_comparison": true,
+      "dataset_elements": 5,
+      "file_meta_elements": 6
+    },
+    {
+      "id": "info-nested-charsets",
+      "native_action": "read Info JSON",
+      "source_sha256": "c9b8c613a9e73ebf1292401318847fcbe72d295f4e09efa72e18eea8f2cb3b4f",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/info-nested-charsets-after.txt",
+      "evidence_sha256": "7b0347618cb11b02f39be72255c83d88ecc6cd905e0f0b48b1ea8436bbd3c938",
+      "complete_JSON_comparison": true,
+      "dataset_elements": 8,
+      "file_meta_elements": 7
+    },
+    {
+      "id": "validate-L1-base.dcm",
+      "native_action": "validation",
+      "outcome": "SUCCESS",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L1-base.dcm-after.txt",
+      "evidence_sha256": "9a6677326c21f837ab2c6c727d6ae2fcae438978e7edfcc3d4ad93ba13d475ff",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-base.dcm.json",
+      "output_sha256": "a181c014ec94d13167cf1d59c42cfc542a29090fb670ec2512c6b52b6117f79b",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-L1-empty-required-meta.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L1-empty-required-meta.dcm-after.txt",
+      "evidence_sha256": "5c0e000a1f4d0b6da855d358ce3f3bca4844d6c4553270cff83ee0269d55365b",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-empty-required-meta.dcm.json",
+      "output_sha256": "667db24bc83c48967f23c5e9c54192a4e00f29d50c924ead364e02ffdf963b19",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-L1-uid-changed.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L1-uid-changed.dcm-after.txt",
+      "evidence_sha256": "d3eb9794be620a8730a8f622b05c1d2397ebdee026df3145a3871706744156d0",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L1-uid-changed.dcm.json",
+      "output_sha256": "740f456716fa056c73cc68215296522558c03853baaff3095b47b73a44cf8ae6",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-L2-base.dcm",
+      "native_action": "validation",
+      "outcome": "SUCCESS",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L2-base.dcm-after.txt",
+      "evidence_sha256": "cd268588abb12c97cf0bc6d434240857bc77d4651ca71687a348e8f6a977f91e",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-base.dcm.json",
+      "output_sha256": "a181c014ec94d13167cf1d59c42cfc542a29090fb670ec2512c6b52b6117f79b",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-L2-empty-required-meta.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L2-empty-required-meta.dcm-after.txt",
+      "evidence_sha256": "3dd71e0b3f11157e80b1bab504929fb3fa2c885126feb20857894b15506b943a",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-empty-required-meta.dcm.json",
+      "output_sha256": "667db24bc83c48967f23c5e9c54192a4e00f29d50c924ead364e02ffdf963b19",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-L2-uid-changed.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-L2-uid-changed.dcm-after.txt",
+      "evidence_sha256": "258307d43be5db21ddcc824a1613449e1cd013c1ffe2e5d9ae65bde5f633956d",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-L2-uid-changed.dcm.json",
+      "output_sha256": "740f456716fa056c73cc68215296522558c03853baaff3095b47b73a44cf8ae6",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-invalid_AS.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-invalid_AS.dcm-after.txt",
+      "evidence_sha256": "3c11b09e21ed9af60a5b521d3fd5f5aca2f2f13f8bf89a933a243870b095e2ea",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_AS.dcm.json",
+      "output_sha256": "d5ae16e605534247948e4b657e10a86d8635bd52cbc53df3a580545d45381550",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-invalid_DT.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-invalid_DT.dcm-after.txt",
+      "evidence_sha256": "1108aca14b5a49ad786ffe49e980b95ba6a2843a1161a2d1af53044cf0aadb64",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_DT.dcm.json",
+      "output_sha256": "0bc76774bbdb119ab842f5427fb1056619730ebaa57dbd61fc18fde934bb10c9",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-invalid_VM.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-invalid_VM.dcm-after.txt",
+      "evidence_sha256": "87757b1d31f6140fb9d3d6908b4eed35c53b46ec3d88f97c279578a8a6699968",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_VM.dcm.json",
+      "output_sha256": "b74fad8e4400c041d7f8cd048da39cda80e08dcc3b8d1938fb7891c2d349210d",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-invalid_calendar_date.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-invalid_calendar_date.dcm-after.txt",
+      "evidence_sha256": "5016005b63d0cc63459f7320ba0fe301f6833c6cc3b08c6c1c1f92ddf5b89d48",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-invalid_calendar_date.dcm.json",
+      "output_sha256": "d532670d7dfa83a4dd0864e57cfb0c30449e141d14b604aa1049a70ad33a8117",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-nested-invalid-AS.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-nested-invalid-AS.dcm-after.txt",
+      "evidence_sha256": "55e5f8eb6a3469945e7f9d64fa87657fe78f9c4c48910f047115afe3199d6701",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-AS.dcm.json",
+      "output_sha256": "5d182f05857afdb34ef0b6dd20dd92bdec4409924bb8e3c0ef7ed449b8bc2b54",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-nested-invalid-date.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-nested-invalid-date.dcm-after.txt",
+      "evidence_sha256": "31ff22d5ea3697a3ab05d37921c965c511ded9bf45d2be873b23789f7115803a",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-nested-invalid-date.dcm.json",
+      "output_sha256": "e0991292a4458cc2272e2a47a56b4eadf5074c0549124c0bceac571115cda06e",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-odd_numeric_length.dcm",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-odd_numeric_length.dcm-after.txt",
+      "evidence_sha256": "b33501030fdf5e797985176bc21514cec1f8e9f2b515d2aaf8cbafe528d342dc",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-odd_numeric_length.dcm.json",
+      "output_sha256": "6b86140888ae110ac104dca7f9bca4a58e6c2b2e554852937edb327d4a749f34",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "wrong-VR-False-json",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/wrong-VR-False-json-after.txt",
+      "evidence_sha256": "ebc4805fc4c10e5748ac3c4fac609077d905e0c908f7562e009147ff35a6db43",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-json.json",
+      "output_sha256": "d89b3807684349cfeef2b9c8a2384fa124ac2c5771e5a53f6eb505b72fc40460",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "wrong-VR-False-text",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/wrong-VR-False-text-after.txt",
+      "evidence_sha256": "fc42d2cdc5bdcb930e3385863b8aeca873e7dd82779bdc666a91375c6e5e556e",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-False-text.txt",
+      "output_sha256": "c6ff162b0a3e8014d2425c2aafa37738b869ea3306360f277794fd3a20a34413",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "wrong-VR-True-json",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/wrong-VR-True-json-after.txt",
+      "evidence_sha256": "6783e1deba563acca3941e28e4531fb1eada53030565149974859277229cd8d1",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-json.json",
+      "output_sha256": "d89b3807684349cfeef2b9c8a2384fa124ac2c5771e5a53f6eb505b72fc40460",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "wrong-VR-True-text",
+      "native_action": "validation",
+      "outcome": "ERROR",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/wrong-VR-True-text-after.txt",
+      "evidence_sha256": "a07ed89c664757011533a3b2adfcc7de59fc01f70265c098c7cd8fadea0b8ba5",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/wrong-VR-True-text.txt",
+      "output_sha256": "c6ff162b0a3e8014d2425c2aafa37738b869ea3306360f277794fd3a20a34413",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-valid-leap.dcm",
+      "native_action": "validation",
+      "outcome": "SUCCESS",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-valid-leap.dcm-after.txt",
+      "evidence_sha256": "0ac502a48a61c0b66e6cd849c24842af6995580828ff59ee69fb54d0af0fc397",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-leap.dcm.json",
+      "output_sha256": "5fc1a36f56e116b325862e570c16a4d75a2ac39cdaa17ccdbd0d8ffe78b3f00e",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-valid-partial-DT.dcm",
+      "native_action": "validation",
+      "outcome": "SUCCESS",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-valid-partial-DT.dcm-after.txt",
+      "evidence_sha256": "65e3389996022d589587168e5ada35eaf26da634b554eae303402ba019ff2984",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-partial-DT.dcm.json",
+      "output_sha256": "15622ad3d5a727f9215d3d78f7becfe9c1676f53cdf5cbe3be527c8f01ccb041",
+      "full_saved_report_compared": true
+    },
+    {
+      "id": "validate-valid-fraction-DT.dcm",
+      "native_action": "validation",
+      "outcome": "SUCCESS",
+      "evidence": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-attributes/validate-valid-fraction-DT.dcm-after.txt",
+      "evidence_sha256": "b9a0320697b20456cf224106f1d51d9a3d918a9f660efef55dc924fd82b3b8a4",
+      "output": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/validate-valid-fraction-DT.dcm.json",
+      "output_sha256": "7280e233775d3fbec06412c7ada9167085ba648fb4de1874436106dca8d6a1e7",
+      "full_saved_report_compared": true
+    }
+  ],
+  "qualification_epoch": "final-qualified-native app-menu-rerun; confirmed by parent for Info4 and Validator20",
+  "identity": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/final-qualified-native-equivalence.json",
+  "identity_sha256": "3431d7f05bdef48018ffa3a33ca651ca338bde3bda668a2efa9a74699a87337f",
+  "completion": "All24 required actions substantiated; parent final acceptance pending.",
+  "limits": [
+    "Info JSON SQ is a byte preview, not flattened sequence item text. Eleven nested decoded paths are independently verified from saved file; no native Info display claim for those paths.",
+    "Full current Info parent JSON parsed and compared; child AX truncation does not limit the captured complete parent.",
+    "No UI/build/product execution by this read-only checker."
+  ]
+}

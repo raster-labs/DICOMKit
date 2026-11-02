@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input DICOM file
+Usage: dicom-gateway dicom-to-fhir <input> [--output <output>] [--resource <resource>] [--pretty] [--verbose]
+  See 'dicom-gateway dicom-to-fhir --help' for more information.

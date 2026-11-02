@@ -1,0 +1,13 @@
+{
+  "isNormal" : false,
+  "manufacturer" : "Synthetic",
+  "Manufacturer" : "Synthetic",
+  "ManufacturerModelName" : "M6",
+  "model" : "M6",
+  "name" : "Synthetic M6",
+  "PrinterName" : "Synthetic M6",
+  "PrinterStatus" : "WARNING",
+  "PrinterStatusInfo" : "SUPPLY LOW",
+  "status" : "WARNING",
+  "statusInfo" : "SUPPLY LOW"
+}

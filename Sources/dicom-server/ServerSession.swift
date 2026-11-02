@@ -25,8 +25,39 @@ actor ServerSession {
     private var callingAETitle = ""
     /// Fragment size for outgoing P-DATA-TF: the peer's Maximum Length (PS3.8 D.1)
     private var outgoingMaxPDUSize: UInt32 = defaultMaxPDUSize
-    /// Message ID of a C-GET for which a C-CANCEL-RQ arrived
-    private var cancelledMessageIDs: Set<UInt16> = []
+    /// One receive pump owns the socket. Request handlers are serialized in a
+    /// separate actor task, so cancellation and C-STORE responses remain readable
+    /// while a query/retrieve handler is suspended (PS3.7 9.3.2/9.3.3/9.3.4).
+    private struct ActiveOperation {
+        let messageID: UInt16
+        let contextID: UInt8
+        var cancelled = false
+        var finalCommitted = false
+    }
+    private var activeOperation: ActiveOperation?
+    private var requestQueue: [AssembledMessage] = []
+    private var handlerTask: Task<Void, Never>?
+    private var expectedStoreResponse: (messageID: UInt16, contextID: UInt8)?
+    private var bufferedStoreResponse: DIMSEStatus?
+    private var storeResponseWaiter: CheckedContinuation<DIMSEStatus, Error>?
+    private var getStoreSendInProgress = false
+    private var moveStoreTask: Task<StoreResult, Error>?
+    private var cancelledStoreDeadline: Task<Void, Never>?
+
+    /// Internal test synchronization only; no public server option or wire behavior.
+    enum Checkpoint: Sendable, Hashable {
+        case beforeFindResult(messageID: UInt16, index: Int)
+        case beforeStore(messageID: UInt16, index: Int)
+        case duringGetStoreSend(messageID: UInt16)
+        case beforeFinalResponse(messageID: UInt16)
+        case cancelProcessed(messageID: UInt16, accepted: Bool)
+        case operationFinished(messageID: UInt16)
+    }
+    struct TestHooks: Sendable {
+        var checkpoint: @Sendable (Checkpoint) async throws -> Void
+        var cancellationSettlementTimeout: TimeInterval = 30
+    }
+    private let testHooks: TestHooks?
 
     /// Errors ending the session
     private enum SessionError: Error {
@@ -42,7 +73,8 @@ actor ServerSession {
         storage: StorageManager,
         database: DatabaseManager?,
         statistics: ServerStatistics,
-        logger: ServerLogger
+        logger: ServerLogger,
+        testHooks: TestHooks? = nil
     ) {
         self.id = id
         self.connection = connection
@@ -51,6 +83,7 @@ actor ServerSession {
         self.database = database
         self.statistics = statistics
         self.logger = logger
+        self.testHooks = testHooks
     }
 
     /// Start the session
@@ -66,14 +99,33 @@ actor ServerSession {
 
         connection.start(queue: .global(qos: .userInitiated))
 
-        // Handle incoming messages
+        // Handle incoming messages. Do not report the session finished while
+        // an outgoing MOVE store or a GET response waiter still owns resources.
         await receiveLoop()
+        await waitForPendingRequests()
+    }
+
+    /// After cancel(), drain the worker before releasing server-owned resources.
+    func waitForPendingRequests() async {
+        await handlerTask?.value
     }
 
     /// Cancel the session
     func cancel() async {
         isActive = false
         isEstablished = false
+        handlerTask?.cancel()
+        moveStoreTask?.cancel()
+        cancelledStoreDeadline?.cancel()
+        cancelledStoreDeadline = nil
+        requestQueue.removeAll()
+        activeOperation = nil
+        expectedStoreResponse = nil
+        bufferedStoreResponse = nil
+        getStoreSendInProgress = false
+        let waiter = storeResponseWaiter
+        storeResponseWaiter = nil
+        waiter?.resume(throwing: SessionError.connectionClosed)
         connection.cancel()
     }
 
@@ -181,8 +233,12 @@ actor ServerSession {
         case let request as AssociateRequestPDU:
             try await handleAssociationRequest(request)
         case let data as DataTransferPDU:
-            if let message = try messageAssembler.addPDVs(from: data) {
-                try await handleDIMSEMessage(message)
+            // A PDU can complete more than one message; do not discard all but
+            // its last message (e.g. request and immediate C-CANCEL).
+            for pdv in data.presentationDataValues {
+                if let message = try messageAssembler.addPDV(pdv) {
+                    try await dispatchDIMSEMessage(message)
+                }
             }
         case is ReleaseRequestPDU:
             try await handleReleaseRequest()
@@ -238,12 +294,138 @@ actor ServerSession {
 
     private func handleReleaseRequest() async throws {
         log("Received A-RELEASE-RQ")
+        if let activeOperation, !activeOperation.finalCommitted {
+            // Releasing with an unfinished operation is not legal association
+            // use. Stop the worker instead of interleaving release and DIMSE.
+            try? await sendPDU(AbortPDU(source: .serviceProvider, reason: .unexpectedPDU))
+            await cancel()
+            return
+        }
         try await sendPDU(ReleaseResponsePDU())
         log("Sent A-RELEASE-RP")
         await cancel()
     }
 
     // MARK: - DIMSE
+
+    /// Cancellation and sub-operation responses bypass the serialized request
+    /// worker. Only this receive pump reads PDUs, including during C-GET.
+    private func dispatchDIMSEMessage(_ message: AssembledMessage) async throws {
+        if let request = message.asCCancelRequest() {
+            let matches = activeOperation?.messageID == request.messageIDBeingCancelled
+                && activeOperation?.contextID == message.presentationContextID
+                && activeOperation?.finalCommitted == false
+            if matches {
+                activeOperation?.cancelled = true
+                startCancelledStoreDeadline(messageID: request.messageIDBeingCancelled)
+            }
+            try await testHooks?.checkpoint(.cancelProcessed(messageID: request.messageIDBeingCancelled, accepted: matches))
+            return
+        }
+        if let response = message.asCStoreResponse() {
+            if expectedStoreResponse?.messageID == response.messageIDBeingRespondedTo,
+               expectedStoreResponse?.contextID == message.presentationContextID {
+                if let waiter = storeResponseWaiter {
+                    storeResponseWaiter = nil
+                    waiter.resume(returning: response.status)
+                } else {
+                    bufferedStoreResponse = response.status
+                }
+            } else {
+                log("Ignoring C-STORE-RSP for another sub-operation")
+            }
+            return
+        }
+        requestQueue.append(message)
+        if handlerTask == nil {
+            let first = requestQueue.removeFirst()
+            beginOperation(first)
+            handlerTask = Task { await self.processRequests(startingWith: first) }
+        }
+    }
+
+    /// Permit an initiated sub-operation to settle, but do not let a silent
+    /// destination keep a cancelled operation alive forever. Repeated cancels
+    /// cannot reset the deadline. Timeout is a failed attempted sub-operation;
+    /// Remaining therefore still counts only stores never initiated.
+    private func startCancelledStoreDeadline(messageID: UInt16) {
+        guard cancelledStoreDeadline == nil, moveStoreTask != nil || expectedStoreResponse != nil else { return }
+        let timeout = testHooks?.cancellationSettlementTimeout ?? 30
+        cancelledStoreDeadline = Task {
+            do {
+                try await Task.sleep(nanoseconds: UInt64(max(0.001, timeout) * 1_000_000_000))
+                try Task.checkCancellation()
+                guard isCancelled(messageID) else { return }
+                moveStoreTask?.cancel()
+                if getStoreSendInProgress {
+                    // The peer may have stopped reading an incomplete C-STORE
+                    // data set. A final response cannot be inserted into that
+                    // unfinished DIMSE message; close the association to unblock
+                    // its send and drain the worker within the same deadline.
+                    log("Cancelled C-GET store transmission did not settle; closing association")
+                    await cancel()
+                    return
+                }
+                if expectedStoreResponse != nil, bufferedStoreResponse == nil {
+                    if let waiter = storeResponseWaiter {
+                        storeResponseWaiter = nil
+                        waiter.resume(returning: .refusedOutOfResources)
+                    } else {
+                        bufferedStoreResponse = .refusedOutOfResources
+                    }
+                }
+            } catch { /* Actual completion or disconnect cancelled the deadline. */ }
+        }
+    }
+
+    private func beginOperation(_ message: AssembledMessage) {
+        switch message.command {
+        case .cFindRequest, .cMoveRequest, .cGetRequest:
+            activeOperation = message.commandSet.messageID.map {
+                ActiveOperation(messageID: $0, contextID: message.presentationContextID)
+            }
+        default:
+            activeOperation = nil
+        }
+    }
+
+    private func processRequests(startingWith first: AssembledMessage) async {
+        var message = first
+        while isActive {
+            do {
+                try await handleDIMSEMessage(message)
+            } catch {
+                log("Request handler ended: \(error)")
+                await cancel()
+            }
+            if let messageID = message.commandSet.messageID {
+                try? await testHooks?.checkpoint(.operationFinished(messageID: messageID))
+            }
+            activeOperation = nil
+            guard isActive, !requestQueue.isEmpty else { break }
+            message = requestQueue.removeFirst()
+            beginOperation(message)
+        }
+        handlerTask = nil
+    }
+
+    private func isCancelled(_ messageID: UInt16) -> Bool {
+        activeOperation?.messageID == messageID && activeOperation?.cancelled == true
+    }
+
+    /// Linearization point of the final-response/cancel race. A later cancel is
+    /// ignored; it cannot contaminate another operation reusing this Message ID.
+    private func commitFinalResponse(_ messageID: UInt16) -> Bool {
+        guard activeOperation?.messageID == messageID else { return false }
+        activeOperation?.finalCommitted = true
+        return activeOperation?.cancelled == true
+    }
+
+    private func checkpoint(_ point: Checkpoint) async throws {
+        try await testHooks?.checkpoint(point)
+        guard isActive else { throw SessionError.connectionClosed }
+        try Task.checkCancellation()
+    }
 
     private func handleDIMSEMessage(_ message: AssembledMessage) async throws {
         guard let command = message.command else {
@@ -264,9 +446,6 @@ actor ServerSession {
             try await handleCMove(message)
         case .cGetRequest:
             try await handleCGet(message)
-        case .cCancelRequest:
-            // Nothing in progress: C-FIND results are sent at once; C-GET handles its own cancel.
-            break
         default:
             try await sendUnrecognizedOperationResponse(for: message)
         }
@@ -375,7 +554,14 @@ actor ServerSession {
                 sopInstanceUID: request.affectedSOPInstanceUID,
                 sopClassUID: request.affectedSOPClassUID,
                 transferSyntaxUID: transferSyntaxUID)
-            try await db.index(filePath: stored.filePath, metadata: metadata)
+            do {
+                try await db.index(filePath: stored.filePath, metadata: metadata)
+            } catch {
+                await logger.error("C-STORE indexing failed", error: error, context: "ServerSession")
+                try await respond(.refusedOutOfResources, comment: "Stored instance could not be indexed")
+                await statistics.recordStoreRequest(success: false)
+                return
+            }
         }
 
         try await respond(.success)
@@ -445,13 +631,17 @@ actor ServerSession {
             // FF01 when the request carried optional keys the server does not support (Table C.4-1)
             let pending = DIMSEStatus.pending(
                 warningOptionalKeys: !QueryMatcher.unsupportedKeys(in: identifier, level: level).isEmpty)
-            for result in results {
+            for (index, result) in results.enumerated() {
+                try await checkpoint(.beforeFindResult(messageID: request.messageID, index: index))
+                if isCancelled(request.messageID) { break }
                 try await sendDIMSE(response(pending, hasDataSet: true),
                                     dataSet: ServerProtocol.encodeDataSet(result, transferSyntaxUID: ts),
                                     contextID: contextID)
             }
-            try await sendDIMSE(response(.success), dataSet: nil, contextID: contextID)
-            await statistics.recordFindRequest(success: true)
+            try await checkpoint(.beforeFinalResponse(messageID: request.messageID))
+            let cancelled = commitFinalResponse(request.messageID)
+            try await sendDIMSE(response(cancelled ? .cancel : .success), dataSet: nil, contextID: contextID)
+            await statistics.recordFindRequest(success: !cancelled)
             await logger.info("C-FIND completed: \(results.count) results", context: "ServerSession")
         } catch {
             await logger.error("C-FIND failed", error: error, context: "ServerSession")
@@ -513,20 +703,26 @@ actor ServerSession {
             let instances = try await database?.queryForRetrieve(queryDataset: identifier, level: level) ?? []
             var counts = ServerProtocol.SubOperationCounts(total: instances.count)
 
-            for metadata in instances {
+            for (index, metadata) in instances.enumerated() {
+                try await checkpoint(.beforeStore(messageID: request.messageID, index: index))
+                if isCancelled(request.messageID) { break }
+                // An already initiated store is allowed to settle; its actual
+                // response contributes to counts before the Cancel response.
                 let status = await storeToDestination(metadata: metadata, destination: destination,
                                                       priority: request.priority,
                                                       moveOriginatorMessageID: request.messageID)
                 counts.record(status, sopInstanceUID: metadata.sopInstanceUID)
-                if counts.remaining > 0 {
+                if counts.remaining > 0 && !isCancelled(request.messageID) {
                     try await sendDIMSE(response(.pending(warningOptionalKeys: false), counts, includeRemaining: true),
                                         dataSet: nil, contextID: contextID)
                 }
             }
 
-            try await sendFinalRetrieveResponse(response(ServerProtocol.finalRetrieveStatus(counts), counts, includeRemaining: false),
+            try await checkpoint(.beforeFinalResponse(messageID: request.messageID))
+            let cancelled = commitFinalResponse(request.messageID)
+            try await sendFinalRetrieveResponse(response(ServerProtocol.finalRetrieveStatus(counts, cancelled: cancelled), counts, includeRemaining: cancelled),
                                                 counts: counts, contextID: contextID)
-            await statistics.recordMoveRequest(success: counts.failed == 0, instancesSent: Int(counts.completed))
+            await statistics.recordMoveRequest(success: !cancelled && counts.failed == 0, instancesSent: Int(counts.completed))
             await logger.info("C-MOVE complete: \(counts.completed) completed, \(counts.warning) warning, \(counts.failed) failed", context: "ServerSession")
         } catch {
             await logger.error("C-MOVE failed", error: error, context: "ServerSession")
@@ -557,8 +753,18 @@ actor ServerSession {
                 implementationVersionName: ServerProtocol.implementationVersionName,
                 priority: priority
             ).withMoveOriginator(aeTitle: callingAETitle, messageID: moveOriginatorMessageID)
-            let result = try await DICOMStorageService.store(
-                fileData: fileData, to: destination.host, port: destination.port, configuration: config)
+            let task = Task {
+                try await DICOMStorageService.store(
+                    fileData: fileData, to: destination.host, port: destination.port, configuration: config)
+            }
+            moveStoreTask = task
+            if isCancelled(moveOriginatorMessageID) { startCancelledStoreDeadline(messageID: moveOriginatorMessageID) }
+            defer {
+                moveStoreTask = nil
+                cancelledStoreDeadline?.cancel()
+                cancelledStoreDeadline = nil
+            }
+            let result = try await task.value
             log("C-STORE sub-operation \(metadata.sopInstanceUID) -> \(destination.aeTitle): \(result.status)")
             return result.status
         } catch {
@@ -630,25 +836,26 @@ actor ServerSession {
 
         var counts = ServerProtocol.SubOperationCounts(total: instances.count)
         var bytesSent: Int64 = 0
-        cancelledMessageIDs.remove(request.messageID)
-        for metadata in instances {
-            if cancelledMessageIDs.contains(request.messageID) { break }
+        for (index, metadata) in instances.enumerated() {
+            try await checkpoint(.beforeStore(messageID: request.messageID, index: index))
+            if isCancelled(request.messageID) { break }
             let (status, size) = try await storeOnThisAssociation(
                 metadata: metadata, priority: request.priority, getMessageID: request.messageID)
             counts.record(status, sopInstanceUID: metadata.sopInstanceUID)
             bytesSent += Int64(size)
-            if counts.remaining > 0 && !cancelledMessageIDs.contains(request.messageID) {
+            if counts.remaining > 0 && !isCancelled(request.messageID) {
                 try await sendDIMSE(response(.pending(warningOptionalKeys: false), counts, includeRemaining: true),
                                     dataSet: nil, contextID: contextID)
             }
         }
 
         // C.4.3.3.1: Cancel carries the counts; Remaining = sub-operations not initiated
-        let cancelled = cancelledMessageIDs.remove(request.messageID) != nil
+        try await checkpoint(.beforeFinalResponse(messageID: request.messageID))
+        let cancelled = commitFinalResponse(request.messageID)
         try await sendFinalRetrieveResponse(
             response(ServerProtocol.finalRetrieveStatus(counts, cancelled: cancelled), counts, includeRemaining: cancelled),
             counts: counts, contextID: contextID)
-        await statistics.recordGetRequest(success: counts.failed == 0, bytesSent: bytesSent)
+        await statistics.recordGetRequest(success: !cancelled && counts.failed == 0, bytesSent: bytesSent)
         await logger.info("C-GET complete: \(counts.completed) completed, \(counts.warning) warning, \(counts.failed) failed", context: "ServerSession")
     }
 
@@ -690,53 +897,55 @@ actor ServerSession {
             priority: priority,
             presentationContextID: pcID
         )
+        // Register before sending: a fast peer can answer while send is
+        // suspended. The receive pump buffers that response until we await it.
+        expectedStoreResponse = (messageID, pcID)
+        bufferedStoreResponse = nil
+        getStoreSendInProgress = true
+        if isCancelled(getMessageID) { startCancelledStoreDeadline(messageID: getMessageID) }
+        defer {
+            expectedStoreResponse = nil
+            bufferedStoreResponse = nil
+            getStoreSendInProgress = false
+            cancelledStoreDeadline?.cancel()
+            cancelledStoreDeadline = nil
+        }
         try await sendDIMSE(storeRequest.commandSet, dataSet: dataSetData, contextID: pcID)
-
-        // Await the C-STORE-RSP; a C-CANCEL-RQ for the C-GET may arrive meanwhile.
-        while true {
-            let message = try await receiveDIMSEMessage()
-            switch message.command {
-            case .cStoreResponse:
-                if let rsp = message.asCStoreResponse(), rsp.messageIDBeingRespondedTo == messageID {
-                    return (rsp.status, dataSetData.count)
-                }
-                log("Ignoring C-STORE-RSP for another message")
-            case .cCancelRequest:
-                if message.asCCancelRequest()?.messageIDBeingCancelled == getMessageID {
-                    cancelledMessageIDs.insert(getMessageID)
-                }
-            default:
-                log("Ignoring \(String(describing: message.command)) during a C-GET")
+        getStoreSendInProgress = false
+        let status: DIMSEStatus
+        if let buffered = bufferedStoreResponse {
+            status = buffered
+            bufferedStoreResponse = nil
+        } else {
+            guard isActive else { throw SessionError.connectionClosed }
+            status = try await withCheckedThrowingContinuation { continuation in
+                storeResponseWaiter = continuation
             }
         }
-    }
-
-    /// Reads PDUs until a complete DIMSE message has been assembled.
-    private func receiveDIMSEMessage() async throws -> AssembledMessage {
-        while isActive {
-            let pdu = try await receivePDU()
-            switch pdu {
-            case let data as DataTransferPDU:
-                if let message = try messageAssembler.addPDVs(from: data) { return message }
-            case is AbortPDU:
-                await cancel()
-                throw SessionError.associationAborted
-            case is ReleaseRequestPDU:
-                throw SessionError.unexpectedRelease
-            default:
-                log("Unexpected PDU during a C-GET: \(pdu.pduType)")
-            }
-        }
-        throw SessionError.connectionClosed
+        return (status, dataSetData.count)
     }
 
     // MARK: - Helper Methods
 
     /// Sends a DIMSE message fragmented to the peer's Maximum Length (PS3.8 D.1).
     private func sendDIMSE(_ commandSet: CommandSet, dataSet: Data?, contextID: UInt8) async throws {
+        guard isActive else { throw SessionError.connectionClosed }
+        if let command = commandSet.command, [.cFindResponse, .cMoveResponse, .cGetResponse].contains(command),
+           let messageID = commandSet.messageIDBeingRespondedTo,
+           activeOperation?.messageID == messageID {
+            if commandSet.status?.isPending == true {
+                if isCancelled(messageID) { return }
+            } else {
+                _ = commitFinalResponse(messageID)
+            }
+        }
         let fragmenter = MessageFragmenter(maxPDUSize: outgoingMaxPDUSize)
-        for pdu in fragmenter.fragmentMessage(commandSet: commandSet, dataSet: dataSet, presentationContextID: contextID) {
+        for (index, pdu) in fragmenter.fragmentMessage(commandSet: commandSet, dataSet: dataSet, presentationContextID: contextID).enumerated() {
             try await send(try pdu.encode())
+            if index == 0, commandSet.command == .cStoreRequest, getStoreSendInProgress,
+               let getMessageID = activeOperation?.messageID {
+                try await checkpoint(.duringGetStoreSend(messageID: getMessageID))
+            }
         }
     }
 }

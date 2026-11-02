@@ -1,0 +1,90 @@
+{
+  "source_run": {
+    "id": 40300110331,
+    "name": "Scheduled Tests",
+    "head_sha": "4950a53f96f23d0f13c6670aa3473dee7608505d",
+    "head_branch": "main",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/raster-labs/DICOMKit/actions/runs/40300110331",
+    "created_at": "2026-10-26T09:30:40Z",
+    "updated_at": "2026-10-26T10:26:17Z"
+  },
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1
+    },
+    {
+      "name": "Checkout code",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2
+    },
+    {
+      "name": "Select Xcode",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 3
+    },
+    {
+      "name": "Show environment",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 4
+    },
+    {
+      "name": "Cache Swift Package Manager",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 5
+    },
+    {
+      "name": "Run all tests with verbose output",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 6
+    },
+    {
+      "name": "Generate test report",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 7
+    },
+    {
+      "name": "Check test count",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 8
+    },
+    {
+      "name": "Post Cache Swift Package Manager",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 15
+    },
+    {
+      "name": "Post Checkout code",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 16
+    },
+    {
+      "name": "Complete job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 17
+    }
+  ],
+  "artifacts": [],
+  "log_download": {
+    "connector": "transport closed",
+    "fallback": "gh api actions/jobs/121495610293/logs",
+    "path": "scheduled-job-121495610293.log",
+    "sha256": "048cd5f0b8582d9368369f1192fe350fb51d519b5a4b9039e6b5b53b933de185",
+    "bytes": 21984331
+  }
+}

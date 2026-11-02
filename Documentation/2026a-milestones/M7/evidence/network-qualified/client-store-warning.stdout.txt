@@ -1,0 +1,22 @@
+DICOM Send (C-STORE)
+====================
+  Server:            127.0.0.1:58578
+  Calling AE Title:  M7CLIENT
+  Called AE Title:   M7PEER
+  Priority:          medium
+  Timeout:           5s
+  Files:             1
+
+[1/1] Sending: fixture-1.dcm (584 B)... ✅ (12 ms)
+    ⚠️ Stored with warning: Warning (0xB000): Coercion of Data Elements
+
+Transfer Summary
+================
+  Total files:       1
+  Succeeded:         1
+  Warnings:          1 (stored; PS3.4 Table B.2-1 Warning class)
+  Failed:            0
+  Bytes sent:        584 B
+  Duration:          12 ms
+
+✅ All files sent successfully

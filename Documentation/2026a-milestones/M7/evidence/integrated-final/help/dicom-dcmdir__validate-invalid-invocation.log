@@ -1,0 +1,4 @@
+Error: Missing expected argument '<dicomdir-path>'
+Help:  <dicomdir-path>  Path to DICOMDIR file
+Usage: dicom-dcmdir validate <dicomdir-path> [--check-files] [--detailed]
+  See 'dicom-dcmdir validate --help' for more information.

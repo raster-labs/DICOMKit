@@ -1,0 +1,1009 @@
+{
+  "schema_version": 1,
+  "document_status": "verified_local_m2",
+  "created_utc": "2026-10-24T11:05:52.042937+00:00",
+  "scope": "M2 actual packaged Workshop UI captures, independent output-byte/report checks and referenced loopback capture evidence; no whole-project or clinical qualification.",
+  "summary": {
+    "status": "pass",
+    "captured_case_records": 71,
+    "captured_case_records_passed": 71,
+    "primary_case_records": 69,
+    "supplementary_repeat_records": 2,
+    "group_count": 12,
+    "independent_artifact_checks_passed": 17,
+    "independent_artifact_checks_total": 17,
+    "saved_reports_matched": 19,
+    "original_m0_fixtures_unchanged": 14,
+    "initial_inputs_unchanged": 20
+  },
+  "current_bundle_provenance": {
+    "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app",
+    "status": "actual_current_bundle_exercised",
+    "verification_basis": "Parent performed explicit quit then CUA getApp with this absolute bundle path; this reviewer cross-checked app-package-build.log relinks DICOMStudioApp and inspected output/capture evidence. Canonical root verification.json owns the final source/binary manifest.",
+    "product_source_freeze_utc": "2026-10-24T10:44:37Z",
+    "build_log": "logs/app-package-build.log",
+    "build_log_sha256": "df7d36fb1a6b125212116f42f89a336f994a5414c10577bfeda4b721f89a2aff",
+    "actual_target": "DICOMStudioApp",
+    "binary_snapshot": [
+      {
+        "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio",
+        "sha256": "363913fcf2c48e8f6993a5064acacd696557b3068bedad2fd37dfa739b218624",
+        "size": 40216,
+        "mtime_utc": "2026-10-24T10:52:03.228108+00:00"
+      },
+      {
+        "path": "/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio.debug.dylib",
+        "sha256": "832de1752631d8b62c0b6e1c46cacb9dc14b5760cc50af6a7d11597b75122b8e",
+        "size": 138256296,
+        "mtime_utc": "2026-10-24T10:52:02.985999+00:00"
+      }
+    ],
+    "root_reported_launch_check": "PatientAge=Y123 rejected after current bundle relaunch; all counted work/m2/ui captures follow that relaunch.",
+    "scheme_resolution": "Temporary identical shared scheme DICOMStudio-M2App.xcscheme selected the app target and was removed after the build."
+  },
+  "excluded_evidence": [
+    {
+      "case": "Initial app/GUI attempt before correct app relink",
+      "reason": "Ambiguous DICOMStudio scheme resolved to DICOMStudio-product package library. The old app bundle (15:22 IST) accepted invalid age Y123; parent quit it. Entire earlier GUI attempt excluded. app-build.log is not current packaged-app build evidence.",
+      "log": "app-build.log"
+    },
+    {
+      "case": "Initial UPS capture fixture",
+      "reason": "Initial fixture wrongly required client-supplied SOP Instance UID. Corrected fixture assigns UID; only ups-capture-final is used."
+    }
+  ],
+  "counting_policy": "Each saved AX text file is one captured case record, irrespective of repeated commands retained in its console. Only the last relevant command block is checked; older console messages do not change the current outcome. Two supplementary captures repeat primary scenarios. The 17 artifact checks and 19 report comparisons overlap UI case records and must not be added to them as unique test cases.",
+  "groups": [
+    {
+      "id": "copy_selectors_and_compatible_encoding",
+      "status": "pass",
+      "case_count": 5,
+      "passed_count": 5,
+      "description": "Four selector spellings give the same copied name/bytes; compatible Latin-1 copy preserves VR and raw bytes.",
+      "captures": [
+        "ui/copy-compatible.txt",
+        "ui/copy-hex.txt",
+        "ui/copy-keyword.txt",
+        "ui/copy-numeric.txt",
+        "ui/copy-parenthesized.txt"
+      ]
+    },
+    {
+      "id": "malformed_edit_dry_run_and_write",
+      "status": "pass",
+      "case_count": 18,
+      "passed_count": 18,
+      "description": "Nine malformed values in both dry-run and write modes: AS, calendar DA, DS, IS, DT, TM, UID, VM, AE repertoire. All refused; original hashes and missing rejected output verified independently.",
+      "captures": [
+        "ui/invalid-0-dry.txt",
+        "ui/invalid-0-write.txt",
+        "ui/invalid-1-dry.txt",
+        "ui/invalid-1-write.txt",
+        "ui/invalid-2-dry.txt",
+        "ui/invalid-2-write.txt",
+        "ui/invalid-3-dry.txt",
+        "ui/invalid-3-write.txt",
+        "ui/invalid-4-dry.txt",
+        "ui/invalid-4-write.txt",
+        "ui/invalid-5-dry.txt",
+        "ui/invalid-5-write.txt",
+        "ui/invalid-6-dry.txt",
+        "ui/invalid-6-write.txt",
+        "ui/invalid-7-dry.txt",
+        "ui/invalid-7-write.txt",
+        "ui/invalid-8-dry.txt",
+        "ui/invalid-8-write.txt"
+      ]
+    },
+    {
+      "id": "metadata_display",
+      "status": "pass",
+      "case_count": 3,
+      "passed_count": 3,
+      "description": "Actual dicom-info Workshop output displays Latin-1, UTF-8 and ISO 2022 Japanese names.",
+      "captures": [
+        "ui/japanese-info.txt",
+        "ui/latin-info.txt",
+        "ui/unicode-info.txt"
+      ]
+    },
+    {
+      "id": "text_roundtrip_writes",
+      "status": "pass",
+      "case_count": 2,
+      "passed_count": 2,
+      "description": "Latin-1 leading text edit and unrelated edit of Japanese ISO 2022 file preserve expected text; independent codecs check output.",
+      "captures": [
+        "ui/japanese-write.txt",
+        "ui/latin-write.txt"
+      ]
+    },
+    {
+      "id": "file_meta_levels_1_and_2",
+      "status": "pass",
+      "case_count": 6,
+      "passed_count": 6,
+      "description": "At each level, combined empty required metadata gives five errors; UID mismatch gives one error; base is valid. Six saved reports match CLI fields.",
+      "captures": [
+        "ui/meta-1-base.dcm.txt",
+        "ui/meta-1-empty-required-meta.dcm.txt",
+        "ui/meta-1-uid-changed.dcm.txt",
+        "ui/meta-2-base.dcm.txt",
+        "ui/meta-2-empty-required-meta.dcm.txt",
+        "ui/meta-2-uid-changed.dcm.txt"
+      ]
+    },
+    {
+      "id": "mpps_reference_identity",
+      "status": "pass",
+      "case_count": 4,
+      "passed_count": 4,
+      "description": "Missing SOP Class is refused before an extra association; CT/MR/SC successful updates carry explicit expected pairs, as independently decoded in network-parity.json.",
+      "captures": [
+        "ui/mpps-CT.txt",
+        "ui/mpps-MR.txt",
+        "ui/mpps-SC.txt",
+        "ui/mpps-no-class.txt"
+      ]
+    },
+    {
+      "id": "numeric_boundary_refusal",
+      "status": "pass",
+      "case_count": 2,
+      "passed_count": 2,
+      "description": "US overflow 65536 and unsigned-context negative value are rejected.",
+      "captures": [
+        "ui/overflow.txt",
+        "ui/unsigned-negative.txt"
+      ]
+    },
+    {
+      "id": "valid_scalar_identity_and_signed_edits",
+      "status": "pass",
+      "case_count": 10,
+      "passed_count": 10,
+      "description": "Valid scalar/date/empty controls, SOP class/instance updates, Unicode, signed insert -1 and existing SS update -2. File inspection verifies relevant encoding/identity; the -2 output is byte-identical to fresh CLI output.",
+      "captures": [
+        "ui/signed-existing-update.txt",
+        "ui/valid-empty-type2.txt",
+        "ui/valid-fraction-dt.txt",
+        "ui/valid-identity-class.txt",
+        "ui/valid-identity-instance.txt",
+        "ui/valid-leap.txt",
+        "ui/valid-partial-dt.txt",
+        "ui/valid-rows.txt",
+        "ui/valid-signed.txt",
+        "ui/valid-unicode.txt"
+      ]
+    },
+    {
+      "id": "ups_existing_create_retrieve_routes",
+      "status": "pass",
+      "case_count": 2,
+      "passed_count": 2,
+      "description": "Existing JSON create and table retrieve routes execute against corrected synthetic capture fixture. Client POST DT parity is separate from production-server serializer tests; table does not display scheduled DT.",
+      "captures": [
+        "ui/ups-create-json.txt",
+        "ui/ups-get.txt"
+      ]
+    },
+    {
+      "id": "level_2_saved_reports",
+      "status": "pass",
+      "case_count": 13,
+      "passed_count": 13,
+      "description": "13 saved reports compared field-for-field with fresh CLI at level 2: seven valid and six invalid.",
+      "captures": [
+        "ui/validate-gui-identity-class.dcm.txt",
+        "ui/validate-gui-identity-instance.dcm.txt",
+        "ui/validate-gui-signed.dcm.txt",
+        "ui/validate-gui-unicode.dcm.txt",
+        "ui/validate-invalid_AS.dcm.txt",
+        "ui/validate-invalid_DT.dcm.txt",
+        "ui/validate-invalid_calendar_date.dcm.txt",
+        "ui/validate-nested-invalid-AS.dcm.txt",
+        "ui/validate-nested-invalid-date.dcm.txt",
+        "ui/validate-valid-fraction-DT.dcm.txt",
+        "ui/validate-valid-leap.dcm.txt",
+        "ui/validate-valid-partial-DT.dcm.txt",
+        "ui/validate-wrong_VR.dcm.txt"
+      ]
+    },
+    {
+      "id": "supplementary_validation_captures",
+      "status": "pass",
+      "case_count": 2,
+      "passed_count": 2,
+      "description": "Additional nested-AS text display and wrong-VR saved JSON run. These repeat behaviors covered elsewhere and do not expand unique scenario coverage.",
+      "captures": [
+        "ui/validate-nested-AS.txt",
+        "ui/wrong-vr-false-json.txt"
+      ]
+    },
+    {
+      "id": "wrong_vr_four_format_strict_combinations",
+      "status": "pass",
+      "case_count": 4,
+      "passed_count": 4,
+      "description": "Wrong Rows VR LO is an error/INVALID in text and JSON with strict off/on and an empty Save Report field. AX JSON tails are truncated; saved report equality is separate.",
+      "captures": [
+        "ui/wrong-vr-console-false-json.txt",
+        "ui/wrong-vr-console-false-text.txt",
+        "ui/wrong-vr-console-true-json.txt",
+        "ui/wrong-vr-console-true-text.txt"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "capture": "ui/copy-compatible.txt",
+      "capture_sha256": "6e2585bcd290035accade3edc996e43a4f593c5d0d1386ecfa2ea7ab8ba33cfb",
+      "group": "copy_selectors_and_compatible_encoding",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-compatible.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags PatientName",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-compatible.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags PatientName\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-copy-compatible.dcm\n"
+    },
+    {
+      "capture": "ui/copy-hex.txt",
+      "capture_sha256": "2caab95cb79b84fdc024bd0663ff44f79355a336e92866539e1ab125bc4e1444",
+      "group": "copy_selectors_and_compatible_encoding",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags 00100010",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags 00100010\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-copy-hex.dcm\n"
+    },
+    {
+      "capture": "ui/copy-keyword.txt",
+      "capture_sha256": "effd6a9191d515009f2fe5914eef5751bb02b804136b3ab22f59e0a2bd9dc33e",
+      "group": "copy_selectors_and_compatible_encoding",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-keyword.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags PatientName",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-keyword.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags PatientName\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-copy-keyword.dcm\n"
+    },
+    {
+      "capture": "ui/copy-numeric.txt",
+      "capture_sha256": "55035871f3c197cdbba1acd6b70d7b31dde77eb49ce28653597e543272cab7c0",
+      "group": "copy_selectors_and_compatible_encoding",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-numeric.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags 0010,0010",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-numeric.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags 0010,0010\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-copy-numeric.dcm\n"
+    },
+    {
+      "capture": "ui/copy-parenthesized.txt",
+      "capture_sha256": "d05fb532f653f3c78c4fb4951db20ca7e9fbf5ca43518f0563ccebaa4d1dc15a",
+      "group": "copy_selectors_and_compatible_encoding",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-parenthesized.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags '(0010,0010)'",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "70 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-copy-parenthesized.dcm --copy-from /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --tags '(0010,0010)'\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-copy-parenthesized.dcm\n"
+    },
+    {
+      "capture": "ui/invalid-0-dry.txt",
+      "capture_sha256": "b3ea61fdfc745fce977f672f9d569695173e93c51eac51c5f12f0f4a7a0db489",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientAge=Y123 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientAge=Y123 --dry-run\n\nError: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-0-write.txt",
+      "capture_sha256": "d9d4d9eeedc17977f66ab2d42bd51dc201caa53a9be0fbcb65ced6455a607b35",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientAge=Y123",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientAge=Y123\n\nError: --set (0010,1010): [VR AS, VM 1] invalid stored AS value \"Y123\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-1-dry.txt",
+      "capture_sha256": "dc582edf90ac964dedb22ce7ba45b953a79a45a624f00ae33634390d8c122742",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientBirthDate=20260231 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientBirthDate=20260231 --dry-run\n\nError: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-1-write.txt",
+      "capture_sha256": "80548df0b5118aeebd7de80758176a1f14874bfb1619b5e2a77c6cb2c0933c22",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientBirthDate=20260231",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set PatientBirthDate=20260231\n\nError: --set (0010,0030): [VR DA, VM 1] invalid stored DA value \"20260231\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-2-dry.txt",
+      "capture_sha256": "a34015c8ff6f72be3d80542c87618255de435d15983e1b274634bad6aa7325cd",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'PixelSpacing=1..2\\3' --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'PixelSpacing=1..2\\3' --dry-run\n\nError: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-2-write.txt",
+      "capture_sha256": "2ba9bdeabd9ba4a30264abc3dfe4592f342f02cfe12000e6721249100ac6b76a",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'PixelSpacing=1..2\\3'",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'PixelSpacing=1..2\\3'\n\nError: --set (0028,0030): [VR DS, VM 2] invalid stored DS value \"1..2\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-3-dry.txt",
+      "capture_sha256": "d7bd45b7ec7b4142a535c53dc207267a737252e427c76e3762e9a5ba66406860",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set SeriesNumber=++1 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set SeriesNumber=++1 --dry-run\n\nError: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-3-write.txt",
+      "capture_sha256": "31d2325e74fdcf5ebf6cf9648abffaa57a6d9454b8c7ebd4401336d23e039da9",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set SeriesNumber=++1",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set SeriesNumber=++1\n\nError: --set (0020,0011): [VR IS, VM 1] invalid stored IS value \"++1\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-4-dry.txt",
+      "capture_sha256": "f25a0171aefc3fd610fa976a642ae274c0962514e81326799e16820fe6d96bee",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set AcquisitionDateTime=20269999112233 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set AcquisitionDateTime=20269999112233 --dry-run\n\nError: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-4-write.txt",
+      "capture_sha256": "32ed7fd9fbad437c99642a6f4feac20ca2e0978aec4d55b711aeeacc82e2514f",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set AcquisitionDateTime=20269999112233",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set AcquisitionDateTime=20269999112233\n\nError: --set (0008,002A): [VR DT, VM 1] invalid stored DT value \"20269999112233\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-5-dry.txt",
+      "capture_sha256": "fb9ea77d611456ff4bc7046770b687a09696734ca6e151147a03c3fdca7117a6",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyTime=256199 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyTime=256199 --dry-run\n\nError: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-5-write.txt",
+      "capture_sha256": "91288936de976acb8636787131922f5228ee75a532009ab970887b85b1ef7fbb",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyTime=256199",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyTime=256199\n\nError: --set (0008,0030): [VR TM, VM 1] invalid stored TM value \"256199\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-6-dry.txt",
+      "capture_sha256": "7a2db1df7bc0022c8e0aab2689e2c3a44d5d822dd66785d5584be0a55ac757be",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyInstanceUID=1..02 --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyInstanceUID=1..02 --dry-run\n\nError: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-6-write.txt",
+      "capture_sha256": "f0cb827287e5585eac1ca048f481bc3fcf23e1c6b94acd873bb16a89693abc9f",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyInstanceUID=1..02",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set StudyInstanceUID=1..02\n\nError: --set (0020,000D): [VR UI, VM 1] invalid stored UI value \"1..02\" (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-7-dry.txt",
+      "capture_sha256": "c49ed764a6ac8d01bf147be2c8ec32b2d1fc7df66e4ff77165ad497d7290742c",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'Rows=1\\2' --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'Rows=1\\2' --dry-run\n\nError: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)\n"
+    },
+    {
+      "capture": "ui/invalid-7-write.txt",
+      "capture_sha256": "aa0dec43e0a9aec2c37a4ad832108d9f015fe5ac928d624ead226d057b1c6cee",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'Rows=1\\2'",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'Rows=1\\2'\n\nError: --set (0028,0010): [VR US, VM 1] got 2 Values (PS3.6 Table 6-1)\n"
+    },
+    {
+      "capture": "ui/invalid-8-dry.txt",
+      "capture_sha256": "1cf1a387ba1a51fdd357c28bdc5bab2418c151cffc52d64f13e60b4c66b9c59c",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'RetrieveAETitle=Müller' --dry-run",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'RetrieveAETitle=Müller' --dry-run\n\nError: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/invalid-8-write.txt",
+      "capture_sha256": "d04694c9db7831abeae5cfbc300fac9562350e890ece994a4b83c68373138b77",
+      "group": "malformed_edit_dry_run_and_write",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'RetrieveAETitle=Müller'",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-invalid.dcm --set 'RetrieveAETitle=Müller'\n\nError: --set (0008,0054): [VR AE, VM 1-n] character U+00FC is not allowed in VR AE (PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/japanese-info.txt",
+      "capture_sha256": "91d42f2d045309572439452003174839abb4b89734a9a9f26d9326402a409fb6",
+      "group": "metadata_display",
+      "command": "$ dicom-info /private/tmp/dicomkit-m2-ui/gui-japanese.dcm --format text --tag PatientName",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "64 text $ dicom-info /private/tmp/dicomkit-m2-ui/gui-japanese.dcm --format text --tag PatientName\n\n=== File Meta Information ===\n\n\n=== Main Data Set ===\n(0010,0010) Patient's Name                           VR=PN Yamada^Tarou=山田^太郎\n"
+    },
+    {
+      "capture": "ui/japanese-write.txt",
+      "capture_sha256": "828a6ec7ebed9993a0653d29b6c448b6ffacac27fb437898a0bef903120aabd2",
+      "group": "text_roundtrip_writes",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/japanese.dcm --output /private/tmp/dicomkit-m2-ui/gui-japanese.dcm --set PatientID=JPTEST",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/japanese.dcm --output /private/tmp/dicomkit-m2-ui/gui-japanese.dcm --set PatientID=JPTEST\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-japanese.dcm\n"
+    },
+    {
+      "capture": "ui/latin-info.txt",
+      "capture_sha256": "4273668ea500332e98bb77b5c0a13f2bce005bb0666650c6a7391da56e35dfdb",
+      "group": "metadata_display",
+      "command": "$ dicom-info /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --format text --tag PatientName",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "64 text $ dicom-info /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --format text --tag PatientName\n\n=== File Meta Information ===\n\n\n=== Main Data Set ===\n(0010,0010) Patient's Name                           VR=PN Müller^Jörg\n"
+    },
+    {
+      "capture": "ui/latin-write.txt",
+      "capture_sha256": "391ff18211d9dafd750d5dc01db795a7f2f427719d17b12fd24f8249bf875e58",
+      "group": "text_roundtrip_writes",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --output /private/tmp/dicomkit-m2-ui/gui-latin-edited.dcm --set 'StudyDescription=  Leading text'",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/latin1-patient.dcm --output /private/tmp/dicomkit-m2-ui/gui-latin-edited.dcm --set 'StudyDescription=  Leading text'\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-latin-edited.dcm\n"
+    },
+    {
+      "capture": "ui/meta-1-base.dcm.txt",
+      "capture_sha256": "d9068ba46083f77d4e87ce2d0cb34c9be2c01eaa7d85b14a7a7f70ba05e41fc9",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/base.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-base.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/base.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-base.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/meta-1-empty-required-meta.dcm.txt",
+      "capture_sha256": "a5eb305a63e0083a0c9acd08b02cd9408c2ca2a9832b5ff2ca59dc4237431f8f",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/empty-required-meta.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-empty-required-meta.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/empty-required-meta.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-empty-required-meta.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/meta-1-uid-changed.dcm.txt",
+      "capture_sha256": "cf17433a9d4a72a25f0f6ff8a0479f1ad2206690dacf4a987ba5c8b55287d78f",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/uid-changed.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-uid-changed.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/uid-changed.dcm --level 1 --format json --output /private/tmp/dicomkit-m2-ui/meta-1-uid-changed.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/meta-2-base.dcm.txt",
+      "capture_sha256": "e8318615201ad0301a8c8a5886c22e7a0cc73286f4b01efaac90ced25906fe50",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/base.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-base.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/base.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-base.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/meta-2-empty-required-meta.dcm.txt",
+      "capture_sha256": "1a3f63167832a0a1b6ccff05461cb44a0670d639e8e1b4e4ae57ac87b92100e9",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/empty-required-meta.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-empty-required-meta.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/empty-required-meta.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-empty-required-meta.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/meta-2-uid-changed.dcm.txt",
+      "capture_sha256": "b0bb8bfe52f3b9a397df35c1bc2d7c1014151cec8fbf54a0e0720351cf3b54a9",
+      "group": "file_meta_levels_1_and_2",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/uid-changed.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-uid-changed.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/uid-changed.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/meta-2-uid-changed.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/mpps-CT.txt",
+      "capture_sha256": "ebee5eb687827ad03bd03e6c5ffaa8b12ead371218c5933e5eb91a2127b64a08",
+      "group": "mpps_reference_identity",
+      "command": "$ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.2 --protocol-name M2TEST --timeout 60",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "96 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.2 --protocol-name M2TEST --timeout 60\n\nUpdating MPPS instance (N-SET)...\n✅ MPPS instance updated\n  MPPS Instance UID: 2.25.101\n  New Status: COMPLETED\n  Referenced Images: 1\n",
+      "original_capture_sha256": "733ce45aab4c0a09868205c729592f1bc67020dbb8fc15b95dbc105975c0b9ab"
+    },
+    {
+      "capture": "ui/mpps-MR.txt",
+      "capture_sha256": "718f60797e9669f23349410c355ce3898ac12572b72d0a367a883409577a0d15",
+      "group": "mpps_reference_identity",
+      "command": "$ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.4 --protocol-name M2TEST --timeout 60",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "96 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.4 --protocol-name M2TEST --timeout 60\n\nUpdating MPPS instance (N-SET)...\n✅ MPPS instance updated\n  MPPS Instance UID: 2.25.101\n  New Status: COMPLETED\n  Referenced Images: 1\n",
+      "original_capture_sha256": "50a294a12747d6960144fac9a1c53e4d527601333562a6e86c49f936b2f3b834"
+    },
+    {
+      "capture": "ui/mpps-SC.txt",
+      "capture_sha256": "878fe09f1bf307c6eba55752c28144c186e4f9e825a7337454de48af2edea40e",
+      "group": "mpps_reference_identity",
+      "command": "$ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.7 --protocol-name M2TEST --timeout 60",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "96 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --sop-class-uid 1.2.840.10008.5.1.4.1.1.7 --protocol-name M2TEST --timeout 60\n\nUpdating MPPS instance (N-SET)...\n✅ MPPS instance updated\n  MPPS Instance UID: 2.25.101\n  New Status: COMPLETED\n  Referenced Images: 1\n",
+      "original_capture_sha256": "b7f4dd341ecb1ac67d0ad7db7627ec31a1a51f1199cf6119206e9afc99759fdd"
+    },
+    {
+      "capture": "ui/mpps-no-class.txt",
+      "capture_sha256": "e6c4a9c5a43ddbfb0639486cd933291d60b8aaffe3369bc500625cea55b0f416",
+      "group": "mpps_reference_identity",
+      "command": "$ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --protocol-name M2TEST --timeout 60",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "96 text $ dicom-mpps update 127.0.0.1:55615 --aet M2VERIFY --called-aet ANY-SCP --study-uid 2.25.100 --mpps-uid 2.25.101 --status COMPLETED --series-uid 2.25.102 --image-uid 2.25.103 --protocol-name M2TEST --timeout 60\n\nError: --image-uid requires --sop-class-uid from the referenced object: Referenced SOP Class UID (0008,1150) cannot be inferred from a SOP Instance UID (PS3.4 Table F.7.2-1)\n",
+      "original_capture_sha256": "95aca16b969c70f4586da1e4a5529c3beea8029912a80091c52948fe104f3ae6"
+    },
+    {
+      "capture": "ui/overflow.txt",
+      "capture_sha256": "8e5412599b0fce2843fc0a8d6c2fc1fa11c9c510e793ef3b9d31377275a2e1be",
+      "group": "numeric_boundary_refusal",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set Rows=65536",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set Rows=65536\n\nError: --set (0028,0010): [VR US, VM 1] 65536 is out of range for VR US (0...65535, PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/signed-existing-update.txt",
+      "capture_sha256": "40c70fab7936bf64c1e2433fab22272cee7d0f04e5953cabd79a564b2c5e8196",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/gui-signed.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed-update.dcm --set SmallestImagePixelValue=-2",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/gui-signed.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed-update.dcm --set SmallestImagePixelValue=-2\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-signed-update.dcm\n"
+    },
+    {
+      "capture": "ui/unicode-info.txt",
+      "capture_sha256": "78ca779ccb5548ab7bf2d87932f414c976d382c2235f932033980a74b63f175a",
+      "group": "metadata_display",
+      "command": "$ dicom-info /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --format text --tag PatientName",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "64 text $ dicom-info /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --format text --tag PatientName\n\n=== File Meta Information ===\n\n\n=== Main Data Set ===\n(0010,0010) Patient's Name                           VR=PN Müller^患者\n"
+    },
+    {
+      "capture": "ui/unsigned-negative.txt",
+      "capture_sha256": "bc21d618d3773586d926a5cdc22aab33b6598f63d9d72f66d404fd9b8e1e845e",
+      "group": "numeric_boundary_refusal",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set PixelRepresentation=0 --set SmallestImagePixelValue=-1",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set PixelRepresentation=0 --set SmallestImagePixelValue=-1\n\nError: --set (0028,0106): [VR US, VM 1] -1 is out of range for VR US (0...65535, PS3.5 Table 6.2-1)\n"
+    },
+    {
+      "capture": "ui/ups-create-json.txt",
+      "capture_sha256": "831d1c9794c3829b600fa7347b31c13286fdcef968c9a3c88bbd14781f3e61dd",
+      "group": "ups_existing_create_retrieve_routes",
+      "command": "$ dicom-wado ups http://127.0.0.1:64297/dicom-web --create /private/tmp/dicomkit-m2-ui/studio-workitem.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "49 text $ dicom-wado ups http://127.0.0.1:64297/dicom-web --create /private/tmp/dicomkit-m2-ui/studio-workitem.json\n\nCreated worklist item:\n  UID: 2.25.20261024002\n  Retrieve URL: http://127.0.0.1:64297/dicom-web/workitems/2.25.20261024002\n"
+    },
+    {
+      "capture": "ui/ups-get.txt",
+      "capture_sha256": "3c8b5e99c3c366bac72f68120ec8c0ba9b79a66e2445bc7eb45d551713e28df8",
+      "group": "ups_existing_create_retrieve_routes",
+      "command": "$ dicom-wado ups http://127.0.0.1:64297/dicom-web --get 2.25.20261024002 --format table",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "49 text $ dicom-wado ups http://127.0.0.1:64297/dicom-web --get 2.25.20261024002 --format table\n\n=========================================================================================\nWorklist UID     State                Label                          Patient             \n=========================================================================================\n2.25.20261024002 SCHEDULED            M2 synthetic schedule                              \n==============================================================="
+    },
+    {
+      "capture": "ui/valid-empty-type2.txt",
+      "capture_sha256": "159fc82bd482a1426a80f2c31750bbe2811749fd10a8e06be5a036d5b4ca896e",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-empty-type2.dcm --set PatientName=",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-empty-type2.dcm --set PatientName=\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-empty-type2.dcm\n"
+    },
+    {
+      "capture": "ui/valid-fraction-dt.txt",
+      "capture_sha256": "68486a703821ee19544ef1ae42378af391623d4f1425e17af27a4227f1c20bb4",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-fraction-dt.dcm --set AcquisitionDateTime=20261024103000.123456+0530",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-fraction-dt.dcm --set AcquisitionDateTime=20261024103000.123456+0530\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-fraction-dt.dcm\n"
+    },
+    {
+      "capture": "ui/valid-identity-class.txt",
+      "capture_sha256": "62043c931435ed538c39885a2af892c46cabb88fffe7b68081078122fa6d7716",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-identity-class.dcm --set SOPClassUID=1.2.840.10008.5.1.4.1.1.2",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-identity-class.dcm --set SOPClassUID=1.2.840.10008.5.1.4.1.1.2\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-identity-class.dcm\n"
+    },
+    {
+      "capture": "ui/valid-identity-instance.txt",
+      "capture_sha256": "8dbdb6789378d235afdbe750f5dbf48867ea1c813117aa47a5609d5380f647f7",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm --set SOPInstanceUID=2.25.222222222",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm --set SOPInstanceUID=2.25.222222222\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm\n"
+    },
+    {
+      "capture": "ui/valid-leap.txt",
+      "capture_sha256": "8db305f1cad3fee1e65e338dcdae1f766086e95f5763652506e92554f7142bb9",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-leap.dcm --set PatientBirthDate=20240229",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-leap.dcm --set PatientBirthDate=20240229\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-leap.dcm\n"
+    },
+    {
+      "capture": "ui/valid-partial-dt.txt",
+      "capture_sha256": "9a0f959257ace7e2aee3574f9f4148b8d3ff5063d48eb346268939ad576a9a2c",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-partial-dt.dcm --set AcquisitionDateTime=2026",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-partial-dt.dcm --set AcquisitionDateTime=2026\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-partial-dt.dcm\n"
+    },
+    {
+      "capture": "ui/valid-rows.txt",
+      "capture_sha256": "0b3d45aa4e1762c0de0cd9e25aac40235e02d9adf76ec7a1a0849712510a6299",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-rows.dcm --set Rows=512",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-rows.dcm --set Rows=512\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-rows.dcm\n"
+    },
+    {
+      "capture": "ui/valid-signed.txt",
+      "capture_sha256": "646d152497559cef16d2b18a92422898fe98296c3da9df4cf0a150fea9350b1f",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set SmallestImagePixelValue=-1 --set PixelRepresentation=1",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-signed.dcm --set SmallestImagePixelValue=-1 --set PixelRepresentation=1\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-signed.dcm\n"
+    },
+    {
+      "capture": "ui/valid-unicode.txt",
+      "capture_sha256": "2b03506d11e2153ad378192f150842b05490d77f2324bdba47ad6e3caad7c2cf",
+      "group": "valid_scalar_identity_and_signed_edits",
+      "command": "$ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --set 'PatientName=Müller^患者'",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "65 text $ dicom-tags /private/tmp/dicomkit-m2-ui/base.dcm --output /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --set 'PatientName=Müller^患者'\n\nOutput written to: /private/tmp/dicomkit-m2-ui/gui-unicode.dcm\n"
+    },
+    {
+      "capture": "ui/validate-gui-identity-class.dcm.txt",
+      "capture_sha256": "0c7ca570800c28498e4a0bfd9c370db56f8964e45bd5b8d0a10e2a85cd3b35cf",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/gui-identity-class.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-identity-class.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/gui-identity-class.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-identity-class.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-gui-identity-instance.dcm.txt",
+      "capture_sha256": "de23230387a57b1a693a8472f17ac66de4d6118a2db8022ce8ca61cc7825c7ff",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-identity-instance.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/gui-identity-instance.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-identity-instance.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-gui-signed.dcm.txt",
+      "capture_sha256": "22344f014ac61139e31a3c612a9166963576315aea5a90ad4b6a01ac6cee54f8",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/gui-signed.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-signed.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/gui-signed.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-signed.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-gui-unicode.dcm.txt",
+      "capture_sha256": "7c9dad46418296027d3d7a21e441dede8886c34363a01eca6e63d4d9dc314750",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-unicode.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/gui-unicode.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-gui-unicode.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-invalid_AS.dcm.txt",
+      "capture_sha256": "69e63de0c665b551102c89ccb4768c9b9c44672ac23571573b6440917a8e2c94",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_AS.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_AS.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_AS.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_AS.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-invalid_DT.dcm.txt",
+      "capture_sha256": "5042b524c80b33dba96856d4907751130125b7b125252a67fa85d1382975f204",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_DT.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_DT.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-invalid_calendar_date.dcm.txt",
+      "capture_sha256": "f4d7a1d0fbc1098b686f544e486d77457e3a3039797a771d5866cc9573bf3c8d",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_calendar_date.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_calendar_date.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/invalid_calendar_date.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-invalid_calendar_date.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-nested-AS.txt",
+      "capture_sha256": "7a2b31868ec606d92efd87f852f9ca4da653fe902f50294f7c5d490c781568a3",
+      "group": "supplementary_validation_captures",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm --level 2 --format text",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm --level 2 --format text\n\nDICOM Validation Report\n=======================\n\nFile: /private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm\nStatus: ✗ INVALID\n\nErrors (1):\n  • (0008,1110)[1]: Patient's Age (AS) 'Y123' is not nnnD, nnnW, nnnM or nnnY [PS3.5 Table 6.2-1] [(0010,1010)]\n\n"
+    },
+    {
+      "capture": "ui/validate-nested-invalid-AS.dcm.txt",
+      "capture_sha256": "52fa3a85af03e8fa389ccb347f3fe37f4349604b057f9129988f14da6e1bdc7c",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-nested-invalid-AS.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-AS.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-nested-invalid-AS.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-nested-invalid-date.dcm.txt",
+      "capture_sha256": "779daa59318e434248068bc645a330c1e27d2506e02493a493c64aab8aa7141d",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-date.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-nested-invalid-date.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/nested-invalid-date.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-nested-invalid-date.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-valid-fraction-DT.dcm.txt",
+      "capture_sha256": "2b9170dde14350ae54280f443f6de843fdc2599d944706cdea980b2a1023832e",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/valid-fraction-DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-fraction-DT.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/valid-fraction-DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-fraction-DT.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-valid-leap.dcm.txt",
+      "capture_sha256": "1913d51bc936d8449f9550d18df68f340f74546d5d1401b3a183b9152b460a6c",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/valid-leap.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-leap.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/valid-leap.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-leap.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-valid-partial-DT.dcm.txt",
+      "capture_sha256": "7fa482796060842e459cb37eb79dd6c7830953ed65cf59798b65a438c7622b88",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/valid-partial-DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-partial-DT.dcm.json",
+      "expected_console_status": "SUCCESS",
+      "observed_console_status": "SUCCESS",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/valid-partial-DT.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-valid-partial-DT.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/validate-wrong_VR.dcm.txt",
+      "capture_sha256": "8bc2b6cec969c46202aae1bbe74008e5a31e5d10b529ad6f757e7bdea4da1b96",
+      "group": "level_2_saved_reports",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-wrong_VR.dcm.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/report-wrong_VR.dcm.json\n\n"
+    },
+    {
+      "capture": "ui/wrong-vr-console-false-json.txt",
+      "capture_sha256": "b42fae80fc2d936e67476283ddebd5b3fbd9d1bc69e7abb931511b8fda33af14",
+      "group": "wrong_vr_four_format_strict_combinations",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json\n\n{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/private\\/tmp\\/dicomkit-m2-ui\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" : 1,\n  \"t"
+    },
+    {
+      "capture": "ui/wrong-vr-console-false-text.txt",
+      "capture_sha256": "3fa113c4e830c44cf5eefb945f400fae35efd357f2d10bd67fcf7a720e5d8a78",
+      "group": "wrong_vr_four_format_strict_combinations",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format text",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format text\n\nDICOM Validation Report\n=======================\n\nFile: /private/tmp/dicomkit-m2-ui/wrong_VR.dcm\nStatus: ✗ INVALID\n\nErrors (1):\n  • Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n"
+    },
+    {
+      "capture": "ui/wrong-vr-console-true-json.txt",
+      "capture_sha256": "822fc79403874d675916e01ed8ddbe61a42b998a665f590b62ebdc2170ae5294",
+      "group": "wrong_vr_four_format_strict_combinations",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format json\n\n{\n  \"files\" : [\n    {\n      \"errorCount\" : 1,\n      \"errors\" : [\n        {\n          \"message\" : \"Unexpected VR LO for tag (0028,0010) (expected: US)\",\n          \"tag\" : \"(0028,0010)\"\n        }\n      ],\n      \"filePath\" : \"\\/private\\/tmp\\/dicomkit-m2-ui\\/wrong_VR.dcm\",\n      \"isValid\" : false,\n      \"warningCount\" : 0,\n      \"warnings\" : [\n\n      ]\n    }\n  ],\n  \"invalidFiles\" : 1,\n  \"totalErrors\" : 1,\n  \"totalFiles\" "
+    },
+    {
+      "capture": "ui/wrong-vr-console-true-text.txt",
+      "capture_sha256": "00efb6b8d237fe66bb902f1ccfc79dab5dac90a33c80260889422d2a1803b45f",
+      "group": "wrong_vr_four_format_strict_combinations",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format text",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --strict --format text\n\nDICOM Validation Report\n=======================\n\nFile: /private/tmp/dicomkit-m2-ui/wrong_VR.dcm\nStatus: ✗ INVALID\n\nErrors (1):\n  • Unexpected VR LO for tag (0028,0010) (expected: US) [(0028,0010)]\n\n"
+    },
+    {
+      "capture": "ui/wrong-vr-false-json.txt",
+      "capture_sha256": "b4c27437c0388158a35574da0715fda3fe18ec2091d4bc161ec15c6988ceaae1",
+      "group": "supplementary_validation_captures",
+      "command": "$ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/wrong-vr-false.json",
+      "expected_console_status": "ERROR",
+      "observed_console_status": "ERROR",
+      "status": "pass",
+      "last_command_output": "75 text $ dicom-validate /private/tmp/dicomkit-m2-ui/wrong_VR.dcm --level 2 --format json --output /private/tmp/dicomkit-m2-ui/wrong-vr-false.json\n\n"
+    }
+  ],
+  "independent_evidence": {
+    "gui_file_parity": {
+      "path": "gui-file-parity.json",
+      "sha256": "a418fb5058620db40367552cd7ef24d0034cf28e88055625010ca989734ec2ca",
+      "summary": {
+        "passed": true,
+        "checks_passed": 17,
+        "checks_total": 17,
+        "original_fixtures_unchanged": 14,
+        "initial_inputs_unchanged": 20,
+        "reports_matched": 19,
+        "valid_reports": 9,
+        "invalid_reports": 10,
+        "meta_reports_matched": 6,
+        "wrong_vr_console_combinations_passed": 4
+      },
+      "signed_update_cli_execution": {
+        "command": [
+          "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-tags",
+          "/private/tmp/dicomkit-m2-ui/gui-signed.dcm",
+          "--set",
+          "SmallestImagePixelValue=-2",
+          "--output",
+          "/private/tmp/dicomkit-m2-ui/cli-signed-update.dcm"
+        ],
+        "executed_this_run": true,
+        "exit": 0,
+        "stdout": "Output written to: /private/tmp/dicomkit-m2-ui/cli-signed-update.dcm\n",
+        "stderr": "",
+        "executable_sha256": "a4d729c31203912a6a67dd64106cab11734f1e83ec933166ef8a9b0a0323b058",
+        "input_sha256": "28c0b6d5c6a1a9d3229c0d221a3ddecbe0855ce4e39df65a8deb21984e270b08",
+        "output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f",
+        "gui_output_sha256": "803f62e40cfd1650a85f67ce2b260db96a0a3dbedb33d0342a2bc5a1ce85167f"
+      }
+    },
+    "network_parity": {
+      "path": "network-parity.json",
+      "sha256": "dcc276f611b77d5eb53d5af95b5cf6f2d81c643765fb960243c8f3b60334d09d",
+      "status": "PASS",
+      "mpps_requests": 6,
+      "mpps_cli_gui_normalized_datasets_equal": true,
+      "ups_requests": 4,
+      "ups_normalized_post_json_equal": true
+    }
+  },
+  "limitations": [
+    "Synthetic local files and loopback capture peers; no external PACS/device/clinical interoperability claim.",
+    "M2 GUI route coverage is bounded to existing controls. No backend UPS update route exists in Workshop; production-server create/update/retrieve/search is tested separately.",
+    "Mixed MPPS reference classes use the typed service API tests; the existing CLI/Workshop input form uses one explicit SOP Class for its image UID list.",
+    "Changing SOP Class synchronizes file identity and does not establish conformance to the new IOD.",
+    "Flat output checks do not replace recursive/inherited-charset automated tests. This GUI campaign does not exercise every repertoire or every platform.",
+    "The compatible-copy GUI case uses a Latin-1 source already containing the expected name; it demonstrates successful routing and preserved encoding/bytes, while independent CLI/tests establish change-from-different-destination behavior.",
+    "Console AX JSON is truncated near final summary fields; full-field parity is established only from the 19 saved report files.",
+    "A GUI success/error badge alone is not byte/network proof; the separately hashed independent reports provide that layer."
+  ],
+  "publication_note": "Unrelated saved endpoint profile labels removed from published AX text. Published hashes are updated; original capture hashes are retained where redaction changed bytes. Network screenshots showing unrelated profiles are excluded."
+}

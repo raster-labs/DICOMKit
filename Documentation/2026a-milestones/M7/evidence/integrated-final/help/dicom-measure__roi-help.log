@@ -1,0 +1,27 @@
+OVERVIEW: Calculate statistics within a region of interest
+
+USAGE: dicom-measure roi <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] [--rect <rect>] [--polygon <polygon> ...] [--circle <circle>] [--statistics] [--histogram] [--bins <bins>]
+
+ARGUMENTS:
+  <file-path>             Path to the DICOM file
+
+OPTIONS:
+  -o, --output <output>   Output file path (prints to stdout if omitted)
+  -f, --format <format>   Output format: text, json, csv (values: text, json,
+                          csv; default: text)
+  --unit <unit>           Unit for measurements: mm, cm, um, inches, pixels
+                          (physical units need a pixel spacing; see the
+                          overview) (values: mm, cm, um, inches, pixels;
+                          default: mm)
+  --force                 Force parsing of files without DICM prefix
+  --verbose               Verbose output for debugging
+  --rect <rect>           Rectangular ROI as x,y,width,height (e.g.,
+                          100,100,50,50)
+  --polygon <polygon>     Polygon ROI vertices as x,y pairs
+  --circle <circle>       Circular ROI as cx,cy,radius (e.g., 200,200,25)
+  --statistics            Calculate extended statistics (mean, std, min, max)
+  --histogram             Generate pixel value histogram
+  --bins <bins>           Number of histogram bins (default: 256)
+  --version               Show the version.
+  -h, --help              Show help information.
+

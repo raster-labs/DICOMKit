@@ -1,0 +1,4 @@
+Error: Missing expected argument '<file-path>'
+Help:  <file-path>  Path to the DICOM file
+Usage: dicom-measure distance <file-path> [--output <output>] [--format <format>] [--unit <unit>] [--force] [--verbose] --p1 <p1> --p2 <p2>
+  See 'dicom-measure distance --help' for more information.

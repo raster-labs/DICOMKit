@@ -78,10 +78,10 @@ struct CLIWorkshopServiceTests {
 
     // MARK: - 16.2 Tool Catalog
 
-    @Test("getTools returns 33 tools")
+    @Test("getTools returns 35 tools")
     func testGetTools() {
         let service = CLIWorkshopService()
-        #expect(service.getTools().count == 33)
+        #expect(service.getTools().count == 35)
     }
 
     @Test("selectedToolID defaults to nil")

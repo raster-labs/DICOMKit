@@ -1,0 +1,180 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 240
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button (selected) Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button Description: dicom-echo, Help: Verify DICOM network connectivity with C-ECHO
+			24 button (selected) Description: dicom-query, Help: Query DICOM servers with C-FIND
+			25 button Description: dicom-send, Help: Send DICOM files to servers with C-STORE
+			26 button Description: dicom-retrieve, Help: Retrieve DICOM files from PACS with C-MOVE/C-GET
+			27 button Description: dicom-qr, Help: Combined query-retrieve workflow
+			28 button Description: dicom-mwl, Help: Query Modality Worklist for scheduled procedures
+			29 button Description: dicom-mpps, Help: Modality Performed Procedure Step management
+			30 button Description: dicom-wado query, Help: Query DICOMweb servers with QIDO-RS
+			31 button Description: dicom-wado retrieve, Help: Retrieve DICOM objects via WADO-RS or WADO-URI
+			32 button Description: dicom-wado store, Help: Upload DICOM files via STOW-RS
+			33 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			34 button Description: dicom-wado ups, Help: Manage Unified Procedure Steps via UPS-RS
+			35 split group
+				36 container
+					37 scroll area Secondary Actions: Scroll Up, Scroll Down
+						38 text DICOM Query. Queries a DICOM server using C-FIND to search for patients, studies, series, or instances. Server
+						39 button Add new server
+						40 button Description: Save current server as default, Help: Persists hostname, port, and AE titles as defaults for all network tools
+						41 button Use manual server entry
+						46 text Parameters Parameters Host --host
+						47 text field (settable) Description: Host, Value: 127.0.0.1, Placeholder: hostname or IP address
+						48 text PACS server hostname or IP address (optionally host:port) Port --port
+						49 text field (settable) Description: Port, Value: 49398, Placeholder: 11112
+						50 text PACS server port (default: 11112) AE Title --aet
+						51 text field (settable) Description: AE Title, Value: M3CLI, Placeholder: DICOMSTUDIO
+						52 text Local Application Entity title (calling AE) Called AE Title --called-aet
+						53 text field (settable) Description: Called AE Title, Value: M3SCP, Placeholder: ANY-SCP
+						54 text Remote server Application Entity title Query Level --level
+						55 Query Level
+							56 radio button Description: patient, Value: 0
+							57 radio button Description: study, Value: 0
+							58 radio button Description: series, Value: 1
+							59 radio button Description: image, Value: 0
+						60 text Query/Retrieve Level (0008,0052): patient, study, series, image — the values of PS3.4 Tables C.6.1-1 / C.6.2-1; 'instance' is accepted as an alias of image (default: study) Patient ID --patient-id
+						61 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						62 text Patient ID (0010,0020) Patient Name --patient-name
+						63 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						64 text Patient's Name (0010,0010); * and ? wild cards per PS3.4 C.2.2.2.4 Study Date --study-date
+						65 text field (settable) Description: Study Date, Placeholder: e.g. 20260101 or 20260101-20260310
+						66 text Study Date (0008,0020): YYYYMMDD, or a range YYYYMMDD-YYYYMMDD, -YYYYMMDD (up to and including) or YYYYMMDD- (from, PS3.4 C.2.2.2.5) Modality --modality
+						67 pop up button Description: Modality, Value: CT
+						68 text Modality filter (0008,0060) — e.g. CT, MR, US, OPT. Run 'dicom-tags --list-modalities' for every DICOM 2026a code. Study Instance UID --study-uid
+						69 text field (settable) Description: Study Instance UID, Value: 2.25.301, Placeholder: e.g. 1.2.840.113619...
+						70 text Study Instance UID to filter by (0020,000D) Series Instance UID --series-uid
+						71 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						72 text Series Instance UID to filter by (0020,000E) Accession Number --accession-number
+						73 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						74 text Accession Number to filter by (0008,0050) Study Description --study-description
+						75 text field (settable) Description: Study Description, Placeholder: e.g. CHEST* or *ABDOMEN*
+						76 text Study description filter — supports wildcards (0008,1030) Referring Physician --referring-physician
+						77 text field (settable) Description: Referring Physician, Placeholder: e.g. SMITH^JANE
+						78 text Referring physician name (0008,0090) Timeout (s) --timeout
+						79 pop up button Description: Timeout (s), Value: 60
+						80 text Connection timeout in seconds Output Format --format
+						81 Output Format
+							82 radio button Description: table, Value: 0
+							83 radio button Description: json, Value: 1
+							84 radio button Description: csv, Value: 0
+							85 radio button Description: compact, Value: 0
+							86 radio button Description: dicom-json, Value: 0
+						87 text Output format: table, json, csv, compact, dicom-json (default: table). json is the tool's {"(GGGG,EEEE)": "value"} summary; dicom-json is the PS3.18 F.2 DICOM JSON Model ("00100010": {"vr": "PN", "Value": [...]}) Options
+						88 checkbox Description: Strict Modality, Value: 0
+						89 checkbox Description: Include Parent Keys, Value: 0
+						90 checkbox Description: Verbose, Value: 1
+						91 scroll bar (settable, float) 0.2337899543378995
+							92 value indicator (settable, float) 0.2337899543378995
+							93 increment arrow button
+							94 decrement arrow button
+							95 increment page button
+							96 decrement page button
+					97 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					98 button Description: Run command, Help: Executes the constructed DICOM command
+				99 splitter (disabled, settable, float) 860
+				100 container
+					101 text Command Preview Valid $ Select a tool to build a command
+					102 button Description: Copy command, Help: Copies the command to the clipboard
+					103 text Console SUCCESS
+					104 button Description: Copy console output, Help: Copies the console output to the clipboard
+					105 button Clear console output
+					106 scroll area
+						107 text $ dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level study --patient-name 'AUDIT*' --study-date 20260101-20261231 --modality CT --study-description 'M3*' --timeout 60 --format json --verbose
+
+DICOM Query (C-FIND)
+====================
+  Server:            127.0.0.1:49398
+  Calling AE Title:  M3CLI
+  Called AE Title:   M3SCP
+  Query Level:       STUDY
+  Information Model: Study Root
+  Timeout:           60s
+  Filters:
+    Patient Name:    AUDIT*
+    Study Date:      20260101-20261231
+    Modality:        CT
+    Study Desc:      M3*
+
+[
+  {
+    "(0008,0020)" : "20261024",
+    "(0008,0030)" : "103000",
+    "(0008,0050)" : "M31",
+    "(0008,0052)" : "STUDY",
+    "(0008,0061)" : "CT",
+    "(0008,0090)" : "TEST^PHYSICIAN",
+    "(0008,1030)" : "M3 CT STUDY",
+    "(0010,0010)" : "AUDIT^CT",
+    "(0010,0020)" : "M3CT",
+    "(0010,0030)" : "19800101",
+    "(0020,000D)" : "2.25.301",
+    "(0020,0010)" : "1",
+    "(0020,1206)" : "1",
+    "(0020,1208)" : "1"
+  }
+]
+
+							108 text $ dicom-query 127.0.0.1:49398 --aet M3CLI --called-aet M3SCP --level series --modality CT --study-uid 2.25.301 --timeout 60 --format json --verbose
+
+DICOM Query (C-FIND)
+====================
+  Server:            127.0.0.1:49398
+  Calling AE Title:  M3CLI
+  Called AE Title:   M3SCP
+  Query Level:       SERIES
+  Information Model: Study Root
+  Timeout:           60s
+  Filters:
+    Modality:        CT
+    Study UID:       2.25.301
+
+[
+  {
+    "(0008,0052)" : "SERIES",
+    "(0008,0060)" : "CT",
+    "(0008,103E)"
+					109 text History
+					110 button Clear
+					111 scroll area
+						112 text dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-qido dicom-query dicom-query
+	113 toolbar
+		114 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		115 search text field (settable) Search features
+			116 button Search
+	117 close button
+	118 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	119 minimize button
+	120 text DICOM Studio
+121 menu bar
+	122 DICOMStudio
+	123 File
+	124 Edit
+	125 View
+	126 Image
+	127 Window
+	128 Help
+
+The focused UI element is 69 text field (settable) Description: Study Instance UID, Value: 2.25.301, Placeholder: e.g. 1.2.840.113619...

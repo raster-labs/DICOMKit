@@ -1,0 +1,34 @@
+OVERVIEW: Look up UIDs in the DICOM registry
+
+Search the DICOM UID registry, PS3.6 Table A-1 (Transfer Syntaxes, SOP
+Classes, Meta SOP Classes, Well-known SOP Instances, LDAP OIDs, Coding
+Schemes, Application Context Names, Service Classes, Application Hosting
+Models, Mapping Resources, Synchronization Frames of Reference).
+
+Examples:
+  dicom-uid lookup 1.2.840.10008.1.2.1
+  dicom-uid lookup 1.2.840.10008.5.1.4.1.1.2
+  dicom-uid lookup --list-all
+  dicom-uid lookup --list-all --type transfer-syntax
+  dicom-uid lookup --list-all --type well-known-sop-instance
+  dicom-uid lookup --search "CT"
+
+USAGE: dicom-uid lookup [<uid>] [--list-all] [--type <type>] [--search <search>] [--json]
+
+ARGUMENTS:
+  <uid>                   UID to look up
+
+OPTIONS:
+  --list-all              List all known UIDs
+  --type <type>           Filter by PS3.6 Table A-1 UID Type: transfer-syntax,
+                          sop-class, meta-sop-class, well-known-sop-instance,
+                          ldap-oid, coding-scheme, application-context-name,
+                          service-class, application-hosting-model,
+                          mapping-resource, synchronization-frame-of-reference
+  --search <search>       Search UIDs by name keyword
+  --json                  Output as JSON: uid, name, uidType (PS3.6 Table A-1
+                          UID Type) and type (deprecated: the former tool
+                          wording)
+  --version               Show the version.
+  -h, --help              Show help information.
+

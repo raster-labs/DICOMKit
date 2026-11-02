@@ -16,7 +16,7 @@ import Foundation
 struct PrintViewerPresentationEndToEndTests {
 
     private func fixturePath() throws -> String {
-        try #require(StudioTestFixtures.url(named: "syn-ct.dcm")).path
+        try #require(try StudioTestFixtures.url(named: "syn-ct.dcm")).path
     }
 
     // MARK: - Capture

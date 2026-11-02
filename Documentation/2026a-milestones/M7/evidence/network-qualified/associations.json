@@ -1,0 +1,110 @@
+[
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7CLIENT",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  },
+  {
+    "calling_aet": "M7SERVER",
+    "called_aet": "M7PEER"
+  }
+]

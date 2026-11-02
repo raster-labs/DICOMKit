@@ -1,0 +1,55 @@
+						48 text field (settable) Description: Base URL, Value: http://127.0.0.1:60241/dicom-web, Placeholder: e.g. https://pacs.hospital.com/dicom-web
+							51 radio button Description: study, Value: 0
+							52 radio button Description: series, Value: 1
+							53 radio button Description: instance, Value: 0
+						55 text field (settable) Description: Patient Name, Placeholder: e.g. DOE^JOHN or DOE*
+						57 text field (settable) Description: Patient ID, Placeholder: e.g. PAT001
+						59 text field (settable) Description: Study Date, Value: 20260115, Placeholder: e.g. 20260101 or 20260101-20260310
+						61 pop up button Description: Modality, Value: Any
+						63 text field (settable) Description: Study Instance UID, Placeholder: e.g. 1.2.840.113619...
+						65 text field (settable) Description: Series Instance UID, Placeholder: e.g. 1.2.840.113619...
+						67 text field (settable) Description: Accession Number, Placeholder: e.g. ACC12345
+						69 text field (settable) Description: Result Limit, Value: 100
+							72 radio button Description: none, Value: 1
+							73 radio button Description: basic, Value: 0
+							74 radio button Description: bearer, Value: 0
+							77 radio button Description: table, Value: 0
+							78 radio button Description: json, Value: 1
+							79 radio button Description: csv, Value: 0
+							80 radio button Description: dicom-json, Value: 0
+						82 checkbox Description: Verbose, Value: 0
+						84 text field (settable) Description: Study Description, Help: Shows additional flags for this tool, Placeholder: e.g. Chest CT or CHEST*
+						86 text field (settable) Description: PPS Start Date, Help: Shows additional flags for this tool, Value: 20260115, Placeholder: e.g. 20260101 or 20260101-20260310
+						88 text field (settable) Description: PPS Start Time, Help: Shows additional flags for this tool, Placeholder: e.g. 101500 or 100000-180000
+						90 text field (settable) Description: Scheduled Procedure Step ID, Help: Shows additional flags for this tool, Placeholder: e.g. SPS001
+						92 text field (settable) Description: Requested Procedure ID, Help: Shows additional flags for this tool, Placeholder: e.g. RP1
+						94 text field (settable) Description: Offset, Help: Shows additional flags for this tool, Value: 0
+						96 checkbox Description: Strict Modality, Help: Shows additional flags for this tool, Value: 0
+						97 checkbox Description: Fuzzy Matching, Help: Shows additional flags for this tool, Value: 0
+						98 disclosure triangle Description: Advanced options (8), Help: Shows additional flags for this tool, Value: on
+					105 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					106 button Description: Run command, Help: Runs the selected Workshop action
+					109 text Command Preview Valid $ Select a tool to build a command
+					111 text Console SUCCESS
+		123 search text field (settable) Search features
+Complete console:
+$ dicom-wado query http://127.0.0.1:60241/dicom-web --level instance --study 1.2.826.0.1.3680043.10.543.301 --series 1.2.826.0.1.3680043.10.543.301.1 --limit 100 --offset 0 --format json
+
+[
+  {
+    "InstanceNumber" : 1,
+    "Rows" : 512,
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1",
+    "SOPClassUID" : "1.2.840.10008.5.1.4.1.1.2",
+    "SOPInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1.1",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301"
+  },
+  {
+    "InstanceNumber" : 2,
+    "Rows" : 512,
+    "SeriesInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1",
+    "SOPClassUID" : "1.2.840.10008.5.1.4.1.1.2",
+    "SOPInstanceUID" : "1.2.826.0.1.3680043.10.543.301.1.2",
+    "StudyInstanceUID" : "1.2.826.0.1.3680043.10.543.301"
+  }
+]

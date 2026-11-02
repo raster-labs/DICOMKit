@@ -1,0 +1,20 @@
+{
+  "name": "paper-import-refusal",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "status",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/baseline-scp.json",
+    "--paper-queue",
+    "SYNTHETIC-NONEXISTENT",
+    "--format",
+    "json"
+  ],
+  "returncode": 1,
+  "timedOut": false,
+  "durationSeconds": 0.07459779199999983,
+  "stdout": "",
+  "stderr": "Error: --paper-queue needs --allow-paper; refusing to spool to a real printer by accident\n",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "recordedUTC": "2026-10-26T06:01:06.362137+00:00"
+}

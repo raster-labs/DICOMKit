@@ -1,0 +1,525 @@
+{
+  "item": "NET-04-A",
+  "binary": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+  "binary_sha256": "310e2c44bdceb19f91608526919790561f724c1a0d69c59063410a5af45e92b0",
+  "peer_sha256": "a529b62337c91e302fa3695b19452954ee8562ecd4e12c49ee15343d130ad46f",
+  "synthetic_loopback_only": true,
+  "runs": [
+    {
+      "name": "study-control",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "study"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "associations_before": 0,
+      "associations_after": 1,
+      "requests_before": 0,
+      "requests_after": 1,
+      "result_count": 2,
+      "identifier_sha256": "947e703aeb0a2e63561cdc8dc52b88a3c84c33869050eba1971cb8a9a26dafff",
+      "captured_keys": {
+        "00080020": {
+          "value": "",
+          "vr": "DA"
+        },
+        "00080030": {
+          "value": "",
+          "vr": "TM"
+        },
+        "00080050": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "00080061": {
+          "value": "",
+          "vr": "CS"
+        },
+        "00080090": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00081030": {
+          "value": "",
+          "vr": "LO"
+        },
+        "00100010": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00100020": {
+          "value": "",
+          "vr": "LO"
+        },
+        "00100030": {
+          "value": "",
+          "vr": "DA"
+        },
+        "0020000D": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00200010": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00201206": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00201208": {
+          "value": "",
+          "vr": "IS"
+        }
+      },
+      "results": [
+        {
+          "(0008,0020)": "20261024",
+          "(0008,0030)": "103000",
+          "(0008,0050)": "M31",
+          "(0008,0052)": "STUDY",
+          "(0008,0061)": "CT",
+          "(0008,0090)": "TEST^PHYSICIAN",
+          "(0008,1030)": "M3 CT STUDY",
+          "(0010,0010)": "AUDIT^CT",
+          "(0010,0020)": "M3CT",
+          "(0010,0030)": "19800101",
+          "(0020,000D)": "2.25.301",
+          "(0020,0010)": "1",
+          "(0020,1206)": "1",
+          "(0020,1208)": "1"
+        },
+        {
+          "(0008,0020)": "20261024",
+          "(0008,0030)": "103000",
+          "(0008,0050)": "M32",
+          "(0008,0052)": "STUDY",
+          "(0008,0061)": "MR",
+          "(0008,0090)": "TEST^PHYSICIAN",
+          "(0008,1030)": "M3 MR STUDY",
+          "(0010,0010)": "AUDIT^MR",
+          "(0010,0020)": "M3MR",
+          "(0010,0030)": "19800101",
+          "(0020,000D)": "2.25.302",
+          "(0020,0010)": "2",
+          "(0020,1206)": "1",
+          "(0020,1208)": "1"
+        }
+      ]
+    },
+    {
+      "name": "study-ct",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "study",
+        "--modality",
+        "CT",
+        "--study-date",
+        "20260101-20261231",
+        "--patient-name",
+        "AUDIT*",
+        "--study-description",
+        "M3*"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "associations_before": 1,
+      "associations_after": 2,
+      "requests_before": 1,
+      "requests_after": 2,
+      "result_count": 1,
+      "identifier_sha256": "a2f92fa8686f395f8ca09327247c6e19e0c0f3d11820f99618d53ae5353628aa",
+      "captured_keys": {
+        "00080020": {
+          "value": "20260101-20261231",
+          "vr": "DA"
+        },
+        "00080030": {
+          "value": "",
+          "vr": "TM"
+        },
+        "00080050": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00080052": {
+          "value": "STUDY",
+          "vr": "CS"
+        },
+        "00080061": {
+          "value": "CT",
+          "vr": "CS"
+        },
+        "00080090": {
+          "value": "",
+          "vr": "PN"
+        },
+        "00081030": {
+          "value": "M3*",
+          "vr": "LO"
+        },
+        "00100010": {
+          "value": "AUDIT*",
+          "vr": "PN"
+        },
+        "00100020": {
+          "value": "",
+          "vr": "LO"
+        },
+        "00100030": {
+          "value": "",
+          "vr": "DA"
+        },
+        "0020000D": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00200010": {
+          "value": "",
+          "vr": "SH"
+        },
+        "00201206": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00201208": {
+          "value": "",
+          "vr": "IS"
+        }
+      },
+      "results": [
+        {
+          "(0008,0020)": "20261024",
+          "(0008,0030)": "103000",
+          "(0008,0050)": "M31",
+          "(0008,0052)": "STUDY",
+          "(0008,0061)": "CT",
+          "(0008,0090)": "TEST^PHYSICIAN",
+          "(0008,1030)": "M3 CT STUDY",
+          "(0010,0010)": "AUDIT^CT",
+          "(0010,0020)": "M3CT",
+          "(0010,0030)": "19800101",
+          "(0020,000D)": "2.25.301",
+          "(0020,0010)": "1",
+          "(0020,1206)": "1",
+          "(0020,1208)": "1"
+        }
+      ]
+    },
+    {
+      "name": "series-ct",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "series",
+        "--study-uid",
+        "2.25.301",
+        "--modality",
+        "CT"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "associations_before": 2,
+      "associations_after": 3,
+      "requests_before": 2,
+      "requests_after": 3,
+      "result_count": 1,
+      "identifier_sha256": "2775b18b946df0d430dc6ff8c601120c2305b9ec0536d2aa82dab8337432bf95",
+      "captured_keys": {
+        "00080052": {
+          "value": "SERIES",
+          "vr": "CS"
+        },
+        "00080060": {
+          "value": "CT",
+          "vr": "CS"
+        },
+        "0008103E": {
+          "value": "",
+          "vr": "LO"
+        },
+        "0020000D": {
+          "value": "2.25.301",
+          "vr": "UI"
+        },
+        "0020000E": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00200011": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00201209": {
+          "value": "",
+          "vr": "IS"
+        }
+      },
+      "results": [
+        {
+          "(0008,0052)": "SERIES",
+          "(0008,0060)": "CT",
+          "(0008,103E)": "M3 CT SERIES",
+          "(0020,000D)": "2.25.301",
+          "(0020,000E)": "2.25.301.1",
+          "(0020,0011)": "1",
+          "(0020,1209)": "1"
+        }
+      ]
+    },
+    {
+      "name": "image-valid",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "image",
+        "--study-uid",
+        "2.25.301",
+        "--series-uid",
+        "2.25.301.1"
+      ],
+      "exit": 0,
+      "expected_exit": 0,
+      "associations_before": 3,
+      "associations_after": 4,
+      "requests_before": 3,
+      "requests_after": 4,
+      "result_count": 1,
+      "identifier_sha256": "92a5fb17766489d3edd999b6fbdfb7535c4b8e4a5cd6d156b387d2d6a7c07f6b",
+      "captured_keys": {
+        "00080016": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00080018": {
+          "value": "",
+          "vr": "UI"
+        },
+        "00080023": {
+          "value": "",
+          "vr": "DA"
+        },
+        "00080052": {
+          "value": "IMAGE",
+          "vr": "CS"
+        },
+        "0020000D": {
+          "value": "2.25.301",
+          "vr": "UI"
+        },
+        "0020000E": {
+          "value": "2.25.301.1",
+          "vr": "UI"
+        },
+        "00200013": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00280008": {
+          "value": "",
+          "vr": "IS"
+        },
+        "00280010": {
+          "value": "",
+          "vr": "US"
+        },
+        "00280011": {
+          "value": "",
+          "vr": "US"
+        }
+      },
+      "results": [
+        {
+          "(0008,0016)": "1.2.840.10008.5.1.4.1.1.2",
+          "(0008,0018)": "2.25.301.1.1",
+          "(0008,0023)": "20261024",
+          "(0008,0052)": "IMAGE",
+          "(0020,000D)": "2.25.301",
+          "(0020,000E)": "2.25.301.1",
+          "(0020,0013)": "1",
+          "(0028,0008)": "1",
+          "(0028,0010)": "\u0002",
+          "(0028,0011)": "\u0002"
+        }
+      ]
+    },
+    {
+      "name": "refuse-image-modality",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "image",
+        "--study-uid",
+        "2.25.301",
+        "--series-uid",
+        "2.25.301.1",
+        "--modality",
+        "CT"
+      ],
+      "exit": 64,
+      "expected_exit": 64,
+      "associations_before": 4,
+      "associations_after": 4,
+      "requests_before": 4,
+      "requests_after": 4
+    },
+    {
+      "name": "refuse-patient-study-date",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "patient",
+        "--study-date",
+        "20260101-20261231"
+      ],
+      "exit": 64,
+      "expected_exit": 64,
+      "associations_before": 4,
+      "associations_after": 4,
+      "requests_before": 4,
+      "requests_after": 4
+    },
+    {
+      "name": "refuse-patient-study-description",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "patient",
+        "--study-description",
+        "M3*"
+      ],
+      "exit": 64,
+      "expected_exit": 64,
+      "associations_before": 4,
+      "associations_after": 4,
+      "requests_before": 4,
+      "requests_after": 4
+    },
+    {
+      "name": "refuse-patient-study-uid",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+        "127.0.0.1",
+        "--port",
+        "58931",
+        "--aet",
+        "M3CLI",
+        "--called-aet",
+        "M3SCP",
+        "--timeout",
+        "5",
+        "--format",
+        "json",
+        "--verbose",
+        "--level",
+        "patient",
+        "--study-uid",
+        "2.25.301"
+      ],
+      "exit": 64,
+      "expected_exit": 64,
+      "associations_before": 4,
+      "associations_after": 4,
+      "requests_before": 4,
+      "requests_after": 4
+    }
+  ],
+  "passed": true,
+  "final_peer_state": {
+    "associations": 4,
+    "errors": [],
+    "requests": 4
+  },
+  "peer_exit": 0
+}

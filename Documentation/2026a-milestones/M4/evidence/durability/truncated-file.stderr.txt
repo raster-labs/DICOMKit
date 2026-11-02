@@ -1,0 +1,1 @@
+Error: Storage error: Reindex rejected /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/durability/truncated-file/bad.dcm: Storage error: Invalid stored DICOM envelope: Truncated or odd value length at 410

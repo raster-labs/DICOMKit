@@ -1,0 +1,65 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 919]
+[Planning deferred tasks]
+[1 / 2] J2KSwift_J2KMetal
+[1 / 11] JXLSwift
+[1 / 71] DICOMCore
+[5 / 52] DICOMWeb
+[9 / 32] DICOMStudio
+error: SwiftCompile normal arm64 /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift failed with a nonzero exit code. Command line:     cd /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work
+    builtin-SwiftPerFileCompile CLIWorkshopViewModel.swift
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:1111:13: warning: variable 'dirURL' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 1109 |     public func writeOutputFile(data: Data, filename: String, outputDir: String) throws -> String {
+ 1110 |         let fm = FileManager.default
+ 1111 |         var dirURL = URL(fileURLWithPath: outputDir)
+      |             `- warning: variable 'dirURL' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 1112 |         var accessing = false
+ 1113 | 
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:4171:16: error: cannot find 'outputScopedURL' in scope
+ 4169 |             // --force. Only the typed path is checked, because that is what the
+ 4170 |             // user named; a redirect lands somewhere they have not claimed.
+ 4171 |             if outputScopedURL == nil,
+      |                `- error: cannot find 'outputScopedURL' in scope
+ 4172 |                FileManager.default.fileExists(atPath: outputPath), !force {
+ 4173 |                 lines.append(VideoConsole.outputExistsLine(outputPath))
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:4125:34: warning: no 'async' operations occur within 'await' expression [#UnnecessaryEffectMarker]
+ 4123 |         let noticeLines = validated.lines
+ 4124 | 
+ 4125 |         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
+      |                                  `- warning: no 'async' operations occur within 'await' expression [#UnnecessaryEffectMarker]
+ 4126 |             () -> (String, VideoConsole.ExitCode) in
+ 4127 |             guard let bitstream = FileManager.default.contents(atPath: inputURL.path) else {
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:4295:16: error: cannot find 'outputScopedURL' in scope
+ 4293 |                 }
+ 4294 |             ).url.path
+ 4295 |             if outputScopedURL == nil,
+      |                `- error: cannot find 'outputScopedURL' in scope
+ 4296 |                FileManager.default.fileExists(atPath: outputPath), !force {
+ 4297 |                 lines.append(VideoConsole.outputExistsLine(outputPath))
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:4261:34: warning: no 'async' operations occur within 'await' expression [#UnnecessaryEffectMarker]
+ 4259 |         let inputURL = URL(fileURLWithPath: inputPath)
+ 4260 | 
+ 4261 |         let (output, exitCode) = await Task.detached(priority: .userInitiated) {
+      |                                  `- warning: no 'async' operations occur within 'await' expression [#UnnecessaryEffectMarker]
+ 4262 |             () -> (String, VideoConsole.ExitCode) in
+ 4263 |             guard let data = FileManager.default.contents(atPath: inputURL.path) else {
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift:9633:13: warning: variable 'dirURL' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 9631 |     private func qrValidateRetrievedFiles(in directory: String) {
+ 9632 |         let fm = FileManager.default
+ 9633 |         var dirURL = URL(fileURLWithPath: directory)
+      |             `- warning: variable 'dirURL' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+ 9634 |         var accessing = false
+ 9635 |         if let scopedURL = securityScopedURLs["output"],
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c -filelist /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/sources-1 -primary-file /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift -emit-dependencies-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.d -emit-const-values-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.swiftconstvalues -emit-reference-dependencies-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.swiftdeps -serialize-diagnostics-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.dia -target arm64-apple-macos15.0 -module-can-import-version AVKit 1360.75.5.3 1.0.0 -module-can-import-version AppKit 2775.10.103.1 2775.10.103 -module-can-import-version CoreGraphics 2050 2050.0.0 -module-can-import-version CoreText 904 904.0.0 -module-can-import-version CryptoKit 383.1.1 0 -module-can-import-version ImageIO 2851 1.0.0 -module-can-import-version Metal 382.5.3 382.5.3 -module-can-import-version PDFKit 1537 1537.0.0 -module-can-import-version SwiftUI 8.0.84.1 8.0.84 -module-can-import-version UniformTypeIdentifiers 917.0.1.403 709.0.0 -disable-cross-import-overlay-search -swift-module-cross-import AVKit /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AVKit.framework/Modules/AVKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AVKit /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk/System/Library/Frameworks/AVKit.framework/Modules/AVKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import Darwin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Darwin.swiftcrossimport/xlocale.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/DICOMStudio-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -stack-check -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.0.sdk -I /Volumes/DICOMKit-M1-build/spm/out/Products/Debug -Isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib -F /Volumes/DICOMKit-M1-build/spm/out/Products/Debug/PackageFrameworks -F /Volumes/DICOMKit-M1-build/spm/out/Products/Debug -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks -module-cache-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/SwiftExplicitPrecompiledModules -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -swift-version 6 -Onone -D SWIFT_PACKAGE -D DEBUG -D SWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE -D Xcode -enable-cross-import-overlays -serialize-debugging-options -enable-experimental-feature DebugDescriptionMacro -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Volumes/DICOMKit-M1-build/spm/out/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work -enable-anonymous-context-mangled-names -file-compilation-dir /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work -Xcc -fmodule-map-file\=/Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/GeneratedModuleMaps/J2KCodecNEON.modulemap -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Volumes/DICOMKit-M1-build/spm/out/SDKStatCaches.noindex/macosx27.0-26A425-a0facfad118c1a7a18f0aad9463f65497231f6df4def33e022ae2eb8f782df1a.sdkstatcache -Xcc -fmodules-prune-interval\=86400 -Xcc -fmodules-prune-after\=345600 -Xcc -I/Volumes/DICOMKit-M1-build/spm/checkouts/J2KSwift/Sources/J2KCodecNEON/include -Xcc -I/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/include -Xcc -I/Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/DerivedSources-normal/arm64 -Xcc -I/Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/DerivedSources/arm64 -Xcc -I/Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/DerivedSources -Xcc -DSWIFT_PACKAGE -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name DICOMStudio -package-name dicomkit_milestones -const-gather-protocols-file /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/DICOMStudio_const_extract_protocols.json -disable-clang-spi -clang-target arm64-apple-macos27.0 -target-sdk-version 27.0 -target-sdk-name macosx27.0 -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -parse-as-library -o /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.o -debug-module-path /Volumes/DICOMKit-M1-build/spm/out/Intermediates.noindex/DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/DICOMStudio.swiftmodule -index-unit-output-path /DICOMKit.build/Debug/DICOMStudio-t.build/Objects-normal/arm64/CLIWorkshopViewModel.o -index-store-path /Volumes/DICOMKit-M1-build/spm/out -index-system-modules
+error: Build failed
+error: fatalError

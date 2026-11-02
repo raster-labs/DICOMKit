@@ -1,0 +1,38 @@
+OVERVIEW: Regenerate UIDs in DICOM files
+
+Replace UIDs in DICOM files with new unique identifiers. The UI attributes
+PS3.15 Table E.1-1 replaces (action U: SOP Instance, Study, Series, Frame of
+Reference UID, Referenced SOP Instance UID (0008,1155), ...) are replaced at
+every level, inside sequence items too, and the same old UID gets the same new
+UID throughout a file. SOP Class, Transfer Syntax, Coding Scheme UIDs and any
+PS3.6 Table A-1 UID are kept. Use --maintain-relationships (on by default for
+more than one file) to map the same old UID to the same new UID across files.
+
+Examples:
+  dicom-uid regenerate file.dcm
+  dicom-uid regenerate file.dcm --output new.dcm
+  dicom-uid regenerate file1.dcm file2.dcm --output output_dir/
+--maintain-relationships
+  dicom-uid regenerate study/*.dcm --output new/ --export-map mapping.json
+  dicom-uid regenerate file.dcm --root 1.2.826.0.1.3680043.9.1234
+
+USAGE: dicom-uid regenerate <inputs> ... [--output <output>] [--root <root>] [--maintain-relationships] [--export-map <export-map>] [--verbose] [--dry-run]
+
+ARGUMENTS:
+  <inputs>                Input DICOM file(s)
+
+OPTIONS:
+  -o, --output <output>   Output file or directory path
+  -r, --root <root>       UID root for the new UIDs: your organisation's
+                          registered root (PS3.5 9.2.2); default
+                          1.2.826.0.1.3680043.10.511.4
+  --maintain-relationships
+                          Maintain UID relationships across files (same old UID
+                          maps to same new UID)
+  --export-map <export-map>
+                          Export old→new UID mapping to JSON file
+  -v, --verbose           Show verbose output
+  --dry-run               Show what would be changed without writing
+  --version               Show the version.
+  -h, --help              Show help information.
+

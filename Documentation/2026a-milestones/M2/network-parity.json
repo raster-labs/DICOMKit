@@ -1,0 +1,154 @@
+{
+  "result": "PASS",
+  "method": "Offline independent standard-library TLV/JSON inspection; no DICOMKit import or peer traffic",
+  "mpps": {
+    "associations": 6,
+    "datasets": 6,
+    "requests": [
+      {
+        "request": "mpps-capture/request-001.dcmdata",
+        "surface": "CLI",
+        "modality_case": "CT",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.2",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      },
+      {
+        "request": "mpps-capture/request-002.dcmdata",
+        "surface": "CLI",
+        "modality_case": "MR",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.4",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      },
+      {
+        "request": "mpps-capture/request-003.dcmdata",
+        "surface": "CLI",
+        "modality_case": "SC",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.7",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      },
+      {
+        "request": "mpps-capture/request-004.dcmdata",
+        "surface": "GUI",
+        "modality_case": "CT",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.2",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      },
+      {
+        "request": "mpps-capture/request-005.dcmdata",
+        "surface": "GUI",
+        "modality_case": "MR",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.4",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      },
+      {
+        "request": "mpps-capture/request-006.dcmdata",
+        "surface": "GUI",
+        "modality_case": "SC",
+        "seriesInstanceUID": "2.25.102",
+        "references": [
+          {
+            "sopClassUID": "1.2.840.10008.5.1.4.1.1.7",
+            "sopInstanceUID": "2.25.103"
+          }
+        ],
+        "decoded_status": "COMPLETED"
+      }
+    ],
+    "missing_class": {
+      "CLI_exit": 64,
+      "CLI_diagnostic": true,
+      "GUI_error_and_diagnostic": true,
+      "extra_associations": 0,
+      "basis": "All 6 associations have 6 expected successful CT/MR/SC datasets; CLI and GUI missing-class runs add none"
+    },
+    "CLI_GUI_normalized_datasets_equal": true,
+    "normalization_excludes": [
+      "00400250 PPS End Date",
+      "00400251 PPS End Time"
+    ],
+    "mixed_classes": "Existing typed service API covered by final/DICOMNetworkTests.log; no mixed-class CLI/GUI form is claimed"
+  },
+  "ups": {
+    "requests": 4,
+    "sequence": [
+      "CLI POST",
+      "CLI GET",
+      "GUI POST",
+      "GUI GET"
+    ],
+    "normalized_POST_JSON_equal": true,
+    "scheduled_DT": "20261024103000.123456+0530",
+    "independently_decoded_UTC_instant": "2026-10-24T05:00:00.123456+00:00",
+    "GUI_get": "Table showed UID, state and label; scheduled DT visibility is not claimed",
+    "scope": "Client request parity against capture fixture; production server DT response/instant validation is established by final/DICOMWebTests.log",
+    "excluded_evidence": "ups-capture (initial probe failed because fixture wrongly required client SOP Instance UID; corrected fixture assigns UID)"
+  },
+  "limitations": [
+    "Synthetic loopback fixtures; no external PACS interoperability qualification.",
+    "Explicit SOP Class/Instance pairs were entered; no new source-file import or automatic class inference.",
+    "Intermediate MPPS updates and new UPS GUI update routes remain outside M2 scope."
+  ],
+  "evidence_sha256": {
+    "mpps-capture/finished.json": "f002dd69f430fdf0edd9cc9d68e2efd5001381ad65121ff0c90dd61899bd7b9b",
+    "mpps-capture/ready.json": "4f9b33a846f334359c5160498987d7ae123735bd347bdc132970fe84a0942fe0",
+    "mpps-capture/request-001.dcmdata": "97edbca92c088024c685beb228a95426baf34d5c2d4341f004d85926ef546549",
+    "mpps-capture/request-001.json": "bb864302dcb61a154a0774a97917473b96b91647e5a9a4622aad86551c0dea1c",
+    "mpps-capture/request-002.dcmdata": "5c2c9fd6baaf20af4e100c48f73bd0d9e83d5940ea682dfe7a7384c4479af527",
+    "mpps-capture/request-002.json": "71d657d331f52535efced4d460212830b185c5982fa818e3eead6544c92eb67d",
+    "mpps-capture/request-003.dcmdata": "c490e0d44d02f3f2083a18abda99b4375c7afe98de22036150757a0deebf4026",
+    "mpps-capture/request-003.json": "8e697124c6a595f28714cc6651f2f380da4aad7a32f7d562fa1285370690e40b",
+    "mpps-capture/request-004.dcmdata": "fe6f4f0decec6a64a85e4e7ce5668a5cf641876db54607f3a323959341136903",
+    "mpps-capture/request-004.json": "bb864302dcb61a154a0774a97917473b96b91647e5a9a4622aad86551c0dea1c",
+    "mpps-capture/request-005.dcmdata": "979508fd7a498a7888749cac945a429df47c390adbb4784d9d8caafda8766fa1",
+    "mpps-capture/request-005.json": "71d657d331f52535efced4d460212830b185c5982fa818e3eead6544c92eb67d",
+    "mpps-capture/request-006.dcmdata": "a5156ed981fbcca8c2924716d773d0fbbf91053269ebd2032ec04fbad66d3882",
+    "mpps-capture/request-006.json": "8e697124c6a595f28714cc6651f2f380da4aad7a32f7d562fa1285370690e40b",
+    "mpps-cli.json": "0f79a143d0d74b4a08676acf0df8090cbd1d8a2034c01646c6e0273f53a55e32",
+    "ui/mpps-CT.txt": "ebee5eb687827ad03bd03e6c5ffaa8b12ead371218c5933e5eb91a2127b64a08",
+    "ui/mpps-MR.txt": "718f60797e9669f23349410c355ce3898ac12572b72d0a367a883409577a0d15",
+    "ui/mpps-SC.txt": "878fe09f1bf307c6eba55752c28144c186e4f9e825a7337454de48af2edea40e",
+    "ui/mpps-no-class.txt": "e6c4a9c5a43ddbfb0639486cd933291d60b8aaffe3369bc500625cea55b0f416",
+    "ui/ups-create-json.txt": "831d1c9794c3829b600fa7347b31c13286fdcef968c9a3c88bbd14781f3e61dd",
+    "ui/ups-get.txt": "3c8b5e99c3c366bac72f68120ec8c0ba9b79a66e2445bc7eb45d551713e28df8",
+    "ups-capture-final/finished.json": "fc6ce2c7f990e291c3ed0ad6a6f0a0363f3ccb25b8e616e34d6e6907982e2c56",
+    "ups-capture-final/request-001.body": "b870395e68d6b03b9ad212d30d1a81275143b358edaaef4f3bf1d75c1b24e2c6",
+    "ups-capture-final/request-001.json": "84a48e26181347fc3ba78edfc3113c4e0790190aa322df83d6c5a79de79c0557",
+    "ups-capture-final/request-002.body": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ups-capture-final/request-002.json": "92a216df7f1c738201f775b87e97415ddcda784a679934879eea2f84977c6967",
+    "ups-capture-final/request-003.body": "b240c7081bd3efaab2fcf79544a7b5c6de460a3f32fb8380f2a83213bc8a38a4",
+    "ups-capture-final/request-003.json": "6c3e44ae4a9f5db917a0222380b19638530e4b5ee838bb90cb0dbefd02d2f0da",
+    "ups-capture-final/request-004.body": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ups-capture-final/request-004.json": "5ad7e722cd355095360edeaa7f9c38c5b6719ee52d0ed0e948d81b828c60c012",
+    "ups-cli.json": "6dfa6a9ef244a52240663a9539c5e1c6702665f10a6801695d8aa3033c883210"
+  }
+}

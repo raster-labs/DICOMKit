@@ -1,0 +1,104 @@
+{
+  "file": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m5/qualified/sr-fixture/m5-sr-temporal-precision.dcm",
+  "sha256_before_display": "699134bd8df05a835a364c74886769581959c602e0bfd5dbf812b0be520f57a6",
+  "sop_instance_uid": "2.25.550001",
+  "rows": [
+    {
+      "label": "TIME fraction",
+      "vr": "TM",
+      "raw": "101530.123456",
+      "expected": "10:15:30.123456"
+    },
+    {
+      "label": "TIME next fraction",
+      "vr": "TM",
+      "raw": "101530.123457",
+      "expected": "10:15:30.123457"
+    },
+    {
+      "label": "TIME trailing zeros",
+      "vr": "TM",
+      "raw": "101530.120000",
+      "expected": "10:15:30.120000"
+    },
+    {
+      "label": "TIME hour",
+      "vr": "TM",
+      "raw": "10",
+      "expected": "10"
+    },
+    {
+      "label": "TIME minute",
+      "vr": "TM",
+      "raw": "1015",
+      "expected": "10:15"
+    },
+    {
+      "label": "DATETIME positive offset",
+      "vr": "DT",
+      "raw": "20261024101530.123456+0530",
+      "expected": "2026-10-24 10:15:30.123456 +0530"
+    },
+    {
+      "label": "DATETIME negative offset",
+      "vr": "DT",
+      "raw": "20261024101530.123456-0330",
+      "expected": "2026-10-24 10:15:30.123456 -0330"
+    },
+    {
+      "label": "DATETIME year",
+      "vr": "DT",
+      "raw": "2026",
+      "expected": "2026"
+    },
+    {
+      "label": "DATETIME month",
+      "vr": "DT",
+      "raw": "202610",
+      "expected": "2026-10"
+    },
+    {
+      "label": "DATETIME date",
+      "vr": "DT",
+      "raw": "20261024",
+      "expected": "2026-10-24"
+    },
+    {
+      "label": "DATETIME hour",
+      "vr": "DT",
+      "raw": "2026102410",
+      "expected": "2026-10-24 10"
+    },
+    {
+      "label": "DATETIME minute",
+      "vr": "DT",
+      "raw": "202610241015",
+      "expected": "2026-10-24 10:15"
+    },
+    {
+      "label": "DATETIME zeros UTC",
+      "vr": "DT",
+      "raw": "20261024101530.120000+0000",
+      "expected": "2026-10-24 10:15:30.120000 +0000"
+    },
+    {
+      "label": "DATETIME partial offset",
+      "vr": "DT",
+      "raw": "2026+0530",
+      "expected": "2026 +0530"
+    },
+    {
+      "label": "Malformed TIME retained",
+      "vr": "TM",
+      "raw": "101530.1234567",
+      "expected": "101530.1234567"
+    },
+    {
+      "label": "Malformed DATETIME retained",
+      "vr": "DT",
+      "raw": "20260230101530+0530",
+      "expected": "20260230101530+0530"
+    }
+  ],
+  "scope": "Synthetic read/display/copy fixture; two malformed controls are intentionally retained"
+}

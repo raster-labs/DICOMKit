@@ -1,0 +1,2 @@
+Executable=/Volumes/DICOMKit-M1-build/xcode/Build/Products/Debug/DICOMStudio.app/Contents/MacOS/DICOMStudio
+warning: Specifying ':' in the path is deprecated and will not work in a future release

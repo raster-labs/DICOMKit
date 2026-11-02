@@ -1,0 +1,30 @@
+OVERVIEW: Show J2K/HTJ2K codestream metadata embedded in a DICOM file
+
+Decodes the JPEG 2000 or HTJ2K codestream header and displays
+structural metadata: dimensions, components, bit depth, tiling,
+colour space, progression order, quality layers, and HTJ2K flag.
+
+Examples:
+  dicom-j2k info scan.dcm
+  dicom-j2k info scan.dcm --json
+  dicom-j2k info scan.dcm --frame-number 2
+
+--json keys: TransferSyntaxUID and NumberOfFrames are the PS3.6 Table 6-1
+keywords; transferSyntaxUID and totalFrames are deprecated (same values).
+frameNumber is the Frame number (from 1); frame is the deprecated 0-based index.
+
+USAGE: dicom-j2k info <input> [--frame-number <frame-number>] [--frame <frame>] [--json] [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  --frame-number <frame-number>
+                          Frame number, numbered from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --json                  Output as JSON
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,599 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 29] J2KCodec
+Build complete! (0.69 sec)
+Test Suite 'Selected tests' started at 2026-10-24 20:51:27.271.
+Test Suite 'DICOMCoreTests.xctest' started at 2026-10-24 20:51:27.275.
+Test Suite 'DICOMValueRulesTests' started at 2026-10-24 20:51:27.275.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testC1ControlsAreRejectedAndTextLineControlsRemainLegal]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testC1ControlsAreRejectedAndTextLineControlsRemainLegal]' passed (0.002 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testDecodedValuesPreserveIllegalLeadingWhitespaceAndLegalPadding]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testDecodedValuesPreserveIllegalLeadingWhitespaceAndLegalPadding]' passed (0.003 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testDelimiterOnlyFieldsAreEmptyButMixedValuesRetainMultiplicity]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testDelimiterOnlyFieldsAreEmptyButMixedValuesRetainMultiplicity]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testGregorianDateBoundaries]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testGregorianDateBoundaries]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testMultiplicityAndMalformedBinaryWidths]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testMultiplicityAndMalformedBinaryWidths]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testNumericTextGrammarAndBounds]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testNumericTextGrammarAndBounds]' passed (0.001 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testPartialDateTimeAndOffsets]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testPartialDateTimeAndOffsets]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testPersonNameGroupDelimiterCountsTowardLimit]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testPersonNameGroupDelimiterCountsTowardLimit]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testStoredTextGrammarRejectsTheRegisteredFailures]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testStoredTextGrammarRejectsTheRegisteredFailures]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testTimePrecisionAndLeapSecondSyntax]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testTimePrecisionAndLeapSecondSyntax]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testUIDComponentsAndLength]' started.
+Test Case '-[DICOMCoreTests.DICOMValueRulesTests testUIDComponentsAndLength]' passed (0.000 seconds).
+Test Suite 'DICOMValueRulesTests' passed at 2026-10-24 20:51:27.283.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds
+Test Suite 'PrivateDataElementTests' started at 2026-10-24 20:51:27.283.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_blockOffset_computesCorrectly]' started.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_blockOffset_computesCorrectly]' passed (0.001 seconds).
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_blockOffset_returnsNilForNonOwnedTag]' started.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_blockOffset_returnsNilForNonOwnedTag]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_description_withKnownTag]' started.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_description_withKnownTag]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_description_withUnknownTag]' started.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_description_withUnknownTag]' passed (0.000 seconds).
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_init_createsPrivateDataElement]' started.
+Test Case '-[DICOMCoreTests.PrivateDataElementTests test_init_createsPrivateDataElement]' passed (0.000 seconds).
+Test Suite 'PrivateDataElementTests' passed at 2026-10-24 20:51:27.285.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'DICOMCoreTests.xctest' passed at 2026-10-24 20:51:27.285.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.008 (0.009) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 20:51:27.285.
+	 Executed 16 tests, with 0 failures (0 unexpected) in 0.008 (0.014) seconds
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "DataElement Tests" started.
+◇ Suite "CharacterSetHandler Tests" started.
+◇ Suite "DICOMDate Tests" started.
+◇ Suite "DICOMTime Tests" started.
+◇ Suite "DataElement byte order" started.
+◇ Suite "Strict DICOM TM parsing" started.
+◇ Suite "DICOMDateTime Tests" started.
+◇ Suite "CharacterSetHandler ISO 2022 Tests" started.
+◇ Suite "DICOM DT instant formatting" started.
+◇ Suite "M2 DataElement text context" started.
+◇ Test "Foundation Date from DT value" started.
+◇ Test "UInt16 values extraction with OB VR (even byte count)" started.
+◇ Test "UInt16 value extraction with IS VR for Bits Stored" started.
+◇ Test "Multiple string values" started.
+◇ Test "DataElement creation" started.
+◇ Test "DICOM DateTime (DT) value extraction" started.
+◇ Test "UInt16 value extraction" started.
+◇ Test "Escape sequence generation for Latin-1 to G1" started.
+◇ Test "UInt32 array value extraction" started.
+◇ Test "Create handler from single Specific Character Set value" started.
+◇ Test "Decode escape sequence ESC - F (Greek to G1)" started.
+◇ Test "DICOM Decimal String multiple values extraction" started.
+◇ Test "UInt16 value extraction with IS VR" started.
+◇ Test "Decimal String value returns nil for wrong VR" started.
+◇ Test "UTF-8 bytes per character - single byte" started.
+◇ Test "UInt32 value extraction" started.
+◇ Test "Parse unknown defined term returns nil" started.
+◇ Test "UInt16 array value extraction" started.
+◇ Test "Person Name value returns nil for wrong VR" started.
+◇ Test "Handle data with only escape sequence" started.
+◇ Test "NFC normalization combines decomposed characters" started.
+◇ Test "Parse ISO IR 110 (Latin-4)" started.
+◇ Test "Parse ISO IR 192 (UTF-8)" started.
+◇ Test "Parse ISO IR 13 (Japanese Katakana)" started.
+◇ Test "ISO 2022 IR 6 is the default repertoire" started.
+◇ Test "Round-trip Latin-2 encoding and decoding" started.
+◇ Test "Time value returns nil for wrong VR" started.
+◇ Test "UInt16 value extraction with OB VR (2 bytes)" started.
+◇ Test "UInt16 value extraction with IS VR for Pixel Representation" started.
+◇ Test "Round-trip UTF-8 text" started.
+◇ Test "UInt32 value extraction with UN VR" started.
+◇ Test "UInt16 value extraction with IS VR and whitespace padding" started.
+◇ Test "Undefined length detection" started.
+◇ Test "Decode multiple escape sequences in same data" started.
+◇ Test "NFC normalization is idempotent" started.
+◇ Test "UInt16 value extraction with UN VR" started.
+◇ Test "Detect escape sequences in data" started.
+◇ Test "Encode with multi-valued character set uses first encoding" started.
+◇ Test "Parse ISO IR 14 (Japanese Romaji)" started.
+◇ Test "Reject invalid formats" started.
+◇ Test "Parse ISO IR 126 (Greek)" started.
+◇ Test "Parse HHMMSS format" started.
+◇ Test "Foundation Date from DA value" started.
+◇ Test "Date value returns nil for wrong VR" started.
+◇ Test "UInt16 values extraction with SS VR" started.
+◇ Test "Parse with fewer fractional digits" started.
+◇ Test "CustomStringConvertible" started.
+◇ Test "Parse whitespace-only specific character set defaults to ASCII" started.
+◇ Test "Parse with leading/trailing whitespace" started.
+◇ Test "Decode escape sequence ESC - H (Hebrew to G1)" started.
+◇ Test "DICOM string format" started.
+◇ Test "Parse legacy format with colons" started.
+◇ Test "Parse legacy YYYY.MM.DD format with dots" started.
+◇ Test "DICOM string format" started.
+◇ Test "Empty values of a multi-valued attribute are kept in position (PS3.5 §6.4, D25)" started.
+◇ Test "Reject invalid formats" started.
+◇ Test "Parse HHMM format" started.
+◇ Test "Decode ASCII text without escape sequences" started.
+◇ Test "Encoding decode ASCII text" started.
+◇ Test "DICOM Integer String multiple values extraction" started.
+◇ Test "UInt16 values extraction with OB VR returns nil for odd byte count" started.
+◇ Test "Parse standard YYYYMMDD format" started.
+◇ Test "UInt16 value extraction with IS VR at maximum value" started.
+◇ Test "Convert to DateComponents" started.
+◇ Test "Decode Latin-1 text" started.
+◇ Test "DICOM Decimal String (DS) value extraction" started.
+◇ Test "Parse empty defined term defaults to ISO IR 6" started.
+◇ Test "UInt16 value extraction with OB VR returns nil for non-2-byte data" started.
+◇ Test "Double-byte encoding bytes per character" started.
+◇ Test "Convert to Foundation Date" started.
+◇ Test "Parse HHMMSS.FFFFFF format" started.
+◇ Test "Parse HH format (hour only)" started.
+◇ Test "Float64 array value extraction" started.
+◇ Test "Parse boundary values" started.
+◇ Test "Parse boundary values" started.
+◇ Test "Float32 array value extraction" started.
+◇ Test "Round-trip Latin-1 text" started.
+◇ Test "ISO 2022 IR 149 (Korean) in G1 decodes as KS X 1001" started.
+◇ Test "Create handler from multi-valued Specific Character Set" started.
+◇ Test "Parse ISO IR 149 (Korean)" started.
+◇ Test "FL / FD floats honor byte order" started.
+◇ Test "Equality comparison" started.
+◇ Test "DICOM Integer String (IS) value extraction" started.
+◇ Test "Parse ISO 2022 IR 87 variant" started.
+◇ Test "DICOM Person Name multiple values extraction" started.
+◇ Test "UL / SL 32-bit values honor byte order" started.
+◇ Test "Integer String value returns nil for wrong VR" started.
+◇ Test "Parse ISO IR 127 (Arabic)" started.
+◇ Test "UInt16 value extraction with IS VR returns nil for values exceeding uint16 range" started.
+◇ Test "UTF-8 bytes per character - three bytes" started.
+◇ Test "Decode escape sequence ESC - G (Arabic to G1)" started.
+◇ Test "Default byte order is little endian (source compatibility)" started.
+◇ Test "Multi-valued accessors honor byte order" started.
+◇ Test "Raw accessor does not hide invalid padding or wrong VR" started.
+◇ Test "Age value returns nil for wrong VR" started.
+◇ Test "Valid component precision and fractions" started.
+◇ Test "US 16 decodes as 16 in both byte orders (the Bits Allocated 4096 bug)" started.
+◇ Test "Normalize mixed scripts for display" started.
+◇ Test "String value extraction" started.
+◇ Test "UInt32 value returns nil for incompatible VR" started.
+◇ Test "Create handler with unknown character set falls back to empty" started.
+◇ Test "All minute values preserve component boundaries" started.
+◇ Test "Colon compatibility is explicit and strict paths reject it" started.
+◇ Test "Get time component" started.
+◇ Test "DICOM Person Name (PN) value extraction" started.
+◇ Test "DICOM Age String (AS) value extraction" started.
+◇ Test "Reject malformed scalar syntax without normalization" started.
+◇ Test "SS 16-bit signed honors byte order" started.
+◇ Test "UInt32 value extraction with SL VR" started.
+◇ Test "Encoding string with single character set uses that encoding" started.
+◇ Test "Encode UTF-8 text" started.
+◇ Test "Round-trip ASCII text" started.
+◇ Test "UInt16 value extraction with SS VR" started.
+◇ Test "Parse with fractional seconds" started.
+◇ Test "Normalize Hebrew text for display" started.
+◇ Test "Excessive input is rejected rather than scanned or truncated" started.
+◇ Test "Escape sequence generation for ASCII to G0" started.
+◇ Test "Parse full datetime" started.
+◇ Test "UInt16 value extraction with IS VR returns nil for negative values" started.
+◇ Test "Convert to Foundation Date" started.
+◇ Test "DICOM Date (DA) value extraction" started.
+◇ Test "A character no configured set can represent is written as ?" started.
+◇ Test "Decode escape sequence ESC - M (Latin-5 Turkish to G1)" started.
+◇ Test "UInt16 value extraction with IS VR for High Bit" started.
+◇ Test "Annex H Example 2 encodes to the Standard's bytes" started.
+◇ Test "Decode text with escape sequence to ASCII" started.
+◇ Test "Parse ISO IR 148 (Latin-5 Turkish)" started.
+◇ Test "Reject invalid formats" started.
+◇ Test "ISO_IR 13 alone decodes JIS X 0201 half-width Katakana" started.
+◇ Test "New Defined Terms parse" started.
+◇ Test "UTF-8 has no escape sequence to G1" started.
+◇ Test "Compact DT preserves a fractional instant with an explicit offset" started.
+◇ Test "DICOM Time (TM) value extraction" started.
+◇ Test "UInt16 value extraction with IS VR returns nil for non-numeric string" started.
+◇ Test "Microsecond rounding carries across the day boundary" started.
+◇ Test "Parse with positive timezone offset" started.
+◇ Test "Unrecognized escape sequences are skipped, not decoded as text" started.
+◇ Test "Decode escape sequence ESC ( B (ASCII to G0)" started.
+◇ Test "Parse year only" started.
+◇ Test "A control character makes the Value 1 sets active again" started.
+◇ Test "Parse multi-valued character set with whitespace" started.
+◇ Test "UInt32 value extraction with OL VR" started.
+◇ Test "UInt16 value extraction with OW VR" started.
+◇ Test "Parse with negative timezone offset" started.
+◇ Test "GB18030 and GBK decode and encode without escape sequences" started.
+◇ Test "UInt16 value extraction with IS VR for Bits Allocated" started.
+◇ Test "Decode empty data returns empty string" started.
+◇ Test "DICOM string format" started.
+◇ Test "Decode escape sequence ESC ) I (Katakana to G1)" started.
+◇ Test "UInt16 value returns nil for incompatible VR" started.
+◇ Test "Parse with UTC timezone" started.
+◇ Test "JIS X 0212 (ISO-IR 159) decodes and encodes" started.
+◇ Test "Annex K person name round-trips with ISO-IR 58 re-designated per component" started.
+◇ Test "Encode ASCII text" started.
+◇ Test "Parse date only (YYYYMMDD)" started.
+◇ Test "Annex H Example 1 decodes" started.
+◇ Test "Create handler with whitespace in Specific Character Set" started.
+◇ Test "Parse multi-valued character set with backslash delimiter" started.
+◇ Test "Parse ISO IR 138 (Hebrew)" started.
+◇ Test "Annex H Example 1 encodes to the Standard's bytes" started.
+◇ Test "Parse ISO IR 166 (Thai)" started.
+◇ Test "Parse full format with fractional seconds and timezone" started.
+◇ Test "Get date component" started.
+◇ Test "Annex K long text: ISO-IR 58 must be designated again on each line" started.
+◇ Test "Encoding with multiple character sets uses first encoding" started.
+◇ Test "A multi-byte set wrongly given as Value 1 still starts G0 in ISO-IR 6" started.
+◇ Test "ESC - b designates ISO-IR 203 to G1" started.
+◇ Test "Annex I example decodes" started.
+◇ Test "Encode empty string returns empty data" started.
+◇ Test "ISO_IR 203 decodes ISO 8859-15 (euro sign at 10/04)" started.
+◇ Test "Normalize Arabic text for display" started.
+◇ Test "Encoding encode ASCII text" started.
+◇ Test "Annex H Example 2 decodes" started.
+◇ Test "Annex I example encodes to the Standard's bytes" started.
+◇ Test "Encoding encode UTF-8 text" started.
+◇ Test "Parse ISO IR 159 (Japanese Supplementary Kanji)" started.
+◇ Test "Handle very long text" started.
+◇ Test "Encode Latin-1 text" started.
+◇ Test "Parse ISO IR 109 (Latin-3)" started.
+◇ Test "Literal Latin-1 bytes decode after a declared context is bound" started.
+◇ Test "Full decoded value retains whitespace while accessors remove only field padding" started.
+◇ Test "Strict declarations use 2026a tables and leave tolerant aliases unchanged" started.
+◇ Test "Escape sequence generation for Korean to G1" started.
+◇ Test "Text factory records its actual UTF-8 encoding and strict decoding rejects invalid escapes" started.
+◇ Test "Parse nil specific character set defaults to ASCII" started.
+◇ Test "UTF-8 bytes per character - four bytes" started.
+◇ Test "Parse ISO IR 144 (Cyrillic)" started.
+◇ Test "Parse multi-valued character set for Japanese" started.
+◇ Test "Decode without escape sequences when not present" started.
+◇ Test "Parse ISO 2022 IR 100 (Latin-1 with ISO 2022)" started.
+◇ Test "Handle incomplete escape sequence at end of data" started.
+◇ Test "Create handler from empty Specific Character Set defaults to ASCII" started.
+◇ Test "Escape sequence generation for Japanese Kanji to G0" started.
+◇ Test "UTF-8 bytes per character - two bytes" started.
+◇ Test "Encoding with multi-valued character set includes escape sequences" started.
+◇ Test "Handle invalid UTF-8 sequence" started.
+◇ Test "Parse ISO 2022 IR 13 variant" started.
+◇ Test "Parse ISO IR 6 (ASCII) defined term" started.
+◇ Test "Decode text with ISO 2022 escape sequence to Latin-1" started.
+◇ Test "Handle text with null bytes" started.
+◇ Test "Decode escape sequence ESC - L (Cyrillic to G1)" started.
+◇ Test "Parse ISO IR 100 (Latin-1)" started.
+◇ Test "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test "Decode with unknown escape sequence is skipped" started.
+◇ Test "Parse ISO IR 87 (Japanese Kanji)" started.
+◇ Test "ISO 2022 escape into Greek G1 decodes ISO 8859-7" started.
+◇ Test "Handler with empty character set array defaults to ASCII" started.
+◇ Test "Decode escape sequence ESC $ B (JIS X 0208 Kanji to G0)" started.
+◇ Test "Decode escape sequence ESC - T (Thai to G1)" started.
+◇ Test "Parse ISO IR 101 (Latin-2)" started.
+◇ Test "UTF-8 has no escape sequence to G0" started.
+◇ Test "Escape sequence generation for Greek to G1" started.
+◇ Test "Encoding with UTF-8 does not include escape sequences" started.
+◇ Test "Single-byte encoding bytes per character" started.
+◇ Test "Parse empty specific character set defaults to ASCII" started.
+◇ Test "NFD normalization decomposes characters" started.
+◇ Test case passing 2 arguments input → "1430", expected → 1430 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "14", expected → 14 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "143025", expected → 143025 to "Valid component precision and fractions" started.
+◇ Test "Decode UTF-8 text without escape sequences" started.
+◇ Test "Encoding decode UTF-8 text" started.
+◇ Test case passing 2 arguments input → "143025.1", expected → 143025.100000 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "143025.12", expected → 143025.120000 to "Valid component precision and fractions" started.
+◇ Test "Create handler from nil Specific Character Set defaults to ASCII" started.
+◇ Test case passing 1 argument input → "12:34:56" to "Colon compatibility is explicit and strict paths reject it" started.
+◇ Test case passing 2 arguments input → "143025.1234", expected → 143025.123400 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → "12:34:56.1" to "Colon compatibility is explicit and strict paths reject it" started.
+◇ Test case passing 2 arguments input → "143025.12345", expected → 143025.123450 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → "12:34:56.123456 " to "Colon compatibility is explicit and strict paths reject it" started.
+◇ Test case passing 2 arguments input → "143025.123", expected → 143025.123000 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → "23:59:60" to "Colon compatibility is explicit and strict paths reject it" started.
+◇ Test case passing 1 argument input → " " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "  " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 2 arguments input → "143025.123456 ", expected → 143025.123456 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "070907.0705 ", expected → 070907.070500 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "000000.000000", expected → 000000.000000 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → "." to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → ".." to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 2 arguments input → "235959.999999", expected → 235959.999999 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "235960", expected → 235960 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → "              " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "120" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "021 " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456x" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12345" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12345678" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456.1234567" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456." to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456.123456x" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1234.5" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12.5" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 2 arguments input → "14            ", expected → 14 to "Valid component precision and fractions" started.
+◇ Test case passing 2 arguments input → "005960.5", expected → 005960.500000 to "Valid component precision and fractions" started.
+◇ Test case passing 1 argument input → " 123456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456
+" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456	" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "	123456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456◇ Test case passing 1 argument input → " 123456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456 " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "１２３４５６" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "١٢٣٤٥٦" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "-0" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "+1" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12+100" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1234+1" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456.+1" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456.-1" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456.123456.7" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "126000" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "125961" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "2400" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12 456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "143025.123456  " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "14             " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456Z" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456+0530" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → """" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12\13" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1200-1300" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "123456:" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → ":" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1:23456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12::3456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:34" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:34:" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:3456" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:34:56." to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "1234:56" to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:34:56.123456  " to "Reject malformed scalar syntax without normalization" started.
+◇ Test case passing 1 argument input → "12:34:56.1234567" to "Reject malformed scalar syntax without normalization" started.
+✔ Test "Escape sequence generation for Latin-1 to G1" passed after 0.003 seconds.
+◇ Test case passing 2 arguments term → "ISO_IR 203", expected → .isoIR203 to "New Defined Terms parse" started.
+✔ Test "DICOM DateTime (DT) value extraction" passed after 0.003 seconds.
+✔ Test "UInt32 array value extraction" passed after 0.003 seconds.
+✔ Test "Create handler from single Specific Character Set value" passed after 0.003 seconds.
+◇ Test case passing 2 arguments term → "ISO 2022 IR 203", expected → .isoIR203 to "New Defined Terms parse" started.
+◇ Test case passing 2 arguments term → "ISO 2022 IR 58", expected → .isoIR58 to "New Defined Terms parse" started.
+◇ Test case passing 2 arguments term → "GB18030", expected → .gb18030 to "New Defined Terms parse" started.
+✔ Test "UInt16 value extraction with IS VR for Bits Stored" passed after 0.004 seconds.
+◇ Test case passing 2 arguments term → "GBK", expected → .gbk to "New Defined Terms parse" started.
+✔ Test "UInt16 value extraction" passed after 0.004 seconds.
+✔ Test "Foundation Date from DT value" passed after 0.004 seconds.
+✔ Test "Multiple string values" passed after 0.004 seconds.
+✔ Test "UInt16 values extraction with OB VR (even byte count)" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC - F (Greek to G1)" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR" passed after 0.004 seconds.
+✔ Test "DataElement creation" passed after 0.004 seconds.
+✔ Test "UTF-8 bytes per character - single byte" passed after 0.004 seconds.
+✔ Test "Parse unknown defined term returns nil" passed after 0.004 seconds.
+✔ Test "Decimal String value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "DICOM Decimal String multiple values extraction" passed after 0.004 seconds.
+✔ Test "Person Name value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "UInt16 array value extraction" passed after 0.004 seconds.
+✔ Test "NFC normalization combines decomposed characters" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 192 (UTF-8)" passed after 0.004 seconds.
+✔ Test "Handle data with only escape sequence" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 110 (Latin-4)" passed after 0.004 seconds.
+✔ Test "ISO 2022 IR 6 is the default repertoire" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 13 (Japanese Katakana)" passed after 0.004 seconds.
+✔ Test "Round-trip Latin-2 encoding and decoding" passed after 0.004 seconds.
+✔ Test "Time value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "Round-trip UTF-8 text" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with OB VR (2 bytes)" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR and whitespace padding" passed after 0.004 seconds.
+✔ Test "NFC normalization is idempotent" passed after 0.004 seconds.
+✔ Test "Undefined length detection" passed after 0.004 seconds.
+✔ Test "Decode multiple escape sequences in same data" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with UN VR" passed after 0.004 seconds.
+✔ Test "Reject invalid formats" passed after 0.004 seconds.
+✔ Test "Detect escape sequences in data" passed after 0.004 seconds.
+✔ Test "UInt32 value extraction" passed after 0.004 seconds.
+✔ Test "UInt32 value extraction with UN VR" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR for Pixel Representation" passed after 0.004 seconds.
+✔ Test "UInt16 values extraction with SS VR" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 126 (Greek)" passed after 0.004 seconds.
+✔ Test "Encode with multi-valued character set uses first encoding" passed after 0.004 seconds.
+✔ Test "Date value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "Foundation Date from DA value" passed after 0.004 seconds.
+✔ Test "CustomStringConvertible" passed after 0.004 seconds.
+✔ Test "Parse whitespace-only specific character set defaults to ASCII" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 14 (Japanese Romaji)" passed after 0.004 seconds.
+✔ Test "Parse with fewer fractional digits" passed after 0.004 seconds.
+✔ Test "Parse with leading/trailing whitespace" passed after 0.004 seconds.
+✔ Test "Parse legacy format with colons" passed after 0.004 seconds.
+✔ Test "DICOM string format" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC - H (Hebrew to G1)" passed after 0.004 seconds.
+✔ Test "Parse HHMMSS format" passed after 0.004 seconds.
+✔ Test "Parse HHMM format" passed after 0.004 seconds.
+✔ Test "Parse legacy YYYY.MM.DD format with dots" passed after 0.004 seconds.
+✔ Test "Reject invalid formats" passed after 0.004 seconds.
+✔ Test "Encoding decode ASCII text" passed after 0.004 seconds.
+✔ Test "Empty values of a multi-valued attribute are kept in position (PS3.5 §6.4, D25)" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR at maximum value" passed after 0.004 seconds.
+✔ Test "Parse empty defined term defaults to ISO IR 6" passed after 0.004 seconds.
+✔ Test "Parse standard YYYYMMDD format" passed after 0.004 seconds.
+✔ Test "DICOM string format" passed after 0.004 seconds.
+✔ Test "Decode ASCII text without escape sequences" passed after 0.004 seconds.
+✔ Test "DICOM Integer String multiple values extraction" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with OB VR returns nil for non-2-byte data" passed after 0.004 seconds.
+✔ Test "Convert to DateComponents" passed after 0.004 seconds.
+✔ Test "UInt16 values extraction with OB VR returns nil for odd byte count" passed after 0.004 seconds.
+✔ Test "Parse HHMMSS.FFFFFF format" passed after 0.004 seconds.
+✔ Test "Float64 array value extraction" passed after 0.004 seconds.
+✔ Test "Double-byte encoding bytes per character" passed after 0.004 seconds.
+✔ Test "Decode Latin-1 text" passed after 0.004 seconds.
+✔ Test "Convert to Foundation Date" passed after 0.004 seconds.
+✔ Test "Parse boundary values" passed after 0.004 seconds.
+✔ Test "DICOM Decimal String (DS) value extraction" passed after 0.004 seconds.
+✔ Test "Float32 array value extraction" passed after 0.004 seconds.
+✔ Test "Create handler from multi-valued Specific Character Set" passed after 0.004 seconds.
+✔ Test "Round-trip Latin-1 text" passed after 0.004 seconds.
+✔ Test "Parse boundary values" passed after 0.004 seconds.
+✔ Test "Parse ISO 2022 IR 87 variant" passed after 0.004 seconds.
+✔ Test "ISO 2022 IR 149 (Korean) in G1 decodes as KS X 1001" passed after 0.004 seconds.
+✔ Test "Equality comparison" passed after 0.004 seconds.
+✔ Test "DICOM Integer String (IS) value extraction" passed after 0.004 seconds.
+✔ Test "Parse HH format (hour only)" passed after 0.004 seconds.
+✔ Test "UL / SL 32-bit values honor byte order" passed after 0.004 seconds.
+✔ Test "FL / FD floats honor byte order" passed after 0.004 seconds.
+✔ Test "Integer String value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 149 (Korean)" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC - G (Arabic to G1)" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR returns nil for values exceeding uint16 range" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 127 (Arabic)" passed after 0.004 seconds.
+✔ Test "Default byte order is little endian (source compatibility)" passed after 0.004 seconds.
+✔ Test "UTF-8 bytes per character - three bytes" passed after 0.004 seconds.
+✔ Test "DICOM Person Name multiple values extraction" passed after 0.004 seconds.
+✔ Test "Multi-valued accessors honor byte order" passed after 0.004 seconds.
+◇ Test case passing 3 arguments term → "ISO_IR 144", bytes → [176], expected → "А" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 148", bytes → [221], expected → "İ" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 126", bytes → [225], expected → "α" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 138", bytes → [224], expected → "א" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 127", bytes → [199], expected → "ا" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 109", bytes → [161], expected → "Ħ" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 110", bytes → [161], expected → "Ą" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+◇ Test case passing 3 arguments term → "ISO_IR 166", bytes → [161], expected → "ก" to "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" started.
+✔ Test "US 16 decodes as 16 in both byte orders (the Bits Allocated 4096 bug)" passed after 0.004 seconds.
+✔ Test "Raw accessor does not hide invalid padding or wrong VR" passed after 0.004 seconds.
+✔ Test "Age value returns nil for wrong VR" passed after 0.004 seconds.
+✔ Test "Normalize mixed scripts for display" passed after 0.004 seconds.
+✔ Test "UInt32 value returns nil for incompatible VR" passed after 0.004 seconds.
+✔ Test "Valid component precision and fractions" with 15 test cases passed after 0.004 seconds.
+✔ Test "Colon compatibility is explicit and strict paths reject it" with 4 test cases passed after 0.004 seconds.
+✔ Test "String value extraction" passed after 0.004 seconds.
+✔ Test "DICOM Age String (AS) value extraction" passed after 0.004 seconds.
+✔ Test "Get time component" passed after 0.004 seconds.
+✔ Test "DICOM Person Name (PN) value extraction" passed after 0.004 seconds.
+✔ Test "Create handler with unknown character set falls back to empty" passed after 0.004 seconds.
+✔ Test "UInt32 value extraction with SL VR" passed after 0.004 seconds.
+✔ Test "Encode UTF-8 text" passed after 0.004 seconds.
+✔ Test "SS 16-bit signed honors byte order" passed after 0.004 seconds.
+✔ Test "Round-trip ASCII text" passed after 0.004 seconds.
+✔ Test "Parse with fractional seconds" passed after 0.004 seconds.
+✔ Test "Escape sequence generation for ASCII to G0" passed after 0.004 seconds.
+✔ Test "Encoding string with single character set uses that encoding" passed after 0.004 seconds.
+✔ Test "Normalize Hebrew text for display" passed after 0.004 seconds.
+✔ Test "Convert to Foundation Date" passed after 0.004 seconds.
+✔ Test "DICOM Date (DA) value extraction" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with SS VR" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR returns nil for negative values" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC - M (Latin-5 Turkish to G1)" passed after 0.004 seconds.
+✔ Test "Parse full datetime" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR for High Bit" passed after 0.004 seconds.
+✔ Test "A character no configured set can represent is written as ?" passed after 0.004 seconds.
+✔ Test "Reject invalid formats" passed after 0.004 seconds.
+✔ Test "Decode text with escape sequence to ASCII" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 148 (Latin-5 Turkish)" passed after 0.004 seconds.
+✔ Test "DICOM Time (TM) value extraction" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR returns nil for non-numeric string" passed after 0.004 seconds.
+✔ Test "ISO_IR 13 alone decodes JIS X 0201 half-width Katakana" passed after 0.004 seconds.
+✔ Test "New Defined Terms parse" with 5 test cases passed after 0.004 seconds.
+✔ Test "UTF-8 has no escape sequence to G1" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC ( B (ASCII to G0)" passed after 0.004 seconds.
+✔ Test "Parse year only" passed after 0.004 seconds.
+✔ Test "Microsecond rounding carries across the day boundary" passed after 0.004 seconds.
+✔ Test "Annex H Example 2 encodes to the Standard's bytes" passed after 0.004 seconds.
+✔ Test "UInt32 value extraction with OL VR" passed after 0.004 seconds.
+✔ Test "Parse with positive timezone offset" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with OW VR" passed after 0.004 seconds.
+✔ Test "Reject malformed scalar syntax without normalization" with 57 test cases passed after 0.004 seconds.
+✔ Test "A control character makes the Value 1 sets active again" passed after 0.004 seconds.
+✔ Test "Unrecognized escape sequences are skipped, not decoded as text" passed after 0.004 seconds.
+✔ Test "Parse with negative timezone offset" passed after 0.004 seconds.
+✔ Test "Parse multi-valued character set with whitespace" passed after 0.004 seconds.
+✔ Test "Parse with UTC timezone" passed after 0.004 seconds.
+✔ Test "DICOM string format" passed after 0.004 seconds.
+✔ Test "Decode empty data returns empty string" passed after 0.004 seconds.
+✔ Test "Decode escape sequence ESC ) I (Katakana to G1)" passed after 0.004 seconds.
+✔ Test "UInt16 value extraction with IS VR for Bits Allocated" passed after 0.004 seconds.
+✔ Test "Excessive input is rejected rather than scanned or truncated" passed after 0.004 seconds.
+✔ Test "UInt16 value returns nil for incompatible VR" passed after 0.004 seconds.
+✔ Test "Encode ASCII text" passed after 0.004 seconds.
+✔ Test "JIS X 0212 (ISO-IR 159) decodes and encodes" passed after 0.004 seconds.
+✔ Test "GB18030 and GBK decode and encode without escape sequences" passed after 0.004 seconds.
+✔ Test "Compact DT preserves a fractional instant with an explicit offset" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 138 (Hebrew)" passed after 0.004 seconds.
+✔ Test "Get date component" passed after 0.004 seconds.
+✔ Test "Parse date only (YYYYMMDD)" passed after 0.004 seconds.
+✔ Test "Create handler with whitespace in Specific Character Set" passed after 0.004 seconds.
+✔ Test "Parse multi-valued character set with backslash delimiter" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 166 (Thai)" passed after 0.004 seconds.
+✔ Test "Encoding with multiple character sets uses first encoding" passed after 0.004 seconds.
+✔ Test "Annex K person name round-trips with ISO-IR 58 re-designated per component" passed after 0.004 seconds.
+✔ Test "Encode empty string returns empty data" passed after 0.003 seconds.
+✔ Test "A multi-byte set wrongly given as Value 1 still starts G0 in ISO-IR 6" passed after 0.003 seconds.
+✔ Test "Normalize Arabic text for display" passed after 0.003 seconds.
+✔ Test "ISO_IR 203 decodes ISO 8859-15 (euro sign at 10/04)" passed after 0.003 seconds.
+✔ Test "Parse full format with fractional seconds and timezone" passed after 0.004 seconds.
+✔ Test "ESC - b designates ISO-IR 203 to G1" passed after 0.003 seconds.
+✔ Test "Encoding encode ASCII text" passed after 0.003 seconds.
+✔ Test "Annex H Example 1 encodes to the Standard's bytes" passed after 0.004 seconds.
+✔ Test "Annex K long text: ISO-IR 58 must be designated again on each line" passed after 0.004 seconds.
+✔ Test "Encoding encode UTF-8 text" passed after 0.003 seconds.
+✔ Test "Annex I example decodes" passed after 0.004 seconds.
+✔ Test "Annex H Example 1 decodes" passed after 0.004 seconds.
+✔ Test "Parse ISO IR 159 (Japanese Supplementary Kanji)" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 109 (Latin-3)" passed after 0.003 seconds.
+✔ Test "Encode Latin-1 text" passed after 0.003 seconds.
+✔ Test "Handle very long text" passed after 0.003 seconds.
+✔ Test "Full decoded value retains whitespace while accessors remove only field padding" passed after 0.003 seconds.
+✔ Test "Annex H Example 2 decodes" passed after 0.003 seconds.
+✔ Test "Escape sequence generation for Korean to G1" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 144 (Cyrillic)" passed after 0.003 seconds.
+✔ Test "Annex I example encodes to the Standard's bytes" passed after 0.003 seconds.
+✔ Test "Text factory records its actual UTF-8 encoding and strict decoding rejects invalid escapes" passed after 0.003 seconds.
+✔ Test "Parse nil specific character set defaults to ASCII" passed after 0.003 seconds.
+✔ Test "Literal Latin-1 bytes decode after a declared context is bound" passed after 0.003 seconds.
+✔ Test "UTF-8 bytes per character - four bytes" passed after 0.003 seconds.
+✔ Test "Handle incomplete escape sequence at end of data" passed after 0.003 seconds.
+✔ Test "Parse multi-valued character set for Japanese" passed after 0.003 seconds.
+✔ Test "Decode without escape sequences when not present" passed after 0.003 seconds.
+✔ Test "Parse ISO 2022 IR 100 (Latin-1 with ISO 2022)" passed after 0.003 seconds.
+✔ Test "Create handler from empty Specific Character Set defaults to ASCII" passed after 0.003 seconds.
+✔ Test "Handle invalid UTF-8 sequence" passed after 0.003 seconds.
+✔ Test "Parse ISO 2022 IR 13 variant" passed after 0.003 seconds.
+✔ Test "UTF-8 bytes per character - two bytes" passed after 0.003 seconds.
+✔ Test "Decode text with ISO 2022 escape sequence to Latin-1" passed after 0.003 seconds.
+✔ Test "Encoding with multi-valued character set includes escape sequences" passed after 0.003 seconds.
+✔ Test "Escape sequence generation for Japanese Kanji to G0" passed after 0.003 seconds.
+✔ Test "Decode with unknown escape sequence is skipped" passed after 0.003 seconds.
+✔ Test "Decode escape sequence ESC - L (Cyrillic to G1)" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 100 (Latin-1)" passed after 0.003 seconds.
+✔ Test "Handle text with null bytes" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 6 (ASCII) defined term" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 87 (Japanese Kanji)" passed after 0.003 seconds.
+✔ Test "Decode escape sequence ESC $ B (JIS X 0208 Kanji to G0)" passed after 0.003 seconds.
+✔ Test "ISO 2022 escape into Greek G1 decodes ISO 8859-7" passed after 0.003 seconds.
+✔ Test "Strict declarations use 2026a tables and leave tolerant aliases unchanged" passed after 0.003 seconds.
+✔ Test "Handler with empty character set array defaults to ASCII" passed after 0.003 seconds.
+✔ Test "Decode escape sequence ESC - T (Thai to G1)" passed after 0.003 seconds.
+✔ Test "Single-byte encoding bytes per character" passed after 0.003 seconds.
+✔ Test "Parse empty specific character set defaults to ASCII" passed after 0.003 seconds.
+✔ Test "Escape sequence generation for Greek to G1" passed after 0.003 seconds.
+✔ Test "UTF-8 has no escape sequence to G0" passed after 0.003 seconds.
+✔ Test "Decode UTF-8 text without escape sequences" passed after 0.003 seconds.
+✔ Test "Parse ISO IR 101 (Latin-2)" passed after 0.003 seconds.
+✔ Test "Single-byte character sets decode their upper half, not as UTF-8 or Latin-1" with 8 test cases passed after 0.003 seconds.
+✔ Test "Encoding decode UTF-8 text" passed after 0.003 seconds.
+✔ Test "Encoding with UTF-8 does not include escape sequences" passed after 0.003 seconds.
+✔ Test "Create handler from nil Specific Character Set defaults to ASCII" passed after 0.003 seconds.
+✔ Test "NFD normalization decomposes characters" passed after 0.003 seconds.
+✔ Suite "DataElement byte order" passed after 0.006 seconds.
+✔ Suite "DICOMDate Tests" passed after 0.006 seconds.
+✔ Suite "DICOMDateTime Tests" passed after 0.006 seconds.
+✔ Suite "DICOMTime Tests" passed after 0.006 seconds.
+✔ Suite "M2 DataElement text context" passed after 0.006 seconds.
+✔ Suite "DataElement Tests" passed after 0.006 seconds.
+✔ Suite "DICOM DT instant formatting" passed after 0.006 seconds.
+✔ Suite "CharacterSetHandler ISO 2022 Tests" passed after 0.006 seconds.
+✔ Suite "CharacterSetHandler Tests" passed after 0.006 seconds.
+✔ Test "All minute values preserve component boundaries" passed after 0.005 seconds.
+✔ Suite "Strict DICOM TM parsing" passed after 0.007 seconds.
+✔ Test run with 219 tests in 10 suites passed after 0.007 seconds.

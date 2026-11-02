@@ -1,0 +1,101 @@
+{
+  "recorded_utc": "2026-10-26T09:02:12.031293+00:00",
+  "baseline_commit": "c9001dd12027b2152dabd4a5a2ba490bbf43c21b",
+  "status": "Finding classification and source review; repaired full-product runtime verification pending.",
+  "failed_run": {
+    "path": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ups-identity-repair/dicomweb-all.log",
+    "sha256": "29f7842aea961a2c40459c77233247ea407f67b1f66a28cd288c84c2ff74d22e",
+    "XCTest": {
+      "reported_tests": 504,
+      "executed_non_skipped": 502,
+      "opt_in_skips": 2,
+      "failures": 0
+    },
+    "SwiftTesting": {
+      "tests": 644,
+      "suites": 63,
+      "issues": 12,
+      "failed_tests": 5
+    }
+  },
+  "classification": [
+    {
+      "tests": [
+        "Decode person name with ideographic"
+      ],
+      "issues": 2,
+      "kind": "Actual M2 integration regression",
+      "cause": "The M2 strict DataElement charset accessor correctly defaults unbound binary text to ASCII; the JSON decoder creates UTF-8 PN/string bytes but failed to bind their actual UTF-8 context. Valid Unicode JSON therefore becomes unreadable.",
+      "active_scope": "A-03 charset integrity, related M7 regression repair. Not a deferred enhancement."
+    },
+    {
+      "tests": [
+        "F.2.2: PN component groups are Alphabetic, Ideographic and Phonetic strings; empty groups are omitted"
+      ],
+      "issues": 2,
+      "kind": "Outdated invalid fixture",
+      "cause": "The encoder fixture constructs non-ASCII UTF-8 raw bytes with no actual charset context and an inaccurate hard-coded length. M2 changed the raw-byte contract. Correct the fixture length and ISO_IR 192 context; do not weaken the strict production decoder."
+    },
+    {
+      "tests": [
+        "Capability discovery provides accurate service information",
+        "Capability discovery provides accurate authentication methods",
+        "Capability discovery provides accurate media type support"
+      ],
+      "issues": 8,
+      "kind": "Stale test expectations",
+      "cause": "Tests still require bulkdata/rendered/authentication and bare multipart claims intentionally removed by M4 NET-09-A/B. Preserve conservative production capabilities; correct exact expected sets and explicit negative assertions."
+    }
+  ],
+  "baseline_evidence": {
+    "exact_prior_runtime_failure_found": false,
+    "searched": "Existing M0-M7 scratch and checked-in log names and exact failed test names; earlier focused M2/M4 DICOMWeb logs do not execute these five tests.",
+    "historical_logs": {
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m2/final/DICOMWebTests.log": "92e6415636f2e545442b780484162185657ddda8a22a246cba15f66e8ba9f3a4",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m4/final/DICOMWebTests.log": "b310daa1d73f90fa34173b640543bd4225f20200319d3a24059d785806ecc5a8",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/DICOMWebTests.log": "88d475415e9c0e3776148bcda102fc8267d38d10e93bfc8f22096d41b7dab848",
+      "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/DICOMWebTests.log": "5f50e02c67383e93df66540ad6ca9b77de8244e49fa57bfd311b3d8b27e281a9"
+    },
+    "inference": "The defects predate the UPS repair by source causality; no baseline runtime reproduction is claimed.",
+    "baseline_source_sha256": {
+      "Sources/DICOMCore/DataElement.swift": "b1d67a14454e832f5cb5d2c50f874ab98c1c7250e73f43c03c83c8b0527cad61",
+      "Sources/DICOMWeb/DICOMJSONDecoder.swift": "8fd60c225c50ed4209d33ec522c56030ca2d1a58137c706e82b8ea97de1ffd87",
+      "Sources/DICOMWeb/DICOMJSONEncoder.swift": "d0053cb0727c24ab01bddea5842eab461116d90f036472985be3242c8a6a0ee4",
+      "Sources/DICOMWeb/DICOMwebCapabilities.swift": "66c370a822730c8912a19e1cab77e8fd33975cac59384b5d99887d333d73653f",
+      "Tests/DICOMWebTests/DICOMJSONDecoderTests.swift": "faddbb6eec0ca19765138977fb1a6c8cd43887813e4def4dca702ab5bb4f8859",
+      "Tests/DICOMWebTests/DICOMJSONModelConformanceTests.swift": "a70571edbd922c5e80b88bcb55821dbd0892aeda5b8b6dce9d88ce3d88841601",
+      "Tests/DICOMWebTests/IntegrationValidationTests.swift": "cca6dbf02aaceaf0304fc48d68edd776cca34a1083b1492708b2edabd79c3f83"
+    },
+    "causal_commits": [
+      "56b1b7f03fd4dc0915c49a45e8d181a152e24634 (M2 strict charset)",
+      "441ae21a (M4 conservative capability manifest)"
+    ]
+  },
+  "normative_source": {
+    "url": "https://dicom.nema.org/medical/dicom/2026a/output/html/part18.html#sect_F.2",
+    "edition_verified": "PS3.18 2026a",
+    "sections": [
+      "F.2",
+      "F.2.2 Note 3"
+    ],
+    "assessment": "JSON text uses UTF-8. A preserved Specific Character Set value describes the source binary dataset and cannot reinterpret the JSON-derived UTF-8 bytes."
+  },
+  "minimal_repair_review": {
+    "decoder": "Bind actual ISO_IR 192 context only on created PN/string DataElements. The binding helper affects only the seven charset-dependent VRs. Binary/InlineBinary/BulkData/numeric paths remain unchanged.",
+    "tests": "Cover PN groups/multiple values/null, six non-PN charset VRs, source metadata preservation, nested items, actual JSON-to-Part10 workflow. Full DICOMWeb CI/local execution added.",
+    "writer_source_trace": "DataExchangeWorkflow.decode → DICOMFile.write → DataSet.preparingTextForWriting. Existing actual-context preservation and complete recursive normalization support consistent UTF-8 output when JSON source metadata names a legacy charset; requires runtime integration evidence, not source-only acceptance."
+  },
+  "native_impact": {
+    "decoder_callers": [
+      "DataExchangeWorkflow JSON reverse",
+      "DICOMwebClient retrieveStudyMetadataAsElements",
+      "DICOMwebClient retrieveSeriesMetadataAsElements",
+      "DICOMwebClient retrieveInstanceMetadataAsElements"
+    ],
+    "native_dispatch": "CLI/Workshop call MetadataAsElements only for WADO XML metadata. Recorded FINAL11 WADO fetched a binary instance with no --metadata flag. QIDO and UPS use separate raw dictionaries or typed workitem models.",
+    "reuse": "Original 28 native groups contain no JSON reverse or WADO XML-metadata action. Their unchanged-source evidence may be retained with original identities; no old action is claimed re-executed.",
+    "pending": "New decoder/full-product tests and bounded actual workflow outputs, then root-approved identity capture; new UPS native proof remains separate."
+  },
+  "execution_boundary": "Independent source/log review and official standard lookup only. No product/source/UI/Git mutation by reviewer. This new audit receipt preserves the failed run and does not waive any gate.",
+  "counting_note": "XCTest reports 504 tests including two explicit opt-in skips; 502 were executed. Skips are never treated as passing runtime checks."
+}

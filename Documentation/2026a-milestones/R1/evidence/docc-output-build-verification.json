@@ -1,0 +1,35 @@
+{
+  "modules": {
+    "DICOMCore": {
+      "public_symbols": 5381,
+      "symbol_graph_sha256": "8527bb02d6d78f68940af247cde399b95dd359d56b1caded409b4c4dc89f81a5",
+      "hosting_base_path": "DICOMKit/DICOMCore",
+      "result": "Passed"
+    },
+    "DICOMDictionary": {
+      "public_symbols": 50,
+      "symbol_graph_sha256": "06a4a9fdfb0e7b85dd0b97ee94891e87d4e0b58df818b9a28bc6db83f1f9fa88",
+      "hosting_base_path": "DICOMKit/DICOMDictionary",
+      "result": "Passed"
+    },
+    "DICOMKit": {
+      "public_symbols": 13491,
+      "symbol_graph_sha256": "6204bbf101c2e8d45d8011d77c59c52285138bf68015ae73f418b38648c89f1f",
+      "hosting_base_path": "DICOMKit/DICOMKit",
+      "result": "Passed"
+    },
+    "DICOMNetwork": {
+      "public_symbols": 14250,
+      "symbol_graph_sha256": "723d1f90b527a7b997aa380d900ec4ae2e8e3d211e87102b590e167575106315",
+      "hosting_base_path": "DICOMKit/DICOMNetwork",
+      "result": "Passed"
+    },
+    "DICOMWeb": {
+      "public_symbols": 8497,
+      "symbol_graph_sha256": "b36a469e19ade51a8c3d87c0f7827032caefa3000d45a6e91e97fc43271788ae",
+      "hosting_base_path": "DICOMKit/DICOMWeb",
+      "result": "Passed"
+    }
+  },
+  "result": "Passed"
+}

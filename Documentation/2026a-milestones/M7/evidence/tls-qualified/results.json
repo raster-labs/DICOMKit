@@ -1,0 +1,18 @@
+{
+  "result": "Passed",
+  "cases": 8,
+  "positive": 4,
+  "negative": 4,
+  "versions": {
+    "python": "3.12.14 (main, Aug 12 2026, 13:57:54) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "ssl": "OpenSSL 3.6.4 25 Aug 2026",
+    "TLS13_available": true,
+    "pydicom": "3.0.1",
+    "pynetdicom": "3.0.4"
+  },
+  "scope": "Actual DICOMNetwork library C-ECHO over independently terminated TLS; no system trust mutation. CLI/server TLS, full PS3.15 B.12/B.13 cipher/certificate rules, revocation, and mutual TLS are not qualified by these cases.",
+  "public_certificate_hashes": {
+    "ca.der": "026022b83f681ed838af074f0ebf05a4a57a2661cd6bfaa23e47f14714853257",
+    "wrong-ca.der": "608566611dc52e123fdf1f3a6f727b45a2ee2ea1a3f8b3676829b14096f645fd"
+  }
+}

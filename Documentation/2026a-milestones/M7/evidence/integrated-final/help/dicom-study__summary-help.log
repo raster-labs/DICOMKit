@@ -1,0 +1,17 @@
+OVERVIEW: Display study and series metadata summary
+
+USAGE: dicom-study summary <path> [--format <format>] [--verbose]
+
+ARGUMENTS:
+  <path>                  Study directory or DICOM file
+
+OPTIONS:
+  -f, --format <format>   Output format: 'table', 'json', or 'csv' (default:
+                          table). CSV adds the PS3.6 keyword columns
+                          StudyInstanceUID, NumberOfStudyRelatedSeries,
+                          NumberOfStudyRelatedInstances; StudyUID, SeriesCount,
+                          InstanceCount are deprecated (default: table)
+  -v, --verbose           Show verbose output with all metadata
+  --version               Show the version.
+  -h, --help              Show help information.
+

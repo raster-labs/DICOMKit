@@ -1,0 +1,31 @@
+using ../standards/part03_2026a.xml: DICOM PS3.3 2026a - Information Object Definitions
+using ../standards/part04_2026a.xml: DICOM PS3.4 2026a - Service Class Specifications
+using ../standards/part05_2026a.xml: DICOM PS3.5 2026a - Data Structures and Encoding
+using ../standards/part06_2026a.xml: DICOM PS3.6 2026a - Data Dictionary
+using ../standards/part07_2026a.xml: DICOM PS3.7 2026a - Message Exchange
+using ../standards/part08_2026a.xml: DICOM PS3.8 2026a - Network Communication Support for Message Exchange
+using ../standards/part10_2026a.xml: DICOM PS3.10 2026a - Media Storage and File Format for Media Interchange
+using ../standards/part11_2026a.xml: DICOM PS3.11 2026a - Media Storage Application Profiles
+using ../standards/part15_2026a.xml: DICOM PS3.15 2026a - Security and System Management Profiles
+using ../standards/part16_2026a.xml: DICOM PS3.16 2026a - Content Mapping Resource
+using ../standards/part18_2026a.xml: DICOM PS3.18 2026a - Web Services
+using ../standards/part19_2026a.xml: DICOM PS3.19 2026a - Application Hosting
+
+== G1: CLI Workshop (forms, executors, shell foundation, parameter builder, validation) (26 standard-touching files)
+ok   Workshop audit mappings cover the extracted forms: matched 35, wrong 0, missing 0, extra 0
+Coverage: 35 Workshop forms; CLI tools without a Workshop parity check: dicom-3d, dicom-ai, dicom-gateway, dicom-j2k, dicom-jpip, dicom-measure, dicom-report, dicom-server, dicom-viewer
+Coverage: form/literal checks do not qualify runtime execution, all accepted flag combinations, packaged UI behavior or independent interoperability.
+ok   dicom-print: Workshop form mirrors dicom-print (flags, defaults, picker values, contract rows): matched 39, wrong 0, missing 0, extra 0
+ok   dicom-printscp: Workshop form mirrors dicom-printscp (flags, defaults, picker values, contract rows): matched 82, wrong 0, missing 0, extra 0
+
+== G2: Viewer and rendering (PS3.4 N.2 pipeline, presentation states, shutters, annotations, codecs, labels) (53 standard-touching files)
+
+== G3: Network and web (DIMSE and print enums, DICOMweb client and model, performance-test data) (21 standard-touching files)
+
+== G4: File, media and DICOMDIR (parser, data exchange profiles, import validation, metadata models) (31 standard-touching files)
+
+== G5: Derived objects, SR and security (SR, terminology, SEG, RT, parametric map, WSI, waveform, hanging protocol, measurements, anonymization) (37 standard-touching files)
+
+== G6: Print (PS3.3 C.13, PS3.4 Annex H: print view models, settings, printer status, Print SCP panes) (11 standard-touching files)
+
+10 audit callback(s) completed, 0 audit execution error(s); 0 check(s) with wrong or missing values, 0 pending owner approval

@@ -1,0 +1,119 @@
+Window: "", App: DICOM Studio.
+0 sheet Secondary Actions: Raise
+	1 container
+		2 text Import Print Command Paste a command for the selected print tool. Import updates the form without running it. Use Browse afterwards when file access is needed.
+		3 scroll area Secondary Actions: Scroll Up, Scroll Down
+			4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp status --no-accept-color --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json --verbose
+
+{
+  "acceptAnnotationBox" : false,
+  "acceptPresentationLUT" : true,
+  "aeTitle" : "DCMPRINT",
+  "allowedCallingAETitles" : "",
+  "annotationBoxesPerFilm" : 6,
+  "annotationEdge" : "bottom",
+  "associationIdleTimeoutSeconds" : 300,
+  "cellSpacingMillimeters" : 2,
+  "deniedCallingAETitles" : "",
+  "densityMapping" : "PAPER",
+  "deviceSerialNumber" : "1",
+  "dpi" : 36,
+  "drawAnnotations" : false,
+  "drawTrimMarks" : false,
+  "fileNamePattern" : "film-{timestamp}-{index}",
+  "imageFormat" : "png",
+  "manufacturer" : "DICOMKit",
+  "manufacturerModelName" : "DICOM Print Emulator",
+  "marginMillimeters" : 5,
+  "maxConcurrentAssociations" : 10,
+  "maxImageBoxPixelDimension" : 10000,
+  "maxImageBoxesPerFilm" : 64,
+  "maxPDUSize" : 65536,
+  "maximumPixelDimension" : 1024,
+  "outputDirectory" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/native-2026-10-26\/gui-simulated",
+  "paperQueue" : "",
+  "port" : 11113,
+  "printerName" : "M7 Native Baseline",
+  "printerStatus" : "NORMAL",
+  "printerStatusInfo" : "",
+  "pushPrintJobEvents" : false,
+  "retainedFilmLimit" : 20,
+  "retainedMemoryBudgetMB" : 256,
+  "saveImage" : false,
+  "savePDF" : false,
+  "sendToPaperQueue" : false,
+  "softwareVersion" : "1.0",
+  "supportedFilmSizeTokens" : [
+
+  ],
+  "supportedMediumTokens" : [
+
+  ],
+  "supportsColor" : false
+}
+
+			5 scroll bar (settable, float) 0.6681998693007588
+				6 value indicator (settable, float) 0.6681998693007588
+				7 increment arrow button
+				8 decrement arrow button
+				9 increment page button
+				10 decrement page button
+		11 button Cancel
+		12 button Import
+13 menu bar
+	14 DICOMStudio
+	15 File
+	16 Edit
+	17 View
+	18 Image
+	19 Window
+	20 Help
+
+The focused UI element is 4 text entry area (settable) Description: Print command to import, Value: $ dicom-printscp status --no-accept-color --config /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/config/baseline-scp.json --format json --verbose
+
+{
+  "acceptAnnotationBox" : false,
+  "acceptPresentationLUT" : true,
+  "aeTitle" : "DCMPRINT",
+  "allowedCallingAETitles" : "",
+  "annotationBoxesPerFilm" : 6,
+  "annotationEdge" : "bottom",
+  "associationIdleTimeoutSeconds" : 300,
+  "cellSpacingMillimeters" : 2,
+  "deniedCallingAETitles" : "",
+  "densityMapping" : "PAPER",
+  "deviceSerialNumber" : "1",
+  "dpi" : 36,
+  "drawAnnotations" : false,
+  "drawTrimMarks" : false,
+  "fileNamePattern" : "film-{timestamp}-{index}",
+  "imageFormat" : "png",
+  "manufacturer" : "DICOMKit",
+  "manufacturerModelName" : "DICOM Print Emulator",
+  "marginMillimeters" : 5,
+  "maxConcurrentAssociations" : 10,
+  "maxImageBoxPixelDimension" : 10000,
+  "maxImageBoxesPerFilm" : 64,
+  "maxPDUSize" : 65536,
+  "maximumPixelDimension" : 1024,
+  "outputDirectory" : "\/Users\/raster\/Documents\/Codex\/2026-10-24\/we-have-a-project-in-users-3\/work\/m7\/native-2026-10-26\/gui-simulated",
+  "paperQueue" : "",
+  "port" : 11113,
+  "printerName" : "M7 Native Baseline",
+  "printerStatus" : "NORMAL",
+  "printerStatusInfo" : "",
+  "pushPrintJobEvents" : false,
+  "retainedFilmLimit" : 20,
+  "retainedMemoryBudgetMB" : 256,
+  "saveImage" : false,
+  "savePDF" : false,
+  "sendToPaperQueue" : false,
+  "softwareVersion" : "1.0",
+  "supportedFilmSizeTokens" : [
+
+  ],
+  "supportedMediumTokens" : [
+
+  ],
+  "supportsColor" : false
+}

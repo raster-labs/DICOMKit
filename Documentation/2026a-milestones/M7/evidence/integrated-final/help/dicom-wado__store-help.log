@@ -1,0 +1,27 @@
+OVERVIEW: Upload DICOM instances using STOW-RS
+
+Stores one or more DICOM files to a DICOMweb server.
+
+Examples:
+  dicom-wado store https://server/dicom-web file1.dcm file2.dcm
+  dicom-wado store https://server/dicom-web study/*.dcm --study 1.2.3.4.5
+  dicom-wado store https://server/dicom-web --input files.txt --batch 10
+
+USAGE: dicom-wado store <base-url> [<files> ...] [--study <study>] [--input <input>] [--batch <batch>] [--token <token>] [--continue-on-error] [--verbose]
+
+ARGUMENTS:
+  <base-url>              DICOMweb server base URL
+  <files>                 DICOM files to upload (optional if --input is used)
+
+OPTIONS:
+  --study <study>         Study Instance UID for targeted storage
+  --input <input>         File containing list of DICOM files to upload (one
+                          per line)
+  --batch <batch>         Number of files to upload per batch (default: 10)
+                          (default: 10)
+  --token <token>         OAuth2 bearer token for authentication
+  --continue-on-error     Continue on errors instead of stopping
+  --verbose               Show verbose output including progress
+  --version               Show the version.
+  -h, --help              Show help information.
+

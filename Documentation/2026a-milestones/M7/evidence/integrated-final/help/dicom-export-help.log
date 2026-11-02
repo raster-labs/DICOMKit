@@ -1,0 +1,43 @@
+OVERVIEW: Advanced DICOM image export with metadata embedding, contact sheets,
+animation, and bulk export
+
+Export DICOM images to standard formats with advanced features including
+EXIF metadata embedding, contact sheet generation, animated GIF export,
+and bulk directory export with organization.
+
+Monochrome frames are rendered through the PS3.4 grayscale chain: Modality LUT
+(Rescale Slope/Intercept), then the file's VOI (Window Center (0028,1050) and
+Window Width (0028,1051) with VOI LUT Function (0028,1056), else VOI LUT
+Sequence
+(0028,3010), else the full pixel range), then INVERSE for MONOCHROME1. Frames
+are
+selected by Frame number, numbered from 1 (PS3.3 Table 10-3): --frame-number,
+--start-frame-number, --end-frame-number; the 0-based --frame, --start-frame
+and
+--end-frame are deprecated. bulk --organize-by patient names the patient folder
+from Patient ID (0010,0020) and Issuer of Patient ID (0010,0021). Files with
+Burned In Annotation
+(0028,0301) YES get a warning on stderr. The outputs (PNG, JPEG, TIFF, GIF) are
+not DICOM files.
+
+Examples:
+  dicom-export single ct.dcm --output ct.jpg --embed-metadata
+  dicom-export contact-sheet *.dcm --output sheet.png --columns 6
+  dicom-export single cine.dcm --output frame3.png --format png --frame-number
+3
+  dicom-export animate cine.dcm --output cine.gif --fps 15
+  dicom-export bulk input/ --output output/ --organize-by patient
+
+USAGE: dicom-export <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  single                  Export a single DICOM file to an image
+  contact-sheet           Generate a contact sheet from multiple DICOM files
+  animate                 Export multi-frame DICOM as animated GIF
+  bulk                    Bulk export DICOM files with directory organization
+
+  See 'dicom-export help <subcommand>' for detailed help.

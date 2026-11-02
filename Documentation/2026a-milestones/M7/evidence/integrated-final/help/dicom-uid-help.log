@@ -1,0 +1,28 @@
+OVERVIEW: DICOM UID generation, validation, and management
+
+Generate, validate, regenerate, and look up DICOM Unique Identifiers (UIDs).
+
+Examples:
+  dicom-uid generate
+  dicom-uid generate --count 5 --type study
+  dicom-uid generate --root 1.2.826.0.1.3680043.9.1234
+  dicom-uid generate --uuid
+  dicom-uid validate 1.2.840.10008.1.2.1
+  dicom-uid validate --file study.dcm
+  dicom-uid lookup 1.2.840.10008.1.2.1
+  dicom-uid regenerate file.dcm --output new.dcm
+  dicom-uid regenerate study/*.dcm --output new_study/ --export-map mapping.json
+
+USAGE: dicom-uid <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  generate (default)      Generate new DICOM UIDs
+  validate                Validate DICOM UIDs for compliance
+  lookup                  Look up UIDs in the DICOM registry
+  regenerate              Regenerate UIDs in DICOM files
+
+  See 'dicom-uid help <subcommand>' for detailed help.

@@ -1,0 +1,37 @@
+OVERVIEW: Encode a DICOM slice series as a JP3D volumetric document
+
+Reads a multi-slice DICOM series, validates uniform slice spacing, and
+encodes the volume as a single JP3D encapsulated DICOM document using
+J2KSwift v3.2.0.
+
+The output file uses the private SOP class UID
+1.2.826.0.1.3680043.10.511.10 — not suitable for standard interchange.
+
+Compression modes:
+  lossless         ISO/IEC 15444-1 lossless (default)
+  lossless-htj2k   HTJ2K lossless (~5× faster decode than lossless)
+  lossy            JPEG 2000 lossy at given --psnr
+  lossy-htj2k      HTJ2K lossy at given --psnr
+
+Examples:
+  dicom-3d encode-volume series/*.dcm --output vol.jp3d.dcm
+  dicom-3d encode-volume ./series/ --output vol.jp3d.dcm --mode lossless-htj2k
+  dicom-3d encode-volume series/*.dcm --output vol.jp3d.dcm --mode lossy --psnr
+55
+
+USAGE: dicom-3d encode-volume <input-paths> ... --output <output> [--mode <mode>] [--psnr <psnr>] [--verbose]
+
+ARGUMENTS:
+  <input-paths>           Input DICOM files or a single directory containing
+                          the series
+
+OPTIONS:
+  -o, --output <output>   Output JP3D DICOM document file path
+  --mode <mode>           Compression mode: lossless, lossless-htj2k, lossy,
+                          lossy-htj2k (default: lossless)
+  --psnr <psnr>           Target PSNR in dB for lossy modes (default: 40.0)
+                          (default: 40.0)
+  --verbose               Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

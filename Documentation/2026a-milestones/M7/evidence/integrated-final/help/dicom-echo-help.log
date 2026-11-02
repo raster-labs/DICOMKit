@@ -1,0 +1,41 @@
+OVERVIEW: Test DICOM connectivity using C-ECHO (verification service)
+
+Performs DICOM C-ECHO verification to test connectivity with PACS servers.
+This is the simplest DICOM network operation and is useful for testing
+connectivity, network configuration, and PACS server availability.
+
+The host argument accepts a hostname or IP address, optionally with a
+port suffix (host:port). Use --port to specify the port separately.
+If no port is given, the default is 11112.
+
+Examples:
+  dicom-echo server:11112 --aet TEST_SCU
+  dicom-echo server --port 11112 --aet TEST_SCU
+  dicom-echo server:11112 --aet TEST_SCU --called-aet PACS_SCP
+  dicom-echo 192.168.1.100:11112 --aet TEST_SCU --count 10 --stats
+  dicom-echo server:11112 --aet TEST_SCU --verbose
+  dicom-echo server:11112 --aet TEST_SCU --diagnose
+
+USAGE: dicom-echo <host> [--port <port>] --aet <aet> [--called-aet <called-aet>] [--count <count>] [--timeout <timeout>] [--stats] [--diagnose] [--verbose]
+
+ARGUMENTS:
+  <host>                  PACS server hostname or IP address, optionally with
+                          port (host:port)
+
+OPTIONS:
+  --port <port>           PACS server port (default: 11112, overrides port in
+                          host argument)
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  -c, --count <count>     Number of echo requests to send (default: 1)
+                          (default: 1)
+  --timeout <timeout>     Connection timeout in seconds (default: 30) (default:
+                          30)
+  --stats                 Show statistics (min/avg/max round-trip time)
+  --diagnose              Run network diagnostics
+  -v, --verbose           Show verbose output including connection details
+  --version               Show the version.
+  -h, --help              Show help information.
+

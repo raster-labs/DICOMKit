@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input-directory>'
+Help:  <input-directory>  Directory containing DICOM files
+Usage: dicom-dcmdir create <input-directory> [--output <output>] [--file-set-id <file-set-id>] [--profile <profile>] [--recursive] [--no-recursive] [--strict] [--copy-to <copy-to>] [--verbose]
+  See 'dicom-dcmdir create --help' for more information.

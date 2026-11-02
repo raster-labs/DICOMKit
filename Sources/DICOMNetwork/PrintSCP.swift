@@ -41,6 +41,64 @@ private final class LockedFlag: @unchecked Sendable {
     }
 }
 
+/// One owner for listener readiness, timeout and cancellation. Unlike a task
+/// group containing a suspended checked continuation, this wait can finish even
+/// when Network.framework never leaves `.waiting`. All transitions are ordered
+/// on one queue; cancellation before installation never starts the listener.
+final class PrintSCPListenerStartup: @unchecked Sendable {
+    private let queue = DispatchQueue(label: "DICOMKit.PrintSCP.listener-start")
+    private let cancelListener: @Sendable () -> Void
+    private var continuation: CheckedContinuation<Void, Error>?
+    private var result: Result<Void, Error>?
+    private var timeoutWork: DispatchWorkItem?
+
+    init(cancelListener: @escaping @Sendable () -> Void) {
+        self.cancelListener = cancelListener
+    }
+
+    func wait(
+        timeout: TimeInterval,
+        start: @escaping @Sendable (@escaping @Sendable (Result<Void, Error>) -> Void) -> Void
+    ) async throws {
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                queue.async {
+                    if let result = self.result {
+                        continuation.resume(with: result)
+                        return
+                    }
+                    self.continuation = continuation
+                    let timeoutWork = DispatchWorkItem { [weak self] in
+                        self?.finish(.failure(DICOMNetworkError.timeout))
+                    }
+                    self.timeoutWork = timeoutWork
+                    self.queue.asyncAfter(deadline: .now() + timeout, execute: timeoutWork)
+                    start { result in self.resolve(result) }
+                }
+            }
+        } onCancel: {
+            self.cancel()
+        }
+    }
+
+    func cancel() { resolve(.failure(CancellationError())) }
+
+    private func resolve(_ result: Result<Void, Error>) {
+        queue.async { self.finish(result) }
+    }
+
+    private func finish(_ result: Result<Void, Error>) {
+        guard self.result == nil else { return }
+        self.result = result
+        timeoutWork?.cancel()
+        timeoutWork = nil
+        if case .failure = result { cancelListener() }
+        let continuation = self.continuation
+        self.continuation = nil
+        continuation?.resume(with: result)
+    }
+}
+
 // MARK: - Print job store
 
 /// Print Job SOP Instances, shared by every association of one server.
@@ -51,7 +109,8 @@ private final class LockedFlag: @unchecked Sendable {
 /// jobs on the association made that query answer 0x0112 (no such SOP
 /// Instance) the moment the print association closed.
 ///
-/// Bounded, newest kept, so a long-running emulator does not grow forever.
+/// A confirmed terminal Print Job event deletes its instance (PS3.4
+/// H.4.5.2.1.2). Otherwise bounded, newest kept, so the emulator does not grow forever.
 actor PrintSCPJobStore {
 
     /// The most recent jobs retained.
@@ -89,6 +148,13 @@ actor PrintSCPJobStore {
     func originator(for uid: String) -> String? {
         originators[uid]
     }
+
+    /// PS3.4 H.4.5.2.1.2: Done/Failure confirmation ends the job instance.
+    func remove(_ uid: String) {
+        jobs.removeValue(forKey: uid)
+        originators.removeValue(forKey: uid)
+        order.removeAll { $0 == uid }
+    }
 }
 
 // MARK: - Server
@@ -118,6 +184,11 @@ public actor DICOMPrintServer {
 
     /// The network listener.
     private var listener: NWListener?
+    private var startup: PrintSCPListenerStartup?
+    private var isStarting = false
+    private var isStopping = false
+    private var startWaiters: [CheckedContinuation<Void, Never>] = []
+    private var stopWaiters: [CheckedContinuation<Void, Never>] = []
 
     /// Active associations, keyed by identity.
     private var activeAssociations: [ObjectIdentifier: PrintSCPAssociation] = [:]
@@ -160,8 +231,17 @@ public actor DICOMPrintServer {
     ///
     /// - Throws: `DICOMNetworkError.connectionFailed` when the port cannot be bound.
     public func start() async throws {
-        guard !isRunning else {
-            throw DICOMNetworkError.invalidState("Print server is already running")
+        guard !isRunning, !isStarting, !isStopping else {
+            throw DICOMNetworkError.invalidState("Print server is already running or changing state")
+        }
+        try Task.checkCancellation()
+        isStarting = true
+        defer {
+            isStarting = false
+            startup = nil
+            let waiters = startWaiters
+            startWaiters.removeAll()
+            for waiter in waiters { waiter.resume() }
         }
 
         let tcpOptions = NWProtocolTCP.Options()
@@ -180,9 +260,9 @@ public actor DICOMPrintServer {
         }
         self.listener = listener
 
-        listener.newConnectionHandler = { [weak self] connection in
-            guard let self else { return }
-            Task { await self.handleNewConnection(connection) }
+        listener.newConnectionHandler = { [weak self, weak listener] connection in
+            guard let self, let listener else { connection.cancel(); return }
+            Task { await self.handleNewConnection(connection, from: listener) }
         }
 
         // NWListener.start() is asynchronous: binding failures (EADDRINUSE and
@@ -191,45 +271,36 @@ public actor DICOMPrintServer {
         // never bound. `.waiting` is NOT terminal — Network.framework retries it
         // indefinitely — so race the wait against a fixed timeout.
         // (Both behaviors were hard-won in `StorageSCP.start()`; keep them in step.)
-        let resumed = LockedFlag()
+        let startup = PrintSCPListenerStartup { listener.cancel() }
+        self.startup = startup
         do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask {
-                    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                        listener.stateUpdateHandler = { state in
-                            switch state {
-                            case .ready:
-                                guard resumed.trySet() else { return }
-                                continuation.resume()
-                            case .failed(let error):
-                                guard resumed.trySet() else { return }
-                                listener.cancel()
-                                continuation.resume(
-                                    throwing: DICOMNetworkError.connectionFailed(error.localizedDescription))
-                            default:
-                                break
-                            }
-                        }
-                        listener.start(queue: .global(qos: .userInitiated))
+            try await startup.wait(timeout: Self.listenerStartTimeout) { completion in
+                listener.stateUpdateHandler = { state in
+                    switch state {
+                    case .ready:
+                        completion(.success(()))
+                    case .failed(let error):
+                        completion(.failure(DICOMNetworkError.connectionFailed(error.localizedDescription)))
+                    case .cancelled:
+                        completion(.failure(CancellationError()))
+                    default:
+                        break
                     }
                 }
-                group.addTask {
-                    try await Task.sleep(for: .seconds(Self.listenerStartTimeout))
-                    throw DICOMNetworkError.timeout
-                }
-                try await group.next()
-                group.cancelAll()
+                listener.start(queue: .global(qos: .userInitiated))
             }
+            try Task.checkCancellation()
+            guard !isStopping else { throw CancellationError() }
         } catch {
-            if resumed.trySet() {
-                listener.cancel()
-            }
+            listener.cancel()
+            self.listener = nil
+            boundPort = 0
             throw error
         }
 
-        listener.stateUpdateHandler = { [weak self] state in
-            guard let self else { return }
-            Task { await self.handleListenerState(state) }
+        listener.stateUpdateHandler = { [weak self, weak listener] state in
+            guard let self, let listener else { return }
+            Task { await self.handleListenerState(state, from: listener) }
         }
 
         boundPort = listener.port?.rawValue ?? configuration.port
@@ -239,10 +310,30 @@ public actor DICOMPrintServer {
 
     /// Stops listening and closes every open association.
     public func stop() async {
-        guard isRunning else { return }
+        if isStopping {
+            await withCheckedContinuation { stopWaiters.append($0) }
+            return
+        }
+        guard isRunning || isStarting || listener != nil || !activeAssociations.isEmpty else { return }
+        isStopping = true
+        isRunning = false
+        defer {
+            isStopping = false
+            let waiters = stopWaiters
+            stopWaiters.removeAll()
+            for waiter in waiters { waiter.resume() }
+        }
+        if isStarting {
+            startup?.cancel()
+            await withCheckedContinuation { startWaiters.append($0) }
+        }
 
         if let listener = listener {
-            // Wait for full cancellation so the port is released before a restart.
+            if case .cancelled = listener.state {
+                // An already cancelled listener has no new transition to await.
+            } else {
+            // Concurrent stop callers share completion; no caller replaces the
+            // state handler while another is waiting for cancellation.
             let resumed = LockedFlag()
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                 listener.stateUpdateHandler = { state in
@@ -253,15 +344,16 @@ public actor DICOMPrintServer {
                 }
                 listener.cancel()
             }
+            }
         }
         listener = nil
 
-        for association in activeAssociations.values {
+        for association in Array(activeAssociations.values) {
             await association.abort()
         }
         activeAssociations.removeAll()
 
-        isRunning = false
+        boundPort = 0
         eventContinuation?.yield(.stopped)
         eventContinuation?.finish()
     }
@@ -275,7 +367,8 @@ public actor DICOMPrintServer {
         eventContinuation = nil
     }
 
-    private func handleListenerState(_ state: NWListener.State) {
+    private func handleListenerState(_ state: NWListener.State, from source: NWListener) {
+        guard listener === source, !isStopping else { return }
         switch state {
         case .failed(let error):
             listener?.cancel()
@@ -289,7 +382,11 @@ public actor DICOMPrintServer {
         }
     }
 
-    private func handleNewConnection(_ connection: NWConnection) async {
+    private func handleNewConnection(_ connection: NWConnection, from source: NWListener) async {
+        guard listener === source, !isStopping, isRunning || isStarting else {
+            connection.cancel()
+            return
+        }
         // At capacity, still read the A-ASSOCIATE-RQ and answer with a proper
         // A-ASSOCIATE-RJ (transient / local-limit-exceeded). Dropping the socket
         // instead surfaces on the modality as "connection reset by printer",
@@ -353,6 +450,10 @@ actor PrintSCPAssociation {
     private var maxPDUSize: UInt32 = defaultMaxPDUSize
     private var messageAssembler = MessageAssembler()
     private var isEstablished = false
+
+    /// Only confirmations for events sent on this association can retire jobs.
+    private var pendingEventReports: [UInt16: PushedEvent] = [:]
+    private var nextEventMessageID: UInt16 = 1
 
     /// Set by the idle watchdog so the failed read is reported as a timeout
     /// rather than as a transport error.
@@ -550,6 +651,14 @@ actor PrintSCPAssociation {
         acceptedContexts[contextID]?.transferSyntax != implicitVRLittleEndianTransferSyntaxUID
     }
 
+    /// Optional SOP Classes are not covered by the Print Management meta
+    /// context (PS3.4 H.3.3.2). Choose an accepted exact-class context.
+    private func optionalContextID(for sopClass: String) -> UInt8? {
+        acceptedContexts.keys.sorted().first {
+            acceptedContexts[$0]?.abstractSyntax == sopClass
+        }
+    }
+
     // MARK: Message loop
 
     private func processMessages() async throws {
@@ -569,9 +678,12 @@ actor PrintSCPAssociation {
 
             switch pdu {
             case let dataPDU as DataTransferPDU:
-                if let message = try messageAssembler.addPDVs(from: dataPDU) {
-                    messageAssembler = MessageAssembler()
-                    try await handle(message: message)
+                // A confirmation and the next request may share one P-DATA
+                // PDU. Handle each completed message, not only the last one.
+                for pdv in dataPDU.presentationDataValues {
+                    if let message = try messageAssembler.addPDV(pdv) {
+                        try await handle(message: message)
+                    }
                 }
 
             case _ as ReleaseRequestPDU:
@@ -596,8 +708,12 @@ actor PrintSCPAssociation {
     private func handle(message: AssembledMessage) async throws {
         guard let command = message.commandSet.command else { return }
 
-        // The SCU's acknowledgement of a pushed N-EVENT-REPORT needs no reply.
-        if command == .nEventReportResponse { return }
+        // A confirmation needs no reply, but a correlated terminal event
+        // retires its Print Job instance (PS3.4 H.4.5.2.1.2).
+        if command == .nEventReportResponse {
+            await confirmEvent(message)
+            return
+        }
 
         let contextID = message.presentationContextID
         let messageID = message.commandSet.messageID ?? 0
@@ -645,7 +761,7 @@ actor PrintSCPAssociation {
                 dataSet: outcome.dataSet, contextID: contextID)
             for event in outcome.events { await eventHandler(event) }
             for push in outcome.pushEvents {
-                try await pushEvent(push, contextID: contextID)
+                try await pushEvent(push)
             }
         } catch let failure as PrintSCPFailure {
             await eventHandler(.requestFailed(
@@ -683,6 +799,8 @@ actor PrintSCPAssociation {
 
     /// An N-EVENT-REPORT to push after the current response.
     private struct PushedEvent {
+        /// The same negotiated context determines both encoding and transmission.
+        let contextID: UInt8
         let sopClassUID: String
         let sopInstanceUID: String
         let eventTypeID: UInt16
@@ -1098,8 +1216,10 @@ actor PrintSCPAssociation {
         await jobStore.set(job)
 
         outcome.events.append(.filmPrinted(film))
-        if configuration.pushPrintJobEvents {
+        if configuration.pushPrintJobEvents,
+           let jobContextID = optionalContextID(for: printJobSOPClassUID) {
             outcome.pushEvents.append(PushedEvent(
+                contextID: jobContextID,
                 sopClassUID: printJobSOPClassUID,
                 sopInstanceUID: jobUID,
                 eventTypeID: PrintJobEventType.done.rawValue,
@@ -1107,7 +1227,7 @@ actor PrintSCPAssociation {
                     executionStatusInfo: "NORMAL",
                     filmSessionLabel: session.filmSessionLabel,
                     printerName: configuration.printerName,
-                    explicitVR: usesExplicitVR(contextID))))
+                    explicitVR: usesExplicitVR(jobContextID))))
         }
         return PrintedFilm(jobUID: jobUID, isEmptyPage: isEmptyPage)
     }
@@ -1306,17 +1426,57 @@ actor PrintSCPAssociation {
 
     /// Pushes an N-EVENT-REPORT to the SCU.
     ///
-    /// The SCU acknowledges with N-EVENT-REPORT-RSP, which the message loop
-    /// discards; we do not block waiting for it.
-    private func pushEvent(_ event: PushedEvent, contextID: UInt8) async throws {
+    /// Keep receiving normally while awaiting the confirmation; a pending
+    /// event must not block the peer's next operation or association release.
+    private func pushEvent(_ event: PushedEvent) async throws {
+        let messageID = try allocateEventMessageID()
         let request = NEventReportRequest(
-            messageID: UInt16.random(in: 1000...65000),
+            messageID: messageID,
             affectedSOPClassUID: event.sopClassUID,
             affectedSOPInstanceUID: event.sopInstanceUID,
             eventTypeID: event.eventTypeID,
             hasDataSet: event.dataSet != nil,
-            presentationContextID: contextID)
-        try await send(commandSet: request.commandSet, dataSet: event.dataSet, contextID: contextID)
+            presentationContextID: event.contextID)
+        pendingEventReports[messageID] = event
+        do {
+            try await send(commandSet: request.commandSet, dataSet: event.dataSet, contextID: event.contextID)
+        } catch {
+            pendingEventReports.removeValue(forKey: messageID)
+            throw error
+        }
+    }
+
+    private func allocateEventMessageID() throws -> UInt16 {
+        for _ in 0..<Int(UInt16.max) {
+            let candidate = nextEventMessageID
+            nextEventMessageID = candidate == UInt16.max ? 1 : candidate + 1
+            if pendingEventReports[candidate] == nil { return candidate }
+        }
+        throw DICOMNetworkError.encodingFailed("Too many unconfirmed Print Job events")
+    }
+
+    private func confirmEvent(_ message: AssembledMessage) async {
+        let command = message.commandSet
+        guard let messageID = command.messageIDBeingRespondedTo,
+              let event = pendingEventReports[messageID],
+              message.presentationContextID == event.contextID,
+              let status = command.status,
+              !command.hasDataSet || (status.isSuccess && command.eventTypeID != nil),
+              command.affectedSOPClassUID.map({ $0 == event.sopClassUID }) ?? true,
+              command.affectedSOPInstanceUID.map({ $0 == event.sopInstanceUID }) ?? true,
+              command.eventTypeID.map({ $0 == event.eventTypeID }) ?? true else { return }
+        pendingEventReports.removeValue(forKey: messageID)
+        // A failed response is still a confirmation. The standard does not
+        // condition terminal-instance deletion on a successful response status.
+        if Self.deletesPrintJobAfterConfirmation(sopClassUID: event.sopClassUID, eventTypeID: event.eventTypeID) {
+            await jobStore.remove(event.sopInstanceUID)
+        }
+    }
+
+    /// Only terminal Print Job events delete their instance after confirmation.
+    static func deletesPrintJobAfterConfirmation(sopClassUID: String, eventTypeID: UInt16) -> Bool {
+        sopClassUID == printJobSOPClassUID
+            && (eventTypeID == PrintJobEventType.done.rawValue || eventTypeID == PrintJobEventType.failure.rawValue)
     }
 
     // MARK: Transport

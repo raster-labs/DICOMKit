@@ -1,0 +1,33 @@
+{
+  "name": "save-before-gather",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+    "simulate",
+    "--dpi",
+    "36",
+    "--output",
+    "none",
+    "--config",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json",
+    "--save-config",
+    "--copies",
+    "1",
+    "--frame",
+    "1",
+    "--bit-depth",
+    "8",
+    "--calling-ae",
+    "SIMULATE",
+    "--format",
+    "json",
+    "--",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/deliberately-missing.dcm"
+  ],
+  "returncode": 0,
+  "timedOut": false,
+  "durationSeconds": 0.07801962500000004,
+  "stdout": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/cli-scp-replay-post-repair-config/simulation-save.json\n",
+  "stderr": "",
+  "binarySHA256": "c34f4967942983907e091576633cd749ca3c2672d1c2b85d7008a42d7ef11624",
+  "recordedUTC": "2026-10-26T06:01:06.134870+00:00"
+}

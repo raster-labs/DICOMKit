@@ -1,0 +1,31 @@
+{
+  "case": "qido-basic",
+  "kind": "query",
+  "native_capture": 1,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/qido-basic-after.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "query",
+    "http://127.0.0.1:60241/dicom-web",
+    "--level",
+    "study",
+    "--limit",
+    "100",
+    "--offset",
+    "0",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 0,
+  "expected_status": 200,
+  "native_authorization": "Basic bTctbmF0aXZlOm9ubHktdGVzdDpwYXNz",
+  "cli_authorization": null,
+  "level": "study",
+  "expected_uids": [
+    "1.2.826.0.1.3680043.10.543.301",
+    "1.2.826.0.1.3680043.10.543.302"
+  ],
+  "limitations": [
+    "Native Basic header tested; CLI equivalent deliberately omits auth because Basic is not CLI representable. Peers do not enforce authentication."
+  ]
+}

@@ -1,0 +1,34 @@
+OVERVIEW: Query DICOM printer status
+
+Queries the Printer SOP Instance (1.2.840.10008.5.1.1.17) with N-GET
+(PS3.4 H.4.6) and prints Printer Status (2110,0010: NORMAL, WARNING,
+FAILURE), Printer Status Info (2110,0020), Printer Name (2110,0030),
+Manufacturer (0008,0070) and Manufacturer's Model Name (0008,1090).
+
+--format json keys each attribute by its PS3.6 keyword (PrinterStatus,
+PrinterStatusInfo, PrinterName, Manufacturer, ManufacturerModelName).
+The older keys status, statusInfo, name, manufacturer and model carry
+the same values and are deprecated.
+
+Examples:
+  dicom-print status pacs://192.168.1.100:11112 --aet WORKSTATION
+  dicom-print status pacs://server:11112 --aet APP --verbose
+
+USAGE: dicom-print status <url> --aet <aet> [--called-aet <called-aet>] [--timeout <timeout>] [--verbose] [--format <format>]
+
+ARGUMENTS:
+  <url>                   Printer URL (pacs://host:port)
+
+OPTIONS:
+  --aet <aet>             Local Application Entity Title (calling AE)
+  --called-aet <called-aet>
+                          Remote Application Entity Title (default: ANY-SCP)
+                          (default: ANY-SCP)
+  --timeout <timeout>     Connection timeout in seconds (default: 30) (default:
+                          30)
+  -v, --verbose           Show verbose output
+  --format <format>       Output format: text, json (default: text) (default:
+                          text)
+  --version               Show the version.
+  -h, --help              Show help information.
+

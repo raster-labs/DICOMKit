@@ -1,20 +1,25 @@
 // StudioTestFixtures.swift
 // DICOMStudioTests
 //
-// Locates the small synthetic DICOM files bundled with this test target
-// (Tests/DICOMStudioTests/Fixtures). These used to live with the CLI-parity
-// harness's generated data and were reached via CLIParityEngine.fixtureURL;
-// that harness is gone, so the one fixture the print tests need is committed
-// here instead — owned by the tests that actually use it.
+// Generate synthetic print inputs at runtime, outside the checkout. No DICOM
+// binaries (including synthetic fixtures) belong in the repository.
 
 import Foundation
+import DICOMPrintTestSupport
 
+@MainActor
 enum StudioTestFixtures {
-    /// URL of a bundled fixture (e.g. "syn-ct.dcm"), or nil if it is missing.
-    static func url(named name: String) -> URL? {
-        let ext = (name as NSString).pathExtension
-        let stem = (name as NSString).deletingPathExtension
-        return Bundle.module.url(forResource: stem, withExtension: ext, subdirectory: "Fixtures")
-            ?? Bundle.module.url(forResource: stem, withExtension: ext)
+    private static let syntheticCT: Result<URL, Error> = Result {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("DICOMStudio-synthetic-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("syn-ct.dcm")
+        try SyntheticPrintFixture.data().write(to: url, options: .atomic)
+        return url
+    }
+
+    static func url(named name: String) throws -> URL? {
+        guard name == "syn-ct.dcm" else { return nil }
+        return try syntheticCT.get()
     }
 }

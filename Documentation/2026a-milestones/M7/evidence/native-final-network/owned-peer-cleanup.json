@@ -1,0 +1,58 @@
+{
+  "verified_utc": "2026-10-26T08:30:00.889942+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "host": "127.0.0.1",
+      "port": 60241,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 60660,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 60702,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 60872,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 60927,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 56245,
+      "connect_result": 61,
+      "listener_absent": true
+    },
+    {
+      "host": "127.0.0.1",
+      "port": 61086,
+      "connect_result": 61,
+      "listener_absent": true
+    }
+  ],
+  "owned_sessions_completed": [
+    93204,
+    31210,
+    2768,
+    57669,
+    31986,
+    75191,
+    52084
+  ],
+  "limits": "Checks only the seven owned synthetic peer endpoints; pre-existing DICOMStudio LocalSCP remains untouched."
+}

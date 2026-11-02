@@ -1,0 +1,28 @@
+{
+  "recorded_utc": "2026-10-26T07:09:35.141314+00:00",
+  "status": "Initial identity helper failed; preserved outputs, not a passing identity capture",
+  "reported_exception": "plistlib.InvalidFileException at plistlib.loads(ent.stdout)",
+  "independently_observed_cause": "codesign -d --entitlements - returned abstract [Dict]/[Key]/[Bool] text, not XML or binary plist; raw427-byte stdout retained in final-native-signed-entitlements.plist despite its extension.",
+  "manual_reference": "Local man codesign --entitlements: default abstract representation; --xml requests XML.",
+  "repair": "Add --xml to read-only entitlement export, then parse real plist and retain exact equality against normal DICOMStudio.entitlements. No synthesized entitlements or relaxed assertion.",
+  "preserved_files": {
+    "work/m7/native-2026-10-26/final-native-code-identity.log": {
+      "bytes": 944,
+      "sha256": "a9c4e5b3e558e3b65a6a4a5a77115342faca6e98b691b239be6835e3576b2753"
+    },
+    "work/m7/native-2026-10-26/final-native-entitlements-export.log": {
+      "bytes": 108,
+      "sha256": "d00ad12d0335cd6d6b83f3eb646bf7210550d2e0f142149d83848a4a1c355315"
+    },
+    "work/m7/native-2026-10-26/final-native-signature-verification.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "work/m7/native-2026-10-26/final-native-signed-entitlements.plist": {
+      "bytes": 427,
+      "sha256": "9f3653cb5be88564ac0cf0602c6bfe1cd0b7e27c2417b15028c4fb28aee9e9ee"
+    }
+  },
+  "future_capture": "Use interim-native- prefix and explicit epoch label because new native layout clipping remains unresolved. Four initial final-native-* outputs remain preserved and prevent accidental final-prefix overwrite.",
+  "helper_after_sha256": "096478a72b1348eb37238917c4d1f672dbc376446f1a4c4f38c5c1f77c080e01"
+}

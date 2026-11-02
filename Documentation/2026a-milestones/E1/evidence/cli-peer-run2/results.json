@@ -1,0 +1,19 @@
+{
+  "result": "Passed",
+  "actions": 17,
+  "assertions": 56,
+  "binary_sha256": "0c985f1a7f2cecabb99585219b4ad1ceff17e62ea3dea009488b35b3e9384803",
+  "script_sha256": "dfcc0bcf135bae965dc18b0eb54fe80ea6eda9e41938e1cb45a979a7831d95da",
+  "references": [
+    "PS3.4 2026a Table F.7.2-1 and Notes 1-2",
+    "PS3.4 2026a F.7.2.1.2 (create before set)",
+    "PS3.4 2026a F.7.2.2.1 (same character set as N-CREATE)",
+    "PS3.4 2026a F.7.2.2.2 (partial attributes, full sequence replacement, terminal state)",
+    "PS3.4 2026a F.7.2.2.3 and Table F.7.2-2 (SCP terminal refusal)"
+  ],
+  "limits": [
+    "Synthetic subset, no full IOD or external PACS certification.",
+    "Each CLI invocation is a separate process: authoritative SCP rejects post-terminal or mismatched-charset requests; same-process SCU preflight is tested separately.",
+    "Wire success is not native GUI evidence; Workshop runs use --serve independently."
+  ]
+}

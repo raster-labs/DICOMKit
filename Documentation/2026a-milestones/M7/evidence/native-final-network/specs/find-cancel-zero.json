@@ -1,0 +1,23 @@
+{
+  "case": "find-cancel-zero",
+  "peer": "cancel",
+  "native_capture": 1,
+  "native_ui": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/ui-network/find-cancel-zero.txt",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-query",
+    "127.0.0.1:60872",
+    "--aet",
+    "M7NATIVE",
+    "--called-aet",
+    "M4PEER",
+    "--level",
+    "study",
+    "--patient-id",
+    "M4ZERO",
+    "--timeout",
+    "60",
+    "--format",
+    "json"
+  ],
+  "expected_exit": 1
+}

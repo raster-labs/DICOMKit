@@ -1,0 +1,21 @@
+DICOM Send (C-STORE)
+====================
+  Server:            127.0.0.1:58578
+  Calling AE Title:  M7CLIENT
+  Called AE Title:   M7PEER
+  Priority:          medium
+  Timeout:           5s
+  Files:             1
+  Transfer Syntax:   1.2.840.10008.1.2.2
+
+[1/1] Sending: fixture-3.dcm (590 B)... ✅ (12 ms)
+
+Transfer Summary
+================
+  Total files:       1
+  Succeeded:         1
+  Failed:            0
+  Bytes sent:        590 B
+  Duration:          12 ms
+
+✅ All files sent successfully

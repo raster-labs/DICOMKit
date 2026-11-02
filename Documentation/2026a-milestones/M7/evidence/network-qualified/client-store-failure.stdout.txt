@@ -1,0 +1,20 @@
+DICOM Send (C-STORE)
+====================
+  Server:            127.0.0.1:58578
+  Calling AE Title:  M7CLIENT
+  Called AE Title:   M7PEER
+  Priority:          medium
+  Timeout:           5s
+  Files:             1
+
+[1/1] Sending: fixture-1.dcm (584 B)... ❌ C-STORE response status Failure (0xC000): Error: Cannot understand — not stored (PS3.4 Table B.2-1)
+
+Transfer Summary
+================
+  Total files:       1
+  Succeeded:         0
+  Failed:            1
+  Bytes sent:        0 B
+  Duration:          12 ms
+
+❌ All files failed to send

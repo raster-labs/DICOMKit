@@ -1,0 +1,28 @@
+{
+  "case": "ups-identity-default",
+  "surface": "cli-default",
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-wado",
+    "ups",
+    "http://127.0.0.1:62053/cli-default/dicom-web",
+    "--create-workitem",
+    "--label",
+    "Synthetic generated UPS",
+    "--patient-id",
+    "SYNTHETIC-UPS",
+    "--format",
+    "json"
+  ],
+  "started_utc": "2026-10-26T08:56:06.128782+00:00",
+  "finished_utc": "2026-10-26T08:56:06.157673+00:00",
+  "binary_sha256": "3280f1229b6379a23a456c63cb137c924ce7fbdbd1281bdadba2926f06d1d133",
+  "exit": 0,
+  "expected_exit": 0,
+  "request_count_before": 3,
+  "request_count_after": 4,
+  "request_indices": [
+    4
+  ],
+  "expected_requests": 1,
+  "passed": true
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "TLS12-custom-trust",
+    "host": "localhost",
+    "port": 59095,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.2",
+    "maximum": "TLS 1.2",
+    "expectedSuccess": true,
+    "modifiedProfile": false
+  },
+  {
+    "name": "TLS12-modified-cipher-subset",
+    "host": "localhost",
+    "port": 59097,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.2",
+    "maximum": "TLS 1.2",
+    "expectedSuccess": true,
+    "modifiedProfile": true
+  },
+  {
+    "name": "TLS13-custom-trust",
+    "host": "localhost",
+    "port": 59099,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.3",
+    "maximum": "TLS 1.3",
+    "expectedSuccess": true,
+    "modifiedProfile": false
+  },
+  {
+    "name": "TLS13-modified-cipher-subset",
+    "host": "localhost",
+    "port": 59101,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.3",
+    "maximum": "TLS 1.3",
+    "expectedSuccess": true,
+    "modifiedProfile": true
+  },
+  {
+    "name": "untrusted-system-root-refused",
+    "host": "localhost",
+    "port": 59103,
+    "trust": "system",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.2",
+    "maximum": "TLS 1.2",
+    "expectedSuccess": false,
+    "modifiedProfile": false
+  },
+  {
+    "name": "wrong-custom-root-refused",
+    "host": "localhost",
+    "port": 59105,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/wrong-ca.der",
+    "minimum": "TLS 1.2",
+    "maximum": "TLS 1.2",
+    "expectedSuccess": false,
+    "modifiedProfile": false
+  },
+  {
+    "name": "wrong-hostname-refused",
+    "host": "localhost",
+    "port": 59107,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.2",
+    "maximum": "TLS 1.2",
+    "expectedSuccess": false,
+    "modifiedProfile": false
+  },
+  {
+    "name": "TLS13-only-client-refuses-TLS12-peer",
+    "host": "localhost",
+    "port": 59109,
+    "trust": "custom",
+    "rootDER": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/tls-qualified/ca.der",
+    "minimum": "TLS 1.3",
+    "maximum": "TLS 1.3",
+    "expectedSuccess": false,
+    "modifiedProfile": false
+  }
+]

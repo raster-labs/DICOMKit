@@ -1,0 +1,38 @@
+{
+  "argv": [
+    "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-server",
+    "start",
+    "--data-dir",
+    "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-final-network/server-storage",
+    "--port",
+    "60927",
+    "--aet",
+    "M7NATIVE",
+    "--database",
+    "filesystem"
+  ],
+  "binary_sha256": "c6a8f39d494e54bd6a7de3354e9bf17b88543bbbdb94feac7392a7c3474c8bd8",
+  "source_sha256": "f1bf35d6bfccaf8367cc1c7ac14fc98ce2253ca13262b0803719d08e9189b451",
+  "events": [
+    {
+      "name": "first-started",
+      "utc": "2026-10-26T08:16:19.869145+00:00",
+      "pid": 66243
+    },
+    {
+      "name": "first-ready",
+      "utc": "2026-10-26T08:16:19.927620+00:00",
+      "pid": 66243
+    },
+    {
+      "name": "first-stopped",
+      "utc": "2026-10-26T08:16:19.929293+00:00",
+      "pid": 66243,
+      "exit": -15
+    }
+  ],
+  "scope": "Actual server uses synthetic isolated storage only. Clients use localhost; listener bind scope follows existing product behavior.",
+  "source_unchanged": true,
+  "storage_source_unchanged": true,
+  "clean_stop": false
+}

@@ -1,0 +1,11 @@
+{
+  "recorded_utc": "2026-10-26T08:11:02.026395+00:00",
+  "tool_session_id": 2768,
+  "owned_processes": [
+    "65920 /opt/homebrew/Cellar/python@3.12/3.12.14/Frameworks/Python.framework/Versions/3.12/Resources/Python.app/Contents/MacOS/Python -B work/DICOMKit-milestones/Scripts/m3_dimse_capture_peer.py work/m7/native-final-network/find --seconds 3600"
+  ],
+  "host": "127.0.0.1",
+  "port": 60702,
+  "script_sha256": "a529b62337c91e302fa3695b19452954ee8562ecd4e12c49ee15343d130ad46f",
+  "scope": "Synthetic independent standard-library DIMSE peer."
+}

@@ -1,0 +1,218 @@
+[
+  {
+    "assertion": "all Workshop actions recorded",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-ascii exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-explicit exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-omitted exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate-sequence exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar-preserves-sequence exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "sequence-replacement exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "empty-intermediate-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "complete exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-complete-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-utf8 exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "same-charset exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "mismatched-charset-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "create-for-discontinuation exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "nonascii-without-original-charset-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-without-series-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinue-no-images exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "after-discontinue-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "external-wrong-charset-refused exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "external-corrected-charset-retry exit",
+    "result": "Passed"
+  },
+  {
+    "assertion": "exactly eleven base requests reached SCP",
+    "result": "Passed"
+  },
+  {
+    "assertion": "all received requests accepted by independent rules",
+    "result": "Passed"
+  },
+  {
+    "assertion": "no peer implementation exceptions",
+    "result": "Passed"
+  },
+  {
+    "assertion": "three real N-CREATEs",
+    "result": "Passed"
+  },
+  {
+    "assertion": "explicit intermediate status on wire",
+    "result": "Passed"
+  },
+  {
+    "assertion": "omitted intermediate status absent",
+    "result": "Passed"
+  },
+  {
+    "assertion": "omitted update retains original state",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 2 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 3 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 4 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 5 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 6 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "intermediate request 9 has no end fields",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar request 2 does not wipe sequences",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar request 3 does not wipe sequences",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar request 5 does not wipe sequences",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar request 9 does not wipe sequences",
+    "result": "Passed"
+  },
+  {
+    "assertion": "first sequence has two acquired references",
+    "result": "Passed"
+  },
+  {
+    "assertion": "scalar update preserves acquired references",
+    "result": "Passed"
+  },
+  {
+    "assertion": "full replacement retains three references",
+    "result": "Passed"
+  },
+  {
+    "assertion": "complete status and scalar retained",
+    "result": "Passed"
+  },
+  {
+    "assertion": "complete end date/time present",
+    "result": "Passed"
+  },
+  {
+    "assertion": "same original UTF8 charset",
+    "result": "Passed"
+  },
+  {
+    "assertion": "UTF8 value survives decoding",
+    "result": "Passed"
+  },
+  {
+    "assertion": "unrelated patient name preserved",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinued has nonempty series without invented references",
+    "result": "Passed"
+  },
+  {
+    "assertion": "discontinued end date/time present",
+    "result": "Passed"
+  },
+  {
+    "assertion": "external charset retry has seed and two wire attempts",
+    "result": "Passed"
+  },
+  {
+    "assertion": "external seed then refused wrong charset then corrected success",
+    "result": "Passed"
+  },
+  {
+    "assertion": "wrong default declaration omitted on wire",
+    "result": "Passed"
+  },
+  {
+    "assertion": "wrong charset attempt preserves entire original dataset",
+    "result": "Passed"
+  },
+  {
+    "assertion": "corrected update explicitly carries original charset",
+    "result": "Passed"
+  },
+  {
+    "assertion": "corrected retry succeeds without process restart",
+    "result": "Passed"
+  },
+  {
+    "assertion": "retry retains unrelated Unicode original value",
+    "result": "Passed"
+  }
+]

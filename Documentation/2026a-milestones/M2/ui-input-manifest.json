@@ -1,0 +1,82 @@
+[
+  {
+    "name": "base.dcm",
+    "sha256": "ba693021f65343e6a250369fb43356a00ea42e3280349cfedc2d2a12c17b6398"
+  },
+  {
+    "name": "cli-workitem.json",
+    "sha256": "596f4b4a2dbbd9a12811283dd9441fdc56cdf8e245177c2fe40ddd4de55c59dd"
+  },
+  {
+    "name": "empty-required-meta.dcm",
+    "sha256": "911e212afd21a57c44f1c6a21ac975f2deb123b917d2816e5b2612ac133caaf4"
+  },
+  {
+    "name": "invalid_AS.dcm",
+    "sha256": "1874a849698cc1a776dbdf6d9a69eeafd105f723aaa65ba175dcfc533874086f"
+  },
+  {
+    "name": "invalid_DT.dcm",
+    "sha256": "80ef30c98da1b5f2d38324f92f61f16e3ae7505ef2580420f6db2f5fc5d81a6c"
+  },
+  {
+    "name": "invalid_VM.dcm",
+    "sha256": "a2c9f4beed29541449e7bbfbd6db55cb20b93ef41ece0279154cf11820d2e151"
+  },
+  {
+    "name": "invalid_calendar_date.dcm",
+    "sha256": "59469d4b5be0155558ed2804ed336d7000faac16b42de7ba1f22cae0777cc2fc"
+  },
+  {
+    "name": "japanese.dcm",
+    "sha256": "c855ab2dd0da17e22ecc295a06be97764d08eeaf3561c705b545e2f3180d8729"
+  },
+  {
+    "name": "latin1-patient.dcm",
+    "sha256": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7"
+  },
+  {
+    "name": "nested-invalid-AS.dcm",
+    "sha256": "0947cf432cbe8ea5c95df9a4894dcde493e2cbb1743ab98f0f4c289d801aa96d"
+  },
+  {
+    "name": "nested-invalid-date.dcm",
+    "sha256": "65244c54effa97ce439f14a4481f103704c0e723fda9c930e446864f562706a2"
+  },
+  {
+    "name": "odd_numeric_length.dcm",
+    "sha256": "f73e372b797852896555a3094af72b7552d9b74953cc2908ab3244be494e2fc2"
+  },
+  {
+    "name": "signed.dcm",
+    "sha256": "4a609c0b8caa34b140c3e0c4661cadb174264fb24ce116c10608b36c5de73634"
+  },
+  {
+    "name": "studio-workitem.json",
+    "sha256": "5039226c75a62b484718df699a6287976baa885cd3cf48ce9d5bc0df245dca40"
+  },
+  {
+    "name": "uid-changed.dcm",
+    "sha256": "343e1d8e982c3af5a7d78eb519eb9ce274aac3037d9aed1d440320b6eedcfc1a"
+  },
+  {
+    "name": "unicode-tag-edit.dcm",
+    "sha256": "92a7abf7413619349ef8e2f4e7b5bda808ac3ee602af2848a7deef2d7cdf4757"
+  },
+  {
+    "name": "valid-fraction-DT.dcm",
+    "sha256": "b3ea42638556a435afb563eb6d7271efa1ca1b4ae95e6cdddd7ebf5551c7e9b7"
+  },
+  {
+    "name": "valid-leap.dcm",
+    "sha256": "5fec44c3a1169556fcf76d7017e714d58e56517210eab89a2a76f019e6f2f7d7"
+  },
+  {
+    "name": "valid-partial-DT.dcm",
+    "sha256": "af8fb6be0c6ca36e69d3a0867eacb32697f0b6a931414bf0f4f37210ac60fd56"
+  },
+  {
+    "name": "wrong_VR.dcm",
+    "sha256": "4cec66d6e5a94715dea609c0e9a787bf5c9759a9ad8c470bc12524d74e740961"
+  }
+]

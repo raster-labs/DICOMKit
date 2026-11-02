@@ -1,0 +1,566 @@
+{
+  "passed": true,
+  "failure": null,
+  "cliCases": 20,
+  "workshopRequests": 18,
+  "comparisons": [
+    {
+      "name": "registry-add-default",
+      "kind": "exact",
+      "passed": true
+    },
+    {
+      "name": "registry-list-json",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "registry-duplicate-refused",
+      "kind": "error",
+      "passed": true
+    },
+    {
+      "name": "registry-remove",
+      "kind": "exact",
+      "passed": true
+    },
+    {
+      "name": "registry-missing-refused",
+      "kind": "error",
+      "passed": true
+    },
+    {
+      "name": "scu-status-json",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scu-send-row-window-annotations",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scu-send-raw12",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scu-send-rgb",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scu-job-json",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scu-dry-run-no-peer",
+      "kind": "exact",
+      "passed": true
+    },
+    {
+      "name": "scp-status-json",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scp-save-config",
+      "kind": "exact",
+      "passed": true
+    },
+    {
+      "name": "scp-reload-config",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scp-queues-json",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scp-simulate-three-formats",
+      "kind": "json",
+      "passed": true
+    },
+    {
+      "name": "scp-simulate-save-before-gather",
+      "kind": "exact",
+      "passed": true
+    },
+    {
+      "name": "scp-serve-quiet-stop",
+      "kind": "listener-ready-stop",
+      "passed": true
+    }
+  ],
+  "records": [
+    {
+      "name": "seed-retained-job",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59319",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--raw",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685190970.209505\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685190353.670258\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685192599.906592\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "registry-add-default-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "add-printer",
+        "--name",
+        "Synthetic; O'Neil 雪",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "11112",
+        "--called-ae",
+        "M6SCP",
+        "--calling-ae",
+        "M6WORKSHOP",
+        "--color",
+        "color",
+        "--default"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "",
+      "stderr": "✓ Printer 'Synthetic; O'Neil 雪' added successfully\n  Set as default printer\n\nUse with:\n  dicom-print send pacs://127.0.0.1:11112 image.dcm --aet M6WORKSHOP\n"
+    },
+    {
+      "name": "registry-list-json-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers",
+        "--format",
+        "json",
+        "-v"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "[\n  {\n    \"calledAETitle\" : \"M6SCP\",\n    \"callingAETitle\" : \"M6WORKSHOP\",\n    \"colorMode\" : \"color\",\n    \"host\" : \"127.0.0.1\",\n    \"isDefault\" : true,\n    \"name\" : \"Synthetic; O'Neil 雪\",\n    \"port\" : 11112\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "name": "registry-duplicate-refused-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "add-printer",
+        "--name",
+        "Synthetic; O'Neil 雪",
+        "--host",
+        "127.0.0.1",
+        "--called-ae",
+        "M6SCP"
+      ],
+      "exit": 64,
+      "expectedExit": 64,
+      "stdout": "",
+      "stderr": "Error: Printer with name 'Synthetic; O'Neil 雪' already exists\nUsage: dicom-print <subcommand>\n  See 'dicom-print --help' for more information.\n"
+    },
+    {
+      "name": "registry-remove-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "remove-printer",
+        "--name",
+        "Synthetic; O'Neil 雪"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "",
+      "stderr": "✓ Printer 'Synthetic; O'Neil 雪' removed successfully\n"
+    },
+    {
+      "name": "registry-missing-refused-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "remove-printer",
+        "--name",
+        "Synthetic; O'Neil 雪"
+      ],
+      "exit": 64,
+      "expectedExit": 64,
+      "stdout": "",
+      "stderr": "Error: Printer with name 'Synthetic; O'Neil 雪' not found\nUsage: dicom-print <subcommand>\n  See 'dicom-print --help' for more information.\n"
+    },
+    {
+      "name": "scu-status-json-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "status",
+        "pacs://127.0.0.1:59319",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--timeout",
+        "5",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"isNormal\" : true,\n  \"manufacturer\" : \"DICOMKit\",\n  \"Manufacturer\" : \"DICOMKit\",\n  \"ManufacturerModelName\" : \"DICOM Print Emulator\",\n  \"model\" : \"DICOM Print Emulator\",\n  \"name\" : \"DICOMKIT-PRINTER\",\n  \"PrinterName\" : \"DICOMKIT-PRINTER\",\n  \"PrinterStatus\" : \"NORMAL\",\n  \"PrinterStatusInfo\" : \"NORMAL\",\n  \"status\" : \"NORMAL\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scu-send-row-window-annotations-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59319",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--timeout",
+        "5",
+        "--layout",
+        "ROW\\1,3",
+        "--copies",
+        "2",
+        "--priority",
+        "MED",
+        "--medium",
+        "CLEAR FILM",
+        "--film-destination",
+        "bin-2",
+        "--window-center=-600",
+        "--window-width",
+        "1200",
+        "--presentation-lut",
+        "IDENTITY",
+        "--annotate",
+        " first; literal note ",
+        "--annotate",
+        "O'Neil second",
+        "--annotation-format",
+        "M6FMT",
+        "--check-status",
+        "--verify",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685302617.412674\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685302040.847832\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685303715.207868\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scu-send-raw12-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59319",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray12.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--timeout",
+        "5",
+        "--raw",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685328662.603509\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685328385.535447\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685329172.591806\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scu-send-rgb-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59319",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/rgb8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--timeout",
+        "5",
+        "--color",
+        "color",
+        "--template",
+        "single",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685353021.255877\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685352703.841986\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685357532.674254\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scu-job-json-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "job",
+        "pacs://127.0.0.1:59319",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6CLI",
+        "--timeout",
+        "5",
+        "--job-id",
+        "1.2.826.0.1.3680043.10.511.4.1792855685192599.906592",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"creationDate\" : \"2026-10-23T18:30:00Z\",\n  \"CreationDate\" : \"20261024\",\n  \"CreationTime\" : \"205805\",\n  \"ExecutionStatus\" : \"DONE\",\n  \"ExecutionStatusInfo\" : \"NORMAL\",\n  \"jobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855685192599.906592\",\n  \"status\" : \"DONE\",\n  \"statusInfo\" : \"NORMAL\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scu-dry-run-no-peer-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:1",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--check-status",
+        "--verify",
+        "--dry-run",
+        "-vr",
+        "--retries",
+        "2"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "",
+      "stderr": "DICOM Print Tool v1.4.5\n=======================\nServer: 127.0.0.1:1\nCalling AE Title: M6WORKSHOP\nCalled AE Title: ANY-SCP\nNumber of Copies: 1\nFilm Size ID: 14INX17IN\nFilm Orientation: PORTRAIT\nPrint Priority: MED\nMedium Type: PAPER\nFilm Destination: PROCESSOR\nMagnification Type: REPLICATE\nColor Mode: GRAYSCALE\nRetries: 2\nMode: DRY RUN (no files will be printed)\n\nFound 1 file(s) to print\n  [1] /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm\n\nDry run complete. Use without --dry-run to print files.\n"
+    },
+    {
+      "name": "scp-status-json-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/absent.json",
+        "--printer-name",
+        "Synthetic M6",
+        "--manufacturer",
+        "Synthetic",
+        "--model",
+        "M6",
+        "--printer-status",
+        "WARNING",
+        "--status-info",
+        "SUPPLY LOW",
+        "--allow-ae",
+        "M6WORKSHOP",
+        "--allow-ae",
+        "OTHER",
+        "--deny-ae",
+        "DENIED",
+        "--no-accept-color",
+        "--presentation-lut",
+        "--no-annotation-box",
+        "--no-trim-marks",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"isNormal\" : false,\n  \"manufacturer\" : \"Synthetic\",\n  \"Manufacturer\" : \"Synthetic\",\n  \"ManufacturerModelName\" : \"M6\",\n  \"model\" : \"M6\",\n  \"name\" : \"Synthetic M6\",\n  \"PrinterName\" : \"Synthetic M6\",\n  \"PrinterStatus\" : \"WARNING\",\n  \"PrinterStatusInfo\" : \"SUPPLY LOW\",\n  \"status\" : \"WARNING\",\n  \"statusInfo\" : \"SUPPLY LOW\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scp-save-config-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/printscp.json",
+        "--save-config",
+        "--printer-name",
+        "Saved M6",
+        "--output",
+        "none",
+        "--no-accept-color",
+        "--no-annotations",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/printscp.json\n",
+      "stderr": ""
+    },
+    {
+      "name": "scp-reload-config-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "status",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/printscp.json",
+        "--format",
+        "json",
+        "--verbose"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"acceptAnnotationBox\" : true,\n  \"acceptPresentationLUT\" : true,\n  \"aeTitle\" : \"DCMPRINT\",\n  \"allowedCallingAETitles\" : \"\",\n  \"annotationBoxesPerFilm\" : 6,\n  \"annotationEdge\" : \"bottom\",\n  \"associationIdleTimeoutSeconds\" : 300,\n  \"cellSpacingMillimeters\" : 2,\n  \"deniedCallingAETitles\" : \"\",\n  \"densityMapping\" : \"PAPER\",\n  \"deviceSerialNumber\" : \"1\",\n  \"dpi\" : 600,\n  \"drawAnnotations\" : false,\n  \"drawTrimMarks\" : true,\n  \"fileNamePattern\" : \"film-{timestamp}-{index}\",\n  \"imageFormat\" : \"png\",\n  \"manufacturer\" : \"DICOMKit\",\n  \"manufacturerModelName\" : \"DICOM Print Emulator\",\n  \"marginMillimeters\" : 5,\n  \"maxConcurrentAssociations\" : 10,\n  \"maxImageBoxPixelDimension\" : 10000,\n  \"maxImageBoxesPerFilm\" : 64,\n  \"maxPDUSize\" : 65536,\n  \"maximumPixelDimension\" : 12000,\n  \"outputDirectory\" : \"\",\n  \"paperQueue\" : \"\",\n  \"port\" : 11113,\n  \"printerName\" : \"Saved M6\",\n  \"printerStatus\" : \"NORMAL\",\n  \"printerStatusInfo\" : \"\",\n  \"pushPrintJobEvents\" : false,\n  \"retainedFilmLimit\" : 20,\n  \"retainedMemoryBudgetMB\" : 256,\n  \"saveImage\" : false,\n  \"savePDF\" : false,\n  \"sendToPaperQueue\" : false,\n  \"softwareVersion\" : \"1.0\",\n  \"supportedFilmSizeTokens\" : [\n\n  ],\n  \"supportedMediumTokens\" : [\n\n  ],\n  \"supportsColor\" : false\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scp-queues-json-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "queues",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"count\" : 2,\n  \"queues\" : [\n    \"_172_17_1_95\",\n    \"HP_LaserJet_Tank_MFP_2606sdw__9F9C9E_\"\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scp-simulate-three-formats-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "simulate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/absent.json",
+        "--layout",
+        "ROW\\1,3",
+        "--window-center=-600",
+        "--window-width",
+        "1200",
+        "--copies",
+        "2",
+        "--trim",
+        "--border-density",
+        "150",
+        "--empty-density",
+        "WHITE",
+        "--annotate",
+        " first; literal note ",
+        "--annotate",
+        "O'Neil second",
+        "--annotation-format",
+        "M6FMT",
+        "--presentation-lut",
+        "IDENTITY",
+        "--output",
+        "png",
+        "--output",
+        "tiff",
+        "--output",
+        "pdf",
+        "--output-dir",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/simulated",
+        "--dpi",
+        "25",
+        "--max-pixels",
+        "1024",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"annotations\" : [\n    \"1:  first; literal note \",\n    \"2: O'Neil second\"\n  ],\n  \"borderDensity\" : \"150\",\n  \"callingAETitle\" : \"SIMULATE\",\n  \"columns\" : 3,\n  \"densityMapping\" : \"PAPER\",\n  \"dpi\" : 36,\n  \"emptyImageDensity\" : \"WHITE\",\n  \"filledImageBoxCount\" : 1,\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792855685725857.595811\",\n  \"filmOrientation\" : \"PORTRAIT\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792855685725772.453804\",\n  \"filmSize\" : \"14INX17IN\",\n  \"imageBoxCount\" : 4,\n  \"imageDisplayFormat\" : \"ROW\\\\1,3\",\n  \"magnificationType\" : \"REPLICATE\",\n  \"mediumType\" : \"PAPER\",\n  \"numberOfCopies\" : 2,\n  \"presentationLUTShape\" : \"IDENTITY\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.3.1792855685725874.851959\",\n  \"receivedAt\" : \"2026-10-24T15:28:05Z\",\n  \"rows\" : 2,\n  \"sheetHeightMillimeters\" : 431.79999999999995,\n  \"sheetWidthMillimeters\" : 355.59999999999997,\n  \"skippedImageBoxes\" : [\n\n  ],\n  \"trim\" : \"YES\"\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "scp-simulate-save-before-gather-cli",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-printscp",
+        "simulate",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/deliberately-missing.dcm",
+        "--config",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/simulation-settings.json",
+        "--save-config",
+        "--output",
+        "none",
+        "--dpi",
+        "25",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "Wrote /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/workshop-qualified/cli/simulation-settings.json\n",
+      "stderr": ""
+    },
+    {
+      "name": "cli-to-workshop-listener",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:56231",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6VM",
+        "--raw",
+        "--format",
+        "json",
+        "--timeout",
+        "5"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855687942016.289118\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855687941671.254280\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855687942622.316870\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    },
+    {
+      "name": "cli-to-cli-receiver-control",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "send",
+        "pacs://127.0.0.1:59342",
+        "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm",
+        "--aet",
+        "M6WORKSHOP",
+        "--called-aet",
+        "M6VM",
+        "--raw",
+        "--format",
+        "json",
+        "--timeout",
+        "5"
+      ],
+      "exit": 0,
+      "expectedExit": 0,
+      "stdout": "{\n  \"filmBoxUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855688249160.889919\",\n  \"filmSessionUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855688248769.363927\",\n  \"printJobUID\" : \"1.2.826.0.1.3680043.10.511.4.1792855688249799.767608\",\n  \"success\" : true\n}\n",
+      "stderr": ""
+    }
+  ],
+  "fixtureSHA256": {
+    "gray8": "80333857bf657c0cf7158acc410ac897105741f40c546ca8989f3a9ac658506f",
+    "gray12": "a91b61e304fc09edcb6529b6ba8bb7b7885427a0be83f3b746edc476d0042fd3",
+    "rgb8": "abdaaf9aba46fa06da16881d38dab3c0bc2d1bd21554fd78ba17317ee0c05b9a"
+  },
+  "binarySHA256": {
+    "dicom-print": "702b931c4e88569bd6789f6dbaf41fb6f607f76f80d568ca7fd04a2dc5767c75",
+    "dicom-printscp": "85f220fc4149fccf50f33674a2cb18de6c748bd1a352fa6efa8fd8d5dfd26c7c"
+  },
+  "scope": "Actual CLI and ViewModel actions with synthetic same-library loopback. No packaged GUI or independent-peer claim. PNG/TIFF pixel comparison; PDF container creation only."
+}

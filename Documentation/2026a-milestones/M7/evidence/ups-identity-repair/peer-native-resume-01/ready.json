@@ -1,0 +1,20 @@
+{
+  "baseURLs": {
+    "native": "http://127.0.0.1:62708/native/dicom-web",
+    "cli": "http://127.0.0.1:62708/cli/dicom-web",
+    "cli-generated": "http://127.0.0.1:62708/cli-generated/dicom-web",
+    "cli-default": "http://127.0.0.1:62708/cli-default/dicom-web"
+  },
+  "port": 62708,
+  "pid": 72442,
+  "self_test": {
+    "passed": true,
+    "checks": 9,
+    "production_client_calls": 0,
+    "purpose": "Independent oracle self-check, not product acceptance"
+  },
+  "limits": [
+    "Identity/state/routing fixture only; not full UPS IOD conformance.",
+    "Synthetic Basic headers recorded; credentials are not enforced."
+  ]
+}

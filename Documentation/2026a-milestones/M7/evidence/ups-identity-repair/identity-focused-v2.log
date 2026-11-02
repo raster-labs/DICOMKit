@@ -1,0 +1,171 @@
+Building for debugging...
+[Computing dependencies]
+[1 / 56]
+[2 / 13] DICOMWebTests-product
+[13 / 24] DICOMWebTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:224:13: warning: initialization of immutable value 'connID' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+222 |         await pool.start()
+223 |         
+224 |         let connID = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'connID' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+225 |         
+226 |         let stats = await pool.statistics()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:259:13: warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+257 |         await pool.start()
+258 |         
+259 |         let conn1 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+260 |         let conn2 = await pool.acquireConnection(for: "example.com")
+261 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:260:13: warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+258 |         
+259 |         let conn1 = await pool.acquireConnection(for: "example.com")
+260 |         let conn2 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+261 |         
+262 |         let stats = await pool.statistics()
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:279:13: warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+277 |         await pool.start()
+278 |         
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn1' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:280:13: warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+278 |         
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+    |             `- warning: initialization of immutable value 'conn2' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+282 |         
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPConnectionPoolTests.swift:281:13: warning: initialization of immutable value 'conn3' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+279 |         let conn1 = await pool.acquireConnection(for: "example.com")
+280 |         let conn2 = await pool.acquireConnection(for: "example.com")
+281 |         let conn3 = await pool.acquireConnection(for: "example.com")  // Should create new connection
+    |             `- warning: initialization of immutable value 'conn3' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+282 |         
+283 |         let stats = await pool.statistics()
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/HTTPRequestPipelineTests.swift:140:13: warning: variable 'executorCalled' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+138 |         let request = HTTPClient.Request(url: testURL, method: .get)
+139 |         
+140 |         var executorCalled = false
+    |             `- warning: variable 'executorCalled' was never mutated; consider changing to 'let' constant [#VariableNeverMutated]
+141 |         let executor: @Sendable (HTTPClient.Request) async throws -> HTTPClient.Response = { req in
+142 |             return HTTPClient.Response(
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[17 / 23] DICOMWebTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/DICOMwebClientTests.swift:416:13: warning: initialization of immutable value 'data' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+414 |     @Test("Parse single part response as non-multipart")
+415 |     func testSinglePartResponse() throws {
+416 |         let data = Data([0x01, 0x02, 0x03, 0x04])
+    |             `- warning: initialization of immutable value 'data' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]
+417 |         let contentType = "application/dicom"
+418 |         
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+macro expansion #expect:1:79: warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:148:104: note: expanded code originates here
+146 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.processingFailure.rawValue == 0x0110)
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue,{ $0 == $1() },0x0112,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue"),"==",.__fromSyntaxNode("0x0112")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               `- warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+    +-------------------------------------------------------------------
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:148:64: warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+146 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.processingFailure.rawValue == 0x0110)
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+    |                                                                `- warning: 'noSuchObjectInstance' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+
+macro expansion #expect:1:79: warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:149:109: note: expanded code originates here
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue,{ $0 == $1() },0x0120,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue"),"==",.__fromSyntaxNode("0x0120")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               `- warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+    +-------------------------------------------------------------------
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:149:64: warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+147 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.duplicateSOPInstance.rawValue == 0x0111)
+148 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.noSuchObjectInstance.rawValue == 0x0112)
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+    |                                                                `- warning: 'mandatoryAttributeMissing' is deprecated: not a PS3.18 Table I.2-2 Failure Reason [#DeprecatedDeclaration]
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+
+macro expansion #expect:1:79: warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+`- /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:151:110: note: expanded code originates here
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+    |         |- note: in expansion of macro 'expect' here
+    |         `- note: in expansion of macro 'expect' here
+    +--- macro expansion #expect ---------------------------------------
+    |1 | Testing.__checkBinaryOperation(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue,{ $0 == $1() },0x0124,expression: .__fromBinaryOperation(.__fromSyntaxNode("STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue"),"==",.__fromSyntaxNode("0x0124")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+    |  |                                                                               |- warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+    |  |                                                                               `- note: use 'referencedTransferSyntaxNotSupported' instead
+    +-------------------------------------------------------------------
+152 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.outOfResources.rawValue == 0xA700)
+153 |     }
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/DICOMWebTests/STOWResponseTests.swift:151:64: warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+149 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.mandatoryAttributeMissing.rawValue == 0x0120)
+150 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.sopClassNotSupported.rawValue == 0x0122)
+151 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.transferSyntaxNotSupported.rawValue == 0x0124)
+    |                                                                |- warning: 'transferSyntaxNotSupported' is deprecated: PS3.18 Table I.2-2: C122 [#DeprecatedDeclaration]
+    |                                                                `- note: use 'referencedTransferSyntaxNotSupported' instead
+152 |         #expect(STOWResponse.InstanceFailure.FailureReasonCode.outOfResources.rawValue == 0xA700)
+153 |     }
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[19 / 23] DICOMWebTests-product
+[21 / 23] DICOMWebTests-product
+Build complete! (9.31 sec)
+◇ Test run started.
+↳ Testing Library Version: 2084
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite "UPS Create identity — PS3.18 2026a 11.4.1.1" started.
+◇ Test "Collection identity is retained; generation occurs only for genuine absence" started.
+◇ Test "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+◇ Test "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test "Collection duplicate error identifies the resolved UID" started.
+◇ Test case passing 1 argument facade → .combined to "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test case passing 1 argument facade → .ups to "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test case passing 1 argument facade → .ups to "Response without Location falls back to the actual supplied or generated UID" started.
+◇ Test case passing 1 argument facade → .ups to "Collection duplicate error identifies the resolved UID" started.
+◇ Test case passing 1 argument facade → .combined to "Invalid or conflicting identity is refused before either facade opens a connection" started.
+◇ Test case passing 1 argument facade → .ups to "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+◇ Test case passing 1 argument facade → .combined to "Collection duplicate error identifies the resolved UID" started.
+◇ Test case passing 1 argument facade → .combined to "Both public clients send the correct body/query identity and preserve unrelated attributes" started.
+✔ Test "Collection identity is retained; generation occurs only for genuine absence" passed after 0.001 seconds.
+✔ Test "Invalid or conflicting identity is refused before either facade opens a connection" with 2 test cases passed after 0.010 seconds.
+✔ Test "Response without Location falls back to the actual supplied or generated UID" with 2 test cases passed after 0.028 seconds.
+✘ Test "Collection duplicate error identifies the resolved UID" recorded an issue with 1 argument facade → .ups at UPSCreateIdentityTests.swift:126:6: Caught error: .conflict(message: Optional(""))
+✘ Test "Collection duplicate error identifies the resolved UID" recorded an issue with 1 argument facade → .combined at UPSCreateIdentityTests.swift:126:6: Caught error: .conflict(message: Optional(""))
+✘ Test "Collection duplicate error identifies the resolved UID" with 2 test cases failed after 0.028 seconds with 2 issues.
+✔ Test "Both public clients send the correct body/query identity and preserve unrelated attributes" with 2 test cases passed after 0.032 seconds.
+✘ Suite "UPS Create identity — PS3.18 2026a 11.4.1.1" failed after 0.032 seconds with 2 issues.
+✘ Test run with 5 tests in 1 suite failed after 0.032 seconds with 2 issues.
+Note: Some test targets reported failures:
+  - DICOMWebTests (Swift Testing)

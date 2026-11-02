@@ -1,0 +1,4 @@
+Error: Missing expected argument '<shell>'
+Help:  <shell>  Shell type: bash, zsh, or fish
+Usage: dicom-j2k completions <shell>
+  See 'dicom-j2k completions --help' for more information.

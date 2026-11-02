@@ -87,9 +87,13 @@ public struct ScriptParser {
                 if parts.count == 2 {
                     let varName = String(parts[0]).trimmingCharacters(in: .whitespaces)
                     let varValue = String(parts[1]).trimmingCharacters(in: .whitespaces)
-                    commands.append(.setVariable(varName, varValue))
-                    i += 1
-                    continue
+                    // An option value such as --tag=value belongs to the tool
+                    // command, not to a variable whose name contains spaces.
+                    if !varName.isEmpty, varName.rangeOfCharacter(from: .whitespacesAndNewlines) == nil {
+                        commands.append(.setVariable(varName, varValue))
+                        i += 1
+                        continue
+                    }
                 }
             }
 
@@ -168,6 +172,20 @@ public struct ScriptParser {
             if blockLine.isEmpty || blockLine.hasPrefix("#") {
                 i += 1
                 continue
+            }
+
+            // Conditional bodies currently support individual tool commands.
+            // Do not treat a pipeline's later tools as arguments to its first
+            // tool, which would bypass validation even in an untaken branch.
+            var quote: Character?
+            for character in blockLine {
+                if let currentQuote = quote {
+                    if character == currentQuote { quote = nil }
+                } else if character == "\"" || character == "'" {
+                    quote = character
+                } else if character == "|" {
+                    throw ScriptError.parseError("Pipelines inside conditional blocks are not supported", i + 1)
+                }
             }
 
             let cmd = try parseToolCommand(line: blockLine)
@@ -273,6 +291,14 @@ public struct ScriptExecutor {
         let parser = ScriptParser()
         let commands = try parser.parse(content: content)
 
+        // A preview cannot prove that an unknown nested tool will run. Check
+        // command names before opening the log or invoking any runner. Keep
+        // live/custom runners unchanged, and do not reinterpret argument values
+        // as shell syntax in this command-name-only preflight.
+        if dryRun {
+            let issues = ScriptValidator().commandNameIssues(in: commands)
+            guard issues.isEmpty else { throw ScriptError.invalidCommand(issues.joined(separator: "; ")) }
+        }
         var logger = ScriptLogger(logPath: logPath, verbose: verbose, emit: log)
         logger.log("Starting script execution: \(scriptPath)")
         logger.log("Variables: \(variables)")
@@ -283,11 +309,11 @@ public struct ScriptExecutor {
             try executeCommand(command, context: &context)
         }
 
-        context.logger.log("Script execution completed successfully")
-
         if dryRun {
+            context.logger.log("Script preview completed successfully; no commands were executed")
             log("Dry run completed - no commands were actually executed")
         } else {
+            context.logger.log("Script execution completed successfully")
             log("Script execution completed successfully")
         }
     }
@@ -472,10 +498,31 @@ public struct ScriptExecutor {
 // MARK: - Script Validator
 
 public struct ScriptValidator {
+    /// Command names declared by the current package. Recognition does not
+    /// establish that an executable is installed or that its arguments are valid.
+    public static let knownTools: Set<String> = [
+        "dicom-3d", "dicom-ai", "dicom-anon", "dicom-archive", "dicom-compress",
+        "dicom-convert", "dicom-dcmdir", "dicom-diff", "dicom-dump", "dicom-echo",
+        "dicom-export", "dicom-gateway", "dicom-image", "dicom-info", "dicom-j2k",
+        "dicom-jpip", "dicom-json", "dicom-measure", "dicom-merge", "dicom-mpps",
+        "dicom-mwl", "dicom-pdf", "dicom-pixedit", "dicom-print", "dicom-printscp",
+        "dicom-qr", "dicom-query", "dicom-report", "dicom-retrieve", "dicom-script",
+        "dicom-send", "dicom-server", "dicom-split", "dicom-study", "dicom-tags",
+        "dicom-uid", "dicom-validate", "dicom-video", "dicom-viewer", "dicom-wado", "dicom-xml"
+    ]
+
     private let log: (String) -> Void
 
     public init(log: @escaping (String) -> Void = { _ in }) {
         self.log = log
+    }
+
+    /// Checks nested command names without applying shell/argument lint rules.
+    /// Useful before preparing a preview's output destination. This does not
+    /// execute commands or establish executable installation/option validity.
+    public func validateCommandNames(scriptPath: String) throws -> [String] {
+        let content = try String(contentsOfFile: scriptPath, encoding: .utf8)
+        return commandNameIssues(in: try ScriptParser().parse(content: content))
     }
 
     public func validate(scriptPath: String, verbose: Bool) throws -> [String] {
@@ -519,48 +566,49 @@ public struct ScriptValidator {
         return issues
     }
 
-    private func validateCommand(_ command: ScriptCommand, index: Int) -> [String] {
+    func commandNameIssues(in commands: [ScriptCommand]) -> [String] {
+        commands.enumerated().flatMap { validateCommand($0.element, index: $0.offset, toolNamesOnly: true) }
+    }
+
+    private func validateCommand(_ command: ScriptCommand, index: Int, toolNamesOnly: Bool = false) -> [String] {
         var issues: [String] = []
 
         switch command {
         case .toolCommand(let toolCmd):
-            let knownTools = [
-                "dicom-info", "dicom-convert", "dicom-validate", "dicom-anon",
-                "dicom-dump", "dicom-query", "dicom-send", "dicom-diff",
-                "dicom-retrieve", "dicom-split", "dicom-merge", "dicom-json",
-                "dicom-xml", "dicom-pdf", "dicom-image", "dicom-dcmdir",
-                "dicom-archive", "dicom-export", "dicom-qr", "dicom-wado",
-                "dicom-echo", "dicom-mwl", "dicom-mpps", "dicom-pixedit",
-                "dicom-tags", "dicom-uid", "dicom-compress", "dicom-study"
-            ]
-
-            if !knownTools.contains(toolCmd.tool) {
+            if toolCmd.tool == "dicom-cloud" {
+                issues.append("Command \(index + 1): DICOM tool 'dicom-cloud' is unavailable in this build")
+            } else if !Self.knownTools.contains(toolCmd.tool) {
                 issues.append("Command \(index + 1): Unknown DICOM tool '\(toolCmd.tool)'")
             }
 
         case .conditional(let condCmd):
-            if condCmd.condition.isEmpty {
+            if !toolNamesOnly && condCmd.condition.isEmpty {
                 issues.append("Command \(index + 1): Empty condition")
             }
 
             for (subIndex, subCmd) in condCmd.thenCommands.enumerated() {
-                let subIssues = validateCommand(subCmd, index: subIndex)
+                let subIssues = validateCommand(subCmd, index: subIndex, toolNamesOnly: toolNamesOnly)
                 issues.append(contentsOf: subIssues.map { "Command \(index + 1) (then): \($0)" })
             }
 
             if let elseCommands = condCmd.elseCommands {
                 for (subIndex, subCmd) in elseCommands.enumerated() {
-                    let subIssues = validateCommand(subCmd, index: subIndex)
+                    let subIssues = validateCommand(subCmd, index: subIndex, toolNamesOnly: toolNamesOnly)
                     issues.append(contentsOf: subIssues.map { "Command \(index + 1) (else): \($0)" })
                 }
             }
 
         case .pipeline(let pipeCmd):
-            if pipeCmd.commands.isEmpty {
+            if !toolNamesOnly && pipeCmd.commands.isEmpty {
                 issues.append("Command \(index + 1): Empty pipeline")
+            }
+            for (subIndex, tool) in pipeCmd.commands.enumerated() {
+                let subIssues = validateCommand(.toolCommand(tool), index: subIndex, toolNamesOnly: toolNamesOnly)
+                issues.append(contentsOf: subIssues.map { "Command \(index + 1) (pipeline): \($0)" })
             }
 
         case .setVariable(let name, let value):
+            if toolNamesOnly { break }
             if name.isEmpty {
                 issues.append("Command \(index + 1): Empty variable name")
             }

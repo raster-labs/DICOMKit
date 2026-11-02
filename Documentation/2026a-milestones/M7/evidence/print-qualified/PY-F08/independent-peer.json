@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "operation": "N_CREATE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": {
+        "20000010": {
+          "Value": [
+            1
+          ],
+          "vr": "IS"
+        },
+        "20000020": {
+          "Value": [
+            "MED"
+          ],
+          "vr": "CS"
+        },
+        "20000030": {
+          "Value": [
+            "PAPER"
+          ],
+          "vr": "CS"
+        },
+        "20000040": {
+          "Value": [
+            "PROCESSOR"
+          ],
+          "vr": "CS"
+        }
+      }
+    },
+    {
+      "operation": "N_DELETE",
+      "class": "1.2.840.10008.5.1.1.1",
+      "context": 1,
+      "dataset": null
+    }
+  ],
+  "event_acks": []
+}

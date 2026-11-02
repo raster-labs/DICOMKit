@@ -18,10 +18,17 @@ public actor PACSServer {
     private let logger: ServerLogger
     private var listener: NWListener?
     private var isRunning = false
+    // Remains true for the entire start() call, including its run loop/cleanup.
+    private var isStarting = false
+    private var currentRunID: UUID?
+    private var isStopping = false
+    private var stopRequested = false
+    private var stopWaiters: [CheckedContinuation<Void, Never>] = []
+    private var listenerFailure: String?
     private var activeSessions: [UUID: ServerSession] = [:]
     
     public init(configuration: ServerConfiguration) throws {
-        self.configuration = configuration
+        self.configuration = try configuration.validated()
         
         // Initialize storage manager
         self.storage = try StorageManager(dataDirectory: configuration.dataDirectory)
@@ -47,58 +54,64 @@ public actor PACSServer {
     
     /// Start the PACS server
     public func start() async throws {
-        guard !isRunning else {
-            throw ServerError.invalidConfiguration("Server is already running")
+        guard !isRunning, !isStarting, !isStopping else {
+            throw ServerError.invalidConfiguration("Server is already running or starting")
         }
-        
-        await logger.info("Starting DICOM server on port \(configuration.port)", context: "PACSServer")
-        await logger.info("AE Title: \(configuration.aeTitle)", context: "PACSServer")
-        
-        // Initialize database if configured
-        if let db = database {
-            try await db.initialize()
-        }
-        
-        // Create listener
-        let parameters = NWParameters.tcp
-        let port = NWEndpoint.Port(rawValue: configuration.port)!
-        
-        let listener = try NWListener(using: parameters, on: port)
-        self.listener = listener
-        
-        // Set up listener state handler
-        listener.stateUpdateHandler = { [weak self] state in
-            guard let self else { return }
-            Task {
-                await self.handleListenerState(state)
+        isStarting = true
+        defer { isStarting = false }
+        let runID = UUID()
+        currentRunID = runID
+        stopRequested = false
+        listenerFailure = nil
+        do {
+            await logger.info("Starting DICOM server on port \(configuration.port)", context: "PACSServer")
+            try await storage.acquireExclusiveAccess()
+            if let database {
+                try await database.initialize(storage: storage)
+                let count = await database.instanceCount
+                await logger.info("Filesystem reindex complete: \(count) instance(s)", context: "PACSServer")
+            } else {
+                // Validate existing files even when queries are explicitly disabled.
+                _ = try await storage.scanForIndex()
+                await logger.info("Index disabled (--database none); FIND/GET/MOVE unavailable", context: "PACSServer")
             }
-        }
-        
-        // Set up new connection handler
-        listener.newConnectionHandler = { [weak self] connection in
-            guard let self else { return }
-            Task {
-                await self.handleNewConnection(connection)
+            try Task.checkCancellation()
+            guard !stopRequested else { throw CancellationError() }
+            let listener = try NWListener(using: .tcp, on: NWEndpoint.Port(rawValue: configuration.port)!)
+            self.listener = listener
+            listener.stateUpdateHandler = { [weak self] state in
+                guard let self else { return }
+                Task { await self.handleListenerState(state, runID: runID) }
             }
-        }
-        
-        // Start listening
-        listener.start(queue: .global(qos: .userInitiated))
-        isRunning = true
-        
-        if configuration.verbose {
-            print("[PACSServer] Server started on port \(configuration.port)")
-        }
-        
-        // Wait for the server to stop
-        while isRunning {
-            try await Task.sleep(nanoseconds: 1_000_000_000) // Sleep for 1 second
+            listener.newConnectionHandler = { [weak self] connection in
+                guard let self else { connection.cancel(); return }
+                Task { await self.handleNewConnection(connection, runID: runID) }
+            }
+            isRunning = true
+            listener.start(queue: .global(qos: .userInitiated))
+            while isRunning { try await Task.sleep(nanoseconds: 100_000_000) }
+            if let listenerFailure { throw ServerError.invalidConfiguration(listenerFailure) }
+        } catch {
+            // Retain lifecycle ownership until cleanup finishes, so a later
+            // start cannot acquire a lock that this start then releases.
+            await stop()
+            await storage.releaseExclusiveAccess()
+            throw error
         }
     }
-    
+
     /// Stop the PACS server
     public func stop() async {
+        stopRequested = true
+        currentRunID = nil
+        if isStopping {
+            await withCheckedContinuation { stopWaiters.append($0) }
+            return
+        }
         guard isRunning else { return }
+        isStopping = true
+        isRunning = false
+        listener?.cancel()
         
         await logger.info("Stopping DICOM server", context: "PACSServer")
         
@@ -107,15 +120,20 @@ public actor PACSServer {
         }
         
         // Cancel all active sessions
-        for (_, session) in activeSessions {
-            await session.cancel()
-        }
+        let sessions = Array(activeSessions.values)
+        for session in sessions { await session.cancel() }
+        for session in sessions { await session.waitForPendingRequests() }
         activeSessions.removeAll()
         
         // Stop listener
         listener?.cancel()
         listener = nil
         isRunning = false
+        await storage.releaseExclusiveAccess()
+        isStopping = false
+        let waiters = stopWaiters
+        stopWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
         
         await logger.info("Server stopped", context: "PACSServer")
         await logger.flush()
@@ -130,9 +148,12 @@ public actor PACSServer {
         return await statistics.getSummary()
     }
     
-    private func handleListenerState(_ state: NWListener.State) {
+    private func handleListenerState(_ state: NWListener.State, runID: UUID) async {
+        guard currentRunID == runID else { return }
         switch state {
         case .ready:
+            print("✓ DICOM Server started successfully; listening on port \(configuration.port)")
+            print("Press Ctrl+C to stop the server")
             Task {
                 await logger.info("Listener ready", context: "PACSServer")
             }
@@ -140,13 +161,14 @@ public actor PACSServer {
                 print("[PACSServer] Listener ready")
             }
         case .failed(let error):
+            listenerFailure = "Listener failed: \(error)"
             Task {
                 await logger.error("Listener failed", error: error, context: "PACSServer")
             }
             if configuration.verbose {
                 print("[PACSServer] Listener failed: \(error)")
             }
-            Task { await self.stop() }
+            await stop()
         case .cancelled:
             Task {
                 await logger.info("Listener cancelled", context: "PACSServer")
@@ -159,7 +181,8 @@ public actor PACSServer {
         }
     }
     
-    private func handleNewConnection(_ connection: NWConnection) async {
+    private func handleNewConnection(_ connection: NWConnection, runID: UUID) async {
+        guard isRunning, currentRunID == runID else { connection.cancel(); return }
         let sessionId = UUID()
         
         await statistics.recordConnectionStart()
@@ -180,6 +203,14 @@ public actor PACSServer {
             return
         }
         
+        // stop() can run while the statistics/logging awaits above yield.
+        // Do not insert an untracked worker after shutdown took its snapshot.
+        guard isRunning, currentRunID == runID else {
+            connection.cancel()
+            await statistics.recordConnectionEnd()
+            return
+        }
+
         // Create and start session
         let session = ServerSession(
             id: sessionId,

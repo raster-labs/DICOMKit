@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 194, in case
+    try:body(d,run,record);record['status']='passed'
+        ^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 241, in <lambda>
+    case('forward-'+t[0]+'-'+inp,lambda d,run,rec,t=t,inp=inp:forward(d,run,rec,t,inp))
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 227, in forward
+    run([binary,p,'--output',output,'--transfer-syntax',token]);ds=pydicom.dcmread(output)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Scripts/verify_m7_codecs.py", line 193, in run
+    if proc.returncode!=0:raise CommandFailure(command,err.read_text(errors='replace'))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CommandFailure: Process failed: ['/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-convert', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/fixtures/gray8.dcm', '--output', '/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/codecs-qualified/forward-JPEG2000Part2LosslessOnly-gray8/encoded.dcm', '--transfer-syntax', 'JPEG2000Part2LosslessOnly']; ❌ Conversion failed
+Cannot convert Explicit VR Little Endian [1.2.840.10008.1.2.1] to JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only) [1.2.840.10008.1.2.4.92].
+Reason: JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only) (1.2.840.10008.1.2.4.92) encoding is not supported: the JPEG 2000 Part-2 multi-component transform cannot be inverted by the current decoder, so the resulting codestream would not decode correctly. Use JPEG 2000 Part 1 (lossless .90 / general .91) or HTJ2K (.201 / .202 / .203) instead.
+

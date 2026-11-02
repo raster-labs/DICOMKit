@@ -1,0 +1,4 @@
+Error: Missing expected argument '--name <name>'
+Help:  --name <name>  Printer name (identifier)
+Usage: dicom-print add-printer --name <name> --host <host> [--port <port>] --called-ae <called-ae> [--calling-ae <calling-ae>] [--color <color>] [--default]
+  See 'dicom-print add-printer --help' for more information.

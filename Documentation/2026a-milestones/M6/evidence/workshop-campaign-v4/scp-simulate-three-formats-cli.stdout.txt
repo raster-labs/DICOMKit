@@ -1,0 +1,32 @@
+{
+  "annotations" : [
+    "1:  first; literal note ",
+    "2: O'Neil second"
+  ],
+  "borderDensity" : "150",
+  "callingAETitle" : "SIMULATE",
+  "columns" : 3,
+  "densityMapping" : "PAPER",
+  "dpi" : 36,
+  "emptyImageDensity" : "WHITE",
+  "filledImageBoxCount" : 1,
+  "filmBoxUID" : "1.2.826.0.1.3680043.10.511.4.3.1792853224470605.846011",
+  "filmOrientation" : "PORTRAIT",
+  "filmSessionUID" : "1.2.826.0.1.3680043.10.511.4.3.1792853224470523.147180",
+  "filmSize" : "14INX17IN",
+  "imageBoxCount" : 4,
+  "imageDisplayFormat" : "ROW\\1,3",
+  "magnificationType" : "REPLICATE",
+  "mediumType" : "PAPER",
+  "numberOfCopies" : 2,
+  "presentationLUTShape" : "IDENTITY",
+  "printJobUID" : "1.2.826.0.1.3680043.10.511.4.3.1792853224470625.952694",
+  "receivedAt" : "2026-10-24T14:47:04Z",
+  "rows" : 2,
+  "sheetHeightMillimeters" : 431.79999999999995,
+  "sheetWidthMillimeters" : 355.59999999999997,
+  "skippedImageBoxes" : [
+
+  ],
+  "trim" : "YES"
+}

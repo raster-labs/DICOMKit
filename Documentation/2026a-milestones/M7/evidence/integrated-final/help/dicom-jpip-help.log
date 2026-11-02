@@ -1,0 +1,48 @@
+OVERVIEW: JPIP (JPEG 2000 Interactive Protocol) streaming for DICOM imaging
+
+Interact with JPIP servers to progressively stream JPEG 2000 DICOM images.
+JPIP allows retrieving only the image region, resolution level, and quality
+layers needed, minimising bandwidth for large medical imaging datasets.
+
+NOTE: `fetch` currently exits with an error — JPIP retrieval is not
+implemented in the pinned J2KSwift JPIP module (11.0.2). `uri`, `serve`
+and `info` work. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.
+
+Transfer Syntaxes (PS3.6 Table A-1; PS3.5 A.6, A.7, A.11, A.12):
+  JPIP Referenced                1.2.840.10008.1.2.4.94
+  JPIP Referenced Deflate        1.2.840.10008.1.2.4.95
+  JPIP HTJ2K Referenced          1.2.840.10008.1.2.4.204
+  JPIP HTJ2K Referenced Deflate  1.2.840.10008.1.2.4.205
+
+Examples:
+  # Fetch full image from JPIP server
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001
+
+  # Fetch a region at low quality (fast preview)
+  dicom-jpip fetch http://pacs.example.com:8080 --image CT0001 \
+      --region 0,0,512,512 --layers 2
+
+  # Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced file
+  dicom-jpip uri study.dcm
+
+  # Start an embedded JPIP server serving local DICOM files
+  dicom-jpip serve --port 8080 --directory /path/to/dicom/files
+
+  # Get JPIP server statistics
+  dicom-jpip info http://pacs.example.com:8080
+
+USAGE: dicom-jpip <subcommand>
+
+OPTIONS:
+  --version               Show the version.
+  -h, --help              Show help information.
+
+SUBCOMMANDS:
+  fetch                   Fetch a DICOM image from a JPIP server (currently
+                          unavailable — see F1)
+  uri                     Print the Pixel Data Provider URL (0028,7FE0) of a
+                          JPIP-referenced DICOM file
+  serve                   Start an embedded JPIP server for local DICOM files
+  info (default)          Display information about a JPIP server or DICOM file
+
+  See 'dicom-jpip help <subcommand>' for detailed help.

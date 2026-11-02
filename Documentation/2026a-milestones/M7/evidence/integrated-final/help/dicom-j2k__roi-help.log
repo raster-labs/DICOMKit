@@ -1,0 +1,32 @@
+OVERVIEW: Extract a region of interest (ROI) frame into a new DICOM file
+
+Decodes the specified frame, crops to the given rectangle, and re-encodes
+the crop losslessly as a single-frame DICOM file in the original transfer
+syntax. The crop is a derived image (PS3.3 C.7.6.1.1.2): Image Type value 1
+becomes DERIVED, it gets a new SOP Instance UID, Rows / Columns, Number of
+Frames and Image Position (Patient) describe the crop, and Derivation
+Description names the region.
+
+--region x,y,width,height   Crop rectangle in pixels (origin at top-left).
+
+Examples:
+  dicom-j2k roi input.dcm --output roi.dcm --frame-number 1 --region
+0,0,256,256
+  dicom-j2k roi input.dcm --output roi.dcm --region 128,128,512,512
+
+USAGE: dicom-j2k roi <input> --output <output> [--frame-number <frame-number>] [--frame <frame>] --region <region> [--verbose]
+
+ARGUMENTS:
+  <input>                 Input DICOM file path
+
+OPTIONS:
+  -o, --output <output>   Output DICOM file path
+  --frame-number <frame-number>
+                          Frame number, numbered from 1 (PS3.3 Table 10-3;
+                          default 1)
+  --frame <frame>         deprecated: 0-based index; use --frame-number
+  --region <region>       Region of interest: x,y,width,height
+  -v, --verbose           Verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

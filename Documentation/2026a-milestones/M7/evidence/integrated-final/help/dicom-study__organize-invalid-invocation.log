@@ -1,0 +1,4 @@
+Error: Missing expected argument '<input>'
+Help:  <input>  Input directory containing DICOM files
+Usage: dicom-study organize <input> --output <output> [--pattern <pattern>] [--copy] [--verbose]
+  See 'dicom-study organize --help' for more information.

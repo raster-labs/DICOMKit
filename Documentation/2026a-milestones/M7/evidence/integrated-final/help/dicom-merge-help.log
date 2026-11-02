@@ -1,0 +1,92 @@
+OVERVIEW: Combine single-frame DICOM images into multi-frame files
+
+Combines single-frame DICOM images into multi-frame DICOM files. Enhanced
+and Legacy Converted targets (CT/MR/PET/XA/XRF) receive the Shared and
+Per-Frame Functional Groups Sequences factored by attribute equality, a
+Frame Content Macro (Stack ID, In-Stack Position Number) and a Multi-frame
+Dimension Module; Ultrasound Image Storage and Secondary Capture Image
+Storage sources can become Ultrasound Multi-frame Image Storage /
+Multi-frame Secondary Capture objects. Encapsulated (compressed) inputs
+keep their transfer syntax (one fragment per frame with a Basic Offset
+Table) or are decoded with --pixel-handling decode.
+
+--format values and their PS3.6 SOP Classes: enhanced-ct, enhanced-mr,
+enhanced-pet, enhanced-xa, enhanced-xrf = Enhanced CT / MR / PET / XA / XRF
+Image Storage; legacy-converted-ct, -mr, -pet = Legacy Converted Enhanced CT
+/ MR / PET Image Storage; us-multiframe = Ultrasound Multi-frame Image
+Storage; sc-multiframe = Multi-frame Single Bit / Grayscale Byte / Grayscale
+Word / True Color Secondary Capture Image Storage (by Bits Allocated and
+Samples per Pixel); auto = chosen from the source SOP Class; standard = the
+source SOP Class kept.
+
+Examples:
+  # Combine single frames into multi-frame (SOP Class chosen from the source)
+  dicom-merge frame_*.dcm --output multiframe.dcm --format auto
+
+  # Enhanced CT Image Storage, one Stack ID per Image Orientation (Patient)
+  dicom-merge ct_slices/*.dcm \
+    --output enhanced_ct.dcm \
+    --format enhanced-ct --make-stacks
+
+  # Legacy Converted Enhanced MR Image Storage (PS3.3 A.71) from an MR series
+  dicom-merge mr_series/ --output legacy_mr.dcm --format legacy-converted-mr
+
+  # Combine series into single study
+  dicom-merge series1/ series2/ \
+    --output combined_study/ \
+    --level study
+
+  # Custom frame ordering
+  dicom-merge slices/*.dcm \
+    --output volume.dcm \
+    --sort-by ImagePositionPatient \
+    --order ascending
+
+USAGE: dicom-merge [<options>] <inputs> ... --output <output>
+
+ARGUMENTS:
+  <inputs>                Input DICOM files or directories
+
+OPTIONS:
+  -o, --output <output>   Output file or directory path
+  --format <format>       Output format: standard, auto, enhanced-ct,
+                          enhanced-mr, enhanced-pet, enhanced-xa, enhanced-xrf,
+                          legacy-converted-ct, legacy-converted-mr,
+                          legacy-converted-pet, sc-multiframe, us-multiframe
+                          (default: standard) (values: standard, auto,
+                          enhanced-ct, enhanced-mr, enhanced-pet, enhanced-xa,
+                          enhanced-xrf, legacy-converted-ct,
+                          legacy-converted-mr, legacy-converted-pet,
+                          sc-multiframe, us-multiframe; default: standard)
+  --pixel-handling <pixel-handling>
+                          Encapsulated (compressed) inputs: preserve the
+                          transfer syntax (one fragment per frame), or decode
+                          to Explicit VR Little Endian (default: preserve)
+                          (values: preserve, decode; default: preserve)
+  --make-stacks           Assign Stack ID (0020,9056) per Image Orientation
+                          (Patient) (0020,0037)
+  --temporal-position     Derive Temporal Position Index (0020,9128) from
+                          Trigger Time (0018,1060), Temporal Position
+                          Identifier (0020,0100) or Acquisition Time (0008,0032)
+  --new-series            Mint a new Series Instance UID (0020,000E) for the
+                          merged object
+  --allow-any-source      Skip the source SOP Class check for Enhanced / Legacy
+                          Converted targets
+  --level <level>         Merge level: file (all inputs into one object),
+                          series (one per Series Instance UID), study (per
+                          Study Instance UID, then series) (default: file)
+                          (default: file)
+  --sort-by <sort-by>     Sort frames by a PS3.6 keyword: InstanceNumber
+                          (0020,0013), ImagePositionPatient (0020,0032;
+                          distance along the slice normal), AcquisitionTime
+                          (0008,0032), or none (default: InstanceNumber)
+                          (default: InstanceNumber)
+  --order <order>         Sort order: ascending, descending (default:
+                          ascending) (default: ascending)
+  --validate              Also require equal Study / Series Instance UID,
+                          Modality and Frame of Reference UID across inputs
+  -r, --recursive         Process directories recursively
+  -v, --verbose           Show verbose output
+  --version               Show the version.
+  -h, --help              Show help information.
+

@@ -1,0 +1,1 @@
+Error: Storage error: Reindex found duplicate SOP Instance UID 1.2.826.0.1.3680043.10.543.301.1.1: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/durability/duplicate-uid/a.dcm and /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m4/durability/duplicate-uid/b.dcm

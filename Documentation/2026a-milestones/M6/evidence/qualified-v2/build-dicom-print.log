@@ -1,0 +1,46 @@
+Building for debugging...
+[Computing dependencies]
+[Pre-planning 1 / 657]
+[Planning deferred tasks]
+[1 / 55] DICOMPrintCommandSupport
+[2 / 52]
+[4 / 14] DICOMNetwork
+[6 / 16] DICOMNetwork
+[12 / 22] DICOMPrintKit
+[22 / 33] DICOMPrintKit
+[23 / 33] DICOMPrintKit
+[30 / 43] DICOMNetwork
+[35 / 44] DICOMPrintKit
+[37 / 44] DICOMPrintKit
+[38 / 47]
+[38 / 47] DICOMNetwork
+[38 / 48] DICOMPrintCommandSupport
+[45 / 56] DICOMPrintCommandSupport
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Sources/DICOMNetwork/PrintSCP.swift:71:64: warning: 'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+  63 |         try await withTaskCancellationHandler {
+  64 |             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+  65 |                 queue.async {
+     |                             |- note: 'self' implicitly strongly captured here
+     |                             `- note: add 'self' as a capture list item to silence
+  66 |                     if let result = self.result {
+  67 |                         continuation.resume(with: result)
+     :
+  69 |                     }
+  70 |                     self.continuation = continuation
+  71 |                     let timeoutWork = DispatchWorkItem { [weak self] in
+     |                                                                |- warning: 'weak' ownership of capture 'self' differs from implicitly-captured strong reference in outer scope [#ImplicitStrongCapture]
+     |                                                                `- note: explicitly assign the capture list item to silence
+  72 |                         self?.finish(.failure(DICOMNetworkError.timeout))
+  73 |                     }
+
+[#ImplicitStrongCapture]: <https://docs.swift.org/compiler/documentation/diagnostics/implicit-strong-capture>
+[47 / 56] DICOMPrintCommandSupport
+[48 / 56] DICOMPrintCommandSupport
+[53 / 61] DICOMNetwork
+[55 / 61] DICOMPrintCommandSupport
+[56 / 61] DICOMPrintKit
+[58 / 63] dicom-print-product
+[60 / 63] DICOMPrintCommandSupport
+[63 / 65] dicom-print-product
+[65 / 65] dicom-print-product
+Build complete! (6.80 sec)

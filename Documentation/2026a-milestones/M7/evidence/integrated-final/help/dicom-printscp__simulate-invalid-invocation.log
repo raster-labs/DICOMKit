@@ -1,0 +1,4 @@
+Error: Missing expected argument '<paths> ...'
+Help:  <paths>  DICOM files or directories to compose
+Usage: dicom-printscp simulate [<options>] <paths> ...
+  See 'dicom-printscp simulate --help' for more information.

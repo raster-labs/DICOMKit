@@ -1,0 +1,308 @@
+Building for debugging...
+[Computing dependencies]
+[2 / 56]
+[5 / 17] dicom-server-product
+[9 / 21] dicom-server-product
+[18 / 26] dicom-server
+[18 / 26] dicom-server-product
+[19 / 26] dicom-server-product
+[21 / 26] dicom-serverTests-product
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/dicom-serverTests/ServerCancellationTestPeer.swift:165:91: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+163 |     private(set) var wireMessages: [WireMessage] = []
+164 |     init(port: UInt16) throws {
+165 |         association = Association(configuration: AssociationConfiguration(callingAETitle: try AETitle("M4SCU"),
+    |                                                                                           `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+166 |             calledAETitle: try AETitle("M4SCP"), host: "127.0.0.1", port: port,
+167 |             implementationClassUID: "2.25.400", timeout: 5))
+
+/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/DICOMKit-milestones/Tests/dicom-serverTests/ServerCancellationTestPeer.swift:166:28: warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+164 |     init(port: UInt16) throws {
+165 |         association = Association(configuration: AssociationConfiguration(callingAETitle: try AETitle("M4SCU"),
+166 |             calledAETitle: try AETitle("M4SCP"), host: "127.0.0.1", port: port,
+    |                            `- warning: no calls to throwing functions occur within 'try' expression [#UnnecessaryEffectMarker]
+167 |             implementationClassUID: "2.25.400", timeout: 5))
+168 |     }
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[23 / 28] dicom-serverTests-product
+[27 / 30] dicom-serverTests-product
+[29 / 33] dicom-serverTests-product
+[31 / 33] dicom-serverTests-product
+Build complete! (4.32 sec)
+Test Suite 'Selected tests' started at 2026-10-24 18:32:21.484.
+Test Suite 'dicom-serverTests.xctest' started at 2026-10-24 18:32:21.489.
+Test Suite 'DICOMServerStandardTests' started at 2026-10-24 18:32:21.489.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_allRequiredAndUniqueKeysSupported]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_allRequiredAndUniqueKeysSupported]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_responseCarriesRequestedKeysLevelAndRetrieveAE]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_responseCarriesRequestedKeysLevelAndRetrieveAE]' passed (0.059 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_seriesNumberAndInstanceNumberMatched]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_seriesNumberAndInstanceNumberMatched]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_unsupportedOptionalKeysReported]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D100_unsupportedOptionalKeysReported]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D101_levelValuesPerModel]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D101_levelValuesPerModel]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D101_missingLevelIsA900WithOffendingElement]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D101_missingLevelIsA900WithOffendingElement]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_decodeUsesNegotiatedTransferSyntax]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_decodeUsesNegotiatedTransferSyntax]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_pathComponentsCannotLeaveTheDataDirectory]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_pathComponentsCannotLeaveTheDataDirectory]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_storedFileHasPreambleDICMAndFileMetaInformation]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_storedFileHasPreambleDICMAndFileMetaInformation]' passed (0.004 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_storedFileRoundTripsForCGet]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D102_storedFileRoundTripsForCGet]' passed (0.003 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D94_aeTitlesValidatedAsVRAE]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D94_aeTitlesValidatedAsVRAE]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D94_implementationClassUIDUnderDICOMKitRoot]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D94_implementationClassUIDUnderDICOMKitRoot]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D95_incomingPDataCheckedAgainstOwnMaximum]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D95_incomingPDataCheckedAgainstOwnMaximum]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D95_outgoingFragmentsBoundedByPeerMaximumLength]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D95_outgoingFragmentsBoundedByPeerMaximumLength]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D96_unknownMoveDestinationResolvesToNil]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D96_unknownMoveDestinationResolvesToNil]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_finalStatusPerC4_3_3_1]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_finalStatusPerC4_3_3_1]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_roleSelectionAnsweredAndRequiredForCGetContexts]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_roleSelectionAnsweredAndRequiredForCGetContexts]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_subOperationCountsFromCStoreResponseStatus]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D97_subOperationCountsFromCStoreResponseStatus]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D98_listOfUIDUniversalAndRangeMatching]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D98_listOfUIDUniversalAndRangeMatching]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D98_wildcardOnlyForListedVRsAndCaseSensitiveExceptPN]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_D98_wildcardOnlyForListedVRsAndCaseSensitiveExceptPN]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_loopback_echoStoreFindGetMove]' started.
+Test Case '-[dicom_serverTests.DICOMServerStandardTests test_loopback_echoStoreFindGetMove]' passed (0.136 seconds).
+Test Suite 'DICOMServerStandardTests' passed at 2026-10-24 18:32:21.696.
+	 Executed 21 tests, with 0 failures (0 unexpected) in 0.207 (0.208) seconds
+Test Suite 'DICOMServerTests' started at 2026-10-24 18:32:21.697.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetRequest_Creation]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetRequest_Creation]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetResponse_Creation]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetResponse_Creation]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetResponse_PendingStatus]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CGetResponse_PendingStatus]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveRequest_MoveDestination]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveRequest_MoveDestination]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveResponse_Creation]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveResponse_Creation]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveResponse_WithFailures]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_CMoveResponse_WithFailures]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_Delete]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_Delete]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_IndexAndQuery]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_IndexAndQuery]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_InstanceLevelQuery]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_InstanceLevelQuery]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_InvalidConnectionString]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_InvalidConnectionString]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_PatientLevelQuery]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_PatientLevelQuery]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_PostgreSQLRefusedWithDurableMigrationGuidance]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_PostgreSQLRefusedWithDurableMigrationGuidance]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_InstanceLevel]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_InstanceLevel]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_NoMatches]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_NoMatches]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_PatientLevel]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_PatientLevel]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_SeriesLevel]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_SeriesLevel]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_StudyLevel]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_StudyLevel]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_Wildcard]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_QueryForRetrieve_Wildcard]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_SeriesLevelQuery]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_SeriesLevelQuery]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_SQLiteRefusedWithDurableMigrationGuidance]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_SQLiteRefusedWithDurableMigrationGuidance]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_WildcardQuery]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DatabaseManager_WildcardQuery]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_DICOMMetadata_Codable]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_DICOMMetadata_Codable]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_LogLevel_Comparison]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_LogLevel_Comparison]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_DefaultValues]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_DefaultValues]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_Initialization]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_Initialization]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_JSONEncoding]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_JSONEncoding]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_SaveAndLoad]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerConfiguration_SaveAndLoad]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerError_Description]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerError_Description]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_ContextLogging]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_ContextLogging]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_ErrorWithException]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_ErrorWithException]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_FileLogging]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_FileLogging]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_Initialization]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_Initialization]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_MinimumLevel_Filtering]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerLogger_MinimumLevel_Filtering]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_ConnectionTracking]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_ConnectionTracking]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_EchoOperations]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_EchoOperations]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_FindOperations]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_FindOperations]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_FormattedOutput]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_FormattedOutput]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_GetOperations]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_GetOperations]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_MoveOperations]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_MoveOperations]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_Reset]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_Reset]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_StoreOperations]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_StoreOperations]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_Uptime]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_ServerStatistics_Uptime]' passed (0.102 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StatisticsSummary_BytesFormatting]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StatisticsSummary_BytesFormatting]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_DirectoryStructure]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_DirectoryStructure]' passed (0.002 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_Initialization]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_Initialization]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_RetrieveNonExistent]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_RetrieveNonExistent]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_Statistics]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_Statistics]' passed (0.007 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_StoreAndRetrieve]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_StoreAndRetrieve]' passed (0.004 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_StoreDataSet]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageManager_StoreDataSet]' passed (0.002 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageStatistics_SizeConversion]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageStatistics_SizeConversion]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageStatistics_ZeroSize]' started.
+Test Case '-[dicom_serverTests.DICOMServerTests test_StorageStatistics_ZeroSize]' passed (0.000 seconds).
+Test Suite 'DICOMServerTests' passed at 2026-10-24 18:32:21.827.
+	 Executed 51 tests, with 0 failures (0 unexpected) in 0.129 (0.131) seconds
+Test Suite 'M4DurabilityTests' started at 2026-10-24 18:32:21.827.
+Test Case '-[dicom_serverTests.M4DurabilityTests testCommandDatasetIdentityMismatchIsNeverPublished]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testCommandDatasetIdentityMismatchIsNeverPublished]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testCorruptAndUnreadableFilesPreventCompleteIndex]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testCorruptAndUnreadableFilesPreventCompleteIndex]' passed (0.005 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testDefaultAndExplicitBackendContracts]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testDefaultAndExplicitBackendContracts]' passed (0.014 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testDeflatedEnvelopeRetainsBytesAndRejectsTruncatedOrTrailingStream]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testDeflatedEnvelopeRetainsBytesAndRejectsTruncatedOrTrailingStream]' passed (0.007 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testDirectoryBecomingSymlinkAfterIndexIsRefused]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testDirectoryBecomingSymlinkAfterIndexIsRefused]' passed (0.004 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testDuplicateUIDPathsFailDeterministicallyWithoutPartialIndex]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testDuplicateUIDPathsFailDeterministicallyWithoutPartialIndex]' passed (0.003 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testEncapsulatedEnvelopeRetainsBytesAndRequiresCompleteDelimiter]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testEncapsulatedEnvelopeRetainsBytesAndRequiresCompleteDelimiter]' passed (0.002 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testEnvelopeRejectsDuplicateTagsAndDamagedSequenceItems]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testEnvelopeRejectsDuplicateTagsAndDamagedSequenceItems]' passed (0.000 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testExactRetransmissionIsIdempotentAndConflictPreservesOriginal]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testExactRetransmissionIsIdempotentAndConflictPreservesOriginal]' passed (0.004 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testExclusiveLockAndInterruptedTemporaryFiles]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testExclusiveLockAndInterruptedTemporaryFiles]' passed (0.001 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testFreshManagersReindexSameIdentityAndExactStoredBytes]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testFreshManagersReindexSameIdentityAndExactStoredBytes]' passed (0.003 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testMacOSTemporaryAliasUsesCanonicalRootWithoutWeakeningSymlinkRefusal]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testMacOSTemporaryAliasUsesCanonicalRootWithoutWeakeningSymlinkRefusal]' passed (0.003 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testMissingIndexedFileMakesFindAndRetrieveFailVisibly]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testMissingIndexedFileMakesFindAndRetrieveFailVisibly]' passed (0.002 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testNativeSyntaxesAndNestedSequenceEnvelopesRemainAccepted]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testNativeSyntaxesAndNestedSequenceEnvelopesRemainAccepted]' passed (0.007 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testServerConcurrentStopThenSameObjectRestartRetainsExclusiveOwnership]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testServerConcurrentStopThenSameObjectRestartRetainsExclusiveOwnership]' passed (0.613 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testSymlinkRootAndDescendantsRefusedWithoutOutsideTraversal]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testSymlinkRootAndDescendantsRefusedWithoutOutsideTraversal]' passed (0.004 seconds).
+Test Case '-[dicom_serverTests.M4DurabilityTests testUndefinedUNUsesImplicitLittleEndianItemsEvenInsideBigEndian]' started.
+Test Case '-[dicom_serverTests.M4DurabilityTests testUndefinedUNUsesImplicitLittleEndianItemsEvenInsideBigEndian]' passed (0.001 seconds).
+Test Suite 'M4DurabilityTests' passed at 2026-10-24 18:32:22.504.
+	 Executed 17 tests, with 0 failures (0 unexpected) in 0.675 (0.676) seconds
+Test Suite 'ServerCancellationTests' started at 2026-10-24 18:32:22.504.
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledGetDuringIncompleteStoreSendClosesAndDrainsWorker]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledGetDuringIncompleteStoreSendClosesAndDrainsWorker]' passed (0.123 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledGetWithSilentStoreResponseFinishesAndAllowsReuse]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledGetWithSilentStoreResponseFinishesAndAllowsReuse]' passed (0.130 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledMoveToSilentDestinationHasBoundedSettlementAndCleanup]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testCancelledMoveToSilentDestinationHasBoundedSettlementAndCleanup]' passed (0.133 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelAtCompletionRaceHasOneFinalResponse]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelAtCompletionRaceHasOneFinalResponse]' passed (0.023 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelBeforeFirstResultIncludingSamePDUMessages]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelBeforeFirstResultIncludingSamePDUMessages]' passed (0.014 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelMidStreamStopsAfterProcessedBoundary]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testFindCancelMidStreamStopsAfterProcessedBoundary]' passed (0.011 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testGetCancellationStillWaitsForActualStoreResponseAndAllowsReuse]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testGetCancellationStillWaitsForActualStoreResponseAndAllowsReuse]' passed (0.009 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testGetDisconnectResumesOutstandingStoreWaiter]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testGetDisconnectResumesOutstandingStoreWaiter]' passed (0.008 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveCancelBeforeFirstStoreReportsAllRemaining]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveCancelBeforeFirstStoreReportsAllRemaining]' passed (0.008 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveCancelDuringMixedStoreOutcomesPreservesCountersAndFailedUIDs]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveCancelDuringMixedStoreOutcomesPreservesCountersAndFailedUIDs]' passed (0.011 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveWrongIDIgnoredAndCancelAtCompletionPreservesAllCompleted]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testMoveWrongIDIgnoredAndCancelAtCompletionPreservesAllCompleted]' passed (0.011 seconds).
+Test Case '-[dicom_serverTests.ServerCancellationTests testWrongIDAndContextIgnoredAndLateCancelDoesNotPoisonReusedID]' started.
+Test Case '-[dicom_serverTests.ServerCancellationTests testWrongIDAndContextIgnoredAndLateCancelDoesNotPoisonReusedID]' passed (0.010 seconds).
+Test Suite 'ServerCancellationTests' passed at 2026-10-24 18:32:22.995.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.490 (0.491) seconds
+Test Suite 'dicom-serverTests.xctest' passed at 2026-10-24 18:32:22.995.
+	 Executed 101 tests, with 0 failures (0 unexpected) in 1.500 (1.506) seconds
+Test Suite 'Selected tests' passed at 2026-10-24 18:32:22.995.
+	 Executed 101 tests, with 0 failures (0 unexpected) in 1.500 (1.511) seconds
+2026-10-24T13:02:21.561Z [INFO] [PACSServer] Starting DICOM server on port 54573
+2026-10-24T13:02:21.562Z [INFO] [PACSServer] Filesystem reindex complete: 0 instance(s)
+✓ DICOM Server started successfully; listening on port 54573
+Press Ctrl+C to stop the server
+2026-10-24T13:02:21.564Z [INFO] [PACSServer] Listener ready
+2026-10-24T13:02:21.620Z [INFO] [PACSServer] Starting DICOM server on port 50984
+2026-10-24T13:02:21.621Z [INFO] [PACSServer] Filesystem reindex complete: 0 instance(s)
+✓ DICOM Server started successfully; listening on port 50984
+Press Ctrl+C to stop the server
+2026-10-24T13:02:21.622Z [INFO] [PACSServer] Listener ready
+2026-10-24T13:02:21.678Z [INFO] [ServerSession] C-STORE completed: 1.2.3.4.5.6.7
+2026-10-24T13:02:21.682Z [INFO] [ServerSession] C-FIND completed: 1 results
+2026-10-24T13:02:21.686Z [INFO] [ServerSession] C-GET complete: 1 completed, 0 warning, 0 failed
+2026-10-24T13:02:21.693Z [INFO] [ServerSession] C-STORE completed: 1.2.3.4.5.6.7
+2026-10-24T13:02:21.694Z [INFO] [ServerSession] C-MOVE complete: 1 completed, 0 warning, 0 failed
+2026-10-24T13:02:21.694Z [INFO] [PACSServer] Stopping DICOM server
+2026-10-24T13:02:21.695Z [INFO] [PACSServer] Server stopped
+2026-10-24T13:02:21.695Z [INFO] [PACSServer] Stopping DICOM server
+2026-10-24T13:02:21.695Z [INFO] [PACSServer] Server stopped
+[INFO] [C-ECHO] Connection established
+[WARNING] [C-FIND] Query timeout
+[ERROR] [C-STORE] Store failed
+[ERROR] Operation failed: Test error description
+2026-10-24T13:02:21.704Z [INFO] Test message 1
+2026-10-24T13:02:21.704Z [WARNING] Test message 2
+2026-10-24T13:02:21.705Z [ERROR] Test message 3
+2026-10-24T13:02:21.705Z [DEBUG] Test debug message
+2026-10-24T13:02:21.705Z [INFO] Test info message
+2026-10-24T13:02:21.705Z [WARNING] Test warning message
+2026-10-24T13:02:21.706Z [ERROR] Test error message
+[WARNING] Warning message - should appear
+[ERROR] Error message - should appear
+2026-10-24T13:02:21.885Z [INFO] [PACSServer] Starting DICOM server on port 55406
+2026-10-24T13:02:21.886Z [INFO] [PACSServer] Filesystem reindex complete: 0 instance(s)
+✓ DICOM Server started successfully; listening on port 55406
+Press Ctrl+C to stop the server
+2026-10-24T13:02:21.887Z [INFO] [PACSServer] Listener ready
+2026-10-24T13:02:22.115Z [INFO] [PACSServer] Stopping DICOM server
+2026-10-24T13:02:22.116Z [INFO] [PACSServer] Server stopped
+2026-10-24T13:02:22.189Z [INFO] [PACSServer] Starting DICOM server on port 55406
+2026-10-24T13:02:22.190Z [INFO] [PACSServer] Filesystem reindex complete: 0 instance(s)
+✓ DICOM Server started successfully; listening on port 55406
+Press Ctrl+C to stop the server
+2026-10-24T13:02:22.192Z [INFO] [PACSServer] Listener ready
+2026-10-24T13:02:22.426Z [INFO] [PACSServer] Stopping DICOM server
+2026-10-24T13:02:22.427Z [INFO] [PACSServer] Server stopped
+2026-10-24T13:02:22.750Z [INFO] [ServerSession] C-GET complete: 0 completed, 0 warning, 1 failed
+2026-10-24T13:02:22.884Z [INFO] [ServerSession] C-MOVE complete: 0 completed, 0 warning, 1 failed
+2026-10-24T13:02:22.908Z [INFO] [ServerSession] C-FIND completed: 5 results
+2026-10-24T13:02:22.925Z [INFO] [ServerSession] C-FIND completed: 5 results
+2026-10-24T13:02:22.936Z [INFO] [ServerSession] C-FIND completed: 5 results
+2026-10-24T13:02:22.945Z [INFO] [ServerSession] C-GET complete: 0 completed, 1 warning, 0 failed
+2026-10-24T13:02:22.962Z [INFO] [ServerSession] C-MOVE complete: 0 completed, 0 warning, 0 failed
+2026-10-24T13:02:22.972Z [INFO] [ServerSession] C-MOVE complete: 1 completed, 1 warning, 1 failed
+2026-10-24T13:02:22.983Z [INFO] [ServerSession] C-MOVE complete: 5 completed, 0 warning, 0 failed
+2026-10-24T13:02:22.991Z [INFO] [ServerSession] C-FIND completed: 5 results
+2026-10-24T13:02:22.992Z [INFO] [ServerSession] C-FIND completed: 5 results

@@ -1,0 +1,25 @@
+Test Suite 'M6PrintSCUCommandTests' passed at 2026-10-24 20:53:55.178.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.285 (0.286) seconds
+	 Executed 19 tests, with 0 failures (0 unexpected) in 0.285 (0.291) seconds
+Test Suite 'M6SCPCommandTests' passed at 2026-10-24 20:54:00.060.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.015 (0.015) seconds
+	 Executed 20 tests, with 0 failures (0 unexpected) in 1.850 (1.851) seconds
+	 Executed 20 tests, with 0 failures (0 unexpected) in 1.850 (1.857) seconds
+Test Suite 'M6PrintListenerStartupTests' passed at 2026-10-24 20:54:02.230.
+	 Executed 203 tests, with 0 failures (0 unexpected) in 0.024 (0.031) seconds
+	 Executed 409 tests, with 0 failures (0 unexpected) in 8.328 (8.348) seconds
+	 Executed 409 tests, with 0 failures (0 unexpected) in 8.328 (8.353) seconds
+Test Suite 'M6PrintSinkFailureTests' passed at 2026-10-24 20:54:19.061.
+	 Executed 379 tests, with 0 failures (0 unexpected) in 5.990 (6.007) seconds
+	 Executed 379 tests, with 0 failures (0 unexpected) in 5.990 (6.012) seconds
+✔ Test run with 84 tests in 9 suites passed after 0.036 seconds.
+Test Suite 'M6WorkshopExecutionTests' passed at 2026-10-24 20:54:23.120.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.395 (0.395) seconds
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 1.564 (1.565) seconds
+	 Executed 23 tests, with 1 test skipped and 0 failures (0 unexpected) in 1.564 (1.570) seconds
+......................................
+----------------------------------------------------------------------
+Ran 38 tests in 14.135s
+
+OK

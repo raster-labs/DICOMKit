@@ -1,0 +1,114 @@
+{
+  "passed": true,
+  "scenarios": 3,
+  "binary": "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+  "binary_sha256": "ad3ceb058361e2f800a9c3c76480d86fb3872d142ea17596ded3bfbaa106d7d3",
+  "records": [
+    {
+      "scenario": "absent",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "[\n\n]\n",
+      "stderr": ""
+    },
+    {
+      "scenario": "absent",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "No printers configured.\n\nAdd a printer with:\n  dicom-print add-printer --name radiology-printer \\\n      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP\n"
+    },
+    {
+      "scenario": "empty",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "[\n\n]\n",
+      "stderr": ""
+    },
+    {
+      "scenario": "empty",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "No printers configured.\n\nAdd a printer with:\n  dicom-print add-printer --name radiology-printer \\\n      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP\n"
+    },
+    {
+      "scenario": "last-removed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "add-printer",
+        "--name",
+        "M7-SYNTHETIC-LAST",
+        "--host",
+        "127.0.0.1",
+        "--called-ae",
+        "M7SYNTHETIC"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "\u2713 Printer 'M7-SYNTHETIC-LAST' added successfully\n\nUse with:\n  dicom-print send pacs://127.0.0.1:11112 image.dcm --aet YOUR_AE\n"
+    },
+    {
+      "scenario": "last-removed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "[\n  {\n    \"calledAETitle\" : \"M7SYNTHETIC\",\n    \"colorMode\" : \"grayscale\",\n    \"host\" : \"127.0.0.1\",\n    \"isDefault\" : false,\n    \"name\" : \"M7-SYNTHETIC-LAST\",\n    \"port\" : 11112\n  }\n]\n",
+      "stderr": ""
+    },
+    {
+      "scenario": "last-removed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "remove-printer",
+        "--name",
+        "M7-SYNTHETIC-LAST"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "\u2713 Printer 'M7-SYNTHETIC-LAST' removed successfully\n"
+    },
+    {
+      "scenario": "last-removed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers",
+        "--format",
+        "json"
+      ],
+      "exit": 0,
+      "stdout": "[\n\n]\n",
+      "stderr": ""
+    },
+    {
+      "scenario": "last-removed",
+      "argv": [
+        "/Volumes/DICOMKit-M1-build/spm/out/Products/Debug/dicom-print",
+        "list-printers"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "No printers configured.\n\nAdd a printer with:\n  dicom-print add-printer --name radiology-printer \\\n      --host 192.168.1.100 --port 11112 --called-ae PRINT_SCP\n"
+    }
+  ]
+}

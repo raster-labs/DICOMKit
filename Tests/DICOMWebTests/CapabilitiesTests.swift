@@ -31,7 +31,7 @@ final class CapabilitiesTests: XCTestCase {
         XCTAssertTrue(capabilities.services.delete)
         XCTAssertFalse(capabilities.services.rendered)
         XCTAssertFalse(capabilities.services.thumbnails)
-        XCTAssertTrue(capabilities.services.bulkdata)
+        XCTAssertFalse(capabilities.services.bulkdata)
     }
     
     func testMinimalCapabilities() {

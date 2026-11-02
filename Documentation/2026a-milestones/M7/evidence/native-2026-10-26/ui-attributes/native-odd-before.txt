@@ -1,0 +1,90 @@
+Window: "DICOM Studio", App: DICOM Studio.
+0 standard window DICOM Studio, ID: SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, Secondary Actions: Raise
+	1 split group SwiftUI.WindowGroup<DICOMStudio.MainView>-1-AppWindow-1, SidebarNavigationSplitView
+		2 scroll area
+			3 button Description: Imaging, Value: expanded
+			4 button DICOM File Library
+			5 button Image Viewer
+			6 button Description: DICOM Network, Value: collapsed
+			7 button Description: Data & Tools, Value: expanded
+			8 button DICOM Print – Printers and Job History
+			9 button Printer Emulator – Receives Print Jobs from any Print SCU
+			10 button (selected) CLI Tools Workshop
+			11 button Description: System, Value: collapsed
+			12 button Network Utility – General Network Diagnostics
+			13 button Application Settings
+		14 splitter (disabled, settable, float) 220
+		15 container
+			16 button Description: File Inspection, Help: Inspect, dump, tag-edit, and diff DICOM files
+			17 button (selected) Description: File Processing, Help: Convert, validate, anonymize, and compress DICOM files
+			18 button Description: File Organization, Help: Split, merge, create DICOMDIR, and archive files
+			19 button Description: Data Export, Help: Export to JSON, XML, PDF, images, and pixel editing
+			20 button Description: Network Operations, Help: Echo, query, send, retrieve, and DICOMweb operations
+			21 button Description: Automation, Help: Study workflows, UID tools, and scripting
+			22 button Description: Listener & Log, Help: Local SCP listener status and event log
+			23 button (selected) Description: dicom-convert, Help: Transfer syntax conversion and image export
+			24 button Description: dicom-validate, Help: DICOM conformance validation against IODs
+			25 button Description: dicom-anon, Help: Anonymize DICOM files following PS3.15 profiles
+			26 button Description: dicom-compress, Help: Compress and decompress DICOM pixel data
+			27 button Description: Toggle experience mode, Help: Toggle between Beginner and Advanced parameter sets
+			28 split group
+				29 container
+					30 scroll area Secondary Actions: Scroll Up, Scroll Down
+						31 unknown DICOM Convert. dicom-convert re-encodes DICOM files into a different transfer syntax, or exports their pixel data to a standard image format (PNG, JPEG, or TIFF). It supports single-file and bulk-directory conversion. For image export it can apply window/level values so output images are correctly windowed — useful for CT, MR, and X-ray reading applications. Conversions are handled natively using DICOMKit without any third-party dependencies.
+						32 text Parameters Input Input File/Directory
+						33 text field (settable) Description: Input File/Directory, Placeholder: Path to DICOM file or directory, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/odd-3x3-rle.dcm
+						34 button Description: Browse for Input File/Directory, Help: Opens a file picker dialog
+						35 text Path to DICOM file or directory Parameters Output Format --format
+						36 Output Format
+							37 radio button Description: dicom, Value: 1
+							38 radio button Description: png, Value: 0
+							39 radio button Description: jpeg, Value: 0
+							40 radio button Description: tiff, Value: 0
+						41 text Output format for image export: png, jpeg, tiff, dicom (default: dicom) Transfer Syntax --transfer-syntax
+						42 pop up button Description: Transfer Syntax, Value: ExplicitVRLittleEndian
+						43 text Target transfer syntax: ExplicitVRLittleEndian, ImplicitVRLittleEndian, ExplicitVRBigEndian, DEFLATE, JPEGBaseline, JPEGExtended, JPEGLossless, JPEGLosslessSV1, JPEG2000Lossy, JPEG2000Reversible, JPEG2000LosslessOnly, JPEG2000Part2Lossy, JPEG2000Part2Lossless, JPEG2000Part2LosslessOnly, HTJ2KLossy, HTJ2KReversible, HTJ2KLosslessOnly, HTJ2KRPCLLosslessOnly, JPEGLSLossless, JPEGLSNearLossless, JPEGXLLossy, JPEGXLReversible, JPEGXLLosslessOnly, JPEGXLRecompression, RLELossless. Also a Transfer Syntax UID or a  Output Output Path --output
+						44 text field (settable) Description: Output Path, Placeholder: Output file or directory path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm
+						45 button Description: Browse for Output Path, Help: Opens a file picker dialog
+						46 text Output file or directory path Options
+						47 checkbox Description: Strip Private Tags, Help: Shows additional flags for this tool, Value: 0
+						48 checkbox Description: Recursive, Help: Shows additional flags for this tool, Value: 0
+						49 checkbox Description: Validate Output, Help: Shows additional flags for this tool, Value: 0
+						50 checkbox Description: Force Parse, Help: Shows additional flags for this tool, Value: 0
+						51 disclosure triangle Description: Advanced options (4), Help: Shows additional flags for this tool, Value: on
+						52 scroll bar (settable, float) 0.6883116883116883
+							53 value indicator (settable, float) 0.6883116883116883
+							54 increment arrow button
+							55 decrement arrow button
+							56 increment page button
+							57 decrement page button
+					58 image (selected) Description: Ready, Help: Command is valid, ID: checkmark.circle.fill
+					59 button Description: Run command, Help: Runs the selected Workshop action
+				60 splitter (disabled, settable, float) 460
+				61 container
+					62 text Command Preview Valid $ Select a tool to build a command
+					63 button Description: Copy command, Help: Copies the command to the clipboard
+					64 text Console IDLE
+					65 button (disabled) Clear console output
+					66 image Description: Terminal Command Prompt, ID: terminal
+					67 text Console output will appear here History
+					68 button Clear
+					69 scroll area
+						70 text dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-validate dicom-convert dicom-convert dicom-convert dicom-convert
+	71 toolbar
+		72 button Description: Hide Sidebar, Secondary Actions: Increment, Decrement, Delete, Cancel
+		73 search text field (settable) Search features
+			74 button Search
+	75 close button
+	76 full screen button Help: this button also has an action to zoom the window, Secondary Actions: zoom the window
+	77 minimize button
+	78 text DICOM Studio
+79 menu bar
+	80 DICOMStudio
+	81 File
+	82 Edit
+	83 View
+	84 Image
+	85 Window
+	86 Help
+
+The focused UI element is 44 text field (settable) Description: Output Path, Placeholder: Output file or directory path, Value: /Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/attributes-viewer-output/native-odd.dcm

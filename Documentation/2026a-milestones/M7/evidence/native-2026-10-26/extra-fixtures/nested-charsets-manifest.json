@@ -1,0 +1,64 @@
+{
+  "fixture": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets.dcm",
+  "sha256": "e7888c77ec9dac5ccf7330e70f56e82209cc4e09b231256190d5c148378d2c48",
+  "size": 1010,
+  "source": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/integrated-final/m2/cli/fixtures/latin1-patient.dcm",
+  "source_sha256_before_and_after": "b09ae3248bd457a74ff27d6eb9b67bcfd3f3834ec640a4c2563b6840d6ec51e7",
+  "synthetic": true,
+  "status": "fixture prepared and independently checked; native/product execution not performed",
+  "scope": "Generic nested charset/data preservation control, not a complete SC IOD conformance fixture",
+  "generator": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested_charsets_fixture.py",
+  "pydicom_version": "3.0.1",
+  "expected_text_paths": {
+    "00100010": "Müller^Jörg",
+    "00400275[0]/00321032": "Müller^Jörg",
+    "00400275[0]/00321060": "  Héritage Café",
+    "00400275[0]/00400008[0]/00080104": "  Café Über",
+    "00400275[1]/00321032": "Renée^患者",
+    "00400275[1]/00321060": "  雪の検査",
+    "00400275[1]/00400008[0]/00080104": "  雪の診断",
+    "00400275[2]/00321032": "Yamada^Tarou=山田^太郎",
+    "00400275[2]/00321060": "  日本検査",
+    "00400275[2]/00400008[0]/00080104": "  日本コード",
+    "00081030": "  Nested charset source"
+  },
+  "source_scope_declarations": {
+    "ROOT": {
+      "local_declaration": "ISO_IR 100",
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[0]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 100"
+    },
+    "00400275[1]/": {
+      "local_declaration": "ISO_IR 192",
+      "effective_declaration": "ISO_IR 192"
+    },
+    "00400275[1]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "ISO_IR 192"
+    },
+    "00400275[2]/": {
+      "local_declaration": "\\ISO 2022 IR 87",
+      "effective_declaration": "\\ISO 2022 IR 87"
+    },
+    "00400275[2]/00400008[0]/": {
+      "local_declaration": null,
+      "effective_declaration": "\\ISO 2022 IR 87"
+    }
+  },
+  "edit": "StudyDescription=  Native nested text",
+  "edited_declaration_expectations": {
+    "ROOT": "ISO_IR 100",
+    "00400275[0]/": null,
+    "00400275[1]/": "ISO_IR 192",
+    "00400275[2]/": "ISO_IR 192"
+  },
+  "expected_after_edit": "All text preserved exactly; root Latin1 and inherited item stay Latin1. Existing explicit item overrides normalize to UTF8 with truthful declarations. Do not demand unchanged Japanese ISO2022 bytes after an edit.",
+  "wire_oracle": "/Users/raster/Documents/Codex/2026-10-24/we-have-a-project-in-users-3/work/m7/native-2026-10-26/extra-fixtures/nested-charsets-wire-oracle.json"
+}

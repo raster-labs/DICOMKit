@@ -1,0 +1,3 @@
+Error: Unknown option '--dicomkit-m7-invalid-option'
+Usage: dicom-ai registry <subcommand>
+  See 'dicom-ai registry --help' for more information.
