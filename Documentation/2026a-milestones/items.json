@@ -5551,5 +5551,15 @@
     },
     "main_merge_authorized": false,
     "pages_configuration": "Deployment deferred by user on 2026-10-30"
+  },
+  "video_study_datetime_followup": {
+    "date": "2026-11-03",
+    "scope": "Additional user-authorized follow-up; original 68 items unchanged",
+    "status": "Implemented; local verification passed; publication CI pending",
+    "report": "VIDEO_STUDY_DATETIME.md",
+    "source_base": "f8240927bf93efac5f1e1fa28823283edb517bd5",
+    "branch": "codex/dicom-2026a-milestones",
+    "prior_pr_233": "Merged by owner before this follow-up",
+    "agent_merge_authorized": false
   }
 }

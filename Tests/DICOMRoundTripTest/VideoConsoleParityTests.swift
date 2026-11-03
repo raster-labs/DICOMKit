@@ -35,6 +35,78 @@ private extension Data {
 
 final class VideoConsoleParityTests: XCTestCase {
 
+    func testStudyStartSurvivesEncodingWithoutUsingConversionClock() throws {
+        for (date, time, expectedTime) in [
+            ("20240229", "102030.123456", "102030.123456"),
+            ("20240229", "10", "10"),
+            ("20240229", "1020", "1020"),
+            ("20240229", "102030.1", "102030.100000")
+        ] {
+            let outcome = try VideoWorkflow.convert(
+                bitstream: h264MP4(), type: .photographic, typeWasExplicit: true,
+                metadata: .init(studyDate: date, studyTime: time, studyUID: "1.2.3.4"),
+                now: Date(timeIntervalSince1970: 0))
+            let ds = try DICOMFile.read(from: XCTUnwrap(outcome.data)).dataSet
+            XCTAssertEqual(ds[Tag(group: 0x0008, element: 0x0020)]?.vr, .DA)
+            XCTAssertEqual(ds[Tag(group: 0x0008, element: 0x0030)]?.vr, .TM)
+            XCTAssertEqual(ds[.studyDate]?.stringValue, date)
+            XCTAssertEqual(ds[.studyTime]?.stringValue, expectedTime)
+            XCTAssertNotEqual(ds[.contentDate]?.stringValue, date)
+        }
+    }
+
+    func testUnknownStudyStartValuesRemainPresentAndEmptyIndependently() throws {
+        for uid in [nil, "1.2.3.4"] as [String?] {
+            for (date, time) in [(nil, nil), ("20240229", nil), (nil, "1020")] as [(String?, String?)] {
+                let outcome = try VideoWorkflow.convert(
+                    bitstream: h264MP4(), type: .photographic, typeWasExplicit: true,
+                    metadata: .init(studyDate: date, studyTime: time, studyUID: uid))
+                let ds = try DICOMFile.read(from: XCTUnwrap(outcome.data)).dataSet
+                XCTAssertEqual(try XCTUnwrap(ds[.studyDate]).valueData.count, date == nil ? 0 : 8)
+                XCTAssertEqual(try XCTUnwrap(ds[.studyTime]).valueData.count, time == nil ? 0 : 4)
+                if let date { XCTAssertEqual(ds[.studyDate]?.stringValue, date) }
+                if let time { XCTAssertEqual(ds[.studyTime]?.stringValue, time) }
+            }
+        }
+    }
+
+    func testBatchKeepsStudyStartAcrossInstancesAndSeries() throws {
+        for mode in [VideoConsole.SeriesMode.single, .perFile] {
+            var written: [Data] = []
+            let result = VideoWorkflow.runBatch(
+                inputs: [URL(fileURLWithPath: "/a.mp4"), URL(fileURLWithPath: "/b.mp4")],
+                type: .photographic, typeWasExplicit: true, seriesMode: mode,
+                metadata: .init(studyDate: "20240229", studyTime: "102030.123456"),
+                now: Date(timeIntervalSince1970: 0), readFile: { _ in self.h264MP4() },
+                writeFile: { written.append(try XCTUnwrap($0.data)); return $0.outputName })
+            XCTAssertEqual(result.exitCode, .success)
+            XCTAssertEqual(written.count, 2)
+            for data in written {
+                let ds = try DICOMFile.read(from: data).dataSet
+                XCTAssertEqual(ds[.studyDate]?.stringValue, "20240229")
+                XCTAssertEqual(ds[.studyTime]?.stringValue, "102030.123456")
+            }
+        }
+    }
+
+    func testInvalidStudyStartRejectsBeforeDryRunOrBatchIO() throws {
+        for metadata in [VideoWorkflow.Metadata(studyDate: "20230229"), .init(studyTime: "240000")] {
+            for dryRun in [false, true] {
+                XCTAssertThrowsError(try VideoWorkflow.convert(
+                    bitstream: Data(), type: .photographic, typeWasExplicit: true,
+                    dryRun: dryRun, metadata: metadata)) {
+                    XCTAssertEqual(($0 as? VideoWorkflow.Failure)?.exitCode, .inputError)
+                }
+                let result = VideoWorkflow.runBatch(
+                    inputs: [URL(fileURLWithPath: "/unread.mp4")], type: .photographic,
+                    typeWasExplicit: true, dryRun: dryRun, metadata: metadata,
+                    readFile: { _ in XCTFail("Must reject before reading"); return nil },
+                    writeFile: { _ in XCTFail("Must reject before writing"); return "" })
+                XCTAssertEqual(result.exitCode, .inputError)
+            }
+        }
+    }
+
     // MARK: - Fixture Construction
 
     private func box(_ type: String, _ payload: Data) -> Data {

@@ -1,5 +1,14 @@
 # DICOM 2026a milestone status
 
+Updated 3 November 2026. **Video Study Date/Time follow-up implemented and locally
+verified:** user inputs now reach `(0008,0020)` DA and `(0008,0030)` TM through the
+CLI and Workshop. Omitted values are empty, not conversion timestamps. 124 focused
+Swift tests, 58 audit controls and 30 independent CLI/DCMTK checks pass. See
+[report and compatibility notes](VIDEO_STUDY_DATETIME.md). PR #233 has been merged
+by the owner; this follow-up remains on the same branch for a subsequent review.
+No merge is performed by this task. Publication-head CI is checked separately.
+The original ledger remains 49 completed / 19 deferred. Below are historical snapshots.
+
 Updated 2 November 2026 (R4). **Comprehensive CI and both instrumented Print
 Workshop runs passed.** Two earlier colour-print association timeouts remain
 recorded; their transport root cause is unconfirmed. Failure reporting is

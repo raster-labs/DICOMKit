@@ -7,7 +7,7 @@ log_dir="$(cd "$log_dir" && pwd)"
 common=(--disable-automatic-resolution -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays)
 if [[ -n "${DICOMKIT_VERIFY_SCRATCH:-}" ]]; then common+=(--scratch-path "$DICOMKIT_VERIFY_SCRATCH"); fi
 if [[ -n "${DICOMKIT_VERIFY_CACHE:-}" ]]; then common+=(--cache-path "$DICOMKIT_VERIFY_CACHE"); fi
-for product in dicom-anon dicom-script dicom-info dicom-qr dicom-server dicom-mwl; do
+for product in dicom-anon dicom-script dicom-info dicom-qr dicom-server dicom-mwl dicom-video; do
   swift build "${common[@]}" --product "$product" > "$log_dir/build-$product.log" 2>&1 || { tail -100 "$log_dir/build-$product.log"; exit 1; }
 done
 python3 -B Scripts/generate_m5_sr_precision_fixture.py --output-dir "$log_dir/sr-fixture"
@@ -21,8 +21,11 @@ run_tests() {
   grep -E 'Executed .* tests?|Test run with .* tests? .*passed' "$log" | tail -3
 }
 run_tests DICOMToolboxTests '.*' "Test Suite 'M5ToolboxContractTests' passed"
-run_tests DICOMStudioTests 'M5|DICOMValueParserTests|CLIWorkshopHelpersTests|NetworkToolWorkshopCLIParityTests|WorkshopShellArgumentSafetyTests' "Test Suite 'M5WorkshopContractTests' passed"
-run_tests DICOMRoundTripTests 'ScriptRoundTripTests' "Test Suite 'ScriptRoundTripTests' passed"
+run_tests DICOMStudioTests 'M5|DICOMValueParserTests|CLIWorkshopHelpersTests|NetworkToolWorkshopCLIParityTests|WorkshopShellArgumentSafetyTests|CLIWorkshopVideoTests|WorkshopVideoStudyDateTimeTests' "Test Suite 'M5WorkshopContractTests' passed"
+run_tests DICOMRoundTripTests 'ScriptRoundTripTests|VideoConsoleParityTests' "Test Suite 'ScriptRoundTripTests' passed"
+grep -F "Test Suite 'WorkshopVideoStudyDateTimeTests' passed" "$log_dir/DICOMStudioTests.log"
+grep -F "Test Suite 'VideoConsoleParityTests' passed" "$log_dir/DICOMRoundTripTests.log"
+run_tests DICOMKitTests 'VideoOptionConformanceTests|VideoAttributeTests' "Test Suite 'VideoOptionConformanceTests' passed"
 bin_dir="$(swift build "${common[@]}" --show-bin-path)"
 python3 -B Scripts/verify_m5_toolbox.py --bin-dir "$bin_dir" --output-dir "$log_dir/toolbox-cli" > "$log_dir/toolbox-process.log" 2>&1 || { tail -100 "$log_dir/toolbox-process.log"; exit 1; }
 cat "$log_dir/toolbox-process.log"

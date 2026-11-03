@@ -7,6 +7,8 @@ on:
       - 'Sources/DICOMStudio/**'
       - 'Sources/DICOMToolbox/**'
       - 'Sources/DICOMKit/Scripting/**'
+      - 'Sources/DICOMKit/Video/**'
+      - 'Sources/dicom-video/**'
       - 'Sources/DICOMKit/Anonymization/**'
       - 'Sources/DICOMCore/**'
       - 'Sources/dicom-anon/**'

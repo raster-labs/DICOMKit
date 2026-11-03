@@ -7,6 +7,32 @@ import DICOMKit
 /// dicom-video CLI, D269). The texts are the CLI's and must not drift (CLI parity).
 final class VideoOptionConformanceTests: XCTestCase {
 
+    func testStudyDateUsesStrictGregorianCalendar() {
+        for value in ["20240229", "20241130"] {
+            XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
+                metadata: .init(studyDate: value)).isEmpty, value)
+        }
+        for value in ["20230229", "20240431", "2024.02.29", "2024-02-29", "202402", " 20240229", "20240229 ", "２０２４０２２９", ""] {
+            let errors = VideoOptionConformance.violations(
+                type: .photographic, metadata: .init(studyDate: value), transferSyntax: nil)
+            XCTAssertEqual(errors.count, 1, value)
+            XCTAssertTrue(errors.first?.contains("(0008,0020)") == true, value)
+        }
+    }
+
+    func testStudyTimeUsesStrictTMIncludingPartialAndFractionalValues() {
+        for value in ["10", "1020", "102030", "102030.1", "102030.123456", "235960"] {
+            XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
+                metadata: .init(studyTime: value)).isEmpty, value)
+        }
+        for value in ["24", "1260", "126060", "102061", "10:20:30", "102030.", "102030.1234567", "102", "1020.1", " 102030", "102030 ", ""] {
+            let errors = VideoOptionConformance.violations(
+                type: .photographic, metadata: .init(studyTime: value), transferSyntax: nil)
+            XCTAssertEqual(errors.count, 1, value)
+            XCTAssertTrue(errors.first?.contains("(0008,0030)") == true, value)
+        }
+    }
+
     // MARK: - VideoOptionConformance
 
     func test_requiredModality_isTheA32ContentConstraint() {
