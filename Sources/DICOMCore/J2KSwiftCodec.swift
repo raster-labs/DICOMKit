@@ -56,6 +56,28 @@ public enum J2KSwiftEncodeMode: String, Sendable, CaseIterable, Identifiable {
 /// the foundation for HTJ2K and Part 2 expansion without masking upstream codec issues.
 /// NEMA-verified: 2026a, checked 2026-09-25 — JPEG 2000 / HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1); the lossless-only set (.90, .92, .201, .202) and the RPCL requirement for .202 match PS3.5 2026a A.4.4. One citation said A.4.6 (MPEG-4); corrected. The codec itself implements ISO/IEC 15444, outside DICOM.
 public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
+    /// Finite decode policy that does not construct or retain transfer-syntax Strings.
+    public enum DecodingSyntax: UInt8, Sendable {
+        /// Admit any JPEG 2000 Part 1 or HTJ2K codestream supported by this codec.
+        case any
+        /// Admit any HTJ2K (ISO/IEC 15444-15) codestream (`.201`, `.202`, `.203`).
+        case htj2kAny
+        /// JPEG 2000 Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.90`.
+        case jpeg2000Lossless
+        /// JPEG 2000 Image Compression — `1.2.840.10008.1.2.4.91`.
+        case jpeg2000
+        /// JPEG 2000 Part 2 Multi-component Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.92`.
+        case jpeg2000Part2Lossless
+        /// JPEG 2000 Part 2 Multi-component Image Compression — `1.2.840.10008.1.2.4.93`.
+        case jpeg2000Part2
+        /// High-Throughput JPEG 2000 Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.201`.
+        case htj2kLossless
+        /// High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.202`.
+        case htj2kRPCLLossless
+        /// High-Throughput JPEG 2000 Image Compression — `1.2.840.10008.1.2.4.203`.
+        case htj2kLossy
+    }
+
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,
         TransferSyntax.jpeg2000.uid,
@@ -79,6 +101,43 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: $0) == nil
     }
 
+    private enum SyntaxRestriction: Equatable, Sendable {
+        case any
+        case htj2kAny
+        case jpeg2000Lossless
+        case jpeg2000
+        case jpeg2000Part2Lossless
+        case jpeg2000Part2
+        case htj2kLossless
+        case htj2kRPCLLossless
+        case htj2kLossy
+        case unsupported
+
+        var isLosslessOnly: Bool {
+            switch self {
+            case .jpeg2000Lossless, .jpeg2000Part2Lossless, .htj2kLossless, .htj2kRPCLLossless:
+                return true
+            case .any, .htj2kAny, .jpeg2000, .jpeg2000Part2, .htj2kLossy, .unsupported:
+                return false
+            }
+        }
+
+        var requiresHTJ2KCAP: Bool? {
+            switch self {
+            case .htj2kAny, .htj2kLossless, .htj2kRPCLLossless, .htj2kLossy:
+                return true
+            case .jpeg2000Lossless, .jpeg2000:
+                return false
+            case .any, .jpeg2000Part2Lossless, .jpeg2000Part2, .unsupported:
+                return nil
+            }
+        }
+
+        var requiresRPCL: Bool {
+            self == .htj2kRPCLLossless
+        }
+    }
+
     private let encodingTransferSyntaxUID: String?
 
     /// Backend preference applied on **decode** (Phase 4). `nil` → auto (the size
@@ -94,6 +153,8 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
     /// the encoder's input, which the syntax promises. `nil` (the default)
     /// decodes any Part-1 / HTJ2K codestream.
     private let decodingTransferSyntaxUID: String?
+    private let syntaxRestriction: SyntaxRestriction
+    private let decodingLimits: PixelDecodeLimits
 
     /// Transfer syntaxes whose name promises exact reconstruction (PS3.5 A.4.4,
     /// A.4.6). A reversible 5/3 codestream that was rate-truncated is still
@@ -108,11 +169,48 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
     public init(
         encodingTransferSyntaxUID: String? = nil,
         decodeBackend: CodecBackend? = nil,
-        decodingTransferSyntaxUID: String? = nil
+        decodingTransferSyntaxUID: String? = nil,
+        decodingLimits: PixelDecodeLimits = .default
     ) {
         self.encodingTransferSyntaxUID = encodingTransferSyntaxUID
         self.decodeBackend = decodeBackend
         self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        switch decodingTransferSyntaxUID {
+        case nil: self.syntaxRestriction = .any
+        case TransferSyntax.jpeg2000Lossless.uid: self.syntaxRestriction = .jpeg2000Lossless
+        case TransferSyntax.jpeg2000.uid: self.syntaxRestriction = .jpeg2000
+        case TransferSyntax.jpeg2000Part2Lossless.uid: self.syntaxRestriction = .jpeg2000Part2Lossless
+        case TransferSyntax.jpeg2000Part2.uid: self.syntaxRestriction = .jpeg2000Part2
+        case TransferSyntax.htj2kLossless.uid: self.syntaxRestriction = .htj2kLossless
+        case TransferSyntax.htj2kRPCLLossless.uid: self.syntaxRestriction = .htj2kRPCLLossless
+        case TransferSyntax.htj2kLossy.uid: self.syntaxRestriction = .htj2kLossy
+        default: self.syntaxRestriction = .unsupported
+        }
+        self.decodingLimits = decodingLimits
+    }
+
+    /// Create the same decoder from finite scalar policy without initializing UID Strings.
+    public init(
+        encodingTransferSyntaxUID: String? = nil,
+        decodingSyntax: DecodingSyntax,
+        decodeBackend: CodecBackend? = nil,
+        decodingLimits: PixelDecodeLimits = .init()
+    ) {
+        self.encodingTransferSyntaxUID = encodingTransferSyntaxUID
+        self.decodeBackend = decodeBackend
+        self.decodingTransferSyntaxUID = nil
+        switch decodingSyntax {
+        case .any: self.syntaxRestriction = .any
+        case .htj2kAny: self.syntaxRestriction = .htj2kAny
+        case .jpeg2000Lossless: self.syntaxRestriction = .jpeg2000Lossless
+        case .jpeg2000: self.syntaxRestriction = .jpeg2000
+        case .jpeg2000Part2Lossless: self.syntaxRestriction = .jpeg2000Part2Lossless
+        case .jpeg2000Part2: self.syntaxRestriction = .jpeg2000Part2
+        case .htj2kLossless: self.syntaxRestriction = .htj2kLossless
+        case .htj2kRPCLLossless: self.syntaxRestriction = .htj2kRPCLLossless
+        case .htj2kLossy: self.syntaxRestriction = .htj2kLossy
+        }
+        self.decodingLimits = decodingLimits
     }
 
     /// The refusal for an irreversible codestream under a lossless-only syntax,
@@ -328,16 +426,452 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         guard !frameData.isEmpty else {
             throw DICOMError.parsingFailed("Empty JPEG 2000 data")
         }
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
 
         if let reason = Self.irreversibleWaveletRefusal(frameData: frameData, transferSyntaxUID: decodingTransferSyntaxUID) {
             throw DICOMError.parsingFailed(reason)
         }
+        if decodingTransferSyntaxUID == nil, syntaxRestriction.isLosslessOnly,
+           J2KCodestreamInspector.usesIrreversibleWavelet(in: frameData) {
+            throw DICOMError.parsingFailed(
+                "JPEG 2000 codestream selects the irreversible 9/7 wavelet under a lossless-only transfer syntax; refusing to decode inexact samples"
+            )
+        }
+
+        let resolvedData = try resolveAndValidateCodestream(frameData, descriptor: descriptor)
 
         #if canImport(J2KCore) && canImport(J2KCodec)
-        return try Self.decodeWithJ2KSwift(frameData, descriptor: descriptor, backend: decodeBackend)
+        return try Self.decodeWithJ2KSwift(resolvedData, descriptor: descriptor, backend: decodeBackend)
         #else
         throw DICOMError.unsupportedTransferSyntax("JPEG 2000 requires J2KSwift support in this build")
         #endif
+    }
+
+    public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> DecodedPixelFrame {
+        let decoded = try decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        return DecodedPixelFrame(
+            data: decoded,
+            descriptor: Self.outputDescriptor(for: descriptor),
+            sourceFrameIndex: frameIndex
+        )
+    }
+
+    private func validateCodestreamHeaderOutcome(
+        _ codestream: Data,
+        descriptor: PixelDataDescriptor
+    ) -> DICOMManagedFailure? {
+        guard let header = J2KCodestreamInspector.imageHeader(in: codestream) else {
+            return DICOMManagedFailure(.malformed, 402)
+        }
+        guard header.width == descriptor.columns, header.height == descriptor.rows else {
+            return DICOMManagedFailure(.codecResultMismatch, 406)
+        }
+        guard header.components.count == descriptor.samplesPerPixel else {
+            return DICOMManagedFailure(.codecResultMismatch, 407)
+        }
+        for component in header.components {
+            guard component.bitDepth == descriptor.bitsStored,
+                  component.isSigned == descriptor.isSigned else {
+                return DICOMManagedFailure(.codecResultMismatch, 408)
+            }
+        }
+        if !J2KRoutePlanner.part2MCTDecodeSupported,
+           J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream) {
+            return DICOMManagedFailure(.invalidDescriptor, 403)
+        }
+        if syntaxRestriction.isLosslessOnly,
+           J2KCodestreamInspector.usesIrreversibleWavelet(in: codestream) {
+            return DICOMManagedFailure(.invalidDescriptor, 404)
+        }
+        if let expectedCAP = syntaxRestriction.requiresHTJ2KCAP,
+           header.hasCAPMarker != expectedCAP {
+            return DICOMManagedFailure(.invalidDescriptor, 412)
+        }
+        if syntaxRestriction.requiresRPCL,
+           !J2KCodestreamInspector.htj2kRPCLViolations(
+               in: codestream, rows: descriptor.rows, columns: descriptor.columns
+           ).isEmpty {
+            return DICOMManagedFailure(.invalidDescriptor, 413)
+        }
+        return nil
+    }
+
+    private func resolveAndValidateCodestream(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor
+    ) throws -> Data {
+        guard syntaxRestriction != .unsupported else {
+            throw DICOMError.unsupportedTransferSyntax("Unsupported JPEG 2000 decoding transfer syntax")
+        }
+        let isBare = frameData.count >= 2
+            && frameData[frameData.startIndex] == 0xFF
+            && frameData[frameData.index(after: frameData.startIndex)] == 0x4F
+        let candidate: Data
+        if isBare,
+           frameData.count >= 4,
+           frameData.count % 2 == 0,
+           frameData[frameData.index(frameData.endIndex, offsetBy: -3)] == 0xFF,
+           frameData[frameData.index(frameData.endIndex, offsetBy: -2)] == 0xD9,
+           frameData[frameData.index(frameData.endIndex, offsetBy: -1)] == 0x00 {
+            candidate = frameData.dropLast()
+        } else {
+            candidate = frameData
+        }
+
+        if let failure = validateCodestreamHeaderOutcome(Data(candidate), descriptor: descriptor) {
+            if !isBare,
+               candidate.count == frameData.count,
+               frameData.count % 2 == 0,
+               frameData.last == 0x00 {
+                let unpadded = Data(frameData.dropLast())
+                if validateCodestreamHeaderOutcome(unpadded, descriptor: descriptor) == nil {
+                    return unpadded
+                }
+            }
+            if failure.operand1 == 403,
+               let reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: Data(candidate)) {
+                throw DICOMError.unsupportedTransferSyntax(reason)
+            }
+            throw DICOMError.parsingFailed("JPEG 2000 header validation failed (\(failure.code), \(failure.operand1))")
+        }
+        return Data(candidate)
+    }
+
+    // MARK: - Managed Budget-Accounted Decoding
+
+    /// Decode a JPEG 2000 / HTJ2K frame into explicitly admitted backing.
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        ).get()
+    }
+
+    /// Throwing compatibility adapter for an admitted worker; use the outcome overload inside qualified work.
+    @available(*, noasync, message: "Invoke on the synchronous worker owning the execution reservation")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, execution: execution, cancellation: cancellation
+        ).get()
+    }
+
+    /// Decode on the original admitted worker with scalar identity/refusal status.
+    @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        switch execution.validateOutcome(budget: budget) {
+        case .success: break
+        case .failure(let failure): return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        )
+    }
+
+    /// Decode a JPEG 2000 / HTJ2K frame using scalar outcomes and budget-owned `.staging` / `.decoded` backing.
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard frameData.isOwned(by: budget) else {
+            return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
+        }
+        let expectedBytes: Int
+        switch decodingLimits.validateManagedOutcome(
+            encodedByteCount: frameData.count,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        ) {
+        case .success(let value): expectedBytes = value
+        case .failure(let failure): return .failure(failure)
+        }
+        guard syntaxRestriction != .unsupported else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 400))
+        }
+        guard (descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3),
+              (descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16) else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 401))
+        }
+
+        #if canImport(J2KCore) && canImport(J2KCodec)
+        return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
+            guard let encodedBase = encoded.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  encoded.count >= 2 else {
+                return .failure(DICOMManagedFailure(.malformed, 402))
+            }
+
+            // Strip a single DICOM even-length fragment pad byte (0x00) after bare SOC...EOC.
+            let isBareCodestream = encodedBase[0] == 0xFF && encodedBase[1] == 0x4F
+            let initialCount: Int
+            if isBareCodestream,
+               encoded.count >= 4,
+               encoded.count % 2 == 0,
+               encodedBase[encoded.count - 3] == 0xFF,
+               encodedBase[encoded.count - 2] == 0xD9,
+               encodedBase[encoded.count - 1] == 0x00 {
+                initialCount = encoded.count - 1
+            } else {
+                initialCount = encoded.count
+            }
+
+            // Zero-copy pre-admission header validation (no heap Data copy before .staging admission).
+            var resolvedCount = initialCount
+            let initialView = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: encodedBase),
+                count: initialCount,
+                deallocator: .none
+            )
+            if let headerFailure = validateCodestreamHeaderOutcome(initialView, descriptor: descriptor) {
+                if !isBareCodestream,
+                   initialCount == encoded.count,
+                   encoded.count % 2 == 0,
+                   encodedBase[encoded.count - 1] == 0x00 {
+                    let unpaddedView = Data(
+                        bytesNoCopy: UnsafeMutableRawPointer(mutating: encodedBase),
+                        count: encoded.count - 1,
+                        deallocator: .none
+                    )
+                    if validateCodestreamHeaderOutcome(unpaddedView, descriptor: descriptor) == nil {
+                        resolvedCount = encoded.count - 1
+                    } else {
+                        return .failure(headerFailure)
+                    }
+                } else {
+                    return .failure(headerFailure)
+                }
+            }
+
+            let pixelCount = descriptor.rows * descriptor.columns
+            let useMetalBackend = (decodeBackend == .metal)
+            let api = useMetalBackend
+                ? J2KRoutePlanner.planDecode(backend: .metal, pixelCount: pixelCount)
+                : .cpu
+
+            let (stagingByteCount, stagingOverflow) = expectedBytes.addingReportingOverflow(resolvedCount)
+            guard !stagingOverflow, stagingByteCount > 0 else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 2))
+            }
+
+            let image: J2KImage
+            do {
+                let staging: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: stagingByteCount, budget: budget, resource: .staging) {
+                case .success(let value): staging = value
+                case .failure(let failure): return .failure(failure)
+                }
+                if let failure = cancellation.failure {
+                    staging.keepAlive()
+                    return .failure(failure)
+                }
+
+                let codestreamData = Data(bytes: encodedBase, count: resolvedCount)
+                let decodeResult = Self.awaitJ2KManagedResult(cancellation: cancellation) {
+                    let decoder = J2KDecoder()
+                    switch api {
+                    case .cpu:   return try await decoder.decode(codestreamData)
+                    case .gpu:   return try await decoder.decodeGPU(codestreamData)
+                    case .gpuHT: return try await decoder.decodeWithGPUHT(codestreamData)
+                    }
+                }
+                staging.keepAlive()
+                switch decodeResult {
+                case .success(let decoded): image = decoded
+                case .failure(let failure): return .failure(failure)
+                }
+            }
+
+            guard image.width == descriptor.columns, image.height == descriptor.rows else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch, 406))
+            }
+            guard image.components.count == descriptor.samplesPerPixel else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch, 407))
+            }
+
+            let bytesPerSample = descriptor.bytesPerSample
+            let widen8To16 = (bytesPerSample == 2 && descriptor.bitsStored <= 8)
+            let expectedRawComponentBytes = widen8To16 ? pixelCount : (pixelCount * bytesPerSample)
+            let expectedComponentByteCount = pixelCount * bytesPerSample
+            for component in image.components {
+                guard component.bitDepth == descriptor.bitsStored,
+                      component.signed == descriptor.isSigned else {
+                    return .failure(DICOMManagedFailure(.codecResultMismatch, 408))
+                }
+                guard component.data.count == expectedRawComponentBytes else {
+                    return .failure(DICOMManagedFailure(.codecResultMismatch, 409))
+                }
+            }
+
+            let bytes: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: expectedBytes, budget: budget, resource: .decoded) {
+            case .success(let value): bytes = value
+            case .failure(let failure): return .failure(failure)
+            }
+            if let failure = cancellation.failure { return .failure(failure) }
+            guard let dstBase = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch, 410))
+            }
+
+            let isSigned8In16 = widen8To16 && descriptor.isSigned
+            if descriptor.samplesPerPixel == 1 {
+                let copyFailure: DICOMManagedFailure? = image.components[0].data.withUnsafeBytes { raw0 in
+                    guard let src0 = raw0.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                        return DICOMManagedFailure(.codecResultMismatch, 410)
+                    }
+                    if bytesPerSample == 1 {
+                        dstBase.update(from: src0, count: expectedComponentByteCount)
+                    } else if widen8To16 {
+                        for p in 0..<pixelCount {
+                            if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                            let u = src0[p]
+                            dstBase[p * 2] = u
+                            dstBase[p * 2 + 1] = (isSigned8In16 && (u & 0x80) != 0) ? 0xFF : 0x00
+                        }
+                    } else {
+                        for p in 0..<pixelCount {
+                            if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                            dstBase[p * 2] = src0[p * 2 + 1]
+                            dstBase[p * 2 + 1] = src0[p * 2]
+                        }
+                    }
+                    return nil
+                }
+                bytes.keepAlive()
+                if let copyFailure { return .failure(copyFailure) }
+            } else if descriptor.planarConfiguration == 1 {
+                for c in 0..<3 {
+                    let dstPlane = dstBase.advanced(by: c * expectedComponentByteCount)
+                    let copyFailure: DICOMManagedFailure? = image.components[c].data.withUnsafeBytes { rawC in
+                        guard let srcC = rawC.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                            return DICOMManagedFailure(.codecResultMismatch, 410)
+                        }
+                        if bytesPerSample == 1 {
+                            dstPlane.update(from: srcC, count: expectedComponentByteCount)
+                        } else if widen8To16 {
+                            for p in 0..<pixelCount {
+                                if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                let u = srcC[p]
+                                dstPlane[p * 2] = u
+                                dstPlane[p * 2 + 1] = (isSigned8In16 && (u & 0x80) != 0) ? 0xFF : 0x00
+                            }
+                        } else {
+                            for p in 0..<pixelCount {
+                                if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                dstPlane[p * 2] = srcC[p * 2 + 1]
+                                dstPlane[p * 2 + 1] = srcC[p * 2]
+                            }
+                        }
+                        return nil
+                    }
+                    bytes.keepAlive()
+                    if let copyFailure { return .failure(copyFailure) }
+                }
+            } else {
+                let copyFailure: DICOMManagedFailure? = image.components[0].data.withUnsafeBytes { rRaw in
+                    image.components[1].data.withUnsafeBytes { gRaw in
+                        image.components[2].data.withUnsafeBytes { bRaw in
+                            guard let rp = rRaw.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                                  let gp = gRaw.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                                  let bp = bRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                                return DICOMManagedFailure(.codecResultMismatch, 410)
+                            }
+                            if bytesPerSample == 1 {
+                                for p in 0..<pixelCount {
+                                    if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                    let dstOff = p * 3
+                                    dstBase[dstOff] = rp[p]
+                                    dstBase[dstOff + 1] = gp[p]
+                                    dstBase[dstOff + 2] = bp[p]
+                                }
+                            } else if widen8To16 {
+                                for p in 0..<pixelCount {
+                                    if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                    let rVal = rp[p], gVal = gp[p], bVal = bp[p]
+                                    let dstOff = p * 6
+                                    dstBase[dstOff] = rVal
+                                    dstBase[dstOff + 1] = (isSigned8In16 && (rVal & 0x80) != 0) ? 0xFF : 0x00
+                                    dstBase[dstOff + 2] = gVal
+                                    dstBase[dstOff + 3] = (isSigned8In16 && (gVal & 0x80) != 0) ? 0xFF : 0x00
+                                    dstBase[dstOff + 4] = bVal
+                                    dstBase[dstOff + 5] = (isSigned8In16 && (bVal & 0x80) != 0) ? 0xFF : 0x00
+                                }
+                            } else {
+                                for p in 0..<pixelCount {
+                                    if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                    let srcOff = p * 2
+                                    let dstOff = p * 6
+                                    dstBase[dstOff] = rp[srcOff + 1]
+                                    dstBase[dstOff + 1] = rp[srcOff]
+                                    dstBase[dstOff + 2] = gp[srcOff + 1]
+                                    dstBase[dstOff + 3] = gp[srcOff]
+                                    dstBase[dstOff + 4] = bp[srcOff + 1]
+                                    dstBase[dstOff + 5] = bp[srcOff]
+                                }
+                            }
+                            return nil
+                        }
+                    }
+                }
+                bytes.keepAlive()
+                if let copyFailure { return .failure(copyFailure) }
+            }
+
+            if let failure = cancellation.failure { return .failure(failure) }
+            return .success(ManagedDecodedPixelFrame(
+                data: bytes,
+                descriptor: Self.outputDescriptor(for: descriptor),
+                sourceFrameIndex: frameIndex
+            ))
+        }
+        #else
+        return .failure(DICOMManagedFailure(.invalidTransferSyntax, 411))
+        #endif
+    }
+
+    static func outputDescriptor(for descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
+        guard descriptor.samplesPerPixel == 3,
+              descriptor.photometricInterpretation == .ybrRCT
+                || descriptor.photometricInterpretation == .ybrICT else {
+            return descriptor
+        }
+        return PixelDataDescriptor(
+            rows: descriptor.rows,
+            columns: descriptor.columns,
+            numberOfFrames: descriptor.numberOfFrames,
+            bitsAllocated: descriptor.bitsAllocated,
+            bitsStored: descriptor.bitsStored,
+            highBit: descriptor.highBit,
+            isSigned: descriptor.isSigned,
+            samplesPerPixel: descriptor.samplesPerPixel,
+            photometricInterpretation: .rgb,
+            planarConfiguration: descriptor.planarConfiguration
+        )
     }
 
     public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
@@ -501,6 +1035,52 @@ private extension J2KSwiftCodec {
         }
 
         return try result.get()
+    }
+
+    /// Cancellation-polling synchronous bridge for managed J2K decode.
+    /// Waits for cooperative task unwind on cancellation so `.staging` remains live while the task exits.
+    static func awaitJ2KManagedResult<T: Sendable>(
+        cancellation: DICOMCancellation,
+        timeout: TimeInterval = 60,
+        _ operation: @escaping @Sendable () async throws -> T
+    ) -> Result<T, DICOMManagedFailure> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        let semaphore = DispatchSemaphore(value: 0)
+        let box = AsyncResultBox<T>()
+
+        let task = Task.detached(priority: .userInitiated) {
+            do {
+                box.result = .success(try await operation())
+            } catch {
+                box.result = .failure(error)
+            }
+            semaphore.signal()
+        }
+
+        let deadline = Date().addingTimeInterval(timeout)
+        while semaphore.wait(timeout: .now() + .milliseconds(5)) == .timedOut {
+            if let failure = cancellation.failure {
+                task.cancel()
+                _ = semaphore.wait(timeout: .now() + .seconds(10))
+                return .failure(failure)
+            }
+            if Date() >= deadline {
+                task.cancel()
+                _ = semaphore.wait(timeout: .now() + .seconds(5))
+                return .failure(DICOMManagedFailure(.codecFailure, 405, domain: 0x0400))
+            }
+        }
+
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard let result = box.result else {
+            return .failure(DICOMManagedFailure(.codecFailure, 405, domain: 0x0400))
+        }
+        switch result {
+        case .success(let value):
+            return .success(value)
+        case .failure:
+            return .failure(DICOMManagedFailure(.codecFailure, 405, domain: 0x0400))
+        }
     }
 
     static func makeEncodingConfiguration(
@@ -769,7 +1349,10 @@ private extension J2KSwiftCodec {
     /// codestream under an 8-bit descriptor) was silently truncated.
     static func packPixels(from image: J2KImage, descriptor: PixelDataDescriptor) throws -> Data {
         let bytesPerSample = descriptor.bytesPerSample
-        let expectedComponentByteCount = descriptor.rows * descriptor.columns * bytesPerSample
+        let pixelCount = descriptor.rows * descriptor.columns
+        let widen8To16 = (bytesPerSample == 2 && descriptor.bitsStored <= 8)
+        let expectedRawByteCount = widen8To16 ? pixelCount : (pixelCount * bytesPerSample)
+        let expectedComponentByteCount = pixelCount * bytesPerSample
 
         guard image.components.count == descriptor.samplesPerPixel else {
             throw DICOMError.parsingFailed(
@@ -780,22 +1363,40 @@ private extension J2KSwiftCodec {
         var components: [Data] = []
         components.reserveCapacity(descriptor.samplesPerPixel)
         for component in image.components {
-            guard component.bitDepth <= descriptor.bitsAllocated else {
+            guard component.bitDepth == descriptor.bitsStored,
+                  component.signed == descriptor.isSigned else {
                 throw DICOMError.parsingFailed(
-                    "Decoded JPEG 2000 component \(component.index) precision \(component.bitDepth) bits exceeds "
-                        + "Bits Allocated \(descriptor.bitsAllocated)"
+                    "Decoded JPEG 2000 component \(component.index) precision/signedness (\(component.bitDepth)-bit, signed=\(component.signed)) "
+                        + "does not match descriptor (\(descriptor.bitsStored)-bit, signed=\(descriptor.isSigned))"
                 )
             }
-            guard component.data.count == expectedComponentByteCount else {
+            guard component.data.count == expectedRawByteCount else {
                 throw DICOMError.parsingFailed(
                     "Decoded JPEG 2000 component \(component.index) has \(component.data.count) bytes, expected exactly "
-                        + "\(expectedComponentByteCount) for \(descriptor.columns)x\(descriptor.rows) at "
+                        + "\(expectedRawByteCount) for \(descriptor.columns)x\(descriptor.rows) at "
                         + "\(descriptor.bitsAllocated) bits allocated"
                 )
             }
-            var plane = component.data
-            swapBytesInPlaceIfNeeded(&plane, bytesPerSample: bytesPerSample)
-            components.append(plane)
+            if widen8To16 {
+                var widened = Data(count: expectedComponentByteCount)
+                let isSigned8 = descriptor.isSigned
+                component.data.withUnsafeBytes { srcRaw in
+                    widened.withUnsafeMutableBytes { dstRaw in
+                        let src = srcRaw.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                        let dst = dstRaw.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                        for p in 0..<pixelCount {
+                            let u = src[p]
+                            dst[p * 2] = u
+                            dst[p * 2 + 1] = (isSigned8 && (u & 0x80) != 0) ? 0xFF : 0x00
+                        }
+                    }
+                }
+                components.append(widened)
+            } else {
+                var plane = component.data
+                swapBytesInPlaceIfNeeded(&plane, bytesPerSample: bytesPerSample)
+                components.append(plane)
+            }
         }
 
         if descriptor.samplesPerPixel == 1 {

@@ -321,24 +321,32 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                     case .success(let value): workspace = value
                     case .failure(let failure): return .failure(failure)
                     }
+                    let inspectResult = decoder.inspectLosslessMonochromeCore(
+                        encoded, workspace: workspace.unsafeMutableBytes,
+                        configuration: plan.configuration, cancellation: codecCancellation
+                    )
                     let info: JLIDecoder.LosslessMonochromeInfo
-                    switch decoder.inspectLosslessMonochromeCore(encoded, workspace: workspace.unsafeMutableBytes,
-                        configuration: plan.configuration, cancellation: codecCancellation) {
+                    switch inspectResult {
                     case .success(let value): info = value
-                    case .failure(let failure): return .failure(Self.managedFailure(failure))
+                    case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
                     }
                     guard info.outputByteCount == plan.expectedBytes else {
+                        workspace.keepAlive()
                         return .failure(DICOMManagedFailure(.codecResultMismatch))
                     }
                     let bytes: DICOMByteBuffer
                     switch DICOMByteBuffer.admit(count: info.outputByteCount, budget: budget, resource: .decoded) {
                     case .success(let value): bytes = value
-                    case .failure(let failure): return .failure(failure)
+                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
                     }
-                    let decoded: JLIDecoder.LosslessMonochromeInfo
-                    switch decoder.decodeLosslessMonochromeCore(encoded, into: bytes.unsafeMutableBytes,
+                    let decodeResult = decoder.decodeLosslessMonochromeCore(
+                        encoded, into: bytes.unsafeMutableBytes,
                         workspace: workspace.unsafeMutableBytes, configuration: plan.configuration,
-                        cancellation: codecCancellation) {
+                        cancellation: codecCancellation
+                    )
+                    workspace.keepAlive()
+                    let decoded: JLIDecoder.LosslessMonochromeInfo
+                    switch decodeResult {
                     case .success(let value): decoded = value
                     case .failure(let failure): return .failure(Self.managedFailure(failure))
                     }
@@ -347,51 +355,230 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                     return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: descriptor,
                                                               sourceFrameIndex: frameIndex))
                 }
-                guard header.process == 0xc0, descriptor.samplesPerPixel == 3,
-                      descriptor.bitsAllocated == 8, descriptor.planarConfiguration == 0 else {
-                    return .failure(DICOMManagedFailure(.invalidDescriptor, 206))
-                }
-                let info: JLIDecoder.BaselineRGBInfo
-                do {
-                    let inspection: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: JLIDecoder.baselineHeaderWorkspaceByteCount,
+                if header.process == 0xc3 && descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 8 {
+                    let wideExpectedBytes = descriptor.rows * descriptor.columns * 2
+                    let wideConfig = JLIDecoderConfiguration(
+                        sourceColorModel: plan.configuration.sourceColorModel,
+                        maximumEncodedBytes: plan.configuration.maximumEncodedBytes,
+                        maximumPixels: plan.configuration.maximumPixels,
+                        maximumDecodedBytes: max(plan.configuration.maximumDecodedBytes, wideExpectedBytes)
+                    )
+                    let workspace: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: JLIDecoder.losslessMonochromeWorkspaceByteCount,
                                                  budget: budget, resource: .staging) {
-                    case .success(let value): inspection = value
+                    case .success(let value): workspace = value
                     case .failure(let failure): return .failure(failure)
                     }
-                    switch decoder.inspectBaselineRGBCore(encoded, headerWorkspace: inspection.unsafeMutableBytes,
-                        configuration: plan.configuration, cancellation: codecCancellation) {
+                    let inspectResult = decoder.inspectLosslessMonochromeCore(
+                        encoded, workspace: workspace.unsafeMutableBytes,
+                        configuration: wideConfig, cancellation: codecCancellation
+                    )
+                    let info: JLIDecoder.LosslessMonochromeInfo
+                    switch inspectResult {
                     case .success(let value): info = value
+                    case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
+                    }
+                    guard info.outputByteCount == wideExpectedBytes else {
+                        workspace.keepAlive()
+                        return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                    let wideStaging: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: wideExpectedBytes, budget: budget, resource: .staging) {
+                    case .success(let value): wideStaging = value
+                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                    }
+                    let decodeResult = decoder.decodeLosslessMonochromeCore(
+                        encoded, into: wideStaging.unsafeMutableBytes,
+                        workspace: workspace.unsafeMutableBytes, configuration: wideConfig,
+                        cancellation: codecCancellation
+                    )
+                    workspace.keepAlive()
+                    let decoded: JLIDecoder.LosslessMonochromeInfo
+                    switch decodeResult {
+                    case .success(let value): decoded = value
+                    case .failure(let failure): wideStaging.keepAlive(); return .failure(Self.managedFailure(failure))
+                    }
+                    guard decoded == info else {
+                        wideStaging.keepAlive()
+                        return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                    let bytes: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: plan.expectedBytes, budget: budget, resource: .decoded) {
+                    case .success(let value): bytes = value
+                    case .failure(let failure): wideStaging.keepAlive(); return .failure(failure)
+                    }
+                    if let failure = cancellation.failure { wideStaging.keepAlive(); return .failure(failure) }
+                    let maxSample = UInt16((1 << descriptor.bitsStored) - 1)
+                    let src16 = wideStaging.unsafeMutableBytes.bindMemory(to: UInt16.self)
+                    guard let dst8 = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                        wideStaging.keepAlive()
+                        return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                    for index in 0..<plan.expectedBytes {
+                        if (index & 0xFFFF) == 0, let failure = cancellation.failure {
+                            wideStaging.keepAlive()
+                            return .failure(failure)
+                        }
+                        let value = UInt16(littleEndian: src16[index])
+                        guard value <= maxSample else {
+                            wideStaging.keepAlive()
+                            return .failure(DICOMManagedFailure(.codecResultMismatch))
+                        }
+                        dst8[index] = UInt8(truncatingIfNeeded: value)
+                    }
+                    wideStaging.keepAlive()
+                    if let failure = cancellation.failure { return .failure(failure) }
+                    return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: descriptor,
+                                                              sourceFrameIndex: frameIndex))
+                }
+                if header.process == 0xc0 && descriptor.samplesPerPixel == 3
+                    && descriptor.bitsAllocated == 8 && descriptor.planarConfiguration == 0 {
+                    let info: JLIDecoder.BaselineRGBInfo
+                    do {
+                        let inspection: DICOMByteBuffer
+                        switch DICOMByteBuffer.admit(count: JLIDecoder.baselineHeaderWorkspaceByteCount,
+                                                     budget: budget, resource: .staging) {
+                        case .success(let value): inspection = value
+                        case .failure(let failure): return .failure(failure)
+                        }
+                        let inspectResult = decoder.inspectBaselineRGBCore(
+                            encoded, headerWorkspace: inspection.unsafeMutableBytes,
+                            configuration: plan.configuration, cancellation: codecCancellation
+                        )
+                        inspection.keepAlive()
+                        switch inspectResult {
+                        case .success(let value): info = value
+                        case .failure(let failure): return .failure(Self.managedFailure(failure))
+                        }
+                    }
+                    guard info.outputByteCount == plan.expectedBytes else {
+                        return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                    let workspace: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: info.workspaceByteCount, budget: budget, resource: .staging) {
+                    case .success(let value): workspace = value
+                    case .failure(let failure): return .failure(failure)
+                    }
+                    let bytes: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: info.outputByteCount, capacity: info.arenaByteCount,
+                                                 budget: budget, resource: .decoded) {
+                    case .success(let value): bytes = value
+                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                    }
+                    let decodeResult = decoder.decodeBaselineRGBCore(
+                        encoded, arena: bytes.unsafeMutableBytes,
+                        workspace: workspace.unsafeMutableBytes, configuration: plan.configuration,
+                        cancellation: codecCancellation
+                    )
+                    workspace.keepAlive()
+                    let decoded: JLIDecoder.BaselineRGBInfo
+                    switch decodeResult {
+                    case .success(let value): decoded = value
                     case .failure(let failure): return .failure(Self.managedFailure(failure))
                     }
+                    guard decoded == info else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
+                    if let failure = cancellation.failure { return .failure(failure) }
+                    let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
+                        numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
+                        bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
+                        samplesPerPixel: 3, photometricInterpretation: .rgb, planarConfiguration: 0)
+                    return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex))
                 }
-                guard info.outputByteCount == plan.expectedBytes else {
+
+                // Remaining validated JPEG profiles: SOF0 8-bit monochrome (.50),
+                // SOF1 8/12-bit Extended monochrome (.51), SOF3 3-sample lossless (.57/.70),
+                // and planar 3-sample SOF0/SOF1.
+                let basePlaneCount = max(plan.expectedBytes, descriptor.rows * descriptor.columns * descriptor.samplesPerPixel * 2)
+                let (stagingCount, stOverflow) = basePlaneCount.addingReportingOverflow(encoded.count)
+                guard !stOverflow, stagingCount > 0 else {
+                    return .failure(DICOMManagedFailure(.limitExceeded, 2))
+                }
+                let image: JLIImage
+                do {
+                    let staging: DICOMByteBuffer
+                    switch DICOMByteBuffer.admit(count: stagingCount, budget: budget, resource: .staging) {
+                    case .success(let value): staging = value
+                    case .failure(let failure): return .failure(failure)
+                    }
+                    if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+                    do {
+                        let encodedBytes = Array(encoded.bindMemory(to: UInt8.self))
+                        image = try decoder.decode(from: encodedBytes, configuration: plan.configuration)
+                    } catch {
+                        staging.keepAlive()
+                        return .failure(DICOMManagedFailure(.codecFailure, 207, domain: 0x0200))
+                    }
+                    staging.keepAlive()
+                }
+                guard image.width == descriptor.columns, image.height == descriptor.rows else {
                     return .failure(DICOMManagedFailure(.codecResultMismatch))
                 }
-                let workspace: DICOMByteBuffer
-                switch DICOMByteBuffer.admit(count: info.workspaceByteCount, budget: budget, resource: .staging) {
-                case .success(let value): workspace = value
-                case .failure(let failure): return .failure(failure)
+                let lossless = header.process == 0xc3
+                let outputPI: PhotometricInterpretation
+                if lossless {
+                    outputPI = descriptor.photometricInterpretation
+                } else {
+                    switch image.colorModel {
+                    case .rgb: outputPI = .rgb
+                    case .grayscale: outputPI = descriptor.photometricInterpretation
+                    default: return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                }
+                let widen8To16 = header.precision <= 8 && descriptor.bitsAllocated == 16
+                let expectedRawCount = widen8To16 ? (plan.expectedBytes / 2) : plan.expectedBytes
+                guard image.data.count == expectedRawCount else {
+                    return .failure(DICOMManagedFailure(.codecResultMismatch))
                 }
                 let bytes: DICOMByteBuffer
-                switch DICOMByteBuffer.admit(count: info.outputByteCount, capacity: info.arenaByteCount,
-                                             budget: budget, resource: .decoded) {
+                switch DICOMByteBuffer.admit(count: plan.expectedBytes, budget: budget, resource: .decoded) {
                 case .success(let value): bytes = value
                 case .failure(let failure): return .failure(failure)
                 }
-                let decoded: JLIDecoder.BaselineRGBInfo
-                switch decoder.decodeBaselineRGBCore(encoded, arena: bytes.unsafeMutableBytes,
-                    workspace: workspace.unsafeMutableBytes, configuration: plan.configuration,
-                    cancellation: codecCancellation) {
-                case .success(let value): decoded = value
-                case .failure(let failure): return .failure(Self.managedFailure(failure))
+                if let failure = cancellation.failure { return .failure(failure) }
+                guard let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    return .failure(DICOMManagedFailure(.codecResultMismatch))
                 }
-                guard decoded == info else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
+                let spp = descriptor.samplesPerPixel
+                let bps = descriptor.bitsAllocated <= 8 ? 1 : 2
+                let pixels = descriptor.rows * descriptor.columns
+                if spp == 1 || descriptor.planarConfiguration == 0 {
+                    if widen8To16 {
+                        for idx in 0..<expectedRawCount {
+                            if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return .failure(failure) }
+                            dst[idx * 2] = image.data[idx]
+                            dst[idx * 2 + 1] = 0
+                        }
+                    } else {
+                        image.data.withUnsafeBufferPointer { src in
+                            if let base = src.baseAddress {
+                                dst.update(from: base, count: plan.expectedBytes)
+                            }
+                        }
+                    }
+                } else {
+                    for p in 0..<pixels {
+                        if (p & 0xFFFF) == 0, let failure = cancellation.failure { return .failure(failure) }
+                        for c in 0..<spp {
+                            let dstByte = (c * pixels + p) * bps
+                            if widen8To16 {
+                                let srcIdx = p * spp + c
+                                dst[dstByte] = image.data[srcIdx]
+                                dst[dstByte + 1] = 0
+                            } else {
+                                let srcByte = (p * spp + c) * bps
+                                for b in 0..<bps {
+                                    dst[dstByte + b] = image.data[srcByte + b]
+                                }
+                            }
+                        }
+                    }
+                }
                 if let failure = cancellation.failure { return .failure(failure) }
                 let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
                     numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
                     bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
-                    samplesPerPixel: 3, photometricInterpretation: .rgb, planarConfiguration: 0)
+                    samplesPerPixel: spp, photometricInterpretation: outputPI,
+                    planarConfiguration: descriptor.planarConfiguration)
                 return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex))
             }
         }

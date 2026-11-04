@@ -3,11 +3,35 @@ import Testing
 
 @Suite("Scalar bounded parsing policy")
 struct BoundedParsingOptionsTests {
-    @Test("Every finite allowlist preserves the legacy strict policy", arguments: UInt8(0)...UInt8(31))
-    func finiteMaskParity(mask: UInt8) throws {
+    private static let sampleMasks: [UInt32] = {
+        var masks: [UInt32] = [
+            0,
+            BoundedTransferSyntax.nativeMask,
+            0x1F,
+            BoundedTransferSyntax.compressedMask,
+            BoundedTransferSyntax.allSupportedMask
+        ]
+        for syntax in BoundedTransferSyntax.allCases {
+            masks.append(syntax.mask)
+            masks.append(BoundedTransferSyntax.nativeMask | syntax.mask)
+        }
+        return Array(Set(masks)).sorted()
+    }()
+
+    @Test("BoundedTransferSyntax enumerates all 17 strict syntaxes with contiguous masks")
+    func syntaxMasks() {
+        #expect(BoundedTransferSyntax.allCases.count == 17)
+        #expect(BoundedTransferSyntax.nativeMask == 0x03)
+        #expect(BoundedTransferSyntax.compressedMask == 0x0001_FFFC)
+        #expect(BoundedTransferSyntax.allSupportedMask == 0x0001_FFFF)
+        let compressedUIDs = Set(BoundedTransferSyntax.allCases.filter(\.isCompressed).map(\.uid))
+        #expect(compressedUIDs == ParsingOptions.strictCompressedTransferSyntaxUIDs)
+    }
+
+    @Test("Every finite allowlist preserves the legacy strict policy", arguments: BoundedParsingOptionsTests.sampleMasks)
+    func finiteMaskParity(mask: UInt32) throws {
         var allowed: Set<String> = []
-        for raw in UInt8(0)...UInt8(4) {
-            let syntax = try #require(BoundedTransferSyntax(rawValue: raw))
+        for syntax in BoundedTransferSyntax.allCases {
             if mask & syntax.mask != 0 { allowed.insert(syntax.uid) }
         }
         let legacy = try BoundedParsingOptions(ParsingOptions(maxElements: 17, maxSequenceDepth: 9,
@@ -33,21 +57,25 @@ struct BoundedParsingOptionsTests {
 
     @Test("Unknown bits and existing strict option refusals remain closed")
     func refusals() {
-        for mask: UInt8 in [0x20, 0x40, 0x80, 0xff] {
+        for mask: UInt32 in [0x0002_0000, 0x0004_0000, 0x8000_0000, UInt32.max] {
             #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: mask,
                 strictEncapsulation: true) == nil)
+        }
+        for syntax in BoundedTransferSyntax.allCases where syntax.isCompressed {
+            #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: syntax.mask,
+                strictEncapsulation: false) == nil)
         }
         for maximum in [-1, 0] {
             #expect(BoundedParsingOptions.make(maxElements: maximum) == nil)
             #expect(throws: StrictParsingError.invalidOptions) {
                 try BoundedParsingOptions(ParsingOptions(maxElements: maximum, validationPolicy: .strict))
             }
-            #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: 0x1f,
+            #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: BoundedTransferSyntax.allSupportedMask,
                 maxFragmentCount: maximum, strictEncapsulation: true) == nil)
-            #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: 0x1f,
+            #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: BoundedTransferSyntax.allSupportedMask,
                 strictEncapsulation: true, maximumEncapsulatedBytes: maximum) == nil)
         }
-        #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: 0x1f) == nil)
+        #expect(BoundedParsingOptions.make(allowedTransferSyntaxMask: BoundedTransferSyntax.allSupportedMask) == nil)
         for invalid in 0..<5 {
             let limits = ParsingOptions.StrictResourceLimits(maximumInputBytes: invalid == 0 ? 0 : 1,
                 maximumSequenceDepth: invalid == 1 ? 0 : 1, maximumTotalElements: invalid == 2 ? 0 : 1,

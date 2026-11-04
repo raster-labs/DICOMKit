@@ -1,8 +1,17 @@
 # DICOMKit
 
-Bounded source parsing and managed JPEG/JPEG-LS decoding are available through explicit
-allocation ownership. See [the allocation contract](Documentation/BoundedInput/AllocationContract.md)
-for retained capacities, synchronous worker reservations, cancellation and runtime qualification.
+Bounded source parsing and managed hospital codec decoding (JPEG, JPEG-LS, JPEG 2000, HTJ2K,
+RLE, and JPEG XL) are available through explicit allocation ownership. See
+[the allocation contract](Documentation/BoundedInput/AllocationContract.md) for retained
+capacities, synchronous worker reservations, cancellation and runtime qualification.
+
+### v2.10.0 strict bounded hospital transfer syntaxes and managed codec decoding
+
+`BoundedTransferSyntax` (`0...16`) and `BoundedParsingOptions` now cover all 17 maintained
+hospital transfer syntaxes, and `RLECodec`, `J2KSwiftCodec`, `HTJ2KCodec`, `JXLCodec`,
+`JLICodec`, and `JPEGLSCodec` provide budget-accounted `decodeManagedPixelFrameOutcome`
+decoding with pre-admission codestream header verification, `DICOMCancellation` polling,
+and `DICOMAllocationBudget` `.staging` / `.decoded` accounting.
 
 ### v2.9.2 bounded implicit Modality LUTs
 

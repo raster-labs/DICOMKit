@@ -21,7 +21,248 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         TransferSyntax.rleLossless.uid  // 1.2.840.10008.1.2.5
     ]
 
-    public init() {}
+    private let decodingLimits: PixelDecodeLimits
+
+    public init(decodingLimits: PixelDecodeLimits = .default) {
+        self.decodingLimits = decodingLimits
+    }
+
+    // MARK: - Managed Budget-Accounted Decoding
+
+    /// Decode an RLE-compressed frame into explicitly admitted backing.
+    /// Intermediate byte-plane segments are decoded into a scoped `.staging` allocation
+    /// and interleaved into a single `.decoded` allocation without untracked heap buffers.
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        ).get()
+    }
+
+    /// Throwing compatibility adapter for an admitted worker; use the outcome overload inside qualified work.
+    @available(*, noasync, message: "Invoke on the synchronous worker owning the execution reservation")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, execution: execution, cancellation: cancellation
+        ).get()
+    }
+
+    /// Decode on the original admitted worker with scalar identity/refusal status.
+    @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        switch execution.validateOutcome(budget: budget) {
+        case .success: break
+        case .failure(let failure): return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        )
+    }
+
+    /// Decode an RLE frame using scalar outcomes and budget-owned `.staging` / `.decoded` backing.
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard frameData.isOwned(by: budget) else {
+            return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
+        }
+        let expectedBytes: Int
+        switch decodingLimits.validateManagedOutcome(
+            encodedByteCount: frameData.count,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        ) {
+        case .success(let value): expectedBytes = value
+        case .failure(let failure): return .failure(failure)
+        }
+
+        return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
+            guard encoded.count >= 64 else {
+                return .failure(DICOMManagedFailure(.malformed, 300))
+            }
+            let bytesPerSample = descriptor.bytesPerSample
+            let samplesPerPixel = descriptor.samplesPerPixel
+            let pixelsPerFrame = descriptor.pixelsPerFrame
+            let expectedSegments = bytesPerSample * samplesPerPixel
+            let numberOfSegments = Self.readUInt32LE(encoded, at: 0)
+            guard expectedSegments >= 1, expectedSegments <= 15,
+                  numberOfSegments == UInt32(expectedSegments) else {
+                return .failure(DICOMManagedFailure(
+                    .invalidDescriptor, 301, Int(numberOfSegments), operand3: expectedSegments
+                ))
+            }
+
+            // Validate all segment boundaries against the 64-byte header before admitting storage.
+            for segIdx in 0..<expectedSegments {
+                let segStart = Int(Self.readUInt32LE(encoded, at: 4 + segIdx * 4))
+                let segEnd = (segIdx + 1 < expectedSegments)
+                    ? Int(Self.readUInt32LE(encoded, at: 4 + (segIdx + 1) * 4))
+                    : encoded.count
+                let validStart = (segIdx == 0) ? (segStart == 64) : (segStart >= 64)
+                guard validStart, segStart < segEnd, segEnd <= encoded.count else {
+                    return .failure(DICOMManagedFailure(.malformed, 302, segIdx))
+                }
+            }
+            for unusedIdx in expectedSegments..<15 {
+                guard Self.readUInt32LE(encoded, at: 4 + unusedIdx * 4) == 0 else {
+                    return .failure(DICOMManagedFailure(.malformed, 302, unusedIdx))
+                }
+            }
+
+            let staging: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: expectedBytes, budget: budget, resource: .staging) {
+            case .success(let value): staging = value
+            case .failure(let failure): return .failure(failure)
+            }
+
+            let stagingBytes = staging.unsafeMutableBytes
+            guard let encodedBase = encoded.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  let stagingBase = stagingBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                staging.keepAlive()
+                return .failure(DICOMManagedFailure(.malformed, 300))
+            }
+
+            for segIdx in 0..<expectedSegments {
+                if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+                let segStart = Int(Self.readUInt32LE(encoded, at: 4 + segIdx * 4))
+                let segEnd = (segIdx + 1 < expectedSegments)
+                    ? Int(Self.readUInt32LE(encoded, at: 4 + (segIdx + 1) * 4))
+                    : encoded.count
+                let dstSeg = stagingBase.advanced(by: segIdx * pixelsPerFrame)
+                var cursor = segStart
+                var written = 0
+                var step = 0
+                while written < pixelsPerFrame {
+                    if (step & 0xFFF) == 0, let failure = cancellation.failure {
+                        staging.keepAlive()
+                        return .failure(failure)
+                    }
+                    step &+= 1
+                    guard cursor < segEnd else {
+                        staging.keepAlive()
+                        return .failure(DICOMManagedFailure(.malformed, 303, segIdx, operand3: written))
+                    }
+                    let controlByte = Int8(bitPattern: encodedBase[cursor])
+                    cursor += 1
+                    if controlByte == -128 {
+                        continue
+                    } else if controlByte >= 0 {
+                        let count = Int(controlByte) + 1
+                        guard cursor + count <= segEnd, written + count <= pixelsPerFrame else {
+                            staging.keepAlive()
+                            return .failure(DICOMManagedFailure(.malformed, 304, segIdx))
+                        }
+                        dstSeg.advanced(by: written).update(from: encodedBase.advanced(by: cursor), count: count)
+                        cursor += count
+                        written += count
+                    } else {
+                        let count = Int(-controlByte) + 1
+                        guard cursor < segEnd, written + count <= pixelsPerFrame else {
+                            staging.keepAlive()
+                            return .failure(DICOMManagedFailure(.malformed, 305, segIdx))
+                        }
+                        dstSeg.advanced(by: written).initialize(repeating: encodedBase[cursor], count: count)
+                        cursor += 1
+                        written += count
+                    }
+                }
+                let trailing = segEnd - cursor
+                guard trailing <= 1 else {
+                    staging.keepAlive()
+                    return .failure(DICOMManagedFailure(.malformed, 306, segIdx, operand3: trailing))
+                }
+            }
+
+            let bytes: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: expectedBytes, budget: budget, resource: .decoded) {
+            case .success(let value): bytes = value
+            case .failure(let failure): staging.keepAlive(); return .failure(failure)
+            }
+            if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+
+            guard let dstBase = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                staging.keepAlive()
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
+            }
+
+            if samplesPerPixel == 1 && bytesPerSample == 1 {
+                dstBase.update(from: stagingBase, count: expectedBytes)
+            } else if samplesPerPixel == 1 && bytesPerSample == 2 {
+                // Segment 0 = MSB, Segment 1 = LSB; DICOM little-endian stores [LSB, MSB].
+                let msb = stagingBase
+                let lsb = stagingBase.advanced(by: pixelsPerFrame)
+                for p in 0..<pixelsPerFrame {
+                    if (p & 0xFFFF) == 0, let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+                    dstBase[p * 2] = lsb[p]
+                    dstBase[p * 2 + 1] = msb[p]
+                }
+            } else {
+                let byPlane = descriptor.planarConfiguration != 0
+                let planeSize = pixelsPerFrame * bytesPerSample
+                for pixelIndex in 0..<pixelsPerFrame {
+                    if (pixelIndex & 0xFFFF) == 0, let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+                    for sampleIndex in 0..<samplesPerPixel {
+                        for byteIndex in 0..<bytesPerSample {
+                            let segmentIndex = sampleIndex * bytesPerSample + (bytesPerSample - 1 - byteIndex)
+                            let srcVal = stagingBase[segmentIndex * pixelsPerFrame + pixelIndex]
+                            let outOffset: Int
+                            if !byPlane {
+                                outOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
+                            } else {
+                                outOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
+                            }
+                            dstBase[outOffset] = srcVal
+                        }
+                    }
+                }
+            }
+            staging.keepAlive()
+
+            if let failure = cancellation.failure { return .failure(failure) }
+            return .success(ManagedDecodedPixelFrame(
+                data: bytes,
+                descriptor: descriptor,
+                sourceFrameIndex: frameIndex
+            ))
+        }
+    }
+
+    @inline(__always)
+    private static func readUInt32LE(_ buffer: UnsafeRawBufferPointer, at offset: Int) -> UInt32 {
+        guard offset >= 0, offset + 4 <= buffer.count, let base = buffer.baseAddress else { return 0 }
+        let p = base.assumingMemoryBound(to: UInt8.self).advanced(by: offset)
+        return UInt32(p[0])
+            | (UInt32(p[1]) << 8)
+            | (UInt32(p[2]) << 16)
+            | (UInt32(p[3]) << 24)
+    }
     
     /// Decodes an RLE-compressed frame
     /// - Parameters:
@@ -31,6 +272,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     /// - Returns: Uncompressed pixel data
     /// - Throws: DICOMError if decoding fails
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         guard frameData.count >= 64 else {
             throw DICOMError.parsingFailed("RLE data too short for header")
         }
@@ -98,6 +340,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         frameIndex: Int,
         into destination: UnsafeMutableRawBufferPointer
     ) throws -> Int {
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let bytesPerFrame = descriptor.bytesPerFrame
         guard destination.count >= bytesPerFrame, let base = destination.baseAddress else {
             throw DICOMError.limitExceeded(

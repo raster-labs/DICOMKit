@@ -1007,6 +1007,219 @@ struct BoundedInputTests {
         expectFailure(.cancelled) { _ = try testSource(url, budget: budget, state: state) }
         #expect(budget.receipt.currentTotal == baseline)
     }
+
+    private static let compressedSyntaxes: [BoundedTransferSyntax] = BoundedTransferSyntax.allCases.filter { $0.isCompressed }
+
+    @Test("All 15 strict compressed transfer syntaxes round-trip through BoundedDICOMFile and managed codecs",
+          arguments: BoundedInputTests.compressedSyntaxes)
+    func strictHospitalCompressedRoundTrip(syntax: BoundedTransferSyntax) throws {
+        let descriptor: PixelDataDescriptor
+        let sourcePixels: Data
+        let compressedFragment: Data
+        let expectBitExact: Bool
+
+        switch syntax {
+        case .jpegBaseline:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).map { UInt8(($0 * 7) & 0xFF) })
+            compressedFragment = try JLICodec(encodingTransferSyntaxUID: syntax.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: .default)
+            expectBitExact = false
+        case .jpegExtended:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 16, bitsStored: 12, highBit: 11,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).flatMap { i -> [UInt8] in
+                let v = (i * 19) & 0x0FFF
+                return [UInt8(v & 0xFF), UInt8(v >> 8)]
+            })
+            compressedFragment = try JLICodec(encodingTransferSyntaxUID: syntax.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: .default)
+            expectBitExact = false
+        case .jpegLossless, .jpegLosslessSV1:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 16, bitsStored: 12, highBit: 11,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).flatMap { i -> [UInt8] in
+                let v = (i * 37) & 0x0FFF
+                return [UInt8(v & 0xFF), UInt8(v >> 8)]
+            })
+            compressedFragment = try JLICodec(encodingTransferSyntaxUID: syntax.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+            expectBitExact = true
+        case .jpegLSLossless, .jpegLSNearLossless:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 16, bitsStored: 12, highBit: 11,
+                isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).flatMap { i -> [UInt8] in
+                let v = (i * 41) & 0x0FFF
+                return [UInt8(v & 0xFF), UInt8(v >> 8)]
+            })
+            let cfg: CompressionConfiguration = (syntax == .jpegLSLossless)
+                ? .lossless
+                : CompressionConfiguration(quality: .high, speed: .balanced, preferLossless: false)
+            compressedFragment = try JPEGLSCodec()
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: cfg)
+            expectBitExact = (syntax == .jpegLSLossless)
+        case .jpeg2000Lossless, .jpeg2000, .htj2kLossless, .htj2kRPCLLossless, .htj2kLossy:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 16, bitsStored: 12, highBit: 11,
+                isSigned: true, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).flatMap { i -> [UInt8] in
+                let signed = Int16(truncatingIfNeeded: ((i * 23) & 0x0FFF) - 2048)
+                let raw = UInt16(bitPattern: signed)
+                return [UInt8(raw & 0xFF), UInt8(raw >> 8)]
+            })
+            let isLosslessSyntax = (syntax == .jpeg2000Lossless || syntax == .htj2kLossless || syntax == .htj2kRPCLLossless)
+            let cfg: CompressionConfiguration = isLosslessSyntax
+                ? .lossless
+                : CompressionConfiguration(quality: .high, speed: .balanced, preferLossless: false)
+            compressedFragment = try J2KSwiftCodec(encodingTransferSyntaxUID: syntax.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: cfg)
+            expectBitExact = isLosslessSyntax
+        case .rleLossless:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 16, bitsStored: 16, highBit: 15,
+                isSigned: true, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(16 * 16)).flatMap { i -> [UInt8] in
+                let signed = Int16(truncatingIfNeeded: (i * 53) - 2048)
+                let raw = UInt16(bitPattern: signed)
+                return [UInt8(raw & 0xFF), UInt8(raw >> 8)]
+            })
+            compressedFragment = try RLECodec()
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+            expectBitExact = true
+        case .jpegXLLossless, .jpegXL:
+            descriptor = PixelDataDescriptor(
+                rows: 32, columns: 32, bitsAllocated: 16, bitsStored: 12, highBit: 11,
+                isSigned: true, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+            )
+            sourcePixels = Data((0..<(32 * 32)).flatMap { i -> [UInt8] in
+                let signed = Int16(truncatingIfNeeded: ((i * 13) & 0x0FFF) - 2048)
+                let raw = UInt16(bitPattern: signed)
+                return [UInt8(raw & 0xFF), UInt8(raw >> 8)]
+            })
+            let cfg: CompressionConfiguration = (syntax == .jpegXLLossless)
+                ? .lossless
+                : CompressionConfiguration(quality: .high, speed: .balanced, preferLossless: false)
+            compressedFragment = try JXLCodec(encodingTransferSyntaxUID: syntax.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: cfg)
+            expectBitExact = (syntax == .jpegXLLossless)
+        case .jpegXLRecompression:
+            descriptor = PixelDataDescriptor(
+                rows: 16, columns: 16, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+                isSigned: false, samplesPerPixel: 3, photometricInterpretation: .ybrFull422
+            )
+            sourcePixels = Data((0..<(16 * 16 * 3)).map { UInt8(($0 * 11) & 0xFF) })
+            let jpegBytes = try JLICodec(encodingTransferSyntaxUID: TransferSyntax.jpegBaseline.uid)
+                .encodeFrame(sourcePixels, descriptor: descriptor, frameIndex: 0, configuration: .default)
+            compressedFragment = try JXLCodec.recompressJPEGFragment(jpegBytes)
+            expectBitExact = false
+        case .implicitLittleEndian, .explicitLittleEndian:
+            Issue.record("Unexpected native syntax in compressed test")
+            return
+        }
+
+        var paddedFragment = compressedFragment
+        if paddedFragment.count % 2 != 0 { paddedFragment.append(0) }
+        let bot = marker(.item, length: 0)
+        let itemChunk = marker(.item, length: UInt32(paddedFragment.count)) + paddedFragment
+        let encapsulatedPixel = element(
+            pixel, "OB", bot + itemChunk + marker(.sequenceDelimitationItem), length: .max
+        )
+        let payload = file(
+            element(rows, "US", u16(UInt16(descriptor.rows)))
+                + encapsulatedPixel
+                + element(trailer, "LO", text("OK")),
+            syntax: syntax.uid
+        )
+        let url = try temporary(payload)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let options = try #require(BoundedParsingOptions.make(
+                allowedTransferSyntaxMask: BoundedTransferSyntax.allSupportedMask,
+                strictEncapsulation: true
+            ))
+            let source = try VerifiedFileByteSource(url: url, budget: budget)
+            let parsed = try DICOMFile.readBoundedOutcome(from: source, options: options).get()
+            #expect(parsed.transferSyntax == syntax)
+            #expect(try bytes(value(parsed, trailer).readValue()) == text("OK"))
+
+            let pixelEl = try value(parsed, pixel)
+            let rawFrame = try pixelEl.readFrameOutcome(at: 0, numberOfFrames: 1).get()
+            let execution = try DICOMExecutionReservation.reserve(budget: budget).get()
+
+            let decoded: ManagedDecodedPixelFrame
+            switch syntax {
+            case .jpegBaseline:
+                decoded = try JLICodec(decodingSyntax: .baseline)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegExtended:
+                decoded = try JLICodec(decodingSyntax: .extended)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegLossless:
+                decoded = try JLICodec(decodingSyntax: .lossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegLosslessSV1:
+                decoded = try JLICodec(decodingSyntax: .losslessSV1)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegLSLossless:
+                decoded = try JPEGLSCodec(decodingSyntax: .lossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegLSNearLossless:
+                decoded = try JPEGLSCodec(decodingSyntax: .nearLossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpeg2000Lossless:
+                decoded = try J2KSwiftCodec(decodingSyntax: .jpeg2000Lossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpeg2000:
+                decoded = try J2KSwiftCodec(decodingSyntax: .jpeg2000)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .rleLossless:
+                decoded = try RLECodec()
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .htj2kLossless:
+                decoded = try HTJ2KCodec(decodingSyntax: .lossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .htj2kRPCLLossless:
+                decoded = try HTJ2KCodec(decodingSyntax: .rpclLossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .htj2kLossy:
+                decoded = try HTJ2KCodec(decodingSyntax: .lossy)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegXLLossless:
+                decoded = try JXLCodec(decodingSyntax: .lossless)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegXLRecompression:
+                decoded = try JXLCodec(decodingSyntax: .recompression)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .jpegXL:
+                decoded = try JXLCodec(decodingSyntax: .general)
+                    .decodeManagedPixelFrameOutcome(rawFrame, descriptor: descriptor, frameIndex: 0, budget: budget, execution: execution).get()
+            case .implicitLittleEndian, .explicitLittleEndian:
+                return
+            }
+
+            let outBytes = bytes(decoded.data)
+            #expect(outBytes.count == sourcePixels.count)
+            if expectBitExact {
+                #expect(outBytes == sourcePixels)
+            }
+            #expect(budget.receipt.current.staging == 0)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+    }
 }
 
 private enum TestFailure: Error { case missingElement }

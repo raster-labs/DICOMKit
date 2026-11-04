@@ -318,59 +318,252 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         case .success: break
         case .failure(let failure): return .failure(failure)
         }
-        guard descriptor.samplesPerPixel == 1, descriptor.bitsAllocated == 16 else {
-            return .failure(DICOMManagedFailure(.invalidDescriptor, 104))
-        }
         return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
             switch JPEGFrameEnvelope.parseOutcome(encoded, jpegLS: true, cancellation: cancellation) {
             case .success: break
             case .failure(let failure): return .failure(failure)
             }
-            let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                maximumPixels: decodingLimits.maximumPixels, maximumDecodedBytes: decodingLimits.maximumDecodedBytes))
-            let workspace: DICOMByteBuffer
-            switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
-                                         budget: budget, resource: .staging) {
-            case .success(let value): workspace = value
-            case .failure(let failure): return .failure(failure)
+            if descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 16 {
+                let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                    maximumPixels: decodingLimits.maximumPixels, maximumDecodedBytes: decodingLimits.maximumDecodedBytes))
+                let workspace: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
+                                             budget: budget, resource: .staging) {
+                case .success(let value): workspace = value
+                case .failure(let failure): return .failure(failure)
+                }
+                let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
+                let inspectResult = decoder.inspectMonochromeQualified(
+                    encoded, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
+                )
+                let header: JPEGLSDecoder.MonochromeInfo
+                switch inspectResult {
+                case .success(let value): header = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
+                }
+                let info: FrameInfo
+                switch managedFrameInfoOutcome(encodedByteCount: encoded.count, descriptor: descriptor,
+                    frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
+                    componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
+                    recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
+                        && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none) {
+                case .success(let value): info = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                }
+                let bytes: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: info.expectedByteCount, budget: budget, resource: .decoded) {
+                case .success(let value): bytes = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                }
+                let samples = bytes.unsafeMutableBytes.bindMemory(to: UInt16.self)
+                samples.initialize(repeating: 0)
+                let decodeResult = decoder.decodeMonochromeQualified(
+                    encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
+                )
+                workspace.keepAlive()
+                let decoded: JPEGLSDecoder.MonochromeInfo
+                switch decodeResult {
+                case .success(let value): decoded = value
+                case .failure(let failure): return .failure(Self.managedFailure(failure))
+                }
+                guard decoded == header else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
+                for index in samples.indices {
+                    if index & 0xFFFF == 0, let failure = cancellation.failure { return .failure(failure) }
+                    samples[index] = samples[index].littleEndian
+                }
+                if let failure = cancellation.failure { return .failure(failure) }
+                return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
+                    sourceFrameIndex: frameIndex, diagnostic: info.diagnostic))
             }
-            let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
-            let header: JPEGLSDecoder.MonochromeInfo
-            switch decoder.inspectMonochromeQualified(encoded, workspace: workspace.unsafeMutableBytes,
-                                                       cancellation: codecCancellation) {
-            case .success(let value): header = value
-            case .failure(let failure): return .failure(Self.managedFailure(failure))
+
+            if descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 8 {
+                let wideByteCount = descriptor.rows * descriptor.columns * 2
+                let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                    maximumPixels: decodingLimits.maximumPixels,
+                    maximumDecodedBytes: max(decodingLimits.maximumDecodedBytes, wideByteCount)))
+                let workspace: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
+                                             budget: budget, resource: .staging) {
+                case .success(let value): workspace = value
+                case .failure(let failure): return .failure(failure)
+                }
+                let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
+                let inspectResult = decoder.inspectMonochromeQualified(
+                    encoded, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
+                )
+                let header: JPEGLSDecoder.MonochromeInfo
+                switch inspectResult {
+                case .success(let value): header = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
+                }
+                let info: FrameInfo
+                switch managedFrameInfoOutcome(encodedByteCount: encoded.count, descriptor: descriptor,
+                    frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
+                    componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
+                    recoveryFeaturesAllowed: false) {
+                case .success(let value): info = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                }
+                let wideStaging: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: wideByteCount, budget: budget, resource: .staging) {
+                case .success(let value): wideStaging = value
+                case .failure(let failure): workspace.keepAlive(); return .failure(failure)
+                }
+                let samples = wideStaging.unsafeMutableBytes.bindMemory(to: UInt16.self)
+                samples.initialize(repeating: 0)
+                let decodeResult = decoder.decodeMonochromeQualified(
+                    encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
+                )
+                workspace.keepAlive()
+                let decoded: JPEGLSDecoder.MonochromeInfo
+                switch decodeResult {
+                case .success(let value): decoded = value
+                case .failure(let failure): wideStaging.keepAlive(); return .failure(Self.managedFailure(failure))
+                }
+                guard decoded == header else {
+                    wideStaging.keepAlive()
+                    return .failure(DICOMManagedFailure(.codecResultMismatch))
+                }
+                let bytes: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: info.expectedByteCount, budget: budget, resource: .decoded) {
+                case .success(let value): bytes = value
+                case .failure(let failure): wideStaging.keepAlive(); return .failure(failure)
+                }
+                if let failure = cancellation.failure { wideStaging.keepAlive(); return .failure(failure) }
+                let maxSample = UInt16((1 << info.descriptor.bitsStored) - 1)
+                guard let dst8 = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    wideStaging.keepAlive()
+                    return .failure(DICOMManagedFailure(.codecResultMismatch))
+                }
+                for index in 0..<info.expectedByteCount {
+                    if (index & 0xFFFF) == 0, let failure = cancellation.failure {
+                        wideStaging.keepAlive()
+                        return .failure(failure)
+                    }
+                    let sample = samples[index]
+                    guard sample <= maxSample else {
+                        wideStaging.keepAlive()
+                        return .failure(DICOMManagedFailure(.codecResultMismatch))
+                    }
+                    dst8[index] = UInt8(truncatingIfNeeded: sample)
+                }
+                wideStaging.keepAlive()
+                if let failure = cancellation.failure { return .failure(failure) }
+                return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
+                    sourceFrameIndex: frameIndex, diagnostic: info.diagnostic))
             }
+
+            guard descriptor.samplesPerPixel == 3 else {
+                return .failure(DICOMManagedFailure(.invalidDescriptor, 104))
+            }
+
+            let (prePixels, prePixelOverflow) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+            let (preSamples, preSampleOverflow) = prePixels.multipliedReportingOverflow(by: 3)
+            let (planeBytes, byteOverflow) = preSamples.multipliedReportingOverflow(by: MemoryLayout<Int>.stride)
+            let (stagingBytes, stOverflow) = planeBytes.addingReportingOverflow(encoded.count)
+            guard !prePixelOverflow, !preSampleOverflow, !byteOverflow, !stOverflow,
+                  planeBytes > 0 else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 2))
+            }
+
             let info: FrameInfo
-            switch managedFrameInfoOutcome(encodedByteCount: encoded.count, descriptor: descriptor,
-                frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
-                componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
-                recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
-                    && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none) {
-            case .success(let value): info = value
-            case .failure(let failure): return .failure(failure)
+            let image: MultiComponentImageData
+            do {
+                let staging: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: stagingBytes, budget: budget, resource: .staging) {
+                case .success(let value): staging = value
+                case .failure(let failure): return .failure(failure)
+                }
+                if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+
+                let data = Data(encoded)
+                let headerWidth: Int
+                let headerHeight: Int
+                let headerComponentCount: Int
+                let headerBitsPerSample: Int
+                let hasNearLosslessScan: Bool
+                do {
+                    let parsed = try JPEGLSParser(data: data).parse()
+                    let parameters = try parsed.presetParameters ?? JPEGLSPresetParameters.defaultParameters(
+                        bitsPerSample: parsed.frameHeader.bitsPerSample,
+                        near: parsed.scanHeaders.first?.near ?? 0
+                    )
+                    guard parameters.maxValue <= (1 << parsed.frameHeader.bitsPerSample) - 1 else {
+                        staging.keepAlive()
+                        return .failure(DICOMManagedFailure(.malformed, 105))
+                    }
+                    headerWidth = parsed.frameHeader.width
+                    headerHeight = parsed.frameHeader.height
+                    headerComponentCount = parsed.frameHeader.componentCount
+                    headerBitsPerSample = parsed.frameHeader.bitsPerSample
+                    hasNearLosslessScan = parsed.scanHeaders.contains { $0.near > 0 }
+                } catch {
+                    staging.keepAlive()
+                    return .failure(DICOMManagedFailure(.malformed, 106, domain: 0x0100))
+                }
+
+                switch managedFrameInfoOutcome(
+                    encodedByteCount: encoded.count, descriptor: descriptor, frameIndex: frameIndex,
+                    precisionPolicy: precisionPolicy, width: headerWidth, height: headerHeight,
+                    componentCount: headerComponentCount, precision: headerBitsPerSample,
+                    hasNearLosslessScan: hasNearLosslessScan,
+                    recoveryFeaturesAllowed: false
+                ) {
+                case .success(let value): info = value
+                case .failure(let failure): staging.keepAlive(); return .failure(failure)
+                }
+
+                do {
+                    image = try JPEGLSDecoder(limits: .init(
+                        maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
+                        maximumPixels: decodingLimits.maximumPixels,
+                        maximumDecodedBytes: decodingLimits.maximumDecodedBytes
+                    )).decode(data)
+                    try Self.validate(image, against: info.descriptor)
+                } catch {
+                    staging.keepAlive()
+                    return .failure(DICOMManagedFailure(.codecFailure, 107, domain: 0x0100))
+                }
+                staging.keepAlive()
             }
+
             let bytes: DICOMByteBuffer
             switch DICOMByteBuffer.admit(count: info.expectedByteCount, budget: budget, resource: .decoded) {
             case .success(let value): bytes = value
             case .failure(let failure): return .failure(failure)
             }
-            let samples = bytes.unsafeMutableBytes.bindMemory(to: UInt16.self)
-            samples.initialize(repeating: 0)
-            let decoded: JPEGLSDecoder.MonochromeInfo
-            switch decoder.decodeMonochromeQualified(encoded, into: samples,
-                workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation) {
-            case .success(let value): decoded = value
-            case .failure(let failure): return .failure(Self.managedFailure(failure))
+            if let failure = cancellation.failure { return .failure(failure) }
+            guard let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
             }
-            guard decoded == header else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
-            for index in samples.indices {
-                if index & 0xFFFF == 0, let failure = cancellation.failure { return .failure(failure) }
-                samples[index] = samples[index].littleEndian
+            let width = info.descriptor.columns
+            let height = info.descriptor.rows
+            let bps = bytesPerSample(info.descriptor)
+            let planar = info.descriptor.planarConfiguration == 1
+            for c in 0..<3 {
+                let compPixels = image.components[c].pixels
+                for y in 0..<height {
+                    if let failure = cancellation.failure { return .failure(failure) }
+                    let row = compPixels[y]
+                    for x in 0..<width {
+                        let value = row[x]
+                        let byteIdx = pixelIndex(
+                            component: c, x: x, y: y, width: width, height: height, samples: 3, planar: planar
+                        ) * bps
+                        if bps == 1 {
+                            dst[byteIdx] = UInt8(clamping: value)
+                        } else {
+                            dst[byteIdx] = UInt8(value & 0xFF)
+                            dst[byteIdx + 1] = UInt8((value >> 8) & 0xFF)
+                        }
+                    }
+                }
             }
             if let failure = cancellation.failure { return .failure(failure) }
-            return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
-                sourceFrameIndex: frameIndex, diagnostic: info.diagnostic))
+            return .success(ManagedDecodedPixelFrame(
+                data: bytes, descriptor: info.descriptor,
+                sourceFrameIndex: frameIndex, diagnostic: info.diagnostic
+            ))
         }
     }
 

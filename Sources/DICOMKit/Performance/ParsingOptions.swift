@@ -22,8 +22,8 @@ public struct ParsingOptions: Sendable {
     }
     
     /// Structural parsing policy. Strict reads default to full native little-endian Part 10.
-    /// An explicit finite allowlist may enable the maintained JPEG baseline, lossless SV1
-    /// and JPEG-LS lossless envelopes when strictEncapsulation is also enabled.
+    /// An explicit finite allowlist may enable the maintained encapsulated compression envelopes
+    /// (JPEG, JPEG-LS, JPEG 2000 Part 1, HTJ2K, RLE, and JPEG XL) when strictEncapsulation is also enabled.
     public enum ValidationPolicy: Sendable, Equatable {
         case permissive
         case strict
@@ -34,7 +34,21 @@ public struct ParsingOptions: Sendable {
 
     static let strictNativeTransferSyntaxUIDs: Set<String> = ["1.2.840.10008.1.2", "1.2.840.10008.1.2.1"]
     static let strictCompressedTransferSyntaxUIDs: Set<String> = [
-        "1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.80"
+        "1.2.840.10008.1.2.4.50",
+        "1.2.840.10008.1.2.4.51",
+        "1.2.840.10008.1.2.4.57",
+        "1.2.840.10008.1.2.4.70",
+        "1.2.840.10008.1.2.4.80",
+        "1.2.840.10008.1.2.4.81",
+        "1.2.840.10008.1.2.4.90",
+        "1.2.840.10008.1.2.4.91",
+        "1.2.840.10008.1.2.5",
+        "1.2.840.10008.1.2.4.201",
+        "1.2.840.10008.1.2.4.202",
+        "1.2.840.10008.1.2.4.203",
+        "1.2.840.10008.1.2.4.110",
+        "1.2.840.10008.1.2.4.111",
+        "1.2.840.10008.1.2.4.112"
     ]
 
     /// Finite strict-parser qualification policy, not production-approved memory budgets.
