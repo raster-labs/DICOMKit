@@ -77,6 +77,20 @@ public enum VideoOptionConformance {
                 Patient's Birth Date (0010,0030); refused.
                 """))
         }
+        lines += studyDateTimeViolations(metadata: metadata)
+        return lines
+    }
+
+    /// Strict Gregorian DA and TM validation shared with the image converter.
+    /// Unknown values are represented by nil, not by the conversion clock.
+    public static func studyDateTimeViolations(metadata: VideoWorkflow.Metadata) -> [String] {
+        var lines: [String] = []
+        if let date = metadata.studyDate, ImageConverter.OutputRules.studyDate(date) == nil {
+            lines.append("--study-date \(date) is not a valid Gregorian DA value (YYYYMMDD) for Study Date (0008,0020); refused.")
+        }
+        if let time = metadata.studyTime, ImageConverter.OutputRules.studyTime(time) == nil {
+            lines.append("--study-time \(time) is not a valid TM value (HH, HHMM or HHMMSS[.FFFFFF]) for Study Time (0008,0030); refused.")
+        }
         return lines
     }
 

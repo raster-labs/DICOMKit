@@ -4045,6 +4045,8 @@ private func executeDicomStudy() async {
             patientID: optional("patientID"),
             patientBirthDate: optional("patientBirthDate"),
             patientSex: optional("patientSex"),
+            studyDate: paramValue("studyDate").isEmpty ? nil : paramValue("studyDate"),
+            studyTime: paramValue("studyTime").isEmpty ? nil : paramValue("studyTime"),
             studyUID: optional("studyUID"),
             seriesUID: optional("seriesUID"),
             accessionNumber: optional("accessionNumber"),
@@ -4452,14 +4454,6 @@ private func executeDicomStudy() async {
         }
         let inputBase = URL(fileURLWithPath: inputDirectory)
 
-        // Resolve the destination once, so a sandbox redirect is announced before
-        // the per-clip lines rather than repeated on each of them.
-        let resolvedOutput = WorkshopRequestedOutput.resolveWritableURL(
-            forPath: outputDir,
-            subfolder: "Video", isDirectory: true)
-        let outputBase = resolvedOutput.url
-        let redirectNote = resolvedOutput.note
-
         let validated = validatedDicomVideoMetadata(
             type: type, transferSyntax: transferSyntaxRaw.isEmpty ? nil : transferSyntaxRaw)
         let metadata = validated.metadata
@@ -4499,6 +4493,14 @@ private func executeDicomStudy() async {
             guard !files.isEmpty else {
                 return (VideoConsole.noVideoFilesLine(inputDirectory), .inputError)
             }
+
+            // Validate before probing/creating the destination. A rejected metadata
+            // value must not create an output directory.
+            let resolvedOutput = WorkshopRequestedOutput.resolveWritableURL(
+                forPath: outputDir,
+                subfolder: "Video", isDirectory: true)
+            let outputBase = resolvedOutput.url
+            let redirectNote = resolvedOutput.note
 
             if !dryRun {
                 do {

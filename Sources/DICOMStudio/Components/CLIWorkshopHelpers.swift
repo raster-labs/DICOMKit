@@ -3915,6 +3915,20 @@ case "dicom-pixedit":
                         parameterId: "operation", values: ["convert", "batch"])
                 ),
                 CLIParameterDefinition(
+                    id: "studyDate", flag: "--study-date", displayName: "Study Date",
+                    parameterType: .textField, placeholder: "YYYYMMDD",
+                    helpText: VideoConsole.Help.studyDate,
+                    visibleWhen: CLIParameterVisibilityCondition(
+                        parameterId: "operation", values: ["convert", "batch"])
+                ),
+                CLIParameterDefinition(
+                    id: "studyTime", flag: "--study-time", displayName: "Study Time",
+                    parameterType: .textField, placeholder: "HHMMSS[.FFFFFF]",
+                    helpText: VideoConsole.Help.studyTime,
+                    visibleWhen: CLIParameterVisibilityCondition(
+                        parameterId: "operation", values: ["convert", "batch"])
+                ),
+                CLIParameterDefinition(
                     id: "studyUID", flag: "--study-uid", displayName: "Study Instance UID",
                     parameterType: .textField, placeholder: "auto-generated",
                     helpText: VideoConsole.Help.studyUID,

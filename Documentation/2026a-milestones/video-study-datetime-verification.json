@@ -1,0 +1,126 @@
+{
+  "date": "2026-11-03",
+  "base_commit": "f8240927bf93efac5f1e1fa28823283edb517bd5",
+  "result": "local_verification_passed",
+  "focused_swift_tests": 124,
+  "focused_swift_failures": 0,
+  "focused_swift_skips": 0,
+  "audit_controls": 58,
+  "cli_dcmtk": {
+    "result": "passed",
+    "checks": [
+      "convert uid=False date=20240229 time=102030.123456",
+      "convert uid=False date=20240229 time=10",
+      "convert uid=False date=20240229 time=1020",
+      "convert uid=False date=20240229 time=None",
+      "convert uid=False date=None time=102030",
+      "convert uid=False date=None time=None",
+      "convert uid=True date=20240229 time=102030.123456",
+      "convert uid=True date=20240229 time=10",
+      "convert uid=True date=20240229 time=1020",
+      "convert uid=True date=20240229 time=None",
+      "convert uid=True date=None time=102030",
+      "convert uid=True date=None time=None",
+      "batch single: both instances mapped correctly",
+      "batch per-file: both instances mapped correctly",
+      "convert dry=False: rejected --study-date 20230229 without output",
+      "convert dry=False: rejected --study-date 2024.02.29 without output",
+      "convert dry=False: rejected --study-time 240000 without output",
+      "convert dry=False: rejected --study-time 10:20:30 without output",
+      "convert dry=True: rejected --study-date 20230229 without output",
+      "convert dry=True: rejected --study-date 2024.02.29 without output",
+      "convert dry=True: rejected --study-time 240000 without output",
+      "convert dry=True: rejected --study-time 10:20:30 without output",
+      "batch dry=False: rejected --study-date 20230229 without output",
+      "batch dry=False: rejected --study-date 2024.02.29 without output",
+      "batch dry=False: rejected --study-time 240000 without output",
+      "batch dry=False: rejected --study-time 10:20:30 without output",
+      "batch dry=True: rejected --study-date 20230229 without output",
+      "batch dry=True: rejected --study-date 2024.02.29 without output",
+      "batch dry=True: rejected --study-time 240000 without output",
+      "batch dry=True: rejected --study-time 10:20:30 without output"
+    ],
+    "check_count": 30,
+    "reader": "DCMTK dcmdump",
+    "synthetic_media_retained": false
+  },
+  "updated_m5_script": "passed; overlapping coverage not added to focused test count",
+  "logs": {
+    "roundtrip.log": {
+      "sha256": "809baf103fd451b3eec5eec27b6c4938a2e25cb72224d10570a514ce2d9f2072",
+      "summary": [
+        "Executed 64 tests, with 0 failures (0 unexpected) in 0.035 (0.038) seconds",
+        "Executed 64 tests, with 0 failures (0 unexpected) in 0.035 (0.038) seconds",
+        "Executed 64 tests, with 0 failures (0 unexpected) in 0.035 (0.045) seconds"
+      ]
+    },
+    "workshop.log": {
+      "sha256": "5b9eef6b97dddeb88003b11e272d80146bd52feb18c6ca0adb90374b70f8b99e",
+      "summary": [
+        "Executed 2 tests, with 0 failures (0 unexpected) in 0.307 (0.307) seconds",
+        "Executed 2 tests, with 0 failures (0 unexpected) in 0.307 (0.307) seconds",
+        "Executed 2 tests, with 0 failures (0 unexpected) in 0.307 (0.320) seconds",
+        "\u2714 Test run with 23 tests in 1 suite passed after 0.074 seconds."
+      ]
+    },
+    "attributes.log": {
+      "sha256": "66c1745124b0b2a795d0471f1d106f491601052bef0c258e496993a772f196f4",
+      "summary": [
+        "Executed 25 tests, with 0 failures (0 unexpected) in 0.007 (0.008) seconds",
+        "Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds",
+        "Executed 35 tests, with 0 failures (0 unexpected) in 0.008 (0.010) seconds",
+        "Executed 35 tests, with 0 failures (0 unexpected) in 0.008 (0.015) seconds"
+      ]
+    },
+    "audit.log": {
+      "sha256": "bb63946985b8ae2ee8f1571b29a894c1c111186513d1a52ed4dc87b32c73a3e1",
+      "summary": [
+        "Ran 58 tests in 19.934s"
+      ]
+    },
+    "m5-runner.log": {
+      "sha256": "dab2f824bf5fa2cc5f12d624834e31355d575138ca424cb5f5f0f4bbb0d09524",
+      "summary": [
+        "\u2714 Test run with 488 tests in 82 suites passed after 4.892 seconds.",
+        "Executed 19 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.424 (0.425) seconds",
+        "Executed 19 tests, with 1 test skipped and 0 failures (0 unexpected) in 0.424 (0.430) seconds",
+        "\u2714 Test run with 220 tests in 5 suites passed after 0.108 seconds.",
+        "Executed 64 tests, with 0 failures (0 unexpected) in 0.031 (0.033) seconds",
+        "Executed 92 tests, with 0 failures (0 unexpected) in 0.062 (0.066) seconds",
+        "Executed 92 tests, with 0 failures (0 unexpected) in 0.062 (0.070) seconds",
+        "Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds",
+        "Executed 35 tests, with 0 failures (0 unexpected) in 0.008 (0.009) seconds",
+        "Executed 35 tests, with 0 failures (0 unexpected) in 0.008 (0.014) seconds",
+        "M5 Toolbox: 23 real CLI cases passed; UID, date, file identity and template oracles passed",
+        "M5 Workshop: 22 CLI cases + 23 ViewModel actions passed"
+      ]
+    }
+  },
+  "source_sha256": {
+    ".github/workflows/studio-contracts.yml": "6be158722bbbd3bde1e6f32a0f275d904b5bf3997313117cfd68784ba3ddd88c",
+    "Scripts/verify_m5.sh": "355d620b7787fd3b6c19892927496f4753aa2a1da007434e2ff2b95f868a2d26",
+    "Scripts/verify_video_study_datetime.py": "6e6d1952a5bb8b71e84ed4e5dc698cc8e1457af22315d3d82817b593795bec38",
+    "Sources/DICOMKit/Video/VideoBuilder.swift": "1307d395d4d5de5a483e7f81683a8f1c3467fc8235df823a9b7379aa1f2b7076",
+    "Sources/DICOMKit/Video/VideoConsole.swift": "e5401e8b7c3fc59d9e761b010ef04d7d1753d0dd9cb845b407bac35a96a09ef3",
+    "Sources/DICOMKit/Video/VideoOptionConformance.swift": "388678a1099edd8aa8a7e8eadd094e0471ae4cb36b9139544b9e3b37a6b4bc0e",
+    "Sources/DICOMKit/Video/VideoWorkflow.swift": "6338d964479b64e5a74961b86f8bfaa137b407425491b8e0261c9a7abc3d8207",
+    "Sources/DICOMStudio/Components/CLIWorkshopHelpers.swift": "bef42053bbbde06fd9c89510e3c0c04c0c2af98c6d52a0036197c8d0c0c1a0e7",
+    "Sources/DICOMStudio/ViewModels/CLIWorkshopViewModel.swift": "f82258ce33ad0154a8da389fce365ed3d9bbff5e1f3ea3138be6ddb521676eb3",
+    "Sources/dicom-video/main.swift": "fbe54f907bf649a059d481360e20d7ed28fc3208fcabe28072f8c580923af740",
+    "Tests/DICOMKitTests/Video/VideoOptionConformanceTests.swift": "92504c028cd7665b6535c6f2fdad40fafe692ebc5928b07d203df0edaa4b32d2",
+    "Tests/DICOMRoundTripTest/VideoConsoleParityTests.swift": "65ff239688ee67f308459b5740b76b60c8268a600f92a759f00437eab4b89970",
+    "Tests/DICOMStudioTests/CLIWorkshopVideoTests.swift": "045da7a9b5379a752ed027caa7ea688f92e8e39adf7abfe93035983d74c32037",
+    "Tests/DICOMStudioTests/WorkshopVideoStudyDateTimeTests.swift": "b70ef6ad84af562df0def18ee7719528efbb7dc8f6b43849874ac028fb21fc27"
+  },
+  "native_window_automation": "not executed; Workshop bindings and executor verified automatically",
+  "full_package_suite": "not rerun for this follow-up",
+  "publication_ci": "pending after push",
+  "main_merge_performed": false,
+  "dicom_payloads_committed": false,
+  "precommit_dicom_scan": {
+    "tracked_files_scanned": 7565,
+    "findings": [],
+    "status": "passed",
+    "scope": "tracked working tree; Git history and other refs are not scanned"
+  }
+}

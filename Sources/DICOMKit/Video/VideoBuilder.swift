@@ -465,9 +465,9 @@ public final class VideoBuilder {
         return self
     }
 
-    /// Sets the Study Date (0008,0020) and Time (0008,0030).
+    /// Sets the Study Date (0008,0020) and Time (0008,0030); nil emits an empty Type 2 value.
     @discardableResult
-    public func setStudyDateTime(date: DICOMDate, time: DICOMTime) -> Self {
+    public func setStudyDateTime(date: DICOMDate?, time: DICOMTime?) -> Self {
         self.studyDate = date
         self.studyTime = time
         return self

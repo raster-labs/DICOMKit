@@ -18,6 +18,40 @@ dicom-video extract <in.dcm> --output <out.mp4>
 dicom-video probe   <input>
 ```
 
+## Study start date and time
+
+Both `convert` and `batch` accept the study start supplied by the user:
+
+```bash
+dicom-video convert clip.mp4 --output clip.dcm \
+    --study-date 20240229 --study-time 102030.123456
+
+dicom-video batch clips/ --output-dir output/ \
+    --study-date 20240229 --study-time 1020
+```
+
+| Input | DICOM attribute | Accepted values |
+| --- | --- | --- |
+| `--study-date` | Study Date `(0008,0020)`, DA | A real Gregorian date, `YYYYMMDD` |
+| `--study-time` | Study Time `(0008,0030)`, TM | `HH`, `HHMM`, `HHMMSS`, or `HHMMSS.F` through `HHMMSS.FFFFFF` |
+
+DICOMStudio → CLI Workshop → `dicom-video` → Convert or Batch offers the same
+**Study Date** and **Study Time** text fields in both Beginner and Advanced modes.
+The preview includes the corresponding CLI flags, and Run uses the same validation
+and conversion engine. Dates with separators, impossible dates, colon-separated
+times and out-of-range components are rejected with exit 1 before output is written.
+
+Each field is optional independently. An omitted field is emitted with zero length,
+as a Type 2 attribute whose value is unknown; this also applies when a Study UID is
+supplied. **Behavior change:** omitted Study Date/Time no longer use the conversion
+clock. To record a known study start, supply it explicitly. Batch conversion applies
+the values to every instance in both series modes. Fractional seconds are serialized
+with six digits (for example, `.1` becomes `.100000`); partial `HH`/`HHMM` precision
+is preserved. These values are not shifted between time zones.
+
+References: [PS3.3 2026a C.7.2.1](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part03/sect_C.7.2.html)
+and [PS3.5 2026a Table 6.2-1](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part05/sect_6.2.html).
+
 ## Exit codes
 
 | Code | Meaning |

@@ -117,6 +117,8 @@ public enum VideoWorkflow {
         public var patientID: String?
         public var patientBirthDate: String?
         public var patientSex: String?
+        public var studyDate: String?
+        public var studyTime: String?
         public var studyUID: String?
         public var seriesUID: String?
         public var accessionNumber: String?
@@ -143,6 +145,8 @@ public enum VideoWorkflow {
             patientID: String? = nil,
             patientBirthDate: String? = nil,
             patientSex: String? = nil,
+            studyDate: String? = nil,
+            studyTime: String? = nil,
             studyUID: String? = nil,
             seriesUID: String? = nil,
             accessionNumber: String? = nil,
@@ -159,6 +163,8 @@ public enum VideoWorkflow {
             self.patientID = patientID
             self.patientBirthDate = patientBirthDate
             self.patientSex = patientSex
+            self.studyDate = studyDate
+            self.studyTime = studyTime
             self.studyUID = studyUID
             self.seriesUID = seriesUID
             self.accessionNumber = accessionNumber
@@ -329,12 +335,17 @@ public enum VideoWorkflow {
         VideoConformanceValidator.closestCandidate(for: stream)
     }
 
+    private static func validateStudyDateTime(_ metadata: Metadata) throws {
+        let lines = VideoOptionConformance.studyDateTimeViolations(metadata: metadata)
+        guard lines.isEmpty else { throw Failure.inputError(lines.joined(separator: "\n")) }
+    }
+
     // MARK: - Building
 
     /// Builds the DICOM object for a planned conversion.
     ///
     /// - Parameters:
-    ///   - now: The clock reading used for Content / Study / Acquisition date and
+    ///   - now: The clock reading used for Content / Acquisition date and
     ///     time. Injected so a test can pin it; both adapters pass `Date()`.
     public static func buildVideo(
         plan: ConversionPlan,
@@ -346,6 +357,7 @@ public enum VideoWorkflow {
         instanceNumber: Int,
         now: Date = Date()
     ) throws -> Video {
+        try validateStudyDateTime(metadata)
         let stream = plan.probe.stream
         let builder = VideoBuilder(
             videoType: videoType,
@@ -388,7 +400,11 @@ public enum VideoWorkflow {
         let (today, time) = dicomDateAndTime(from: now)
         builder.setContentDate(today)
         builder.setContentTime(time)
-        builder.setStudyDateTime(date: today, time: time)
+        // Study start is user metadata, not the time an existing clip is wrapped.
+        // Missing Type 2 values remain present and empty (PS3.3 C.7.2.1).
+        builder.setStudyDateTime(
+            date: metadata.studyDate.flatMap(ImageConverter.OutputRules.studyDate),
+            time: metadata.studyTime.flatMap(ImageConverter.OutputRules.studyTime))
         builder.setAcquisitionDateTime(date: today, time: time)
 
         // The payload is encapsulated unchanged, so audio in an MP4 or MPEG-TS
@@ -541,6 +557,7 @@ public enum VideoWorkflow {
         instanceNumber: Int = 1,
         now: Date = Date()
     ) throws -> ConvertOutcome {
+        try validateStudyDateTime(metadata)
         var notices: [String] = []
         if !typeWasExplicit {
             notices.append(VideoConsole.defaultTypeNote(type))
@@ -979,6 +996,11 @@ public enum VideoWorkflow {
         readFile: (URL) -> Data?,
         writeFile: (BatchItem) throws -> String
     ) -> BatchOutcome {
+        let invalidStudyValues = VideoOptionConformance.studyDateTimeViolations(metadata: metadata)
+        guard invalidStudyValues.isEmpty else {
+            return BatchOutcome(output: "", diagnostics: invalidStudyValues.joined(separator: "\n"),
+                                exitCode: .inputError)
+        }
         // Results go to stdout, commentary to stderr — see ``BatchOutcome``.
         var lines: [String] = []
         var diagnostics: [String] = []

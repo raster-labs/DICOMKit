@@ -148,7 +148,7 @@ struct CLIWorkshopVideoTests {
             "--instance-number", "--series-number", "--series-mode", "--dry-run",
             "--trust-input", "--force", "--recursive", "--continue-on-error",
             "--patient-name", "--patient-id", "--patient-birth-date", "--patient-sex",
-            "--study-uid", "--series-uid", "--accession-number", "--study-id",
+            "--study-date", "--study-time", "--study-uid", "--series-uid", "--accession-number", "--study-id",
             "--referring-physician", "--series-description", "--modality", "--strict-modality",
             "--manufacturer", "--institution-name", "--audio-channel-source", "--verbose",
         ]
@@ -334,6 +334,30 @@ struct CLIWorkshopVideoTests {
             let index = try #require(argv.firstIndex(of: flag))
             #expect(argv.dropFirst(index + 1).first == value, "Literal value for \(flag)")
         }
+    }
+
+    @Test("study start inputs are visible for convert/batch and preserved in previews")
+    func studyDateTimeForm() throws {
+        for operation in ["convert", "batch"] {
+            let visible = visibleIDs(operation: operation)
+            for id in ["studyDate", "studyTime"] {
+                #expect(visible.contains(id))
+                #expect(definition(id)?.isAdvanced == false)
+            }
+            let cmd = CommandBuilderHelpers.buildCommand(
+                toolName: "dicom-video",
+                parameterValues: values(operation: operation,
+                    ["studyDate": "20240229", "studyTime": "102030.123456"]),
+                parameterDefinitions: definitions)
+            #expect(cmd.contains("--study-date 20240229"))
+            #expect(cmd.contains("--study-time 102030.123456"))
+        }
+        for operation in ["probe", "extract"] {
+            #expect(!visibleIDs(operation: operation).contains("studyDate"))
+            #expect(!visibleIDs(operation: operation).contains("studyTime"))
+        }
+        #expect(definition("studyDate")?.helpText == VideoConsole.Help.studyDate)
+        #expect(definition("studyTime")?.helpText == VideoConsole.Help.studyTime)
     }
 
     // MARK: - Verbose

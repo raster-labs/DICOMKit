@@ -237,6 +237,8 @@ public enum VideoConsole {
         public static let patientID = "Patient ID"
         public static let patientBirthDate = "Patient's Birth Date (YYYYMMDD)"
         public static let patientSex = "Patient's Sex (M, F or O)"
+        public static let studyDate = "Study Date (0008,0020), DA YYYYMMDD: date the study started; omitted writes an empty value; invalid dates are refused (exit 1)"
+        public static let studyTime = "Study Time (0008,0030), TM HH, HHMM or HHMMSS[.FFFFFF]: time the study started; omitted writes an empty value; invalid times are refused (exit 1)"
         public static let studyUID = "Study Instance UID (generated if not given)"
         public static let seriesUID = "Series Instance UID (generated if not given)"
         public static let accessionNumber = "Accession Number"
