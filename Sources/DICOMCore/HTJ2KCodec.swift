@@ -14,6 +14,18 @@ import J2KCodec
 ///
 /// NEMA-verified: 2026a, checked 2026-09-25 — the three HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1) and the RPCL requirement for .202 is in PS3.5 2026a A.4.4. The citation said A.4.6, which is MPEG-4 AVC/H.264; corrected.
 public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
+    /// Finite decode policy that does not construct or retain transfer-syntax Strings.
+    public enum DecodingSyntax: UInt8, Sendable {
+        /// Admit any HTJ2K codestream.
+        case any
+        /// High-Throughput JPEG 2000 Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.201`.
+        case lossless
+        /// High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only) — `1.2.840.10008.1.2.4.202`.
+        case rpclLossless
+        /// High-Throughput JPEG 2000 Image Compression — `1.2.840.10008.1.2.4.203`.
+        case lossy
+    }
+
     /// The three DICOM HTJ2K transfer syntax UIDs.
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.htj2kLossless.uid,
@@ -32,18 +44,108 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// Creates an HTJ2K codec, optionally pinned to a specific transfer syntax for encoding.
     ///
-    /// - Parameter targetTransferSyntaxUID: The HTJ2K transfer syntax UID to target during encoding.
-    ///   When `nil`, defaults to HTJ2K Lossless.
-    public init(targetTransferSyntaxUID: String? = nil) {
+    /// - Parameters:
+    ///   - targetTransferSyntaxUID: The HTJ2K transfer syntax UID to target during encoding.
+    ///     When `nil`, defaults to HTJ2K Lossless.
+    ///   - decodingLimits: Bounds enforced before sample decoding.
+    public init(targetTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
         self.targetTransferSyntaxUID = targetTransferSyntaxUID
-        let uid = targetTransferSyntaxUID ?? TransferSyntax.htj2kLossless.uid
-        self.backing = J2KSwiftCodec(encodingTransferSyntaxUID: uid, decodingTransferSyntaxUID: uid)
+        if let targetTransferSyntaxUID {
+            self.backing = J2KSwiftCodec(
+                encodingTransferSyntaxUID: targetTransferSyntaxUID,
+                decodingTransferSyntaxUID: targetTransferSyntaxUID,
+                decodingLimits: decodingLimits
+            )
+        } else {
+            self.backing = J2KSwiftCodec(
+                encodingTransferSyntaxUID: TransferSyntax.htj2kLossless.uid,
+                decodingSyntax: .htj2kAny,
+                decodingLimits: decodingLimits
+            )
+        }
+    }
+
+    /// Create an HTJ2K decoder from finite scalar policy without initializing UID Strings.
+    public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init()) {
+        self.targetTransferSyntaxUID = nil
+        let j2kSyntax: J2KSwiftCodec.DecodingSyntax
+        switch decodingSyntax {
+        case .any: j2kSyntax = .htj2kAny
+        case .lossless: j2kSyntax = .htj2kLossless
+        case .rpclLossless: j2kSyntax = .htj2kRPCLLossless
+        case .lossy: j2kSyntax = .htj2kLossy
+        }
+        self.backing = J2KSwiftCodec(decodingSyntax: j2kSyntax, decodingLimits: decodingLimits)
     }
 
     // MARK: - ImageCodec
 
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
         try backing.decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
+    }
+
+    public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> DecodedPixelFrame {
+        try backing.decodePixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
+    }
+
+    // MARK: - Managed Budget-Accounted Decoding
+
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try backing.decodeManagedPixelFrame(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        )
+    }
+
+    @available(*, noasync, message: "Invoke on the synchronous worker owning the execution reservation")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try backing.decodeManagedPixelFrame(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, execution: execution, cancellation: cancellation
+        )
+    }
+
+    @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        backing.decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, execution: execution, cancellation: cancellation
+        )
+    }
+
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        backing.decodeManagedPixelFrameOutcome(
+            frameData, descriptor: descriptor, frameIndex: frameIndex,
+            budget: budget, cancellation: cancellation
+        )
     }
 
     // MARK: - ImageEncoder

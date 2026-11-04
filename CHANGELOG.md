@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-11-04
+
+### Added — strict bounded hospital transfer syntaxes and managed codec decoding
+
+- Expand `BoundedTransferSyntax` (`0...16`, `UInt32` bitmasks `nativeMask`, `compressedMask`, `allSupportedMask`), `BoundedParsingOptions`, and `ParsingOptions.strictCompressedTransferSyntaxUIDs` across all 17 hospital DICOM transfer syntaxes: Implicit/Explicit VR Little Endian, JPEG Baseline (`.50`), JPEG Extended (`.51`), JPEG Lossless Process 14 (`.57`) and SV1 (`.70`), JPEG-LS Lossless (`.80`) and Near-Lossless (`.81`), JPEG 2000 Lossless (`.90`) and Lossy (`.91`), RLE Lossless (`.5`), HTJ2K Lossless (`.201`), HTJ2K RPCL Lossless (`.202`), HTJ2K Lossy (`.203`), JPEG XL Lossless (`.110`), JPEG XL JPEG Recompression (`.111`), and JPEG XL (`.112`).
+- Add synchronous budget-accounted `decodeManagedPixelFrameOutcome` / `decodeManagedPixelFrame` (`ManagedDecodedPixelFrame`, `DICOMAllocationBudget`, `DICOMExecutionReservation`, `DICOMCancellation`) across `RLECodec`, `J2KSwiftCodec`, `HTJ2KCodec`, and `JXLCodec`, and extend `JLICodec` and `JPEGLSCodec` across 8-bit monochrome, 12-bit JPEG Extended, 3-sample lossless/near-lossless color, and 8-in-16 container widening.
+- Enforce zero-copy pre-admission codestream header validation (`J2KCodestreamInspector.ImageHeader` `SIZ` dimensions, `Ssiz` bit depth/signedness, Part-1 vs. HTJ2K `CAP` `0xFF50`, `.202` RPCL/TLM, and lossless 5/3 RCT; `JXLCodec` `SizeHeader` bounds, `.110` Modular/non-XYB lossless enforcement, `.111` strict `jbrd` JPEG reconstruction, and sub-16-bit signed sample reconstruction; `RLECodec` `offsets[0] == 64` and zeroed unused header slots) before `.staging` admission, and add `DICOMByteBuffer.keepAlive()` to preserve mapped backing across raw-pointer accesses under `-O`.
+- Retain all six external dependency pins unchanged (`CompressionFamily` `1.0.0`, `J2KSwift` `11.0.3`, `JLISwift` `0.6.0`, `JLSwift` `0.10.1`, `JXLSwift` `1.4.0`, `swift-argument-parser` `1.8.2`).
+
 ## [2.9.2] - 2026-10-26
 
 ### Fixed — bounded implicit Modality LUTs

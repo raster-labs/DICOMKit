@@ -206,5 +206,9 @@ public struct DICOMByteBuffer: ~Copyable, @unchecked Sendable {
         return .success(())
     }
 
+    /// Extends the `~Copyable` mapping lifetime past raw-pointer uses without closure capture.
+    @inline(never)
+    package borrowing func keepAlive() {}
+
     deinit { DICOMMappedStorage.releaseOwner(mappedOwner) }
 }

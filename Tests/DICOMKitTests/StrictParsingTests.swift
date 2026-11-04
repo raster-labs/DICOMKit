@@ -225,7 +225,7 @@ struct StrictParsingTests {
     }
 
     @Test("Finite strict compression is explicit and retains complete trailing metadata",
-          arguments: ["1.2.840.10008.1.2.4.50", "1.2.840.10008.1.2.4.70", "1.2.840.10008.1.2.4.80"])
+          arguments: Array(ParsingOptions.strictCompressedTransferSyntaxUIDs).sorted())
     func finiteCompressedAdmission(uid: String) throws {
         let bytes = file(element(rows, "US", u16(2)) + encapsulated() + element(trailer, "LO", text("TRAILER")), syntax: uid)
         #expect(throws: StrictParsingError.unsupportedTransferSyntax(uid)) { try read(bytes) }
@@ -252,8 +252,8 @@ struct StrictParsingTests {
         for options in invalid {
             #expect(throws: StrictParsingError.invalidOptions) { try read(bytes, options: options) }
         }
-        for other in ["1.2.840.10008.1.2.2", "1.2.840.10008.1.2.1.99", "1.2.840.10008.1.2.4.51",
-                      "1.2.840.10008.1.2.4.57", "1.2.840.10008.1.2.4.81", "1.2.840.10008.1.2.4.90", "1.2.840.10008.1.2.5"] {
+        for other in ["1.2.840.10008.1.2.2", "1.2.840.10008.1.2.1.99",
+                      "1.2.840.10008.1.2.4.92", "1.2.840.10008.1.2.4.93", "1.2.840.10008.1.2.4.100"] {
             #expect(throws: StrictParsingError.invalidOptions) { try read(bytes, options: compressedOptions(other)) }
         }
         #expect(throws: StrictParsingError.unsupportedTransferSyntax(uid)) {

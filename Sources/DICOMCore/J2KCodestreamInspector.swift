@@ -14,8 +14,9 @@ public enum J2KCodestreamInspector {
 
     // MARK: - Marker codes
 
-    // ISO/IEC 15444-1 (Part 1) delimiting / header markers.
+    // ISO/IEC 15444-1 (Part 1) & 15444-15 (Part 15) delimiting / header markers.
     private static let soc: UInt16 = 0xFF4F  // Start of codestream
+    private static let cap: UInt16 = 0xFF50  // Extended capabilities (HTJ2K / Part 15)
     private static let sot: UInt16 = 0xFF90  // Start of tile-part
     private static let sod: UInt16 = 0xFF93  // Start of data
     private static let eoc: UInt16 = 0xFFD9  // End of codestream
@@ -116,6 +117,112 @@ public enum J2KCodestreamInspector {
             }
         }
         return irreversible
+    }
+
+    // MARK: - Pre-Decode Image Header Inspection (SIZ + CAP)
+
+    /// Per-component SIZ descriptor fields (`Ssiz_i`, `XRsiz_i`, `YRsiz_i`).
+    public struct ComponentHeader: Sendable, Equatable {
+        /// Sample precision in bits (`1...38`).
+        public var bitDepth: Int
+        /// Whether samples are signed (`Ssiz_i` bit 7 == 1).
+        public var isSigned: Bool
+        /// Horizontal sample separation (`XRsiz_i`).
+        public var subsamplingX: Int
+        /// Vertical sample separation (`YRsiz_i`).
+        public var subsamplingY: Int
+    }
+
+    /// Main-header image geometry, component precisions, and HTJ2K capability marker presence.
+    public struct ImageHeader: Sendable, Equatable {
+        /// Effective image width (`Xsiz - XOsiz`).
+        public var width: Int
+        /// Effective image height (`Ysiz - YOsiz`).
+        public var height: Int
+        /// Component headers declared in `SIZ`.
+        public var components: [ComponentHeader]
+        /// Whether the main header carries an ISO/IEC 15444-15 `CAP` (`0xFF50`) marker segment.
+        public var hasCAPMarker: Bool
+    }
+
+    /// Parses the main-header `SIZ` and `CAP` markers without allocating or decoding tile data.
+    /// Returns `nil` when the input is not a recognizable J2K/JP2 stream or lacks a valid `SIZ`.
+    public static func imageHeader(in data: Data) -> ImageHeader? {
+        guard let codestream = locateCodestream(in: data),
+              readUInt16(codestream, at: 0) == soc else {
+            return nil
+        }
+        var offset = 2
+        var parsedWidth: Int?
+        var parsedHeight: Int?
+        var parsedComponents: [ComponentHeader]?
+        var hasCAP = false
+
+        while let marker = readUInt16(codestream, at: offset) {
+            guard marker & 0xFF00 == 0xFF00 else { return nil }
+            if marker == sot || marker == sod || marker == eoc { break }
+            if marker == soc {
+                offset += 2
+                continue
+            }
+            guard let segmentLength = readUInt16(codestream, at: offset + 2),
+                  segmentLength >= 2,
+                  offset + 2 + Int(segmentLength) <= codestream.count else {
+                return nil
+            }
+            if marker == cap {
+                hasCAP = true
+            } else if marker == siz {
+                guard segmentLength >= 38,
+                      let xsiz = readUInt32(codestream, at: offset + 6),
+                      let ysiz = readUInt32(codestream, at: offset + 10),
+                      let xosiz = readUInt32(codestream, at: offset + 14),
+                      let yosiz = readUInt32(codestream, at: offset + 18),
+                      let csiz = readUInt16(codestream, at: offset + 38),
+                      xsiz > xosiz, ysiz > yosiz, csiz >= 1,
+                      Int(segmentLength) == 38 + 3 * Int(csiz) else {
+                    return nil
+                }
+                let w = Int(xsiz - xosiz)
+                let h = Int(ysiz - yosiz)
+                guard w > 0, h > 0 else { return nil }
+                var comps: [ComponentHeader] = []
+                comps.reserveCapacity(Int(csiz))
+                for idx in 0..<Int(csiz) {
+                    let base = offset + 40 + idx * 3
+                    guard let ssiz = readUInt8(codestream, at: base),
+                          let xrsiz = readUInt8(codestream, at: base + 1),
+                          let yrsiz = readUInt8(codestream, at: base + 2),
+                          xrsiz > 0, yrsiz > 0 else {
+                        return nil
+                    }
+                    let bitDepth = Int(ssiz & 0x7F) + 1
+                    let isSigned = (ssiz & 0x80) != 0
+                    comps.append(ComponentHeader(
+                        bitDepth: bitDepth,
+                        isSigned: isSigned,
+                        subsamplingX: Int(xrsiz),
+                        subsamplingY: Int(yrsiz)
+                    ))
+                }
+                parsedWidth = w
+                parsedHeight = h
+                parsedComponents = comps
+            }
+            offset += 2 + Int(segmentLength)
+        }
+
+        guard let width = parsedWidth,
+              let height = parsedHeight,
+              let components = parsedComponents else {
+            return nil
+        }
+        return ImageHeader(
+            width: width,
+            height: height,
+            components: components,
+            hasCAPMarker: hasCAP
+        )
     }
 
     // MARK: - HTJ2K Lossless RPCL (PS3.5 2026a 10.18.1)
