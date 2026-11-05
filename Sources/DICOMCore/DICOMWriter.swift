@@ -355,66 +355,161 @@ public struct DICOMWriter: Sendable {
         return Data(bytes)
     }
 
-    /// Serializes an encapsulated PixelData element per DICOM PS3.5 A.4
-    /// (Encapsulation of Encoded Pixel Data). Layout:
-    ///
-    ///   (7FE0,0010) OB  undefined length (0xFFFFFFFF)
-    ///   (FFFE,E000) Item  <BOT length>   <BOT bytes>
-    ///   (FFFE,E000) Item  <frag-1 length><frag-1 bytes>
-    ///   ...
-    ///   (FFFE,E0DD) Sequence Delimitation Item, length 0
-    ///
-    /// Encapsulated pixel data is always Explicit VR Little Endian (the
-    /// encapsulated transfer syntaxes are all Explicit VR LE), so the header is
-    /// emitted as OB with a 2-byte reserved field regardless of the writer's
-    /// `explicitVR`/byte-order configuration — matching the encoder/transcoder
-    /// serializers so all three produce byte-identical output.
-    private func serializeEncapsulatedPixelData(_ element: DataElement, fragments: [Data]) -> Data {
-        var data = Data()
+    /// Serializes an element with checked encapsulated frame and size bounds. Sequence
+    /// children inherit the same per-Pixel-Data cap. Supply surrounding frame/table
+    /// attributes when available, especially for multiple frames with an empty BOT.
+    public func serializeCheckedElement(
+        _ element: DataElement, maxEncapsulatedBytes: Int = Int(UInt32.max),
+        numberOfFrames: Int? = nil, extendedOffsetTableData: Data? = nil,
+        extendedOffsetTableLengthsData: Data? = nil, transferSyntax: TransferSyntax? = nil
+    ) throws -> Data {
+        if element.vr == .SQ {
+            var itemsData = Data()
+            for item in element.sequenceItems ?? [] {
+                let itemData = try serializeCheckedSequenceItem(item, maxEncapsulatedBytes: maxEncapsulatedBytes)
+                try appendSequenceBytes(itemData, to: &itemsData)
+            }
+            var result = serializeElementHeader(tag: element.tag, vr: .SQ, length: UInt32(itemsData.count))
+            result.append(itemsData)
+            return result
+        }
+        if element.length == 0xFFFFFFFF, let fragments = element.encapsulatedFragments {
+            return try serializeCheckedEncapsulatedPixelData(
+                element, fragments: fragments, maxSerializedBytes: maxEncapsulatedBytes,
+                numberOfFrames: numberOfFrames, extendedOffsetTableData: extendedOffsetTableData,
+                extendedOffsetTableLengthsData: extendedOffsetTableLengthsData, transferSyntax: transferSyntax)
+        }
+        return try serializeCheckedValue(element)
+    }
 
-        // PixelData element header: tag + VR(OB) + 2 reserved + undefined length.
-        data.append(serializeUInt16(element.tag.group))
-        data.append(serializeUInt16(element.tag.element))
+    /// A known short VR with an oversized value can use UN and a 32-bit length
+    /// in Explicit VR (PS3.5 §6.2.2). UN payloads use little-endian ordering.
+    private func serializeCheckedValue(_ element: DataElement) throws -> Data {
+        let count = element.valueData.count
+        guard element.length != UInt32.max, UInt32(exactly: count) == element.length else {
+            throw DICOMError.parsingFailed("Value length for \(element.tag) does not match its stored bytes")
+        }
+        let padding = count % 2
+        let (paddedCount, overflow) = count.addingReportingOverflow(padding)
+        guard !overflow, let length = UInt32(exactly: paddedCount), length != UInt32.max else {
+            throw DICOMError.limitExceeded("Value for \(element.tag) exceeds the defined DICOM Value Length")
+        }
+        if padding != 0 && element.vr.characterRepertoire == nil && element.vr != .OB && element.vr != .UN {
+            throw DICOMError.parsingFailed("Odd-length numeric value for \(element.tag) with VR \(element.vr.rawValue)")
+        }
+        let needsUN = explicitVR && !element.vr.uses32BitLength && length > UInt32(UInt16.max)
+        guard !needsUN || element.tag.group != 0x0002 else {
+            throw DICOMError.limitExceeded("File Meta Information value for \(element.tag) exceeds the Explicit VR length field")
+        }
+        if !needsUN && padding == 0 { return serializeElement(element) }
+        let outputVR: VR = needsUN ? .UN : element.vr
+        var data = serializeElementHeader(tag: element.tag, vr: outputVR, length: length)
+        data.append(Self.value(element.valueData, vr: element.vr, from: element.byteOrder,
+                               to: needsUN ? .littleEndian : byteOrder))
+        if padding != 0 {
+            data.append(element.vr.characterRepertoire != nil && element.vr != .UI ? 0x20 : 0)
+        }
+        return data
+    }
+
+    private func serializeCheckedSequenceItem(_ item: SequenceItem, maxEncapsulatedBytes: Int) throws -> Data {
+        var bytes = Data()
+        for tag in item.tags {
+            guard let element = item[tag] else { continue }
+            let checked: Data
+            if tag == .pixelData && element.isEncapsulated {
+                checked = try serializeCheckedElement(element, maxEncapsulatedBytes: maxEncapsulatedBytes,
+                    numberOfFrames: Self.checkedFrameCount(item[.numberOfFrames]),
+                    extendedOffsetTableData: item[.extendedOffsetTable]?.valueData,
+                    extendedOffsetTableLengthsData: item[.extendedOffsetTableLengths]?.valueData)
+            } else {
+                checked = try serializeCheckedElement(element, maxEncapsulatedBytes: maxEncapsulatedBytes)
+            }
+            try appendSequenceBytes(checked, to: &bytes)
+        }
+        var data = serializeTag(.item)
+        data.append(serializeUInt32(UInt32(bytes.count)))
+        data.append(bytes)
+        return data
+    }
+
+    private func appendSequenceBytes(_ bytes: Data, to output: inout Data) throws {
+        let (count, overflow) = output.count.addingReportingOverflow(bytes.count)
+        guard !overflow, count < Int(UInt32.max) else { throw EncapsulatedOffsetBuildError.sequenceLengthOutOfBounds }
+        output.append(bytes)
+    }
+
+    package static func checkedFrameCount(_ attribute: DataElement?) throws -> Int {
+        guard let attribute else { return 1 }
+        guard let text = attribute.stringValue,
+              let value = Int(text.trimmingCharacters(in: .whitespacesAndNewlines)), value > 0 else {
+            throw EncapsulatedOffsetBuildError.invalidNumberOfFrames
+        }
+        return value
+    }
+
+    /// Checks item widths, total length and frame boundaries before serializing.
+    /// An odd logical fragment can be padded only at the end of a known frame.
+    public func serializeCheckedEncapsulatedPixelData(
+        _ element: DataElement, fragments: [Data], maxSerializedBytes: Int = Int(UInt32.max),
+        numberOfFrames: Int? = nil, extendedOffsetTableData: Data? = nil,
+        extendedOffsetTableLengthsData: Data? = nil, transferSyntax: TransferSyntax? = nil
+    ) throws -> Data {
+        let offsets = element.encapsulatedOffsetTable ?? []
+        let checked = try EncapsulatedPixelData.validateCheckedEncapsulatedSerialization(
+            fragments: fragments, offsetTableCount: offsets.count,
+            maxSerializedBytes: maxSerializedBytes)
+        if let syntax = transferSyntax, syntax.isVideo {
+            // Video frames share one inter-coded bitstream. Number of Frames
+            // describes playback and supplies no fragment offsets (PS3.5 A.4.5–7).
+            guard offsets.isEmpty, extendedOffsetTableData == nil, extendedOffsetTableLengthsData == nil else {
+                throw DICOMError.parsingFailed("Continuous video Pixel Data requires an empty BOT and no extended offsets")
+            }
+            guard fragments.count == 1 || syntax.allowsMultipleFragments else {
+                throw DICOMError.parsingFailed("This video transfer syntax requires the entire bitstream in one fragment")
+            }
+            guard fragments.dropLast().allSatisfy({ $0.count.isMultiple(of: 2) }) else {
+                throw DICOMError.parsingFailed("An interior video fragment cannot be padded inside the bitstream")
+            }
+        } else {
+            // Without dataset metadata an empty BOT does not prove that an odd
+            // nonfinal fragment terminates a frame. Only the last may be padded.
+            let inferredCount = offsets.isEmpty ? (extendedOffsetTableData.map { $0.count / 8 } ?? 1) : offsets.count
+            _ = try EncapsulatedPixelData.resolveFrameIndex(
+                numberOfFrames: numberOfFrames ?? inferredCount, fragments: fragments, offsetTable: offsets,
+                extendedOffsetTableData: extendedOffsetTableData,
+                extendedOffsetTableLengthsData: extendedOffsetTableLengthsData)
+        }
+        return serializeEncapsulatedPixelData(element, fragments: fragments, capacity: checked.totalElementByteCount)
+    }
+
+    /// Shared byte emitter. The throwing API validates its inputs first. The
+    /// original nonthrowing serialization API retains its existing size contract
+    /// and does not silently omit a Pixel Data element on a checked-cap refusal.
+    private func serializeEncapsulatedPixelData(_ element: DataElement, fragments: [Data], capacity: Int? = nil) -> Data {
+        var data = Data()
+        if let capacity { data.reserveCapacity(capacity) }
+        data.append(serializeTag(element.tag))
         data.append(contentsOf: "OB".utf8)
         data.append(contentsOf: [0x00, 0x00])
         data.append(serializeUInt32(0xFFFFFFFF))
 
-        // Basic Offset Table (BOT) Item: (FFFE,E000) + length + offsets (or empty).
-        let offsetTable = element.encapsulatedOffsetTable ?? []
-        var botBytes = Data()
-        for offset in offsetTable {
-            botBytes.append(serializeUInt32(offset))
-        }
-        data.append(serializeUInt16(0xFFFE))
-        data.append(serializeUInt16(0xE000))
-        data.append(serializeUInt32(UInt32(botBytes.count)))
-        data.append(botBytes)
-
-        // One Item per codestream fragment, padded to even length (PS3.5 requires
-        // even-length items; pad an odd fragment with a trailing 0x00).
+        let offsets = element.encapsulatedOffsetTable ?? []
+        data.append(serializeTag(.item))
+        data.append(serializeUInt32(UInt32(offsets.count * 4)))
+        for offset in offsets { data.append(serializeUInt32(offset)) }
         for fragment in fragments {
-            data.append(serializeUInt16(0xFFFE))
-            data.append(serializeUInt16(0xE000))
-            let padded: Data
-            if fragment.count % 2 != 0 {
-                var p = fragment
-                p.append(0x00)
-                padded = p
-            } else {
-                padded = fragment
-            }
-            data.append(serializeUInt32(UInt32(padded.count)))
-            data.append(padded)
+            data.append(serializeTag(.item))
+            let padding = fragment.count % 2
+            data.append(serializeUInt32(UInt32(fragment.count + padding)))
+            data.append(fragment)
+            if padding != 0 { data.append(0) }
         }
-
-        // Sequence Delimitation Item (FFFE,E0DD), length 0.
-        data.append(serializeUInt16(0xFFFE))
-        data.append(serializeUInt16(0xE0DD))
+        data.append(serializeTag(.sequenceDelimitationItem))
         data.append(serializeUInt32(0))
-
         return data
     }
-    
+
     /// Serializes a sequence element (SQ VR)
     ///
     /// Reference: PS3.5 Section 7.5 - Nesting of Data Sets

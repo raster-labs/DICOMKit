@@ -58,49 +58,50 @@ extension DICOMFile {
     ///     silently; the final full decode always arrives.
     /// - Returns: A stream of `ProgressiveFrameUpdate`s ending with
     ///   `isFinal == true`, or throwing on unrecoverable failure.
+    public func pixelDataProgressive(frame: Int, coarseLevels: [Int] = [2, 1])
+        -> AsyncThrowingStream<ProgressiveFrameUpdate, Error> {
+        pixelDataProgressive(frame: frame, coarseLevels: coarseLevels, codecRegistry: .shared)
+    }
+
     public func pixelDataProgressive(
         frame: Int,
-        coarseLevels: [Int] = [2, 1]
+        coarseLevels: [Int] = [2, 1],
+        codecRegistry: CodecRegistry
     ) -> AsyncThrowingStream<ProgressiveFrameUpdate, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {
+                    try Task.checkCancellation()
+                    let descriptor = try self.dataSet.tryPixelDataDescriptor()
+                    let source = try self.frameSource(descriptor: descriptor, frame: frame, registry: codecRegistry)
                     #if canImport(J2KCore) && canImport(J2KCodec)
-                    if self.supportsProgressiveDecode,
-                       let encapsulated = self.dataSet.encapsulatedPixelData(),
-                       let index = encapsulated.makeFrameIndex(
-                           extendedOffsets: self.extendedOffsetTableValues()),
-                       let frameBytes = encapsulated.frameData(at: frame, using: index) {
-                        let descriptor = encapsulated.descriptor
-                        let codec = J2KSwiftCodec()
-                        for level in coarseLevels where level > 0 {
+                    if case .encapsulated(let pixels, let index, let selected) = source,
+                       let predecessor = (selected as? J2KSwiftCodec) ?? (selected as? HTJ2KCodec)?.progressiveDecoder,
+                       let bytes = pixels.frameData(at: frame, using: index, maximumBytes: PixelDecodeLimits.default.maximumEncodedBytes),
+                       let style = J2KCodestreamInspector.codingStyle(in: bytes) {
+                        for level in coarseLevels where level > 0 && level <= style.decompositionLevels {
                             try Task.checkCancellation()
-                            guard let (data, rows, columns) = try? await codec.decodeFrameAtResolution(
-                                frameBytes, descriptor: descriptor, level: level) else {
-                                continue // level unavailable — refine with the next
-                            }
+                            let (data, rows, columns) = try await predecessor.decodeFrameAtResolution(
+                                bytes, descriptor: descriptor, level: level)
                             let reduced = PixelDataDescriptor(
                                 rows: rows, columns: columns, numberOfFrames: 1,
-                                bitsAllocated: descriptor.bitsAllocated,
-                                bitsStored: descriptor.bitsStored,
-                                highBit: descriptor.highBit,
-                                isSigned: descriptor.isSigned,
+                                bitsAllocated: descriptor.bitsAllocated, bitsStored: descriptor.bitsStored,
+                                highBit: descriptor.highBit, isSigned: descriptor.isSigned,
                                 samplesPerPixel: descriptor.samplesPerPixel,
                                 photometricInterpretation: descriptor.photometricInterpretation,
                                 planarConfiguration: descriptor.planarConfiguration)
-                            continuation.yield(ProgressiveFrameUpdate(
-                                resolutionLevel: level,
-                                isFinal: false,
-                                pixelData: PixelData(data: data, descriptor: reduced)))
+                            let preview = PixelData(data: data, descriptor: J2KSwiftCodec.outputDescriptor(for: reduced))
+                            try Task.checkCancellation()
+                            continuation.yield(ProgressiveFrameUpdate(resolutionLevel: level, isFinal: false,
+                                                                      pixelData: preview))
                         }
                     }
                     #endif
 
-                    // Final, exact frame — identical to pixelData(frame:).
                     try Task.checkCancellation()
-                    let final = try self.pixelData(frame: frame)
-                    continuation.yield(ProgressiveFrameUpdate(
-                        resolutionLevel: 0, isFinal: true, pixelData: final))
+                    let final = try self.readFrame(frame, descriptor: descriptor, source: source, aligned: false)
+                    try Task.checkCancellation()
+                    continuation.yield(ProgressiveFrameUpdate(resolutionLevel: 0, isFinal: true, pixelData: final))
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)

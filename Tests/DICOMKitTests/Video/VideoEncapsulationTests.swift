@@ -155,6 +155,31 @@ final class VideoEncapsulationTests: XCTestCase {
         XCTAssertEqual(element.encapsulatedFragments?.first, bitstream)
     }
 
+    func test_fragmentableVideoWritesOneContinuousStream() throws {
+        let stream = makeBitstream(byteCount: 128)
+        let video = try makeVideo(bitstream: stream)
+        var dataSet = video.toDataSet()
+        func pixelData(split: Int) -> DataElement {
+            DataElement(tag: .pixelData, vr: .OB, length: UInt32.max, valueData: Data(),
+                        encapsulatedFragments: [Data(stream.prefix(split)), Data(stream.dropFirst(split))],
+                        encapsulatedOffsetTable: [])
+        }
+
+        dataSet[.pixelData] = pixelData(split: 64)
+        let syntax = TransferSyntax.mpeg4AVCHP41Fragmentable
+        let file = DICOMFile.create(dataSet: dataSet, transferSyntaxUID: syntax.uid)
+        let parsed = try DICOMFile.read(from: file.write())
+        XCTAssertEqual(parsed.dataSet[.pixelData]?.encapsulatedFragmentCount, 2)
+        XCTAssertEqual(try VideoExtractor.extract(from: parsed).bitstream, stream)
+
+        // The same stream is too large for this cap, and its two fragments cannot
+        // be written with the corresponding non-fragmentable transfer syntax.
+        XCTAssertThrowsError(try dataSet.writeChecked(maxEncapsulatedBytes: 64, transferSyntax: syntax))
+        XCTAssertThrowsError(try dataSet.writeChecked(transferSyntax: .mpeg4AVCHP41))
+        dataSet[.pixelData] = pixelData(split: 63)
+        XCTAssertThrowsError(try dataSet.writeChecked(transferSyntax: syntax))
+    }
+
     func test_video_basicOffsetTable_singleEntry() throws {
         let bitstream = makeBitstream(byteCount: 1024)
         let video = try makeVideo(bitstream: bitstream)

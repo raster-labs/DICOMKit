@@ -286,6 +286,34 @@ public enum DICOMConverter {
         public let isLossless: Bool
         /// The number of private tags removed (0 when `stripPrivate` was false).
         public let strippedPrivateTagCount: Int
+        /// Provider selected for decoding the source encapsulated syntax, when applicable.
+        public let resolvedDecodeProviderID: CodecProviderID?
+        /// Provider selected for encoding the target encapsulated syntax, when applicable.
+        public let resolvedEncodeProviderID: CodecProviderID?
+        /// Provider selected for compressed-domain transcoding, when applicable.
+        public let resolvedTranscodeProviderID: CodecProviderID?
+
+        public init(
+            data: Data,
+            sourceSyntax: TransferSyntax,
+            targetSyntax: TransferSyntax,
+            wasTranscoded: Bool,
+            isLossless: Bool,
+            strippedPrivateTagCount: Int,
+            resolvedDecodeProviderID: CodecProviderID? = nil,
+            resolvedEncodeProviderID: CodecProviderID? = nil,
+            resolvedTranscodeProviderID: CodecProviderID? = nil
+        ) {
+            self.data = data
+            self.sourceSyntax = sourceSyntax
+            self.targetSyntax = targetSyntax
+            self.wasTranscoded = wasTranscoded
+            self.isLossless = isLossless
+            self.strippedPrivateTagCount = strippedPrivateTagCount
+            self.resolvedDecodeProviderID = resolvedDecodeProviderID
+            self.resolvedEncodeProviderID = resolvedEncodeProviderID
+            self.resolvedTranscodeProviderID = resolvedTranscodeProviderID
+        }
     }
 
     /// Optionally strips private tags from an already-parsed DICOM file, transcodes it
@@ -306,11 +334,23 @@ public enum DICOMConverter {
         to target: TransferSyntax,
         stripPrivate: Bool
     ) throws -> Outcome {
+        try convertToDICOM(dicomFile: dicomFile, to: target, stripPrivate: stripPrivate, codecRegistry: .shared)
+    }
+
+    /// Optionally strips private tags from an already-parsed DICOM file, transcodes it
+    /// to `target` using `codecRegistry`, and renders a complete Part-10 byte stream.
+    public static func convertToDICOM(
+        dicomFile: DICOMFile,
+        to target: TransferSyntax,
+        stripPrivate: Bool,
+        codecRegistry: CodecRegistry
+    ) throws -> Outcome {
         let intent: EncodingIntent = target.losslessCapability == .both ? .lossy : .notApplicable
         return try convertToDICOM(
             dicomFile: dicomFile,
             to: SelectableEncoding(transferSyntax: target, intent: intent),
-            stripPrivate: stripPrivate
+            stripPrivate: stripPrivate,
+            codecRegistry: codecRegistry
         )
     }
 
@@ -342,13 +382,29 @@ public enum DICOMConverter {
         to encoding: SelectableEncoding,
         stripPrivate: Bool
     ) throws -> Outcome {
+        try convertToDICOM(dicomFile: dicomFile, to: encoding, stripPrivate: stripPrivate, codecRegistry: .shared)
+    }
+
+    /// Optionally strips private tags from an already-parsed DICOM file, transcodes it to
+    /// `encoding` (UID + intent) using `codecRegistry`, and renders a complete Part-10 byte stream.
+    public static func convertToDICOM(
+        dicomFile: DICOMFile,
+        to encoding: SelectableEncoding,
+        stripPrivate: Bool,
+        codecRegistry: CodecRegistry
+    ) throws -> Outcome {
         // Reject a mismatched source transfer syntax or pixel format up front with a
         // readable reason, then wrap any later codec/parser error with the same
         // source → target context. Both the CLI and the app print the resulting
         // ``ConversionFailure`` through ``ConvertConsole/failureReport(for:)``.
-        try checkConversion(dicomFile: dicomFile, to: encoding)
+        try checkConversion(dicomFile: dicomFile, to: encoding, codecRegistry: codecRegistry)
         do {
-            return try performConversion(dicomFile: dicomFile, to: encoding, stripPrivate: stripPrivate)
+            return try performConversion(
+                dicomFile: dicomFile,
+                to: encoding,
+                stripPrivate: stripPrivate,
+                codecRegistry: codecRegistry
+            )
         } catch {
             let sourceUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
             throw ConversionFailure.translate(
@@ -362,7 +418,8 @@ public enum DICOMConverter {
     private static func performConversion(
         dicomFile: DICOMFile,
         to encoding: SelectableEncoding,
-        stripPrivate: Bool
+        stripPrivate: Bool,
+        codecRegistry: CodecRegistry
     ) throws -> Outcome {
         let target = encoding.transferSyntax
 
@@ -392,14 +449,6 @@ public enum DICOMConverter {
             dataSet = filtered
         }
 
-        // The native (uncompressed) pixel byte count for the lossy compression ratio, captured
-        // from the SOURCE before transcoding (it is the numerator "uncompressed size" regardless
-        // of any downstream bit-depth reduction). Falls back to the raw element length.
-        let sourceUncompressedPixelBytes: Int = {
-            if let d = try? CompressionManager.buildPixelDataDescriptor(from: dataSet) { return d.totalBytes }
-            return dataSet[.pixelData]?.valueData.count ?? 0
-        }()
-
         // Determine the source transfer syntax from the file.
         let sourceSyntaxUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
         let sourceSyntax = TransferSyntax.from(uid: sourceSyntaxUID) ?? .explicitVRLittleEndian
@@ -408,6 +457,17 @@ public enum DICOMConverter {
         // inflates a Deflated source), so when the *source* is itself deflated the byte
         // stream the transcoder/deflater consumes is its un-deflated Explicit VR LE form.
         let serializationSyntax: TransferSyntax = sourceSyntax.isDeflated ? .explicitVRLittleEndian : sourceSyntax
+
+        if let pixel = dataSet[.pixelData] {
+            guard pixel.isEncapsulated == serializationSyntax.isEncapsulated else {
+                throw TranscodingError.pixelDataExtractionFailed("Pixel Data representation conflicts with the source transfer syntax")
+            }
+            // Bound materialized JPEG 2000 geometry before serializing or invoking a codec.
+            if sourceSyntax.isJPEG2000 || target.isJPEG2000 {
+                let descriptor = try CompressionManager.buildPixelDataDescriptor(from: dataSet)
+                _ = try descriptor.checkedNativeConversionFrameBytes()
+            }
+        }
 
         // File Meta Information for the output (shared by both payload paths; never deflated).
         let sopClassUID = dataSet.string(for: .sopClassUID) ?? "1.2.840.10008.5.1.4.1.1.7"
@@ -424,6 +484,9 @@ public enum DICOMConverter {
         let dataSetPayload: Data
         let wasTranscoded: Bool
         let isLossless: Bool
+        var resolvedDecodeProviderID: CodecProviderID?
+        var resolvedEncodeProviderID: CodecProviderID?
+        var resolvedTranscodeProviderID: CodecProviderID?
 
         if target.isDeflated {
             // Deflated Explicit VR Little Endian (PS3.5 A.5): serialize the Data Set as
@@ -449,20 +512,23 @@ public enum DICOMConverter {
                         allowLossyCompression: false,
                         preservePixelDataFidelity: true
                     ),
-                    compressionConfiguration: .lossless
+                    compressionConfiguration: .lossless,
+                    codecRegistry: codecRegistry
                 )
                 let sourceWriter = DICOMWriter(
                     byteOrder: serializationSyntax.byteOrder,
                     explicitVR: serializationSyntax.isExplicitVR
                 )
-                plain = try decoder.transcode(
-                    dataSetData: dataSet.write(using: sourceWriter),
+                let decodeResult = try decoder.transcode(
+                    dataSetData: dataSet.writeChecked(using: sourceWriter, transferSyntax: serializationSyntax),
                     from: serializationSyntax,
                     to: .explicitVRLittleEndian
-                ).data
+                )
+                plain = decodeResult.data
+                resolvedDecodeProviderID = decodeResult.resolvedDecodeProviderID
             } else {
                 let evleWriter = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
-                plain = dataSet.write(using: evleWriter)
+                plain = try dataSet.writeChecked(using: evleWriter, transferSyntax: .explicitVRLittleEndian)
             }
             guard let deflated = plain.deflateCompressed() else {
                 throw TranscodingError.encodingFailed(
@@ -491,7 +557,8 @@ public enum DICOMConverter {
                     allowLossyCompression: allowLossy,
                     preservePixelDataFidelity: encodeLossless
                 ),
-                compressionConfiguration: compressionConfig
+                compressionConfiguration: compressionConfig,
+                codecRegistry: codecRegistry
             )
 
             // Serialize the (possibly filtered) data set to bytes in the source syntax.
@@ -499,7 +566,7 @@ public enum DICOMConverter {
                 byteOrder: serializationSyntax.byteOrder,
                 explicitVR: serializationSyntax.isExplicitVR
             )
-            let dataSetBytes = dataSet.write(using: sourceWriter)
+            let dataSetBytes = try dataSet.writeChecked(using: sourceWriter, transferSyntax: serializationSyntax)
 
             let result = try converter.transcode(
                 dataSetData: dataSetBytes,
@@ -512,19 +579,26 @@ public enum DICOMConverter {
             // `both`-capable UID (it keys off the UID's lossy-capable flag), so OR in the
             // intent-derived truth; recompression/deflate paths correctly set `result.isLossless`.
             isLossless = encodeLossless || result.isLossless
+            resolvedDecodeProviderID = result.resolvedDecodeProviderID
+            resolvedEncodeProviderID = result.resolvedEncodeProviderID
+            resolvedTranscodeProviderID = result.resolvedTranscodeProviderID
         }
 
         // --- Output: render the complete Part-10 file ---
         var outputData = Data()
         outputData.append(Data(repeating: 0, count: 128))  // Preamble
         outputData.append(contentsOf: "DICM".utf8)          // DICM prefix
-        outputData.append(outputFile.fileMetaInformation.write(using: fmiWriter))
+        outputData.append(try outputFile.fileMetaInformation.writeChecked(using: fmiWriter))
         outputData.append(dataSetPayload)
 
         // Record DICOM Lossy Image Compression provenance for an irreversible encapsulated
         // encode (0028,2110/2112/2114 + Image Type → DERIVED), reusing the exact writer
         // `dicom-compress` uses. No-op for reversible-only targets (method Defined Term is nil).
-        if !encodeLossless, wasTranscoded, target.isEncapsulated, target.lossyImageCompressionMethod != nil {
+        if !encodeLossless, wasTranscoded, target.isEncapsulated,
+           target.lossyImageCompressionMethod != nil, dataSet[.pixelData] != nil {
+            let descriptor = try CompressionManager.buildPixelDataDescriptor(from: dataSet)
+            let frameBytes = try descriptor.checkedNativeConversionFrameBytes()
+            let sourceUncompressedPixelBytes = frameBytes * descriptor.numberOfFrames // product checked above
             outputData = try applyLossyProvenance(
                 to: outputData, target: target, uncompressedPixelByteCount: sourceUncompressedPixelBytes)
         }
@@ -535,7 +609,10 @@ public enum DICOMConverter {
             targetSyntax: target,
             wasTranscoded: wasTranscoded,
             isLossless: isLossless,
-            strippedPrivateTagCount: strippedCount
+            strippedPrivateTagCount: strippedCount,
+            resolvedDecodeProviderID: resolvedDecodeProviderID,
+            resolvedEncodeProviderID: resolvedEncodeProviderID,
+            resolvedTranscodeProviderID: resolvedTranscodeProviderID
         )
     }
 

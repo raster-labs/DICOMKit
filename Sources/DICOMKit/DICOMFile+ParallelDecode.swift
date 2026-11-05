@@ -32,18 +32,29 @@ extension DICOMFile {
     /// - Returns: Frame index → single-frame `PixelData`.
     /// - Throws: `CancellationError` when the calling task is cancelled;
     ///   `PixelDataError` for decode failures.
+    public func pixelData(frames: [Int], maxInFlightBytes: Int = 64 << 20,
+                          aligned: Bool = false) async throws -> [Int: PixelData] {
+        try await pixelData(frames: frames, maxInFlightBytes: maxInFlightBytes, aligned: aligned, codecRegistry: .shared)
+    }
+
     public func pixelData(
         frames: [Int],
         maxInFlightBytes: Int = 64 << 20,
-        aligned: Bool = false
+        aligned: Bool = false,
+        codecRegistry: CodecRegistry
     ) async throws -> [Int: PixelData] {
         let descriptor = try dataSet.tryPixelDataDescriptor()
-        let bytesPerFrame = descriptor.rows * descriptor.columns
-            * descriptor.samplesPerPixel * max(1, descriptor.bitsAllocated / 8)
-        let width = Self.maxConcurrentFrames(bytesPerFrame: bytesPerFrame,
-                                             maxInFlightBytes: maxInFlightBytes)
         let wanted = Array(Set(frames)).sorted()
+        guard let first = wanted.first else { return [:] }
+        let source = try frameSource(descriptor: descriptor, frame: first, registry: codecRegistry)
+        return try await decodeFrames(wanted, descriptor: descriptor, source: source,
+                                      maxInFlightBytes: maxInFlightBytes, aligned: aligned)
+    }
 
+    private func decodeFrames(_ wanted: [Int], descriptor: PixelDataDescriptor, source: FrameSource,
+                              maxInFlightBytes: Int, aligned: Bool) async throws -> [Int: PixelData] {
+        let size = try Self.checkedFrameBytes(descriptor, frame: wanted.first ?? 0)
+        let width = Self.maxConcurrentFrames(bytesPerFrame: size, maxInFlightBytes: maxInFlightBytes)
         var results: [Int: PixelData] = [:]
         results.reserveCapacity(wanted.count)
 
@@ -52,9 +63,7 @@ extension DICOMFile {
             func schedule(_ frame: Int) {
                 group.addTask {
                     try Task.checkCancellation()
-                    let pd = aligned
-                        ? try self.alignedPixelData(frame: frame)
-                        : try self.pixelData(frame: frame)
+                    let pd = try self.readFrame(frame, descriptor: descriptor, source: source, aligned: aligned)
                     return (frame, pd)
                 }
             }
@@ -77,32 +86,43 @@ extension DICOMFile {
     /// multi-frame `PixelData` — a bounded-parallel, cancellable alternative to
     /// the serial `pixelData()`.
     public func pixelDataParallel(maxInFlightBytes: Int = 64 << 20) async throws -> PixelData {
+        try await pixelDataParallel(maxInFlightBytes: maxInFlightBytes, codecRegistry: .shared)
+    }
+
+    public func pixelDataParallel(
+        maxInFlightBytes: Int = 64 << 20,
+        codecRegistry: CodecRegistry
+    ) async throws -> PixelData {
         let descriptor = try dataSet.tryPixelDataDescriptor()
-        let frames = try await pixelData(frames: Array(0..<descriptor.numberOfFrames),
-                                         maxInFlightBytes: maxInFlightBytes)
-        var combined = Data(capacity: frames.values.reduce(0) { $0 + $1.data.count })
-        var outDescriptor = descriptor
+        let source = try frameSource(descriptor: descriptor, frame: 0, registry: codecRegistry)
+        // Validate the size before constructing the list of all frames.
+        switch source {
+        case .encapsulated:
+            _ = try descriptor.checkedNativeConversionFrameBytes()
+        case .native(let element):
+            let size = try Self.checkedFrameBytes(descriptor, frame: 0)
+            let (samples, overflow) = size.multipliedReportingOverflow(by: descriptor.numberOfFrames)
+            guard !overflow else { throw PixelDataError.frameExtractionFailed(frameIndex: 0) }
+            let required = descriptor.bitsAllocated == 1 ? (samples - 1) / 8 + 1 : samples
+            guard required <= element.valueData.count else { throw PixelDataError.frameExtractionFailed(frameIndex: 0) }
+        }
+        let frames = try await decodeFrames(Array(0..<descriptor.numberOfFrames), descriptor: descriptor,
+                                            source: source, maxInFlightBytes: maxInFlightBytes, aligned: false)
+        guard let first = frames[0] else { throw PixelDataError.frameExtractionFailed(frameIndex: 0) }
+        let actual = first.descriptor
+        var combined = Data()
         for i in 0..<descriptor.numberOfFrames {
-            guard let frame = frames[i] else {
+            guard let frame = frames[i], frame.descriptor == actual else {
                 throw PixelDataError.frameExtractionFailed(frameIndex: i)
             }
             combined.append(frame.data)
-            // Frame decodes may correct the photometric interpretation
-            // (JPEG baseline YBR→RGB); carry that into the combined descriptor.
-            if frame.descriptor.photometricInterpretation != descriptor.photometricInterpretation {
-                outDescriptor = PixelDataDescriptor(
-                    rows: descriptor.rows,
-                    columns: descriptor.columns,
-                    numberOfFrames: descriptor.numberOfFrames,
-                    bitsAllocated: descriptor.bitsAllocated,
-                    bitsStored: descriptor.bitsStored,
-                    highBit: descriptor.highBit,
-                    isSigned: descriptor.isSigned,
-                    samplesPerPixel: descriptor.samplesPerPixel,
-                    photometricInterpretation: frame.descriptor.photometricInterpretation,
-                    planarConfiguration: descriptor.planarConfiguration)
-            }
         }
-        return PixelData(data: combined, descriptor: outDescriptor)
+        let full = PixelDataDescriptor(rows: actual.rows, columns: actual.columns, numberOfFrames: descriptor.numberOfFrames,
+                                       bitsAllocated: actual.bitsAllocated, bitsStored: actual.bitsStored,
+                                       highBit: actual.highBit, isSigned: actual.isSigned,
+                                       samplesPerPixel: actual.samplesPerPixel,
+                                       photometricInterpretation: actual.photometricInterpretation,
+                                       planarConfiguration: actual.planarConfiguration)
+        return PixelData(data: combined, descriptor: full)
     }
 }

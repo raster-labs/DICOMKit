@@ -506,7 +506,7 @@ public struct FrameSplitter {
         }
 
         // Pixel data for this frame only, with the transfer syntax the bytes are valid in.
-        newDataSet[.pixelData] = MultiframePixelAssembler.pixelDataElement(for: payload)
+        newDataSet[.pixelData] = try MultiframePixelAssembler.assemble([payload]).element
         MultiframePixelAssembler.applyPixelDescription(payload, to: &newDataSet, fileMeta: &fileMeta)
 
         let newFile = DICOMFile(fileMetaInformation: fileMeta, dataSet: newDataSet)

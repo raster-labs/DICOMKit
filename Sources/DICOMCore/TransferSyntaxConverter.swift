@@ -22,6 +22,13 @@ public struct TranscodingConfiguration: Sendable, Hashable {
     /// When true, the converter will verify that transcoding maintains
     /// pixel data integrity for lossless conversions.
     public let preservePixelDataFidelity: Bool
+
+    /// Whether explicit lossy 16-bit to 8-bit unsigned display rescaling is permitted
+    /// when targeting an 8-bit-only legacy lossy encoder (such as JPEG Baseline).
+    ///
+    /// Defaults to `false`. Never enabled when `preservePixelDataFidelity == true`
+    /// or `allowLossyCompression == false`.
+    public let allowBitDepthReductionTo8Bit: Bool
     
     /// Default configuration preferring Explicit VR Little Endian
     public static let `default` = TranscodingConfiguration(
@@ -59,20 +66,35 @@ public struct TranscodingConfiguration: Sendable, Hashable {
         preservePixelDataFidelity: true
     )
     
+    /// Creates a configuration with the original fidelity and lossy-compression options.
+    public init(
+        preferredSyntaxes: [TransferSyntax],
+        allowLossyCompression: Bool = false,
+        preservePixelDataFidelity: Bool = true
+    ) {
+        self.init(preferredSyntaxes: preferredSyntaxes, allowLossyCompression: allowLossyCompression,
+                  preservePixelDataFidelity: preservePixelDataFidelity, allowBitDepthReductionTo8Bit: false)
+    }
+
     /// Creates a transcoding configuration
     ///
     /// - Parameters:
     ///   - preferredSyntaxes: Transfer syntaxes in order of preference
     ///   - allowLossyCompression: Whether lossy compression is allowed
     ///   - preservePixelDataFidelity: Whether to verify pixel data integrity
+    ///   - allowBitDepthReductionTo8Bit: Whether explicit 16-to-8 lossy rescaling is permitted for 8-bit-only legacy encoders
     public init(
         preferredSyntaxes: [TransferSyntax],
         allowLossyCompression: Bool = false,
-        preservePixelDataFidelity: Bool = true
+        preservePixelDataFidelity: Bool = true,
+        allowBitDepthReductionTo8Bit: Bool
     ) {
         self.preferredSyntaxes = preferredSyntaxes
         self.allowLossyCompression = allowLossyCompression
         self.preservePixelDataFidelity = preservePixelDataFidelity
+        self.allowBitDepthReductionTo8Bit = allowBitDepthReductionTo8Bit
+            && allowLossyCompression
+            && !preservePixelDataFidelity
     }
 }
 
@@ -94,8 +116,17 @@ public struct TranscodingResult: Sendable {
     
     /// Whether the conversion was lossless
     public let isLossless: Bool
+
+    /// Provider selected for decoding the source encapsulated syntax, when applicable.
+    public let resolvedDecodeProviderID: CodecProviderID?
+
+    /// Provider selected for encoding the target encapsulated syntax, when applicable.
+    public let resolvedEncodeProviderID: CodecProviderID?
+
+    /// Provider selected for compressed-domain transcoding, when applicable.
+    public let resolvedTranscodeProviderID: CodecProviderID?
     
-    /// Creates a transcoding result
+    /// Creates a result without codec provider information.
     public init(
         data: Data,
         sourceTransferSyntax: TransferSyntax,
@@ -103,11 +134,30 @@ public struct TranscodingResult: Sendable {
         wasTranscoded: Bool,
         isLossless: Bool
     ) {
+        self.init(data: data, sourceTransferSyntax: sourceTransferSyntax, targetTransferSyntax: targetTransferSyntax,
+                  wasTranscoded: wasTranscoded, isLossless: isLossless, resolvedDecodeProviderID: nil,
+                  resolvedEncodeProviderID: nil, resolvedTranscodeProviderID: nil)
+    }
+
+    /// Creates a transcoding result
+    public init(
+        data: Data,
+        sourceTransferSyntax: TransferSyntax,
+        targetTransferSyntax: TransferSyntax,
+        wasTranscoded: Bool,
+        isLossless: Bool,
+        resolvedDecodeProviderID: CodecProviderID?,
+        resolvedEncodeProviderID: CodecProviderID?,
+        resolvedTranscodeProviderID: CodecProviderID?
+    ) {
         self.data = data
         self.sourceTransferSyntax = sourceTransferSyntax
         self.targetTransferSyntax = targetTransferSyntax
         self.wasTranscoded = wasTranscoded
         self.isLossless = isLossless
+        self.resolvedDecodeProviderID = resolvedDecodeProviderID
+        self.resolvedEncodeProviderID = resolvedEncodeProviderID
+        self.resolvedTranscodeProviderID = resolvedTranscodeProviderID
     }
 }
 
@@ -182,17 +232,31 @@ public struct TransferSyntaxConverter: Sendable {
     
     /// Compression configuration for encoding operations
     public let compressionConfiguration: CompressionConfiguration
+
+    /// Immutable codec registry used for decoding, encoding, and compressed-domain transcoding.
+    public let codecRegistry: CodecRegistry
     
-    /// Creates a transfer syntax converter with the specified configuration
-    /// - Parameters:
-    ///   - configuration: Transcoding configuration (default: `.default`)
-    ///   - compressionConfiguration: Compression configuration for encoding (default: `.default`)
+    /// Creates a converter using the shared codec registry.
     public init(
         configuration: TranscodingConfiguration = .default,
         compressionConfiguration: CompressionConfiguration = .default
     ) {
+        self.init(configuration: configuration, compressionConfiguration: compressionConfiguration, codecRegistry: .shared)
+    }
+
+    /// Creates a transfer syntax converter with the specified configuration
+    /// - Parameters:
+    ///   - configuration: Transcoding configuration (default: `.default`)
+    ///   - compressionConfiguration: Compression configuration for encoding (default: `.default`)
+    ///   - codecRegistry: Immutable codec registry captured per operation
+    public init(
+        configuration: TranscodingConfiguration = .default,
+        compressionConfiguration: CompressionConfiguration = .default,
+        codecRegistry: CodecRegistry
+    ) {
         self.configuration = configuration
         self.compressionConfiguration = compressionConfiguration
+        self.codecRegistry = codecRegistry
     }
     
     // MARK: - Public API
@@ -204,6 +268,14 @@ public struct TransferSyntaxConverter: Sendable {
     ///   - target: Target transfer syntax
     /// - Returns: True if transcoding is supported
     public func canTranscode(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
+        canTranscode(from: source, to: target, using: codecRegistry)
+    }
+
+    private func canTranscode(
+        from source: TransferSyntax,
+        to target: TransferSyntax,
+        using registry: CodecRegistry
+    ) -> Bool {
         // Same syntax - always supported (no-op)
         if source.uid == target.uid {
             return true
@@ -226,12 +298,12 @@ public struct TransferSyntaxConverter: Sendable {
         
         // Decompression: compressed to uncompressed
         if source.isEncapsulated && targetIsUncompressed {
-            return CodecRegistry.shared.hasCodec(for: source.uid)
+            return registry.hasCodec(for: source.uid)
         }
         
         // Compression: uncompressed to compressed
         if sourceIsUncompressed && target.isEncapsulated {
-            return CodecRegistry.shared.hasEncoder(for: target.uid)
+            return registry.hasEncoder(for: target.uid)
         }
 
         // Recompression: compressed to compressed
@@ -243,8 +315,12 @@ public struct TransferSyntaxConverter: Sendable {
                 || Self.isJXLRecompressionReverse(from: source, to: target) {
                 return true
             }
-            return CodecRegistry.shared.hasCodec(for: source.uid)
-                && CodecRegistry.shared.hasEncoder(for: target.uid)
+            if Self.canUseFastPathTranscode(from: source, to: target),
+               registry.resolveJ2KTranscoder(from: source.uid, to: target.uid, descriptor: nil) != nil {
+                return true
+            }
+            return registry.hasCodec(for: source.uid)
+                && registry.hasEncoder(for: target.uid)
         }
 
         return false
@@ -326,6 +402,34 @@ public struct TransferSyntaxConverter: Sendable {
             )
         }
         
+        let nativeUIDs = [TransferSyntax.implicitVRLittleEndian.uid, TransferSyntax.explicitVRLittleEndian.uid,
+                          TransferSyntax.explicitVRBigEndian.uid]
+        let sourceIsUncompressed = nativeUIDs.contains(sourceSyntax.uid)
+        guard sourceIsUncompressed || sourceSyntax.isEncapsulated else {
+            throw TranscodingError.unsupportedSourceSyntax(sourceSyntax.uid)
+        }
+        guard nativeUIDs.contains(targetSyntax.uid) || targetSyntax.isEncapsulated else {
+            throw TranscodingError.unsupportedTargetSyntax(targetSyntax.uid)
+        }
+
+        let elements = try parseDataElements(from: dataSetData, transferSyntax: sourceSyntax)
+        if !elements.contains(where: { $0.tag == .pixelData }) {
+            guard !elements.contains(where: { $0.tag == .extendedOffsetTable || $0.tag == .extendedOffsetTableLengths }) else {
+                throw TranscodingError.pixelDataExtractionFailed("Offset table without Pixel Data")
+            }
+            guard TransferSyntax.from(uid: sourceSyntax.uid) != nil else {
+                throw TranscodingError.unsupportedSourceSyntax(sourceSyntax.uid)
+            }
+            guard TransferSyntax.from(uid: targetSyntax.uid) != nil else {
+                throw TranscodingError.unsupportedTargetSyntax(targetSyntax.uid)
+            }
+            let data = try transcodeUncompressed(elements: elements, from: sourceSyntax, to: targetSyntax)
+            return TranscodingResult(data: data, sourceTransferSyntax: sourceSyntax, targetTransferSyntax: targetSyntax,
+                                     wasTranscoded: true, isLossless: true)
+        }
+        // Eager syntax-only capability queries cannot decide a descriptor-dependent provider.
+        let registry = self.codecRegistry
+
         // JPEG XL JPEG Recompression (…4.111) only wraps an 8-bit DCT JPEG. Explain a
         // wrong source instead of reporting a bare "unsupported target syntax".
         if targetSyntax.uid == TransferSyntax.jpegXLRecompression.uid,
@@ -337,11 +441,6 @@ public struct TransferSyntaxConverter: Sendable {
                 + "JPEG XL Lossless (1.2.840.10008.1.2.4.110) instead")
         }
 
-        // Check if transcoding is supported
-        guard canTranscode(from: sourceSyntax, to: targetSyntax) else {
-            throw TranscodingError.unsupportedTargetSyntax(targetSyntax.uid)
-        }
-        
         // Check lossy constraint. JPEG XL JPEG Recompression (…4.111) adds NO loss —
         // it losslessly rewraps an already-encoded JPEG bitstream (and reverses it
         // byte-for-byte) — so it counts as lossless even when the wrapped JPEG is a
@@ -357,52 +456,52 @@ public struct TransferSyntaxConverter: Sendable {
         
         // Perform the transcoding
         let transcodedData: Data
-        
-        // Determine transcoding direction
-        let supportedUncompressed = [
-            TransferSyntax.implicitVRLittleEndian.uid,
-            TransferSyntax.explicitVRLittleEndian.uid,
-            TransferSyntax.explicitVRBigEndian.uid
-        ]
-        let sourceIsUncompressed = supportedUncompressed.contains(sourceSyntax.uid) && !sourceSyntax.isEncapsulated
+        var resolvedDecodeProviderID: CodecProviderID?
+        var resolvedEncodeProviderID: CodecProviderID?
+        var resolvedTranscodeProviderID: CodecProviderID?
         
         if !sourceSyntax.isEncapsulated && !targetSyntax.isEncapsulated {
             // Uncompressed to uncompressed
             transcodedData = try transcodeUncompressed(
-                dataSetData: dataSetData,
+                elements: elements,
                 from: sourceSyntax,
                 to: targetSyntax
             )
         } else if sourceSyntax.isEncapsulated && !targetSyntax.isEncapsulated {
             // Compressed to uncompressed (decompression)
-            transcodedData = try transcodeFromEncapsulated(
-                dataSetData: dataSetData,
+            (transcodedData, resolvedDecodeProviderID) = try transcodeFromEncapsulated(
+                elements: elements,
                 from: sourceSyntax,
-                to: targetSyntax
+                to: targetSyntax,
+                codecRegistry: registry
             )
         } else if sourceIsUncompressed && targetSyntax.isEncapsulated {
             // Uncompressed to compressed (compression)
-            transcodedData = try transcodeToEncapsulated(
-                dataSetData: dataSetData,
+            (transcodedData, resolvedEncodeProviderID) = try transcodeToEncapsulated(
+                elements: elements,
                 from: sourceSyntax,
-                to: targetSyntax
+                to: targetSyntax,
+                codecRegistry: registry
             )
         } else if sourceSyntax.isEncapsulated && targetSyntax.isEncapsulated {
             // Compressed to compressed
-            if Self.canUseFastPathTranscode(from: sourceSyntax, to: targetSyntax) {
-                // Fast-path: J2K ↔ HTJ2K via J2KTranscoder (coefficient re-encoding,
-                // no full pixel decode/re-encode). Significantly faster.
-                transcodedData = try transcodeFastPath(
-                    dataSetData: dataSetData,
-                    from: sourceSyntax,
-                    to: targetSyntax
-                )
+            let targetAllowsLosslessFastPath = targetSyntax.isLossless || compressionConfiguration.preferLossless
+            if targetAllowsLosslessFastPath,
+               Self.canUseFastPathTranscode(from: sourceSyntax, to: targetSyntax),
+               let fastPathResult = try transcodeFastPathIfSupported(
+                   elements: elements,
+                   from: sourceSyntax,
+                   to: targetSyntax,
+                   codecRegistry: registry
+               ) {
+                transcodedData = fastPathResult.data
+                resolvedTranscodeProviderID = fastPathResult.providerID
             } else if isRecompression {
                 // JPEG XL JPEG Recompression: wrap/unwrap the JPEG bitstream directly at
                 // the encapsulated-fragment level (no pixel decode/re-encode). Forward =
                 // JPEG Baseline → …4.111; reverse = …4.111 → JPEG Baseline (byte-exact).
                 transcodedData = try transcodeJXLRecompression(
-                    dataSetData: dataSetData,
+                    elements: elements,
                     from: sourceSyntax,
                     to: targetSyntax,
                     forward: Self.isJXLRecompressionForward(from: sourceSyntax, to: targetSyntax)
@@ -410,16 +509,22 @@ public struct TransferSyntaxConverter: Sendable {
             } else {
                 // Slow path: full decode to uncompressed then re-encode
                 let uncompressedSyntax = TransferSyntax.explicitVRLittleEndian
-                let uncompressedData = try transcodeFromEncapsulated(
-                    dataSetData: dataSetData,
+                let (uncompressedData, decProvider) = try transcodeFromEncapsulated(
+                    elements: elements,
                     from: sourceSyntax,
-                    to: uncompressedSyntax
+                    to: uncompressedSyntax,
+                    codecRegistry: registry
                 )
-                transcodedData = try transcodeToEncapsulated(
-                    dataSetData: uncompressedData,
+                let intermediate = try parseDataElements(from: uncompressedData, transferSyntax: uncompressedSyntax)
+                let (reencodedData, encProvider) = try transcodeToEncapsulated(
+                    elements: intermediate,
                     from: uncompressedSyntax,
-                    to: targetSyntax
+                    to: targetSyntax,
+                    codecRegistry: registry
                 )
+                transcodedData = reencodedData
+                resolvedDecodeProviderID = decProvider
+                resolvedEncodeProviderID = encProvider
             }
         } else {
             throw TranscodingError.unsupportedTargetSyntax(targetSyntax.uid)
@@ -430,7 +535,10 @@ public struct TransferSyntaxConverter: Sendable {
             sourceTransferSyntax: sourceSyntax,
             targetTransferSyntax: targetSyntax,
             wasTranscoded: true,
-            isLossless: isLossless
+            isLossless: isLossless,
+            resolvedDecodeProviderID: resolvedDecodeProviderID,
+            resolvedEncodeProviderID: resolvedEncodeProviderID,
+            resolvedTranscodeProviderID: resolvedTranscodeProviderID
         )
     }
     
@@ -481,50 +589,101 @@ public struct TransferSyntaxConverter: Sendable {
         return false
     }
 
-    /// Transcodes between J2K Part 1 and HTJ2K using J2KTranscoder's fast coefficient path.
-    ///
-    /// Operates on encapsulated pixel data fragments directly — each codestream
-    /// fragment is transcoded individually without decoding to pixels.
-    private func transcodeFastPath(
-        dataSetData: Data,
+    /// Transcodes between J2K Part 1 and HTJ2K using the resolved provider's compressed-domain
+    /// transcoder when available for the dataset's descriptor, operating on canonical frames
+    /// and rebuilding the Basic Offset Table for the new frame lengths.
+    private func transcodeFastPathIfSupported(
+        elements: [DataElement],
         from source: TransferSyntax,
-        to target: TransferSyntax
-    ) throws -> Data {
-        let direction: HTJ2KCodec.TranscodeDirection = source.isHTJ2K ? .htj2kToJ2K : .j2kToHTJ2K
+        to target: TransferSyntax,
+        codecRegistry: CodecRegistry
+    ) throws -> (data: Data, providerID: CodecProviderID)? {
+        let descriptor = try pixelDescriptor(in: elements, expectingEncapsulated: true)
 
-        // Parse elements including the encapsulated pixel data
-        let elements = try parseDataElements(from: dataSetData, transferSyntax: source)
+        guard let resolved = codecRegistry.resolveJ2KTranscoder(
+            from: source.uid,
+            to: target.uid,
+            descriptor: descriptor
+        ) else {
+            return nil
+        }
+
+        let eotData = elements.first(where: { $0.tag == .extendedOffsetTable })?.valueData
+        let eotLengthsData = elements.first(where: { $0.tag == .extendedOffsetTableLengths })?.valueData
 
         var outputElements: [DataElement] = []
 
         for element in elements {
-            if element.tag == .pixelData && element.isEncapsulated,
-               let fragments = element.encapsulatedFragments {
-                // Transcode each codestream fragment using J2KTranscoder
-                var transcodedFragments: [Data] = []
-                for fragment in fragments {
-                    let transcoded: Data
-                    switch direction {
-                    case .j2kToHTJ2K:
-                        transcoded = try HTJ2KCodec.transcodeToHTJ2K(fragment)
-                    case .htj2kToJ2K:
-                        transcoded = try HTJ2KCodec.transcodeFromHTJ2K(fragment)
-                    }
-                    transcodedFragments.append(transcoded)
+            if element.tag == .extendedOffsetTable || element.tag == .extendedOffsetTableLengths {
+                // Remove stale EOT (7FE0,0001) and EOT-Lengths (7FE0,0002) tags when writing BOT-based output.
+                continue
+            } else if element.tag == .pixelData && element.isEncapsulated,
+                      let fragments = element.encapsulatedFragments,
+                      let descriptor {
+                let encapsulated = EncapsulatedPixelData(
+                    offsetTable: element.encapsulatedOffsetTable ?? [],
+                    fragments: fragments,
+                    descriptor: descriptor
+                )
+                let index: EncapsulatedPixelData.FrameIndex
+                do {
+                    index = try encapsulated.resolveFrameIndex(
+                        extendedOffsetTableData: eotData,
+                        extendedOffsetTableLengthsData: eotLengthsData)
+                } catch let error as EncapsulatedFrameResolutionError {
+                    throw TranscodingError.pixelDataExtractionFailed(error.description)
                 }
 
-                // Build new encapsulated pixel data element
+                var frameCodestreams: [Data] = []
+                frameCodestreams.reserveCapacity(descriptor.numberOfFrames)
+                for frame in 0..<descriptor.numberOfFrames {
+                    try Task.checkCancellation()
+                    let frameCodestream = try encapsulated.conversionCodestream(at: frame, using: index)
+                    // A general UID (.91 / .203) may hold an irreversible 9/7 codestream, which
+                    // cannot be losslessly transcoded in the wavelet coefficient domain; route
+                    // those streams through pixel decode + target encode before invoking the transcoder.
+                    if source.losslessCapability != .losslessOnly,
+                       J2KCodestreamInspector.usesIrreversibleWavelet(in: frameCodestream) {
+                        return nil
+                    }
+                    frameCodestreams.append(frameCodestream)
+                }
+
+                var transcodedFrames: [Data] = []
+                var wireBytes = 28
+                for (frameIdx, frameCodestream) in frameCodestreams.enumerated() {
+                    try Task.checkCancellation()
+                    let transcoded = try resolved.transcoder.transcodeCodestream(
+                        frameCodestream,
+                        from: source.uid,
+                        to: target.uid,
+                        descriptor: descriptor,
+                        frameIndex: frameIdx
+                    )
+                    try Self.appendConvertedFrame(transcoded, to: &transcodedFrames, wireBytes: &wireBytes)
+                }
+
+                let preserveSingleFrameBOT = !(element.encapsulatedOffsetTable ?? []).isEmpty
+                let rebuiltOffsets: [UInt32]
+                do {
+                    (rebuiltOffsets, _) = try EncapsulatedPixelData.buildCheckedBasicOffsetTable(
+                        for: transcodedFrames,
+                        includeSingleFrameOffset: preserveSingleFrameBOT
+                    )
+                } catch let error as EncapsulatedOffsetBuildError {
+                    throw TranscodingError.encodingFailed(error.description)
+                }
+
                 let newElement = DataElement(
                     tag: element.tag,
                     vr: element.vr,
                     length: 0xFFFFFFFF,
                     valueData: Data(),
-                    encapsulatedFragments: transcodedFragments,
-                    encapsulatedOffsetTable: element.encapsulatedOffsetTable ?? []
+                    encapsulatedFragments: transcodedFrames,
+                    encapsulatedOffsetTable: rebuiltOffsets
                 )
                 outputElements.append(newElement)
             } else if element.tag == Tag.transferSyntaxUID {
-                // Update Transfer Syntax UID in File Meta
                 let uidData = Data(target.uid.utf8)
                 let newElement = DataElement(
                     tag: element.tag,
@@ -538,13 +697,30 @@ public struct TransferSyntaxConverter: Sendable {
             }
         }
 
-        // Write elements in target transfer syntax (all HTJ2K/J2K use Explicit VR LE)
         let writer = DICOMWriter(byteOrder: target.byteOrder, explicitVR: target.isExplicitVR)
         var outputData = Data()
         for element in outputElements {
-            outputData.append(writer.serializeElement(element))
+            do {
+                outputData.append(try writer.serializeCheckedElement(element, numberOfFrames: descriptor?.numberOfFrames, transferSyntax: target))
+            } catch let error as EncapsulatedOffsetBuildError {
+                throw TranscodingError.encodingFailed(error.description)
+            }
         }
-        return outputData
+        return (outputData, resolved.providerID)
+    }
+
+    /// Admit each output before retaining it. The running size includes an
+    /// eight-byte item header, one possible pad and a four-byte offset per frame.
+    private static func appendConvertedFrame(_ frame: Data, to frames: inout [Data], wireBytes: inout Int) throws {
+        guard !frame.isEmpty, frame.count <= PixelDecodeLimits.default.maximumEncodedBytes else {
+            throw TranscodingError.encodingFailed("Invalid compressed output frame length")
+        }
+        let addition = 12 + frame.count + frame.count % 2
+        guard wireBytes <= Int(UInt32.max) - addition else {
+            throw TranscodingError.encodingFailed("Converted frames exceed the DICOM serialization limit")
+        }
+        wireBytes += addition
+        frames.append(frame)
     }
 
     // MARK: - JPEG XL JPEG Recompression (…4.111)
@@ -576,7 +752,7 @@ public struct TransferSyntaxConverter: Sendable {
     /// Whether this is a reverse JPEG XL JPEG Recompression (…4.111) → JPEG transcode,
     /// reconstructing the byte-identical original JPEG bitstream into JPEG Baseline
     /// (…4.50) or JPEG Extended (…4.51). The rebuilt JPEG's frame type is checked
-    /// against the chosen UID in ``transcodeJXLRecompression(dataSetData:from:to:forward:)``.
+    /// against the chosen UID in the JXL recompression path.
     static func isJXLRecompressionReverse(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
         source.uid == TransferSyntax.jpegXLRecompression.uid
             && jxlRecompressibleJPEGSyntaxUIDs.contains(target.uid)
@@ -620,16 +796,13 @@ public struct TransferSyntaxConverter: Sendable {
     /// Transcodes between JPEG Baseline / Extended and JPEG XL JPEG Recompression (…4.111) at the
     /// encapsulated-fragment level — each JPEG frame is wrapped (`forward`) or the
     /// original JPEG frame is reconstructed byte-for-byte (`!forward`) without any pixel
-    /// decode/re-encode. Structurally mirrors ``transcodeFastPath(dataSetData:from:to:)``.
+    /// decode/re-encode. It uses the same canonical DICOM frame boundaries as J2K transcoding.
     private func transcodeJXLRecompression(
-        dataSetData: Data,
+        elements: [DataElement],
         from source: TransferSyntax,
         to target: TransferSyntax,
         forward: Bool
     ) throws -> Data {
-        // Parse elements including the encapsulated pixel data.
-        let elements = try parseDataElements(from: dataSetData, transferSyntax: source)
-
         // PS3.5 Table 8.2.15-1: …4.111 carries only 8-bit unsigned pixel data. Reject a
         // 12-bit JPEG Extended (or signed) source up front with a clear message.
         if forward {
@@ -647,14 +820,38 @@ public struct TransferSyntaxConverter: Sendable {
             }
         }
 
+        let descriptor = try pixelDescriptor(in: elements, expectingEncapsulated: true)
+        let eotData = elements.first(where: { $0.tag == .extendedOffsetTable })?.valueData
+        let eotLengthsData = elements.first(where: { $0.tag == .extendedOffsetTableLengths })?.valueData
+
         var outputElements: [DataElement] = []
 
         for element in elements {
-            if element.tag == .pixelData && element.isEncapsulated,
-               let fragments = element.encapsulatedFragments {
-                // Wrap / unwrap each JPEG ↔ JXL frame fragment.
+            if element.tag == .extendedOffsetTable || element.tag == .extendedOffsetTableLengths {
+                continue
+            } else if element.tag == .pixelData && element.isEncapsulated,
+                      let fragments = element.encapsulatedFragments,
+                      let descriptor {
+                let encapsulated = EncapsulatedPixelData(
+                    offsetTable: element.encapsulatedOffsetTable ?? [],
+                    fragments: fragments,
+                    descriptor: descriptor
+                )
+                let index: EncapsulatedPixelData.FrameIndex
+                do {
+                    index = try encapsulated.resolveFrameIndex(
+                        extendedOffsetTableData: eotData,
+                        extendedOffsetTableLengthsData: eotLengthsData)
+                } catch let error as EncapsulatedFrameResolutionError {
+                    throw TranscodingError.pixelDataExtractionFailed(error.description)
+                }
+
+                // Wrap / unwrap each canonical JPEG ↔ JXL frame.
                 var transcodedFragments: [Data] = []
-                for fragment in fragments {
+                var wireBytes = 28
+                for frame in 0..<descriptor.numberOfFrames {
+                    try Task.checkCancellation()
+                    let fragment = try encapsulated.conversionCodestream(at: frame, using: index)
                     let transcoded: Data
                     do {
                         transcoded = forward
@@ -680,7 +877,18 @@ public struct TransferSyntaxConverter: Sendable {
                                 + "Extended (1.2.840.10008.1.2.4.51) instead")
                         }
                     }
-                    transcodedFragments.append(transcoded)
+                    try Self.appendConvertedFrame(transcoded, to: &transcodedFragments, wireBytes: &wireBytes)
+                }
+
+                let preserveSingleFrameBOT = !(element.encapsulatedOffsetTable ?? []).isEmpty
+                let rebuiltOffsets: [UInt32]
+                do {
+                    (rebuiltOffsets, _) = try EncapsulatedPixelData.buildCheckedBasicOffsetTable(
+                        for: transcodedFragments,
+                        includeSingleFrameOffset: preserveSingleFrameBOT
+                    )
+                } catch let error as EncapsulatedOffsetBuildError {
+                    throw TranscodingError.encodingFailed(error.description)
                 }
 
                 // Build new encapsulated pixel data element.
@@ -690,7 +898,7 @@ public struct TransferSyntaxConverter: Sendable {
                     length: 0xFFFFFFFF,
                     valueData: Data(),
                     encapsulatedFragments: transcodedFragments,
-                    encapsulatedOffsetTable: buildOffsetTable(for: transcodedFragments)
+                    encapsulatedOffsetTable: rebuiltOffsets
                 )
                 outputElements.append(newElement)
             } else if element.tag == Tag.transferSyntaxUID {
@@ -712,7 +920,11 @@ public struct TransferSyntaxConverter: Sendable {
         let writer = DICOMWriter(byteOrder: target.byteOrder, explicitVR: target.isExplicitVR)
         var outputData = Data()
         for element in outputElements {
-            outputData.append(writer.serializeElement(element))
+            do {
+                outputData.append(try writer.serializeCheckedElement(element, numberOfFrames: descriptor?.numberOfFrames, transferSyntax: target))
+            } catch let error as EncapsulatedOffsetBuildError {
+                throw TranscodingError.encodingFailed(error.description)
+            }
         }
         return outputData
     }
@@ -721,18 +933,22 @@ public struct TransferSyntaxConverter: Sendable {
     
     /// Transcodes between uncompressed transfer syntaxes
     private func transcodeUncompressed(
-        dataSetData: Data,
+        elements: [DataElement],
         from source: TransferSyntax,
         to target: TransferSyntax
     ) throws -> Data {
-        // Parse the source data elements
-        let elements = try parseDataElements(from: dataSetData, transferSyntax: source)
-        
         // Write elements in target transfer syntax
         let writer = DICOMWriter(byteOrder: target.byteOrder, explicitVR: target.isExplicitVR)
         var outputData = Data()
         
         for element in elements {
+            if element.tag == .transferSyntaxUID {
+                let uid = Data(target.uid.utf8)
+                outputData.append(try writer.serializeCheckedElement(
+                    DataElement(tag: .transferSyntaxUID, vr: .UI, length: UInt32(uid.count), valueData: uid),
+                    transferSyntax: target))
+                continue
+            }
             // Re-encode numeric values if byte order changes
             let transcodedElement: DataElement
             if source.byteOrder != target.byteOrder {
@@ -741,7 +957,7 @@ public struct TransferSyntaxConverter: Sendable {
                 transcodedElement = element
             }
             
-            outputData.append(writer.serializeElement(transcodedElement))
+            outputData.append(try writer.serializeCheckedElement(transcodedElement, transferSyntax: target))
         }
         
         return outputData
@@ -749,38 +965,50 @@ public struct TransferSyntaxConverter: Sendable {
     
     /// Transcodes from encapsulated (compressed) to uncompressed
     private func transcodeFromEncapsulated(
-        dataSetData: Data,
+        elements: [DataElement],
         from source: TransferSyntax,
-        to target: TransferSyntax
-    ) throws -> Data {
-        // For encapsulated data, we need a codec to decompress
-        guard let codec = CodecRegistry.shared.codec(for: source.uid) else {
+        to target: TransferSyntax,
+        codecRegistry: CodecRegistry
+    ) throws -> (data: Data, resolvedDecodeProviderID: CodecProviderID?) {
+        let descriptor = try pixelDescriptor(in: elements, expectingEncapsulated: true)
+
+        // Preselect decoder for source syntax using the captured operation registry.
+        guard let resolvedDecoder = codecRegistry.resolveDecoder(for: source.uid, descriptor: descriptor) else {
             throw TranscodingError.unsupportedSourceSyntax(source.uid)
         }
-        
-        // Parse elements including the encapsulated pixel data
-        let elements = try parseDataElements(from: dataSetData, transferSyntax: source)
-        
+        let codec = resolvedDecoder.codec
+
+        let eotData = elements.first(where: { $0.tag == .extendedOffsetTable })?.valueData
+        let eotLengthsData = elements.first(where: { $0.tag == .extendedOffsetTableLengths })?.valueData
+
         // Find pixel data element and decompress if present
         var outputElements: [DataElement] = []
         var decodedXYB = false
         
         for element in elements {
-            if element.tag == .pixelData && element.isEncapsulated,
-               let fragments = element.encapsulatedFragments {
-                // Get pixel data descriptor from surrounding elements
-                let descriptor = try extractPixelDataDescriptor(from: elements)
+            if element.tag == .extendedOffsetTable || element.tag == .extendedOffsetTableLengths {
+                // Remove stale EOT (7FE0,0001) and EOT-Lengths (7FE0,0002) tags when writing native output.
+                continue
+            } else if element.tag == .pixelData && element.isEncapsulated,
+                      let fragments = element.encapsulatedFragments,
+                      let descriptor {
                 decodedXYB = source.isJPEGXL && descriptor.photometricInterpretation == .xyb
-                
-                // Decompress each frame
-                var decompressedData = Data()
-                for (index, fragment) in fragments.enumerated() {
-                    let frameData = try codec.decodeFrame(fragment, descriptor: descriptor, frameIndex: index)
-                    decompressedData.append(frameData)
+
+                let encapsulated = EncapsulatedPixelData(
+                    offsetTable: element.encapsulatedOffsetTable ?? [],
+                    fragments: fragments,
+                    descriptor: descriptor
+                )
+                let decompressedData = try encapsulated.decodedNativeValue(
+                    using: codec, extendedOffsets: eotData, extendedLengths: eotLengthsData
+                )
+
+                guard let nativeLength32 = UInt32(exactly: decompressedData.count),
+                      nativeLength32 != 0xFFFF_FFFF else {
+                    throw TranscodingError.pixelDataExtractionFailed(
+                        "Decompressed native Pixel Data size (\(decompressedData.count) bytes) exceeds 32-bit Value Length bounds"
+                    )
                 }
-                // Native Pixel Data has one even-length Value Field, including
-                // all frames. Pad only the final field, never individual frames.
-                if decompressedData.count % 2 != 0 { decompressedData.append(0) }
                 
                 // PS3.5 A.2 / 8.2: native >8 Bits Allocated requires OW; implicit
                 // VR always uses OW. Encapsulated OB must not be carried over.
@@ -790,7 +1018,7 @@ public struct TransferSyntaxConverter: Sendable {
                 let newElement = DataElement(
                     tag: element.tag,
                     vr: nativeVR,
-                    length: UInt32(decompressedData.count),
+                    length: nativeLength32,
                     valueData: decompressedData
                 )
                 outputElements.append(newElement)
@@ -842,68 +1070,75 @@ public struct TransferSyntaxConverter: Sendable {
         var outputData = Data()
 
         for element in outputElements {
-            outputData.append(writer.serializeElement(element))
+            outputData.append(try writer.serializeCheckedElement(element, transferSyntax: target))
         }
 
-        return outputData
+        return (outputData, resolvedDecoder.providerID)
     }
 
     /// Transcodes from uncompressed to encapsulated (compressed)
     private func transcodeToEncapsulated(
-        dataSetData: Data,
+        elements: [DataElement],
         from source: TransferSyntax,
-        to target: TransferSyntax
-    ) throws -> Data {
-        // Get encoder for target syntax
-        guard let encoder = CodecRegistry.shared.encoder(for: target.uid) else {
-            throw TranscodingError.unsupportedTargetSyntax(target.uid)
+        to target: TransferSyntax,
+        codecRegistry: CodecRegistry
+    ) throws -> (data: Data, resolvedEncodeProviderID: CodecProviderID?) {
+        let effectiveCompressionConfiguration = target.isLossless ? .lossless : compressionConfiguration
+        guard let initialDescriptor = try pixelDescriptor(in: elements, expectingEncapsulated: false),
+              let pixelElement = elements.first(where: { $0.tag == .pixelData }) else {
+            throw TranscodingError.pixelDataExtractionFailed("Missing native Pixel Data")
         }
-        
-        // Parse elements from source
-        let elements = try parseDataElements(from: dataSetData, transferSyntax: source)
-        
-        // Pre-scan: determine if bit-depth reduction will be needed.
-        // This must happen before the output element loop because the bit-depth
-        // metadata tags (group 0x0028) precede pixel data (group 0x7FE0) in tag
-        // order. Without pre-scanning, the metadata tags would be emitted before
-        // we know whether reduction is required.
+        var pixelBytes = try initialDescriptor.nativeBytesForEncoding(pixelElement)
+        var descriptor = initialDescriptor
+        if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull {
+            (pixelBytes, descriptor) = try Self.rgbForJPEG2000Encode(
+                pixelBytes, descriptor: descriptor, lossless: effectiveCompressionConfiguration.preferLossless)
+        }
+        guard let resolvedEncoder = codecRegistry.resolveEncoder(
+            for: target.uid, configuration: effectiveCompressionConfiguration, descriptor: descriptor
+        ) else { throw TranscodingError.unsupportedTargetSyntax(target.uid) }
+        let encoder = resolvedEncoder.encoder
+
+        // Pre-scan: determine if explicit caller-requested 16->8 bit-depth reduction is permitted.
+        // Never reduce bit depth or change signedness when preservePixelDataFidelity is true,
+        // when lossy compression is disallowed, when targeting a lossless syntax, or when
+        // encoding via a JPEG 2000 / HTJ2K or custom provider.
         var needsBitReduction = false
-        if elements.contains(where: { $0.tag == .pixelData && !$0.isEncapsulated }) {
-            let descriptor = try extractPixelDataDescriptor(from: elements)
-            if !encoder.canEncode(with: compressionConfiguration, descriptor: descriptor) {
-                if descriptor.bitsAllocated == 16 && descriptor.samplesPerPixel <= 3 {
-                    let test8Descriptor = PixelDataDescriptor(
-                        rows: descriptor.rows,
-                        columns: descriptor.columns,
-                        numberOfFrames: descriptor.numberOfFrames,
-                        bitsAllocated: 8,
-                        bitsStored: 8,
-                        highBit: 7,
-                        isSigned: false,
-                        samplesPerPixel: descriptor.samplesPerPixel,
-                        photometricInterpretation: descriptor.photometricInterpretation,
-                        planarConfiguration: descriptor.planarConfiguration
-                    )
-                    if encoder.canEncode(with: compressionConfiguration, descriptor: test8Descriptor) {
-                        needsBitReduction = true
-                    }
-                }
+        let allowsLegacyBitReduction = configuration.allowBitDepthReductionTo8Bit
+            && configuration.allowLossyCompression
+            && !configuration.preservePixelDataFidelity
+            && !target.isLossless
+            && !target.isJPEG2000
+            && resolvedEncoder.providerID == .defaultRegistry
+        if allowsLegacyBitReduction,
+           !encoder.canEncode(with: effectiveCompressionConfiguration, descriptor: descriptor),
+           descriptor.bitsAllocated == 16 && descriptor.samplesPerPixel <= 3 {
+            let test8Descriptor = PixelDataDescriptor(
+                rows: descriptor.rows,
+                columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames,
+                bitsAllocated: 8,
+                bitsStored: 8,
+                highBit: 7,
+                isSigned: false,
+                samplesPerPixel: descriptor.samplesPerPixel,
+                photometricInterpretation: descriptor.photometricInterpretation,
+                planarConfiguration: descriptor.planarConfiguration
+            )
+            if encoder.canEncode(with: effectiveCompressionConfiguration, descriptor: test8Descriptor) {
+                needsBitReduction = true
             }
         }
         
-        // Build output elements, applying bit-depth reduction when necessary
+        // Build output elements, applying bit-depth reduction only when explicitly permitted
         var outputElements: [DataElement] = []
         var firstCodestream: Data?
         
         for element in elements {
-            if element.tag == .pixelData && !element.isEncapsulated {
-                // Get pixel data descriptor from surrounding elements
-                var descriptor = try extractPixelDataDescriptor(from: elements)
-                // Encoders take little-endian samples; OW from a Big Endian source is swapped (D206).
-                var pixelBytes = DICOMWriter.value(element.valueData, vr: element.vr,
-                                                   from: element.byteOrder, to: .littleEndian)
-                
-                // Apply bit-depth reduction if pre-scan determined it's needed
+            if element.tag == .extendedOffsetTable || element.tag == .extendedOffsetTableLengths {
+                continue
+            } else if element.tag == .pixelData && !element.isEncapsulated {
+                // Apply bit-depth reduction if pre-scan determined it's explicitly permitted
                 if needsBitReduction {
                     pixelBytes = rescalePixelData16To8(
                         pixelBytes,
@@ -924,27 +1159,15 @@ public struct TransferSyntaxConverter: Sendable {
                     )
                 }
                 
-                // Verify the encoder can handle the (possibly reduced) configuration
-                if !encoder.canEncode(with: compressionConfiguration, descriptor: descriptor) {
+                // Verify the encoder can handle the configuration without silent precision/signedness alteration
+                if !encoder.canEncode(with: effectiveCompressionConfiguration, descriptor: descriptor) {
                     throw TranscodingError.encodingFailed(
                         "Encoder does not support the given pixel data configuration "
                         + "(bitsAllocated=\(descriptor.bitsAllocated), "
+                        + "bitsStored=\(descriptor.bitsStored), "
+                        + "isSigned=\(descriptor.isSigned), "
                         + "samplesPerPixel=\(descriptor.samplesPerPixel))"
                     )
-                }
-                
-                // Compress the pixel data
-                let effectiveCompressionConfiguration = target.isLossless ? .lossless : compressionConfiguration
-
-                // J2KSwift applies the Part 1 colour transform to every 3-component image, and
-                // "No other Value of Photometric Interpretation than YBR_RCT or YBR_ICT is permitted
-                // when SGcod Multiple component transformation type is 1" (PS3.5 2026a 8.2.4; 8.2.14).
-                // YBR_FULL needs MCT 0, so its samples are converted to RGB first and the output is
-                // labelled YBR_RCT / YBR_ICT below (D-CORE-3).
-                if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull {
-                    (pixelBytes, descriptor) = try Self.rgbForJPEG2000Encode(
-                        pixelBytes, descriptor: descriptor,
-                        lossless: effectiveCompressionConfiguration.preferLossless)
                 }
 
                 let compressedFrames = try encoder.encode(
@@ -953,7 +1176,20 @@ public struct TransferSyntaxConverter: Sendable {
                     configuration: effectiveCompressionConfiguration
                 )
                 
+                guard compressedFrames.count == descriptor.numberOfFrames,
+                      !compressedFrames.contains(where: { $0.isEmpty }) else {
+                    throw TranscodingError.encodingFailed("Encoder returned an invalid frame count or an empty codestream")
+                }
                 firstCodestream = compressedFrames.first
+
+                let checkedOffsets: [UInt32]
+                do {
+                    (checkedOffsets, _) = try EncapsulatedPixelData.buildCheckedBasicOffsetTable(
+                        for: compressedFrames
+                    )
+                } catch let error as EncapsulatedOffsetBuildError {
+                    throw TranscodingError.encodingFailed(error.description)
+                }
                 
                 // Create new encapsulated pixel data element
                 let newElement = DataElement(
@@ -962,7 +1198,7 @@ public struct TransferSyntaxConverter: Sendable {
                     length: 0xFFFFFFFF, // Undefined length for encapsulated data
                     valueData: Data(),
                     encapsulatedFragments: compressedFrames,
-                    encapsulatedOffsetTable: buildOffsetTable(for: compressedFrames)
+                    encapsulatedOffsetTable: checkedOffsets
                 )
                 outputElements.append(newElement)
             } else if needsBitReduction && (element.tag == .bitsAllocated || element.tag == .bitsStored
@@ -1039,15 +1275,10 @@ public struct TransferSyntaxConverter: Sendable {
         var outputData = Data()
         
         for element in outputElements {
-            if element.tag == .pixelData && element.isEncapsulated {
-                // Write encapsulated pixel data specially
-                outputData.append(serializeEncapsulatedPixelData(element))
-            } else {
-                outputData.append(writer.serializeElement(element))
-            }
+            outputData.append(try writer.serializeCheckedElement(element, numberOfFrames: initialDescriptor.numberOfFrames, transferSyntax: target))
         }
         
-        return outputData
+        return (outputData, resolvedEncoder.providerID)
     }
     
     /// Native YBR_FULL samples → RGB for a JPEG 2000 / HTJ2K encode (PS3.5 2026a 8.2.4, Table
@@ -1177,105 +1408,16 @@ public struct TransferSyntaxConverter: Sendable {
         return output
     }
     
-    /// Builds the Basic Offset Table for encapsulated pixel data
-    private func buildOffsetTable(for frames: [Data]) -> [UInt32] {
-        guard frames.count > 1 else {
-            // Single frame - offset table can be empty per DICOM spec
-            return []
-        }
-        
-        var offsets: [UInt32] = []
-        var currentOffset: UInt32 = 0
-        
-        for frame in frames {
-            offsets.append(currentOffset)
-            // Each fragment is preceded by item tag (4 bytes) and length (4 bytes)
-            currentOffset += 8 + UInt32(frame.count)
-            // Pad to even length if needed
-            if frame.count % 2 != 0 {
-                currentOffset += 1
-            }
-        }
-        
-        return offsets
-    }
-    
-    /// Builds the complete encapsulated pixel data bytes
-    private func buildEncapsulatedPixelData(frames: [Data]) -> Data {
-        var data = Data()
-        
-        // Build offset table
-        let offsets = buildOffsetTable(for: frames)
-        
-        // Write offset table item (Item tag + length + offset values)
-        // Item tag: FFFE,E000
-        data.append(contentsOf: [0xFE, 0xFF, 0x00, 0xE0])
-        
-        let offsetTableLength = UInt32(offsets.count * 4)
-        data.append(contentsOf: withUnsafeBytes(of: offsetTableLength.littleEndian) { Array($0) })
-        
-        for offset in offsets {
-            data.append(contentsOf: withUnsafeBytes(of: offset.littleEndian) { Array($0) })
-        }
-        
-        // Write each frame as a fragment
-        for frame in frames {
-            // Item tag: FFFE,E000
-            data.append(contentsOf: [0xFE, 0xFF, 0x00, 0xE0])
-            
-            // Item length
-            var frameLength = UInt32(frame.count)
-            // Pad to even length
-            if frame.count % 2 != 0 {
-                frameLength += 1
-            }
-            data.append(contentsOf: withUnsafeBytes(of: frameLength.littleEndian) { Array($0) })
-            
-            // Frame data
-            data.append(frame)
-            
-            // Add padding byte if needed
-            if frame.count % 2 != 0 {
-                data.append(0x00)
-            }
-        }
-        
-        // Sequence Delimitation Item: FFFE,E0DD with zero length
-        data.append(contentsOf: [0xFE, 0xFF, 0xDD, 0xE0])
-        data.append(contentsOf: [0x00, 0x00, 0x00, 0x00])
-        
-        return data
-    }
-    
-    /// Serializes an encapsulated pixel data element
-    private func serializeEncapsulatedPixelData(_ element: DataElement) -> Data {
-        var data = Data()
-        
-        // Write tag (7FE0,0010)
-        data.append(contentsOf: [0xE0, 0x7F, 0x10, 0x00])
-        
-        // Write VR (OB) + 2 reserved bytes
-        data.append(contentsOf: [0x4F, 0x42, 0x00, 0x00])
-        
-        // Write undefined length (FFFFFFFF)
-        data.append(contentsOf: [0xFF, 0xFF, 0xFF, 0xFF])
-        
-        // Write the encapsulated data (offset table + fragments + delimiter)
-        if let fragments = element.encapsulatedFragments {
-            data.append(buildEncapsulatedPixelData(frames: fragments))
-        }
-        
-        return data
-    }
-    
     /// Parses data elements from raw bytes
     private func parseDataElements(from data: Data, transferSyntax: TransferSyntax) throws -> [DataElement] {
         var elements: [DataElement] = []
         var offset = 0
         
         while offset < data.count {
-            guard let element = try parseDataElement(from: data, at: &offset, transferSyntax: transferSyntax) else {
-                break
+            let elementOffset = offset
+            guard let element = try parseDataElement(from: data, at: &offset, transferSyntax: transferSyntax),
+                  offset > elementOffset, offset <= data.count else {
+                throw TranscodingError.parsingFailed("Incomplete data element at byte \(elementOffset)")
             }
             elements.append(element)
         }
@@ -1380,19 +1522,13 @@ public struct TransferSyntaxConverter: Sendable {
         
         // Read value data
         let intLength = Int(length)
-        guard offset + intLength <= data.count else {
-            // Handle truncated data gracefully
-            // This can occur when parsing partial data or when the source file was truncated.
-            // We read what's available to allow processing to continue, which is acceptable
-            // for transcoding scenarios where the goal is to convert existing (possibly
-            // partial) data rather than strictly validate completeness.
-            // The caller can detect truncation by comparing the returned element's length
-            // with the original length if strict validation is needed.
-            let availableLength = data.count - offset
-            let valueData = data.subdata(in: offset..<offset+availableLength)
-            offset = data.count
-            return DataElement(tag: tag, vr: vr, length: UInt32(availableLength), valueData: valueData,
-                               byteOrder: transferSyntax.byteOrder)
+        guard intLength <= data.count - offset else {
+            if tag == .pixelData || tag == .extendedOffsetTable || tag == .extendedOffsetTableLengths {
+                throw TranscodingError.pixelDataExtractionFailed("Truncated Pixel Data or extended offset table value")
+            }
+            throw TranscodingError.parsingFailed(
+                "Truncated value for \(tag) at byte \(offset): declared \(intLength) bytes, found \(data.count - offset)"
+            )
         }
         
         let valueData = data.subdata(in: offset..<offset+intLength)
@@ -1485,12 +1621,14 @@ public struct TransferSyntaxConverter: Sendable {
         return (items, currentOffset)
     }
     
-    /// Parses encapsulated pixel data
+    /// Parses encapsulated pixel data, failing closed on malformed Basic Offset Table,
+    /// truncated fragments, or missing Sequence Delimitation Item.
     private func parseEncapsulatedPixelData(from data: Data, at offset: Int, transferSyntax: TransferSyntax) throws -> ([Data], [UInt32], Int) {
         var fragments: [Data] = []
         var offsetTable: [UInt32] = []
         var currentOffset = offset
         var isFirstItem = true
+        var foundDelimiter = false
         
         while currentOffset + 8 <= data.count {
             let group = transferSyntax.byteOrder == .littleEndian
@@ -1502,13 +1640,24 @@ public struct TransferSyntaxConverter: Sendable {
             
             // Check for Sequence Delimitation Item
             if group == 0xFFFE && element == 0xE0DD {
+                let delimiterLength = transferSyntax.byteOrder == .littleEndian
+                    ? (data.readUInt32LE(at: currentOffset + 4) ?? 0)
+                    : (data.readUInt32BE(at: currentOffset + 4) ?? 0)
+                guard delimiterLength == 0 else {
+                    throw TranscodingError.parsingFailed(
+                        "Malformed encapsulated Pixel Data Sequence Delimitation Item length (\(delimiterLength))"
+                    )
+                }
                 currentOffset += 8
+                foundDelimiter = true
                 break
             }
             
             // Check for Item tag
             guard group == 0xFFFE && element == 0xE000 else {
-                break
+                throw TranscodingError.parsingFailed(
+                    String(format: "Unexpected item tag (%04X,%04X) in encapsulated Pixel Data", group, element)
+                )
             }
             
             let itemLength = transferSyntax.byteOrder == .littleEndian
@@ -1516,27 +1665,37 @@ public struct TransferSyntaxConverter: Sendable {
                 : (data.readUInt32BE(at: currentOffset + 4) ?? 0)
             currentOffset += 8
 
-            // Guard against a corrupt/truncated fragment length that exceeds the
-            // bytes remaining (e.g. a stray 0xFFFFFFFF). subdata(in:) traps on an
-            // out-of-range upper bound, so stop best-effort parsing here instead.
-            guard currentOffset + Int(itemLength) <= data.count else {
-                break
+            guard itemLength != 0xFFFFFFFF else {
+                throw TranscodingError.parsingFailed(
+                    "Undefined-length Item (0xFFFFFFFF) is not permitted inside encapsulated Pixel Data"
+                )
             }
-            let fragmentData = data.subdata(in: currentOffset..<currentOffset+Int(itemLength))
+            let (endOffset, endOverflow) = currentOffset.addingReportingOverflow(Int(itemLength))
+            guard !endOverflow, endOffset <= data.count else {
+                throw TranscodingError.parsingFailed(
+                    "Truncated encapsulated Pixel Data Item: declared \(itemLength) bytes at offset \(currentOffset)"
+                )
+            }
+            guard isFirstItem || (itemLength >= 2 && itemLength.isMultiple(of: 2)) else {
+                throw TranscodingError.parsingFailed("An encoded fragment Item must have an even length of at least two bytes")
+            }
+            let fragmentData = data.subdata(in: currentOffset..<endOffset)
             
             if isFirstItem {
-                // First item is the basic offset table
+                // First item is the Basic Offset Table (PS3.5 A.4).
+                // Must be empty (0 bytes) or a multiple of 4 bytes (UInt32 offsets).
                 isFirstItem = false
-                // Parse offset table (UInt32 values)
-                // Per DICOM PS3.5 A.4, the offset table may be empty (0 length)
-                // or contain one offset per frame. We parse what's available.
-                if fragmentData.count % 4 != 0 && fragmentData.count > 0 {
-                    // Offset table should be a multiple of 4 bytes (UInt32 values)
-                    // A malformed table may indicate corrupted data, but we continue
-                    // to allow best-effort processing of the pixel data fragments
+                guard fragmentData.count % 4 == 0 else {
+                    throw TranscodingError.parsingFailed(
+                        "Malformed Basic Offset Table: byte length \(fragmentData.count) is not a multiple of 4"
+                    )
                 }
-                for i in stride(from: 0, to: fragmentData.count - 3, by: 4) {
-                    if let value = fragmentData.readUInt32LE(at: i) {
+                if !fragmentData.isEmpty {
+                    offsetTable.reserveCapacity(fragmentData.count / 4)
+                    for i in stride(from: 0, to: fragmentData.count, by: 4) {
+                        guard let value = fragmentData.readUInt32LE(at: i) else {
+                            throw TranscodingError.parsingFailed("Failed to read Basic Offset Table entry at byte \(i)")
+                        }
                         offsetTable.append(value)
                     }
                 }
@@ -1544,7 +1703,13 @@ public struct TransferSyntaxConverter: Sendable {
                 fragments.append(fragmentData)
             }
             
-            currentOffset += Int(itemLength)
+            currentOffset = endOffset
+        }
+
+        guard !isFirstItem, foundDelimiter, !fragments.isEmpty else {
+            throw TranscodingError.parsingFailed(
+                "Incomplete encapsulated Pixel Data: missing Basic Offset Table, fragments, or Sequence Delimitation Item"
+            )
         }
         
         return (fragments, offsetTable, currentOffset)
@@ -1656,6 +1821,15 @@ public struct TransferSyntaxConverter: Sendable {
     }
     
     /// Extracts pixel data descriptor from surrounding elements
+    private func pixelDescriptor(in elements: [DataElement], expectingEncapsulated: Bool) throws -> PixelDataDescriptor? {
+        let pixels = elements.filter { $0.tag == .pixelData }
+        guard let pixel = pixels.first else { return nil }
+        guard pixels.count == 1, pixel.isEncapsulated == expectingEncapsulated else {
+            throw TranscodingError.pixelDataExtractionFailed("Pixel Data representation conflicts with the source transfer syntax")
+        }
+        return try extractPixelDataDescriptor(from: elements)
+    }
+
     private func extractPixelDataDescriptor(from elements: [DataElement]) throws -> PixelDataDescriptor {
         var rows: Int?
         var columns: Int?
@@ -1675,9 +1849,11 @@ public struct TransferSyntaxConverter: Sendable {
             case .columns:
                 columns = element.uint16Value.map { Int($0) }
             case .numberOfFrames:
-                if let str = element.stringValue, let val = Int(str) {
-                    numberOfFrames = val
+                guard let text = element.stringValue,
+                      let count = DICOMIntegerString.parse(text)?.value, count > 0 else {
+                    throw TranscodingError.pixelDataExtractionFailed("Invalid Number of Frames")
                 }
+                numberOfFrames = count
             case .bitsAllocated:
                 bitsAllocated = element.uint16Value.map { Int($0) }
             case .bitsStored:
@@ -1830,7 +2006,9 @@ public struct TransferSyntaxConverter: Sendable {
         case .sliceThickness:
             return .DS
             
-        // Pixel Data
+        // Pixel Data & Extended Offset Table
+        case .extendedOffsetTable, .extendedOffsetTableLengths:
+            return .OV
         case .pixelData:
             return .OW
             

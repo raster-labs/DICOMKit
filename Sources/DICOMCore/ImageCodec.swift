@@ -376,6 +376,191 @@ extension ImageCodec {
     }
 }
 
+/// Identifies the codec provider selected for a decode, encode, or compressed-domain transcode operation.
+public struct CodecProviderID: RawRepresentable, Sendable, Hashable, CustomStringConvertible {
+    public let rawValue: String
+
+    public init(rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    /// Predecessor J2KSwift-backed JPEG 2000 / HTJ2K provider.
+    public static let j2kSwift = CodecProviderID(rawValue: "j2kswift")
+
+    /// Successor SwiftJ2K-backed JPEG 2000 / HTJ2K provider (for the OS 26 integration package).
+    public static let swiftJ2K = CodecProviderID(rawValue: "swiftj2k")
+
+    /// Non-J2K codecs registered in `CodecRegistry` (JPEG, JPEG-LS, RLE, JXL, JP3D, or ImageIO).
+    public static let defaultRegistry = CodecProviderID(rawValue: "default-registry")
+
+    public var description: String { rawValue }
+}
+
+/// Optional capability for codecs that accept an explicit `CodecBackend` override on decode.
+public protocol DecodeBackendConfigurableCodec: ImageCodec {
+    func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec
+}
+
+/// Bounded capability for compressed-domain transcoding between JPEG 2000 Part 1 and HTJ2K codestreams.
+public protocol J2KCompressedDomainTranscoder: Sendable {
+    var providerID: CodecProviderID { get }
+
+    /// Reports before execution whether this transcoder supports the source -> target transfer syntax pair and descriptor.
+    func canTranscode(
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?
+    ) -> Bool
+
+    /// Transcodes a single frame's complete codestream in the compressed domain.
+    func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?
+    ) throws -> Data
+
+    /// Transcodes a single frame's complete codestream in the compressed domain, recording its zero-based frame index.
+    func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?,
+        frameIndex: Int
+    ) throws -> Data
+}
+
+extension J2KCompressedDomainTranscoder {
+    public func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?,
+        frameIndex: Int
+    ) throws -> Data {
+        try transcodeCodestream(
+            codestream,
+            from: sourceTransferSyntaxUID,
+            to: targetTransferSyntaxUID,
+            descriptor: descriptor
+        )
+    }
+}
+
+/// Policy governing finite pre-execution fallback when a primary J2K provider does not support
+/// a requested transfer syntax, descriptor, configuration, or decode backend.
+///
+/// Once the selected provider starts executing, any thrown error (malformed input, resource limit
+/// refusal, cancellation, or contract error) is propagated directly and never retried on another provider.
+public enum J2KProviderFallbackPolicy: Sendable, Hashable {
+    /// Use only the configured `J2KCodecProvider`; if it does not support a profile, resolution returns `nil`.
+    case strict
+    /// Before execution starts, if the configured primary `J2KCodecProvider` reports that it does not support
+    /// the requested transfer syntax / descriptor / configuration / decode backend, preselect the predecessor
+    /// `J2KCodecProvider.j2kSwift` provider and record `.j2kSwift` as the resolved provider ID.
+    case preselectPredecessorOnUnsupportedCapability
+}
+
+/// Immutable, `Sendable` descriptor of a JPEG 2000 / HTJ2K codec provider.
+public struct J2KCodecProvider: Sendable {
+    public let providerID: CodecProviderID
+    public let supportedDecodingTransferSyntaxUIDs: [String]
+    public let supportedEncodingTransferSyntaxUIDs: [String]
+    private let makeDecoderClosure: @Sendable (String) -> (any ImageCodec)?
+    private let makeEncoderClosure: @Sendable (String) -> (any ImageEncoder)?
+    private let canDecodeProfileClosure: @Sendable (String, PixelDataDescriptor?, CodecBackend?) -> Bool
+    private let canEncodeProfileClosure: @Sendable (String, CompressionConfiguration, PixelDataDescriptor) -> Bool
+    public let compressedDomainTranscoder: (any J2KCompressedDomainTranscoder)?
+
+    public init(
+        providerID: CodecProviderID,
+        supportedDecodingTransferSyntaxUIDs: [String],
+        supportedEncodingTransferSyntaxUIDs: [String],
+        makeDecoder: @escaping @Sendable (String) -> (any ImageCodec)?,
+        makeEncoder: @escaping @Sendable (String) -> (any ImageEncoder)?,
+        canDecodeProfile: (@Sendable (String, PixelDataDescriptor?, CodecBackend?) -> Bool)? = nil,
+        canEncodeProfile: (@Sendable (String, CompressionConfiguration, PixelDataDescriptor) -> Bool)? = nil,
+        compressedDomainTranscoder: (any J2KCompressedDomainTranscoder)? = nil
+    ) {
+        self.providerID = providerID
+        // A J2K provider cannot intercept an unrelated codec through its declared UIDs.
+        self.supportedDecodingTransferSyntaxUIDs = supportedDecodingTransferSyntaxUIDs.filter(CodecRegistry.j2kFamilyTransferSyntaxUIDs.contains)
+        self.supportedEncodingTransferSyntaxUIDs = supportedEncodingTransferSyntaxUIDs.filter(CodecRegistry.j2kFamilyTransferSyntaxUIDs.contains)
+        self.makeDecoderClosure = makeDecoder
+        self.makeEncoderClosure = makeEncoder
+        self.canDecodeProfileClosure = canDecodeProfile ?? { uid, _, _ in
+            supportedDecodingTransferSyntaxUIDs.contains(uid)
+        }
+        self.canEncodeProfileClosure = canEncodeProfile ?? { uid, config, descriptor in
+            guard supportedEncodingTransferSyntaxUIDs.contains(uid),
+                  let encoder = makeEncoder(uid) else {
+                return false
+            }
+            return encoder.canEncode(with: config, descriptor: descriptor)
+        }
+        self.compressedDomainTranscoder = compressedDomainTranscoder
+    }
+
+    public func decoder(for transferSyntaxUID: String, decodeBackend: CodecBackend? = nil) -> (any ImageCodec)? {
+        guard supportedDecodingTransferSyntaxUIDs.contains(transferSyntaxUID),
+              let base = makeDecoderClosure(transferSyntaxUID) else { return nil }
+        guard let decodeBackend else { return base }
+        guard let configurable = base as? any DecodeBackendConfigurableCodec else { return nil }
+        return configurable.withDecodeBackend(decodeBackend)
+    }
+
+    public func encoder(for transferSyntaxUID: String) -> (any ImageEncoder)? {
+        guard supportedEncodingTransferSyntaxUIDs.contains(transferSyntaxUID) else { return nil }
+        return makeEncoderClosure(transferSyntaxUID)
+    }
+
+    public func canDecode(
+        transferSyntaxUID: String,
+        descriptor: PixelDataDescriptor? = nil,
+        decodeBackend: CodecBackend? = nil
+    ) -> Bool {
+        guard supportedDecodingTransferSyntaxUIDs.contains(transferSyntaxUID) else { return false }
+        return canDecodeProfileClosure(transferSyntaxUID, descriptor, decodeBackend)
+    }
+
+    public func canEncode(
+        transferSyntaxUID: String,
+        configuration: CompressionConfiguration,
+        descriptor: PixelDataDescriptor
+    ) -> Bool {
+        guard supportedEncodingTransferSyntaxUIDs.contains(transferSyntaxUID) else { return false }
+        return canEncodeProfileClosure(transferSyntaxUID, configuration, descriptor)
+    }
+
+    /// The default predecessor-backed J2KSwift / HTJ2K provider.
+    public static let j2kSwift: J2KCodecProvider = {
+        let htj2kSet = Set(HTJ2KCodec.supportedTransferSyntaxes)
+        let htj2kEncodeSet = Set(HTJ2KCodec.supportedEncodingTransferSyntaxes)
+        return J2KCodecProvider(
+            providerID: .j2kSwift,
+            supportedDecodingTransferSyntaxUIDs: J2KSwiftCodec.supportedTransferSyntaxes,
+            supportedEncodingTransferSyntaxUIDs: J2KSwiftCodec.supportedEncodingTransferSyntaxes,
+            makeDecoder: { uid in
+                if htj2kSet.contains(uid) {
+                    return HTJ2KCodec(targetTransferSyntaxUID: uid)
+                }
+                guard J2KSwiftCodec.supportedTransferSyntaxes.contains(uid) else { return nil }
+                return J2KSwiftCodec(decodingTransferSyntaxUID: uid)
+            },
+            makeEncoder: { uid in
+                if htj2kEncodeSet.contains(uid) {
+                    return HTJ2KCodec(targetTransferSyntaxUID: uid)
+                }
+                guard J2KSwiftCodec.supportedEncodingTransferSyntaxes.contains(uid) else { return nil }
+                return J2KSwiftCodec(encodingTransferSyntaxUID: uid)
+            },
+            // J2KSwift 11.0.3 can emit changed samples on coefficient conversion.
+            // Its default lossless route uses verified pixel decode and encode.
+            compressedDomainTranscoder: nil
+        )
+    }()
+}
+
 /// Registry for managing image codecs and encoders
 ///
 /// Provides access to codecs for different transfer syntaxes.
@@ -384,15 +569,37 @@ extension ImageCodec {
 public struct CodecRegistry: Sendable {
     /// Shared codec registry instance
     public static let shared = CodecRegistry()
-    
+
+    /// All standard JPEG 2000 and HTJ2K transfer syntax UIDs managed by `j2kProvider`.
+    public static let j2kFamilyTransferSyntaxUIDs: Set<String> = Set(J2KSwiftCodec.supportedTransferSyntaxes)
+
+    /// The immutable J2K / HTJ2K provider configured for this registry instance.
+    public let j2kProvider: J2KCodecProvider
+
+    /// The pre-execution fallback policy for unsupported J2K / HTJ2K capabilities.
+    public let j2kFallbackPolicy: J2KProviderFallbackPolicy
+
+    private let fallbackJ2KProvider: J2KCodecProvider?
+
     /// Registered codecs (for decoding)
     private let codecs: [String: any ImageCodec]
     
     /// Registered encoders (for encoding)
     private let encoders: [String: any ImageEncoder]
     
-    /// Creates a codec registry with default codecs
-    private init() {
+    /// Creates an immutable codec registry with the specified JPEG 2000 / HTJ2K provider and fallback policy.
+    public init(
+        j2kProvider: J2KCodecProvider = .j2kSwift,
+        j2kFallbackPolicy: J2KProviderFallbackPolicy = .strict
+    ) {
+        self.j2kProvider = j2kProvider
+        self.j2kFallbackPolicy = j2kFallbackPolicy
+        let fallbackProvider: J2KCodecProvider? = (
+            j2kFallbackPolicy == .preselectPredecessorOnUnsupportedCapability
+            && j2kProvider.providerID != .j2kSwift
+        ) ? .j2kSwift : nil
+        self.fallbackJ2KProvider = fallbackProvider
+
         var decoderRegistry: [String: any ImageCodec] = [:]
         var encoderRegistry: [String: any ImageEncoder] = [:]
         
@@ -405,25 +612,29 @@ public struct CodecRegistry: Sendable {
             encoderRegistry[uid] = JLICodec(encodingTransferSyntaxUID: uid)
         }
 
-        // Register the preferred JPEG 2000 adapter.
-        // Phase 1 uses J2KSwift directly; the native Apple codec remains available
-        // as a separate platform codec, not as a runtime workaround path.
-        // One decoder per syntax: lossless-only UIDs refuse irreversible codestreams.
-        for uid in J2KSwiftCodec.supportedTransferSyntaxes {
-            decoderRegistry[uid] = J2KSwiftCodec(decodingTransferSyntaxUID: uid)
+        // Register J2K / HTJ2K codecs from the configured provider (and pre-execution
+        // fallback provider for syntaxes the primary does not claim).
+        if let fallbackProvider {
+            for uid in fallbackProvider.supportedDecodingTransferSyntaxUIDs {
+                if let decoder = fallbackProvider.decoder(for: uid) {
+                    decoderRegistry[uid] = decoder
+                }
+            }
+            for uid in fallbackProvider.supportedEncodingTransferSyntaxUIDs {
+                if let encoder = fallbackProvider.encoder(for: uid) {
+                    encoderRegistry[uid] = encoder
+                }
+            }
         }
-        for uid in J2KSwiftCodec.supportedEncodingTransferSyntaxes {
-            encoderRegistry[uid] = J2KSwiftCodec(encodingTransferSyntaxUID: uid)
+        for uid in j2kProvider.supportedDecodingTransferSyntaxUIDs {
+            if let decoder = j2kProvider.decoder(for: uid) {
+                decoderRegistry[uid] = decoder
+            }
         }
-
-        // Register the dedicated HTJ2K codec as the preferred handler for the
-        // three HTJ2K transfer syntaxes, overriding the generic J2KSwiftCodec
-        // entries with HTJ2K-specific configuration (RPCL ordering, etc.).
-        for uid in HTJ2KCodec.supportedTransferSyntaxes {
-            decoderRegistry[uid] = HTJ2KCodec(targetTransferSyntaxUID: uid)
-        }
-        for uid in HTJ2KCodec.supportedEncodingTransferSyntaxes {
-            encoderRegistry[uid] = HTJ2KCodec(targetTransferSyntaxUID: uid)
+        for uid in j2kProvider.supportedEncodingTransferSyntaxUIDs {
+            if let encoder = j2kProvider.encoder(for: uid) {
+                encoderRegistry[uid] = encoder
+            }
         }
         
         // RLE codec (pure Swift implementation - encode and decode)
@@ -455,21 +666,114 @@ public struct CodecRegistry: Sendable {
         }
 
         // JPEG XL codec (JXLSwift pure-Swift — lossless + lossy encode, lossless + lossy decode).
-        // Decoders are wired per-UID so the codec knows its source syntax: a …4.111 JPEG
-        // Recompression instance reconstructs the wrapped JPEG (and treats a reconstruction
-        // failure as a hard error), while …4.110 / …4.112 take the pixel path directly.
         for uid in JXLCodec.supportedTransferSyntaxes {
             decoderRegistry[uid] = JXLCodec(decodingTransferSyntaxUID: uid)
         }
-        // Encoders are wired per-UID so the codec knows its target mode: …4.110 → lossless
-        // Modular, …4.112 → lossy VarDCT (quality-driven). Mirrors the per-syntax encoder
-        // wiring for JLISwift / J2KSwift above.
         for uid in JXLCodec.supportedEncodingTransferSyntaxes {
             encoderRegistry[uid] = JXLCodec(encodingTransferSyntaxUID: uid)
         }
         
         self.codecs = decoderRegistry
         self.encoders = encoderRegistry
+    }
+
+    /// Preselects a decoder and records its `CodecProviderID` before execution starts.
+    ///
+    /// When `j2kFallbackPolicy == .preselectPredecessorOnUnsupportedCapability` and the
+    /// primary `j2kProvider` does not support the transfer syntax, descriptor, or decode backend,
+    /// preselects `.j2kSwift` before execution. Never retries after execution begins.
+    public func resolveDecoder(
+        for transferSyntaxUID: String,
+        descriptor: PixelDataDescriptor? = nil,
+        decodeBackend: CodecBackend? = nil
+    ) -> (codec: any ImageCodec, providerID: CodecProviderID)? {
+        if Self.j2kFamilyTransferSyntaxUIDs.contains(transferSyntaxUID) {
+            if j2kProvider.canDecode(
+                transferSyntaxUID: transferSyntaxUID,
+                descriptor: descriptor,
+                decodeBackend: decodeBackend
+            ), let decoder = j2kProvider.decoder(for: transferSyntaxUID, decodeBackend: decodeBackend) {
+                return (decoder, j2kProvider.providerID)
+            }
+            if let fallback = fallbackJ2KProvider,
+               fallback.canDecode(
+                   transferSyntaxUID: transferSyntaxUID,
+                   descriptor: descriptor,
+                   decodeBackend: decodeBackend
+               ),
+               let decoder = fallback.decoder(for: transferSyntaxUID, decodeBackend: decodeBackend) {
+                return (decoder, fallback.providerID)
+            }
+            return nil
+        }
+
+        guard let base = codecs[transferSyntaxUID] else { return nil }
+        if let decodeBackend, let configurable = base as? any DecodeBackendConfigurableCodec {
+            return (configurable.withDecodeBackend(decodeBackend), .defaultRegistry)
+        }
+        return (base, .defaultRegistry)
+    }
+
+    /// Preselects an encoder and records its `CodecProviderID` before execution starts.
+    ///
+    /// When `j2kFallbackPolicy == .preselectPredecessorOnUnsupportedCapability` and the
+    /// primary `j2kProvider` does not support the transfer syntax, configuration, or descriptor,
+    /// preselects `.j2kSwift` before execution. Never retries after execution begins.
+    public func resolveEncoder(
+        for transferSyntaxUID: String,
+        configuration: CompressionConfiguration,
+        descriptor: PixelDataDescriptor,
+        engine: JPEGCodecEngine = .jli
+    ) -> (encoder: any ImageEncoder, providerID: CodecProviderID)? {
+        if Self.j2kFamilyTransferSyntaxUIDs.contains(transferSyntaxUID) {
+            if j2kProvider.canEncode(
+                transferSyntaxUID: transferSyntaxUID,
+                configuration: configuration,
+                descriptor: descriptor
+            ), let encoder = j2kProvider.encoder(for: transferSyntaxUID) {
+                return (encoder, j2kProvider.providerID)
+            }
+            if let fallback = fallbackJ2KProvider,
+               fallback.canEncode(
+                   transferSyntaxUID: transferSyntaxUID,
+                   configuration: configuration,
+                   descriptor: descriptor
+               ),
+               let encoder = fallback.encoder(for: transferSyntaxUID) {
+                return (encoder, fallback.providerID)
+            }
+            return nil
+        }
+
+        guard let enc = encoder(for: transferSyntaxUID, engine: engine) else { return nil }
+        return (enc, .defaultRegistry)
+    }
+
+    /// Preselects a compressed-domain J2K <-> HTJ2K transcoder and records its `CodecProviderID` before execution starts.
+    public func resolveJ2KTranscoder(
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor? = nil
+    ) -> (transcoder: any J2KCompressedDomainTranscoder, providerID: CodecProviderID)? {
+        guard Self.j2kFamilyTransferSyntaxUIDs.contains(sourceTransferSyntaxUID),
+              Self.j2kFamilyTransferSyntaxUIDs.contains(targetTransferSyntaxUID) else { return nil }
+        if let primary = j2kProvider.compressedDomainTranscoder,
+           primary.canTranscode(
+               from: sourceTransferSyntaxUID,
+               to: targetTransferSyntaxUID,
+               descriptor: descriptor
+           ) {
+            return (primary, primary.providerID)
+        }
+        if let fallback = fallbackJ2KProvider?.compressedDomainTranscoder,
+           fallback.canTranscode(
+               from: sourceTransferSyntaxUID,
+               to: targetTransferSyntaxUID,
+               descriptor: descriptor
+           ) {
+            return (fallback, fallback.providerID)
+        }
+        return nil
     }
     
     /// Returns a codec for the specified transfer syntax

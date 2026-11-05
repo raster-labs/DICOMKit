@@ -13,7 +13,7 @@ import J2KCodec
 /// Reference: DICOM PS3.5 Section A.4.4 — JPEG 2000 Image Compression (the HTJ2K syntaxes .201/.202/.203 are defined there)
 ///
 /// NEMA-verified: 2026a, checked 2026-09-25 — the three HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1) and the RPCL requirement for .202 is in PS3.5 2026a A.4.4. The citation said A.4.6, which is MPEG-4 AVC/H.264; corrected.
-public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
+public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
         /// Admit any HTJ2K codestream.
@@ -77,6 +77,22 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
         }
         self.backing = J2KSwiftCodec(decodingSyntax: j2kSyntax, decodingLimits: decodingLimits)
     }
+
+    private init(targetTransferSyntaxUID: String?, backing: J2KSwiftCodec) {
+        self.targetTransferSyntaxUID = targetTransferSyntaxUID
+        self.backing = backing
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        guard let reconfigured = backing.withDecodeBackend(decodeBackend) as? J2KSwiftCodec else {
+            return self
+        }
+        return HTJ2KCodec(targetTransferSyntaxUID: targetTransferSyntaxUID, backing: reconfigured)
+    }
+
+    // The DICOMKit progressive stream uses this same syntax-restricted decoder
+    // for its reduced-resolution previews and its final frame.
+    package var progressiveDecoder: J2KSwiftCodec { backing }
 
     // MARK: - ImageCodec
 
@@ -165,37 +181,16 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
 
     // MARK: - Fast-Path Transcoding
 
-    /// Transcodes a J2K codestream to HTJ2K without full pixel decode/re-encode.
-    ///
-    /// Uses J2KTranscoder's coefficient-level re-encoding for bit-exact results
-    /// and significantly faster throughput compared to decode+encode.
-    ///
-    /// - Parameter codestreamData: A standard JPEG 2000 (Part 1) codestream.
-    /// - Returns: The HTJ2K codestream.
-    /// - Throws: `DICOMError` if the input is not valid J2K or transcoding fails.
+    /// The pinned J2KSwift coefficient transcoder can change decoded samples.
+    /// Use TransferSyntaxConverter with the source and target image attributes
+    /// for a lossless decode and verified re-encode.
     public static func transcodeToHTJ2K(_ codestreamData: Data) throws -> Data {
-        #if canImport(J2KCore) && canImport(J2KCodec)
-        let transcoder = J2KTranscoder()
-        let result = try transcoder.transcode(codestreamData, direction: .legacyToHT)
-        return result.data
-        #else
-        throw DICOMError.unsupportedTransferSyntax("HTJ2K transcoding requires J2KSwift")
-        #endif
+        throw DICOMError.unsupportedTransferSyntax("J2KSwift 11.0.3 coefficient transcoding cannot guarantee exact samples")
     }
 
-    /// Transcodes an HTJ2K codestream back to standard JPEG 2000.
-    ///
-    /// - Parameter codestreamData: An HTJ2K codestream.
-    /// - Returns: The standard JPEG 2000 codestream.
-    /// - Throws: `DICOMError` if the input is not valid HTJ2K or transcoding fails.
+    /// See `transcodeToHTJ2K(_:)` for the qualified alternative.
     public static func transcodeFromHTJ2K(_ codestreamData: Data) throws -> Data {
-        #if canImport(J2KCore) && canImport(J2KCodec)
-        let transcoder = J2KTranscoder()
-        let result = try transcoder.transcode(codestreamData, direction: .htToLegacy)
-        return result.data
-        #else
-        throw DICOMError.unsupportedTransferSyntax("HTJ2K transcoding requires J2KSwift")
-        #endif
+        throw DICOMError.unsupportedTransferSyntax("J2KSwift 11.0.3 coefficient transcoding cannot guarantee exact samples")
     }
 
     /// Detects whether a codestream uses HTJ2K encoding.
@@ -208,11 +203,5 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, Sendable {
         #else
         return false
         #endif
-    }
-
-    /// Direction for fast-path codestream transcoding.
-    enum TranscodeDirection {
-        case j2kToHTJ2K
-        case htj2kToJ2K
     }
 }

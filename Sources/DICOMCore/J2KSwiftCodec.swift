@@ -55,7 +55,7 @@ public enum J2KSwiftEncodeMode: String, Sendable, CaseIterable, Identifiable {
 /// This provides the Phase 1 pure-Swift JPEG 2000 path for DICOMKit and establishes
 /// the foundation for HTJ2K and Part 2 expansion without masking upstream codec issues.
 /// NEMA-verified: 2026a, checked 2026-09-25 — JPEG 2000 / HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1); the lossless-only set (.90, .92, .201, .202) and the RPCL requirement for .202 match PS3.5 2026a A.4.4. One citation said A.4.6 (MPEG-4); corrected. The codec itself implements ISO/IEC 15444, outside DICOM.
-public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
+public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
         /// Admit any JPEG 2000 Part 1 or HTJ2K codestream supported by this codec.
@@ -211,6 +211,30 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         case .htj2kLossy: self.syntaxRestriction = .htj2kLossy
         }
         self.decodingLimits = decodingLimits
+    }
+
+    private init(
+        encodingTransferSyntaxUID: String?,
+        decodeBackend: CodecBackend?,
+        decodingTransferSyntaxUID: String?,
+        syntaxRestriction: SyntaxRestriction,
+        decodingLimits: PixelDecodeLimits
+    ) {
+        self.encodingTransferSyntaxUID = encodingTransferSyntaxUID
+        self.decodeBackend = decodeBackend
+        self.decodingTransferSyntaxUID = decodingTransferSyntaxUID
+        self.syntaxRestriction = syntaxRestriction
+        self.decodingLimits = decodingLimits
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        J2KSwiftCodec(
+            encodingTransferSyntaxUID: encodingTransferSyntaxUID,
+            decodeBackend: decodeBackend,
+            decodingTransferSyntaxUID: decodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits
+        )
     }
 
     /// The refusal for an irreversible codestream under a lossless-only syntax,
@@ -854,7 +878,7 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         #endif
     }
 
-    static func outputDescriptor(for descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
+    package static func outputDescriptor(for descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
         guard descriptor.samplesPerPixel == 3,
               descriptor.photometricInterpretation == .ybrRCT
                 || descriptor.photometricInterpretation == .ybrICT else {
@@ -962,16 +986,12 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, Sendable {
         descriptor: PixelDataDescriptor,
         level: Int
     ) async throws -> (data: Data, rows: Int, columns: Int) {
-        // Reduced-resolution previews must fail closed for the same Part-2
-        // transforms as every full-resolution decode path. J2KSwift skips these
-        // markers instead of inverting them, which would otherwise emit a
-        // silently incorrect preview before the exact decode fails.
-        if let reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: frameData) {
-            throw DICOMError.unsupportedTransferSyntax(reason)
-        }
-
+        try Task.checkCancellation()
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: 0)
+        // Preview pixels carry the same syntax and header guarantees as the full decode.
+        let codestream = try resolveAndValidateCodestream(frameData, descriptor: descriptor)
         let image = try await J2KDecoder().decodeResolution(
-            frameData,
+            codestream,
             options: J2KResolutionDecodingOptions(level: level))
         guard image.width > 0, image.height > 0 else {
             throw DICOMError.parsingFailed("Reduced-resolution decode returned empty image")
@@ -1124,12 +1144,14 @@ private extension J2KSwiftCodec {
         return min(10, max(5, need))
     }
 
-    /// J2KSwift writes SGcod progression LRCP whatever `progressionOrder` says and no TLM
-    /// (D187). For .202 the codestream is brought to PS3.5 2026a 10.18.1 by
-    /// ``J2KCodestreamInspector/conformingToHTJ2KRPCL(_:)``; other syntaxes are returned as is.
+    /// J2KSwift writes SGcod progression LRCP whatever `progressionOrder` says, no TLM (D187),
+    /// and a hardcoded `CAP` `Ccap^15 = 0x0020` (`HTIRV = 1, MAGB = 0`) even on reversible 5/3
+    /// HTJ2K encodes. Repairs reversible `CAP` Table A.3 flags on HTJ2K outputs and brings `.202`
+    /// codestreams to PS3.5 2026a 10.18.1 via ``J2KCodestreamInspector/conformingToHTJ2KRPCL(_:)``.
     static func conformingCodestream(_ codestream: Data, transferSyntaxUID: String?) -> Data {
-        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid else { return codestream }
-        return J2KCodestreamInspector.conformingToHTJ2KRPCL(codestream)
+        let capRepaired = J2KCodestreamInspector.conformingToReversibleHTJ2KCAP(codestream)
+        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid else { return capRepaired }
+        return J2KCodestreamInspector.conformingToHTJ2KRPCL(capRepaired)
     }
 
     /// Translates a planner progression choice into the J2KCodec enum.

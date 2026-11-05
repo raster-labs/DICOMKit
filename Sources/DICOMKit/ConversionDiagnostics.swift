@@ -248,14 +248,22 @@ extension DICOMConverter {
     /// Checks that `dicomFile` can be converted to `encoding` and throws a
     /// ``ConversionFailure`` naming the exact mismatch when it cannot.
     ///
-    /// The pixel-format verdict comes from the target encoder's own `canEncode`
-    /// (including the automatic 16 → 8-bit reduction the transcoder applies for
-    /// 8-bit-only targets), so this never rejects a conversion that would succeed.
-    /// The per-target rule table only supplies the wording.
+    /// The high-level converter preserves the source sample precision. Ask the encoder
+    /// about the actual image descriptor; the per-target rule table supplies the wording.
     ///
     /// Called by ``convertToDICOM(dicomFile:to:stripPrivate:)-(_,SelectableEncoding,_)``,
     /// and public so a UI can validate a choice before running.
     public static func checkConversion(dicomFile: DICOMFile, to encoding: SelectableEncoding) throws {
+        try checkConversion(dicomFile: dicomFile, to: encoding, codecRegistry: .shared)
+    }
+
+    /// Checks that `dicomFile` can be converted to `encoding` using `codecRegistry` and throws a
+    /// ``ConversionFailure`` naming the exact mismatch when it cannot.
+    public static func checkConversion(
+        dicomFile: DICOMFile,
+        to encoding: SelectableEncoding,
+        codecRegistry: CodecRegistry
+    ) throws {
         let target = encoding.transferSyntax
         let targetLabel = ConversionFailure.label(for: target)
         let dataSet = dicomFile.dataSet
@@ -290,12 +298,20 @@ extension DICOMConverter {
 
         // 3. An encapsulated source must be decodable, unless the target keeps the
         //    codestream (J2K ↔ HTJ2K fast path is handled by the transcoder itself).
-        if source.isEncapsulated, !source.isDeflated,
-           !CodecRegistry.shared.hasCodec(for: source.uid) {
-            throw ConversionFailure(
-                category: .unsupportedSource, source: sourceLabel, target: targetLabel,
-                reason: "DICOMKit has no decoder for \(source.displayName), so its pixel data cannot be read.",
-                sourceDetails: details)
+        if source.isEncapsulated, !source.isDeflated {
+            if !codecRegistry.hasCodec(for: source.uid) {
+                throw ConversionFailure(
+                    category: .unsupportedSource, source: sourceLabel, target: targetLabel,
+                    reason: "DICOMKit has no decoder for \(source.displayName), so its pixel data cannot be read.",
+                    sourceDetails: details)
+            }
+            if let descriptor,
+               codecRegistry.resolveDecoder(for: source.uid, descriptor: descriptor) == nil {
+                throw ConversionFailure(
+                    category: .unsupportedSource, source: sourceLabel, target: targetLabel,
+                    reason: "Codec provider '\(codecRegistry.j2kProvider.providerID.rawValue)' cannot decode \(source.displayName) for this pixel profile.",
+                    sourceDetails: details)
+            }
         }
 
         // 4. Uncompressed and deflated targets accept any pixel format.
@@ -308,7 +324,7 @@ extension DICOMConverter {
                 reason: reason,
                 suggestion: suggestion(forTarget: target, descriptor: descriptor))
         }
-        guard let encoder = CodecRegistry.shared.encoder(for: target.uid) else {
+        guard codecRegistry.hasEncoder(for: target.uid) else {
             throw ConversionFailure(
                 category: .unsupportedTarget, source: sourceLabel, target: targetLabel,
                 reason: "DICOMKit can read \(target.displayName) but cannot write it.",
@@ -325,14 +341,50 @@ extension DICOMConverter {
         case .lossyOnly:    encodeLossless = false
         }
         let configuration: DICOMCore.CompressionConfiguration = encodeLossless ? .lossless : .default
-        if encoder.canEncode(with: configuration, descriptor: descriptor) { return }
-        if descriptor.bitsAllocated == 16, descriptor.samplesPerPixel <= 3,
-           encoder.canEncode(with: configuration, descriptor: eightBitVariant(of: descriptor)) {
-            return  // the transcoder windows 16-bit data down to 8-bit for this target
+        let effectiveDescriptor: PixelDataDescriptor
+        if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull, !encodeLossless {
+            effectiveDescriptor = PixelDataDescriptor(
+                rows: descriptor.rows,
+                columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames,
+                bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored,
+                highBit: descriptor.highBit,
+                isSigned: descriptor.isSigned,
+                samplesPerPixel: descriptor.samplesPerPixel,
+                photometricInterpretation: .rgb,
+                planarConfiguration: 0
+            )
+        } else {
+            effectiveDescriptor = descriptor
+        }
+        if let resolved = codecRegistry.resolveEncoder(
+            for: target.uid,
+            configuration: configuration,
+            descriptor: effectiveDescriptor
+        ), resolved.encoder.canEncode(with: configuration, descriptor: effectiveDescriptor) {
+            return
         }
 
         let rule = PixelRule.forTarget(target)
         let violations = rule?.violations(of: descriptor, targetName: target.displayName) ?? []
+        if violations.isEmpty,
+           CodecRegistry.j2kFamilyTransferSyntaxUIDs.contains(target.uid),
+           let sharedResolved = CodecRegistry.shared.resolveEncoder(
+               for: target.uid,
+               configuration: configuration,
+               descriptor: effectiveDescriptor
+           ),
+           sharedResolved.encoder.canEncode(with: configuration, descriptor: effectiveDescriptor) {
+            throw ConversionFailure(
+                category: .unsupportedTarget,
+                source: sourceLabel,
+                target: targetLabel,
+                reason: "Codec provider '\(codecRegistry.j2kProvider.providerID.rawValue)' does not support \(encoding.displayName) encoding for this configuration.",
+                sourceDetails: details,
+                suggestion: suggestion(forTarget: target, descriptor: descriptor)
+            )
+        }
         let reason = violations.isEmpty
             ? "\(target.displayName) cannot encode this pixel format."
                 + (rule.map { " It needs \($0.requirement)." } ?? "")
@@ -407,15 +459,6 @@ extension DICOMConverter {
             + "\(d.photometricInterpretation.rawValue), \(frames), \(d.columns)×\(d.rows)"
     }
 
-    static func eightBitVariant(of d: PixelDataDescriptor) -> PixelDataDescriptor {
-        PixelDataDescriptor(
-            rows: d.rows, columns: d.columns, numberOfFrames: d.numberOfFrames,
-            bitsAllocated: 8, bitsStored: 8, highBit: 7, isSigned: false,
-            samplesPerPixel: d.samplesPerPixel,
-            photometricInterpretation: d.photometricInterpretation,
-            planarConfiguration: d.planarConfiguration)
-    }
-
     /// A target the source *can* go to, phrased as advice.
     static func suggestion(forTarget target: TransferSyntax, descriptor: PixelDataDescriptor?) -> String? {
         guard let d = descriptor else { return nil }
@@ -451,8 +494,8 @@ extension DICOMConverter {
             switch t.uid {
             case TransferSyntax.jpegBaseline.uid:
                 return PixelRule(
-                    requirement: "8-bit unsigned data with 1 or 3 samples (16-bit data is windowed down to 8-bit)",
-                    bitsAllocated: [8, 16], bitsStored: 1...8, samples: [1, 3],
+                    requirement: "8-bit unsigned data with 1 or 3 samples",
+                    bitsAllocated: [8], bitsStored: 1...8, samples: [1, 3],
                     signed: .unsignedOnly, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.jpegExtended.uid:
                 return PixelRule(
@@ -492,7 +535,8 @@ extension DICOMConverter {
         func violations(of d: PixelDataDescriptor, targetName name: String) -> [String] {
             var out: [String] = []
             if !bitsAllocated.contains(d.bitsAllocated) {
-                out.append("\(name) needs Bits Allocated 8 or 16, but the source has \(d.bitsAllocated).")
+                let allowed = bitsAllocated.sorted().map(String.init).joined(separator: " or ")
+                out.append("\(name) needs Bits Allocated \(allowed), but the source has \(d.bitsAllocated).")
             } else if let range = bitsStored, !range.contains(d.bitsStored) {
                 out.append("\(name) supports at most \(range.upperBound)-bit data (Bits Stored \(range.lowerBound) to \(range.upperBound)), but the source stores \(d.bitsStored) bits.")
             }

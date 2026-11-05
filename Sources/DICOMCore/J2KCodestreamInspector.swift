@@ -388,7 +388,53 @@ public enum J2KCodestreamInspector {
     }
 
     private static let tlm: UInt16 = 0xFF55  // Tile-part lengths
+    private static let qcd: UInt16 = 0xFF5C  // Quantization default
     private static let poc: UInt16 = 0xFF5F  // Progression order change
+
+    /// Repairs J2KSwift 11.0.3's hardcoded `CAP` `Ccap^15 = 0x0020` marker on reversible 5/3
+    /// HTJ2K codestreams so the emitted stream conforms to ISO/IEC 15444-15 Annex A Table A.3:
+    /// bit 5 (`0x0020`, `HTIRV`) is cleared to `0` (`HTREV`), and bits `0..4` (`MAGB`) are set
+    /// from the main-header unquantized `QCD` guard bits and subband exponents.
+    /// Non-HTJ2K, irreversible 9/7, or already-conformant codestreams are returned unchanged.
+    public static func conformingToReversibleHTJ2KCAP(_ data: Data) -> Data {
+        guard readUInt16(data, at: 0) == soc,
+              let style = codingStyle(in: data),
+              style.reversibleWavelet else {
+            return data
+        }
+        var bytes = [UInt8](data)
+        guard let capOffset = mainHeaderSegmentOffset(bytes, marker: cap),
+              capOffset + 10 <= bytes.count else {
+            return data
+        }
+        let lcap = Int(bytes[capOffset + 2]) << 8 | Int(bytes[capOffset + 3])
+        guard lcap == 8 else { return data }
+        let pcap = UInt32(bytes[capOffset + 4]) << 24
+            | UInt32(bytes[capOffset + 5]) << 16
+            | UInt32(bytes[capOffset + 6]) << 8
+            | UInt32(bytes[capOffset + 7])
+        let ccap15 = UInt16(bytes[capOffset + 8]) << 8 | UInt16(bytes[capOffset + 9])
+        guard pcap == 0x0002_0000, ccap15 == 0x0020 else { return data }
+
+        guard let qcdOffset = mainHeaderSegmentOffset(bytes, marker: qcd),
+              qcdOffset + 6 <= bytes.count else {
+            return data
+        }
+        let lqcd = Int(bytes[qcdOffset + 2]) << 8 | Int(bytes[qcdOffset + 3])
+        guard lqcd >= 4, qcdOffset + 2 + lqcd <= bytes.count else { return data }
+        let sqcd = bytes[qcdOffset + 4]
+        guard (sqcd & 0x1F) == 0 else { return data }
+        let guardBits = Int(sqcd >> 5)
+        var maxExponent = 0
+        for idx in (qcdOffset + 5)..<(qcdOffset + 2 + lqcd) {
+            maxExponent = max(maxExponent, Int(bytes[idx] >> 3))
+        }
+        let maxMb = guardBits + maxExponent - 1
+        let magb = UInt16(max(0, min(26, maxMb - 8)))
+        bytes[capOffset + 8] = UInt8(magb >> 8)
+        bytes[capOffset + 9] = UInt8(magb & 0xFF)
+        return Data(bytes)
+    }
 
     /// Offset of a main-header marker segment (before the first SOT).
     private static func mainHeaderSegmentOffset(_ bytes: [UInt8], marker: UInt16) -> Int? {

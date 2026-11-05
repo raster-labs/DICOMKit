@@ -28,6 +28,7 @@ xcuserdata/
 Packages/
 Package.resolved
 !DICOMStudio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+!Integrations/DICOMSwiftJ2KIntegration/Package.resolved
 
 # Docker volumes and runtime files
 docker-compose.override.yml
