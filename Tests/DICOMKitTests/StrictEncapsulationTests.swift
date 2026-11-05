@@ -7,9 +7,10 @@ import DICOMCore
 struct StrictEncapsulationTests {
     func fixture() throws -> Data {
         var ds = DataSet()
+        ds.setString("2", for: .numberOfFrames, vr: .IS)
         ds[.pixelData] = DataElement(tag: .pixelData, vr: .OB, length: 0xffffffff, valueData: Data(),
             encapsulatedFragments: [Data([1, 2]), Data([3, 4])], encapsulatedOffsetTable: [0, 10])
-        return try DICOMFile.create(dataSet: ds, sopClassUID: "1.2.840.10008.5.1.4.1.1.7",
+        return try DICOMFile.create(dataSet: ds, sopClassUID: "1.2.840.10008.5.1.4.1.1.7.2",
             sopInstanceUID: "1.2.3.4", transferSyntaxUID: TransferSyntax.jpegBaseline.uid).write()
     }
     @Test func malformedEnvelopesFailClosed() throws {

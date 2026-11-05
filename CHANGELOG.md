@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- JPEG 2000 and HTJ2K conversions can use an immutable, application-selected codec provider for a complete operation. Lossless conversions with J2KSwift 11.0.3 use pixel decoding and a verified re-encode. The bare coefficient conversion helpers refuse operations that could change samples.
+- Frame reads and conversions validate Basic and Extended Offset Tables, reject malformed fragment boundaries, and rebuild offsets when frame sizes change. Continuous video bitstreams retain their separate encapsulation rules.
+- Conversion to unsigned 8-bit samples requires explicit permission to change precision in a lossy operation.
+
 ## [2.10.0] - 2026-11-04
 
 ### Added — strict bounded hospital transfer syntaxes and managed codec decoding

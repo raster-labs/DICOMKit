@@ -248,10 +248,8 @@ extension DICOMConverter {
     /// Checks that `dicomFile` can be converted to `encoding` and throws a
     /// ``ConversionFailure`` naming the exact mismatch when it cannot.
     ///
-    /// The pixel-format verdict comes from the target encoder's own `canEncode`
-    /// (including the automatic 16 → 8-bit reduction the transcoder applies for
-    /// 8-bit-only targets), so this never rejects a conversion that would succeed.
-    /// The per-target rule table only supplies the wording.
+    /// The high-level converter preserves the source sample precision. Ask the encoder
+    /// about the actual image descriptor; the per-target rule table supplies the wording.
     ///
     /// Called by ``convertToDICOM(dicomFile:to:stripPrivate:)-(_,SelectableEncoding,_)``,
     /// and public so a UI can validate a choice before running.
@@ -326,10 +324,6 @@ extension DICOMConverter {
         }
         let configuration: DICOMCore.CompressionConfiguration = encodeLossless ? .lossless : .default
         if encoder.canEncode(with: configuration, descriptor: descriptor) { return }
-        if descriptor.bitsAllocated == 16, descriptor.samplesPerPixel <= 3,
-           encoder.canEncode(with: configuration, descriptor: eightBitVariant(of: descriptor)) {
-            return  // the transcoder windows 16-bit data down to 8-bit for this target
-        }
 
         let rule = PixelRule.forTarget(target)
         let violations = rule?.violations(of: descriptor, targetName: target.displayName) ?? []
@@ -407,15 +401,6 @@ extension DICOMConverter {
             + "\(d.photometricInterpretation.rawValue), \(frames), \(d.columns)×\(d.rows)"
     }
 
-    static func eightBitVariant(of d: PixelDataDescriptor) -> PixelDataDescriptor {
-        PixelDataDescriptor(
-            rows: d.rows, columns: d.columns, numberOfFrames: d.numberOfFrames,
-            bitsAllocated: 8, bitsStored: 8, highBit: 7, isSigned: false,
-            samplesPerPixel: d.samplesPerPixel,
-            photometricInterpretation: d.photometricInterpretation,
-            planarConfiguration: d.planarConfiguration)
-    }
-
     /// A target the source *can* go to, phrased as advice.
     static func suggestion(forTarget target: TransferSyntax, descriptor: PixelDataDescriptor?) -> String? {
         guard let d = descriptor else { return nil }
@@ -451,8 +436,8 @@ extension DICOMConverter {
             switch t.uid {
             case TransferSyntax.jpegBaseline.uid:
                 return PixelRule(
-                    requirement: "8-bit unsigned data with 1 or 3 samples (16-bit data is windowed down to 8-bit)",
-                    bitsAllocated: [8, 16], bitsStored: 1...8, samples: [1, 3],
+                    requirement: "8-bit unsigned data with 1 or 3 samples",
+                    bitsAllocated: [8], bitsStored: 1...8, samples: [1, 3],
                     signed: .unsignedOnly, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.jpegExtended.uid:
                 return PixelRule(
@@ -492,7 +477,8 @@ extension DICOMConverter {
         func violations(of d: PixelDataDescriptor, targetName name: String) -> [String] {
             var out: [String] = []
             if !bitsAllocated.contains(d.bitsAllocated) {
-                out.append("\(name) needs Bits Allocated 8 or 16, but the source has \(d.bitsAllocated).")
+                let allowed = bitsAllocated.sorted().map(String.init).joined(separator: " or ")
+                out.append("\(name) needs Bits Allocated \(allowed), but the source has \(d.bitsAllocated).")
             } else if let range = bitsStored, !range.contains(d.bitsStored) {
                 out.append("\(name) supports at most \(range.upperBound)-bit data (Bits Stored \(range.lowerBound) to \(range.upperBound)), but the source stores \(d.bitsStored) bits.")
             }

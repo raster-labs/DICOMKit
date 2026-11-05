@@ -143,10 +143,16 @@ final class ConversionDiagnosticsTests: XCTestCase {
         XCTAssertTrue(f.suggestion?.contains("uncompressed") == true)
     }
 
-    func test16BitTo8BitOnlyTarget_isAcceptedBecauseTheTranscoderWindowsItDown() {
-        // The transcoder rescales 16-bit data to 8-bit for JPEG Baseline; the check
-        // must not reject what the conversion itself supports.
-        assertAccepted(makeFile(bitsAllocated: 16, bitsStored: 16), .jpegBaseline)
+    func test16BitToJPEGBaseline_preflightAndConversionRefusePrecisionLoss() throws {
+        let source = makeFile(bitsAllocated: 16, bitsStored: 16)
+        let refusal = try XCTUnwrap(failure(source, .jpegBaseline, intent: .lossy))
+        XCTAssertEqual(refusal.category, .pixelFormatNotSupported)
+        XCTAssertTrue(refusal.reason.contains("Bits Allocated 8, but the source has 16"), refusal.reason)
+        let target = SelectableEncoding(transferSyntax: .jpegBaseline, intent: .lossy)
+        XCTAssertThrowsError(try DICOMConverter.convertToDICOM(dicomFile: source, to: target, stripPrivate: false)) {
+            XCTAssertEqual($0 as? ConversionFailure, refusal)
+        }
+        assertAccepted(makeFile(bitsAllocated: 8, bitsStored: 8), .jpegBaseline)
     }
 
     func testCommonFormats_areAccepted() {

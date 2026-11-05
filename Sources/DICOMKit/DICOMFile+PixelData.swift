@@ -23,8 +23,10 @@ extension DICOMFile {
     /// Returns nil if pixel data is not present or cannot be extracted.
     ///
     /// - Returns: PixelData if extraction succeeds
-    public func pixelData() -> PixelData? {
-        try? tryPixelData()
+    public func pixelData() -> PixelData? { pixelData(codecRegistry: .shared) }
+
+    public func pixelData(codecRegistry: CodecRegistry) -> PixelData? {
+        try? tryPixelData(codecRegistry: codecRegistry)
     }
 
     /// Returns a descriptor whose Photometric Interpretation matches the *decoded*
@@ -84,7 +86,9 @@ extension DICOMFile {
     ///     print("Explanation: \(error.explanation)")
     /// }
     /// ```
-    public func tryPixelData() throws -> PixelData {
+    public func tryPixelData() throws -> PixelData { try tryPixelData(codecRegistry: .shared) }
+
+    public func tryPixelData(codecRegistry: CodecRegistry) throws -> PixelData {
         // First check if we have a valid descriptor (throws detailed error if missing)
         let descriptor: PixelDataDescriptor
         do {
@@ -108,56 +112,34 @@ extension DICOMFile {
             throw error
         }
         
-        // Check if pixel data element exists
-        guard let pixelDataElement = dataSet[.pixelData] else {
-            throw PixelDataError.missingPixelData
-        }
-        
-        // Try to get uncompressed pixel data directly. Native samples are stored in the data
-        // set's byte order; normalize 16-bit big-endian samples to little endian so the
-        // descriptor and pixels agree (Explicit VR Big Endian, retired — PS3.5 §7.1.2).
-        if !pixelDataElement.valueData.isEmpty {
-            let bytes = DataSet.nativePixelBytesLittleEndian(
-                pixelDataElement.valueData, byteOrder: pixelDataElement.byteOrder,
-                bitsAllocated: descriptor.bitsAllocated)
+        let source = try frameSource(descriptor: descriptor, frame: 0, registry: codecRegistry)
+        switch source {
+        case .native(let element):
+            let bytes = DataSet.nativePixelBytesLittleEndian(element.valueData, byteOrder: element.byteOrder,
+                                                              bitsAllocated: descriptor.bitsAllocated)
             return PixelData(data: bytes, descriptor: descriptor)
-        }
-        
-        // Check if we have encapsulated (compressed) pixel data
-        guard let encapsulated = dataSet.encapsulatedPixelData() else {
-            throw PixelDataError.missingPixelData
-        }
-        
-        guard let tsUID = transferSyntaxUID else {
-            throw PixelDataError.missingTransferSyntax
-        }
-        
-        // Get the codec for this transfer syntax
-        guard let codec = CodecRegistry.shared.codec(for: tsUID) else {
-            throw PixelDataError.unsupportedTransferSyntax(tsUID)
-        }
-        
-        guard let index = encapsulated.makeFrameIndex(extendedOffsets: extendedOffsetTableValues()) else {
-            throw PixelDataError.frameExtractionFailed(frameIndex: 0)
-        }
-        var decompressedData = Data()
-        var outputDescriptor = descriptor
-        for frameIndex in 0..<descriptor.numberOfFrames {
-            guard let frameData = encapsulated.frameData(at: frameIndex, using: index) else {
-                throw PixelDataError.frameExtractionFailed(frameIndex: frameIndex)
-            }
-            do {
-                let decoded = try codec.decodePixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
-                if frameIndex > 0 && decoded.descriptor != outputDescriptor {
-                    throw DICOMError.parsingFailed("Inconsistent decoded frame descriptors")
+        case .encapsulated(let encapsulated, let index, let codec):
+            var decompressedData = Data()
+            var outputDescriptor = descriptor
+            for frame in 0..<descriptor.numberOfFrames {
+                guard let bytes = encapsulated.frameData(at: frame, using: index, maximumBytes: PixelDecodeLimits.default.maximumEncodedBytes) else {
+                    throw PixelDataError.frameExtractionFailed(frameIndex: frame)
                 }
-                outputDescriptor = decoded.descriptor
-                decompressedData.append(decoded.data)
-            } catch {
-                throw PixelDataError.decodingFailed(frameIndex: frameIndex, reason: error.localizedDescription)
+                do {
+                    let decoded = try codec.decodePixelFrame(bytes, descriptor: descriptor, frameIndex: frame)
+                    guard frame == 0 || decoded.descriptor == outputDescriptor else {
+                        throw DICOMError.parsingFailed("Inconsistent decoded frame descriptors")
+                    }
+                    outputDescriptor = decoded.descriptor
+                    decompressedData.append(decoded.data)
+                } catch is CancellationError {
+                    throw CancellationError()
+                } catch {
+                    throw PixelDataError.decodingFailed(frameIndex: frame, reason: error.localizedDescription)
+                }
             }
+            return PixelData(data: decompressedData, descriptor: outputDescriptor)
         }
-        return PixelData(data: decompressedData, descriptor: outputDescriptor)
     }
 
     /// Creates a PixelDataDescriptor from the file's image pixel attributes

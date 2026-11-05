@@ -28,6 +28,39 @@ extension DataSet {
         
         return data
     }
+
+    /// Serializes the data set to binary data after validating encapsulated Pixel Data
+    /// fragment, offset-table, and total serialized byte bounds.
+    ///
+    /// - Parameter writer: The DICOM writer to use for serialization.
+    /// - Returns: Serialized data set.
+    /// - Throws: `DICOMError` if an encapsulated Pixel Data element exceeds bounds.
+    public func writeChecked(using writer: DICOMWriter = DICOMWriter(),
+                             maxEncapsulatedBytes: Int = Int(UInt32.max),
+                             transferSyntax: TransferSyntax? = nil) throws -> Data {
+        var data = Data()
+        let sortedTags = tags.sorted()
+        for tag in sortedTags {
+            if let element = self[tag] {
+                do {
+                    if tag == .pixelData && element.isEncapsulated {
+                        data.append(try writer.serializeCheckedElement(element, maxEncapsulatedBytes: maxEncapsulatedBytes,
+                            numberOfFrames: DICOMWriter.checkedFrameCount(self[.numberOfFrames]),
+                            extendedOffsetTableData: self[.extendedOffsetTable]?.valueData,
+                            extendedOffsetTableLengthsData: self[.extendedOffsetTableLengths]?.valueData,
+                            transferSyntax: transferSyntax))
+                    } else {
+                        data.append(try writer.serializeCheckedElement(element, maxEncapsulatedBytes: maxEncapsulatedBytes))
+                    }
+                } catch let error as EncapsulatedFrameResolutionError {
+                    throw DICOMError.parsingFailed(error.description)
+                } catch let error as EncapsulatedOffsetBuildError {
+                    throw DICOMError.parsingFailed(error.description)
+                }
+            }
+        }
+        return data
+    }
     
     // MARK: - Convenience Setters
     
@@ -187,8 +220,10 @@ extension DICOMFile {
         //    always recompute from the actual encoded bytes, including changed UIDs.
         let fileMetaWriter = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
         var fileMetaInformation = self.fileMetaInformation
-        Self.setGroupLength(in: &fileMetaInformation)
-        data.append(fileMetaInformation.write(using: fileMetaWriter))
+        fileMetaInformation.remove(tag: .fileMetaInformationGroupLength)
+        let (groupLength, body) = try Self.encodedFileMetaBody(fileMetaInformation, using: fileMetaWriter)
+        data.append(try fileMetaWriter.serializeCheckedElement(groupLength))
+        data.append(body)
         
         // 4. Determine transfer syntax for main data set
         let transferSyntaxUID = self.transferSyntaxUID ?? "1.2.840.10008.1.2.1"
@@ -200,7 +235,7 @@ extension DICOMFile {
         
         // 5. Write main data set
         let mainWriter = DICOMWriter(byteOrder: byteOrder, explicitVR: isExplicitVR)
-        data.append(try dataSet.preparingTextForWriting().write(using: mainWriter))
+        data.append(try dataSet.preparingTextForWriting().writeChecked(using: mainWriter, transferSyntax: transferSyntax))
         
         return data
     }
@@ -344,10 +379,20 @@ extension DICOMFile {
     /// File Meta elements (PS3.10 Table 7.1-1).
     private static func setGroupLength(in fileMeta: inout DataSet) {
         fileMeta.remove(tag: .fileMetaInformationGroupLength)
-        let metaInfoData = fileMeta.write(using: DICOMWriter(byteOrder: .littleEndian, explicitVR: true))
-        fileMeta[.fileMetaInformationGroupLength] = DataElement.uint32(
-            tag: .fileMetaInformationGroupLength,
-            value: UInt32(metaInfoData.count)
-        )
+        // The nonthrowing factory may receive invalid attributes. Leave their length
+        // unset until write(), which reports the specific serialization error.
+        if let (length, _) = try? encodedFileMetaBody(fileMeta) {
+            fileMeta[.fileMetaInformationGroupLength] = length
+        }
+    }
+
+    private static func encodedFileMetaBody(
+        _ fileMeta: DataSet, using writer: DICOMWriter = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
+    ) throws -> (groupLength: DataElement, bytes: Data) {
+        let body = try fileMeta.writeChecked(using: writer)
+        guard let length = UInt32(exactly: body.count) else {
+            throw DICOMError.limitExceeded("File Meta Information exceeds its 32-bit Group Length")
+        }
+        return (.uint32(tag: .fileMetaInformationGroupLength, value: length), body)
     }
 }

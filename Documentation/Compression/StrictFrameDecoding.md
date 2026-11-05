@@ -74,3 +74,41 @@ Regenerate using Python 3.12 and `oracle-requirements.txt`, then run `Scripts/ge
 JPEG progressive/arithmetic processes, DNL dimensions, lossless JPEG with noninterleaved scans or nonzero point transform, and ambiguous frame delimiters are rejected by this finite path. JPEG2000, HTJ2K, RLE, video and all other families retain their own qualification status. Application integration, representative vendor coverage, native image acceptance and live PACS retrieval remain separate gates.
 
 References: [DICOM PS3.5 2026a A.4](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part05/sect_A.4.html), [8.2.1](https://dicom.nema.org/medical/dicom/2026a/output/chtml/part05/sect_8.2.html), ITU-T T.81 Annex B and T.87 Annex C.
+
+## Selecting a JPEG 2000 provider
+
+`CodecRegistry.shared` selects the pinned J2KSwift provider for JPEG 2000 and
+HTJ2K. Applications can pass their own immutable registry to
+`CompressionManager`, `TransferSyntaxConverter` and the `DICOMFile` frame APIs.
+For example, `file.pixelData(frame: 0, codecRegistry: registry)` uses the chosen
+decoder for that operation. To roll back, pass the default registry to subsequent
+operations. In-flight parallel frames retain their selected decoder.
+
+A strict provider rejects unsupported profiles. An application can explicitly
+choose `preselectPredecessorOnUnsupportedCapability` to select the predecessor
+before execution. Once decoding, encoding or transcoding starts, the caller
+receives any error from that operation. Conversion results report the providers
+that actually ran.
+
+Image frame conversion validates frame boundaries before calling the codec. An
+Extended Offset Table requires its companion Lengths attribute. These lengths
+describe the logical codestream and exclude any trailing DICOM item pad. When
+an encoder changes frame sizes, DICOMKit calculates offsets from the emitted
+item headers and even byte lengths. A continuous video stream has its own
+fragment rules. Use the throwing writer to validate materialized data before
+serializing it.
+
+The conversion paths check pixel geometry and native Value Length before
+processing samples. Conversion to unsigned 8-bit samples requires an explicit
+bit-depth reduction request, a permitted lossy target, and a policy that permits changing sample values. JPEG 2000 provider routes preserve the requested precision
+or return an error.
+
+The default J2KSwift 11.0.3 coefficient transcoder changed samples in a
+lossless JPEG 2000 to HTJ2K conversion. The default provider therefore selects
+pixel decode and a verified lossless re-encode before executing either stage.
+The bare coefficient helpers return an explicit error. A provider with a
+qualified compressed-domain operation can supply that capability separately.
+
+The OS 26 SwiftJ2K adapter and its managed allocation qualification belong to
+later integration work. The admission and worker requirements for managed
+decoders are specified in the [allocation contract](../BoundedInput/AllocationContract.md).

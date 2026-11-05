@@ -199,23 +199,21 @@ struct DICOMConvert: AsyncParsableCommand {
     }
     
     private func convertFile(input: URL, output: URL) throws {
-        let fileData = try Data(contentsOf: input)
-        
-        // Read DICOM file
-        let dicomFile = try DICOMFile.read(from: fileData, force: force)
-        
-        // Process based on output format
         switch format {
         case .dicom:
+            // Check the original fragment headers and delimiters before reserialization.
+            // `force` controls Part 10 preamble handling independently of this envelope check.
+            let options = ParsingOptions(strictEncapsulation: true)
+            let dicomFile = try DICOMFile.read(from: input, force: force, options: options)
             try convertTransferSyntax(dicomFile: dicomFile, output: output)
         case .png, .jpeg, .tiff:
+            let dicomFile = try DICOMFile.read(from: input, force: force)
             try exportImage(dicomFile: dicomFile, output: output)
         }
-        
+
         // Validate if requested
         if validateOutput && format == .dicom {
-            let outputData = try Data(contentsOf: output)
-            _ = try DICOMFile.read(from: outputData, force: false)
+            _ = try DICOMFile.read(from: output, options: ParsingOptions(strictEncapsulation: true))
         }
     }
     

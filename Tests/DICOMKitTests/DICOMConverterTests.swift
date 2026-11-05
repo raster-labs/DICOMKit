@@ -218,6 +218,19 @@ struct DICOMConverterTests {
         return try DICOMFile.read(from: bytes)
     }
 
+    @Test("DICOM conversion refuses overflowing JPEG 2000 geometry before calculating a size or starting a codec")
+    func rejectsOverflowingGeometryAtConversionBoundary() throws {
+        let source = try makePixelSource()
+        var dataSet = source.dataSet
+        dataSet[.rows] = .uint16(tag: .rows, value: .max)
+        dataSet[.columns] = .uint16(tag: .columns, value: .max)
+        dataSet.setString("99999999999", for: .numberOfFrames, vr: .IS)
+        let malformed = DICOMFile(fileMetaInformation: source.fileMetaInformation, dataSet: dataSet)
+        #expect(throws: ConversionFailure.self) {
+            try DICOMConverter.convertToDICOM(dicomFile: malformed, to: .jpeg2000Lossless, stripPrivate: false)
+        }
+    }
+
     private func tsUID(_ f: DICOMFile) -> String? {
         f.fileMetaInformation.string(for: .transferSyntaxUID)?
             .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))

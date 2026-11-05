@@ -392,14 +392,6 @@ public enum DICOMConverter {
             dataSet = filtered
         }
 
-        // The native (uncompressed) pixel byte count for the lossy compression ratio, captured
-        // from the SOURCE before transcoding (it is the numerator "uncompressed size" regardless
-        // of any downstream bit-depth reduction). Falls back to the raw element length.
-        let sourceUncompressedPixelBytes: Int = {
-            if let d = try? CompressionManager.buildPixelDataDescriptor(from: dataSet) { return d.totalBytes }
-            return dataSet[.pixelData]?.valueData.count ?? 0
-        }()
-
         // Determine the source transfer syntax from the file.
         let sourceSyntaxUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
         let sourceSyntax = TransferSyntax.from(uid: sourceSyntaxUID) ?? .explicitVRLittleEndian
@@ -408,6 +400,17 @@ public enum DICOMConverter {
         // inflates a Deflated source), so when the *source* is itself deflated the byte
         // stream the transcoder/deflater consumes is its un-deflated Explicit VR LE form.
         let serializationSyntax: TransferSyntax = sourceSyntax.isDeflated ? .explicitVRLittleEndian : sourceSyntax
+
+        if let pixel = dataSet[.pixelData] {
+            guard pixel.isEncapsulated == serializationSyntax.isEncapsulated else {
+                throw TranscodingError.pixelDataExtractionFailed("Pixel Data representation conflicts with the source transfer syntax")
+            }
+            // Bound materialized JPEG 2000 geometry before serializing or invoking a codec.
+            if sourceSyntax.isJPEG2000 || target.isJPEG2000 {
+                let descriptor = try CompressionManager.buildPixelDataDescriptor(from: dataSet)
+                _ = try descriptor.checkedNativeConversionFrameBytes()
+            }
+        }
 
         // File Meta Information for the output (shared by both payload paths; never deflated).
         let sopClassUID = dataSet.string(for: .sopClassUID) ?? "1.2.840.10008.5.1.4.1.1.7"
@@ -456,13 +459,13 @@ public enum DICOMConverter {
                     explicitVR: serializationSyntax.isExplicitVR
                 )
                 plain = try decoder.transcode(
-                    dataSetData: dataSet.write(using: sourceWriter),
+                    dataSetData: dataSet.writeChecked(using: sourceWriter, transferSyntax: serializationSyntax),
                     from: serializationSyntax,
                     to: .explicitVRLittleEndian
                 ).data
             } else {
                 let evleWriter = DICOMWriter(byteOrder: .littleEndian, explicitVR: true)
-                plain = dataSet.write(using: evleWriter)
+                plain = try dataSet.writeChecked(using: evleWriter, transferSyntax: .explicitVRLittleEndian)
             }
             guard let deflated = plain.deflateCompressed() else {
                 throw TranscodingError.encodingFailed(
@@ -499,7 +502,7 @@ public enum DICOMConverter {
                 byteOrder: serializationSyntax.byteOrder,
                 explicitVR: serializationSyntax.isExplicitVR
             )
-            let dataSetBytes = dataSet.write(using: sourceWriter)
+            let dataSetBytes = try dataSet.writeChecked(using: sourceWriter, transferSyntax: serializationSyntax)
 
             let result = try converter.transcode(
                 dataSetData: dataSetBytes,
@@ -518,13 +521,17 @@ public enum DICOMConverter {
         var outputData = Data()
         outputData.append(Data(repeating: 0, count: 128))  // Preamble
         outputData.append(contentsOf: "DICM".utf8)          // DICM prefix
-        outputData.append(outputFile.fileMetaInformation.write(using: fmiWriter))
+        outputData.append(try outputFile.fileMetaInformation.writeChecked(using: fmiWriter))
         outputData.append(dataSetPayload)
 
         // Record DICOM Lossy Image Compression provenance for an irreversible encapsulated
         // encode (0028,2110/2112/2114 + Image Type → DERIVED), reusing the exact writer
         // `dicom-compress` uses. No-op for reversible-only targets (method Defined Term is nil).
-        if !encodeLossless, wasTranscoded, target.isEncapsulated, target.lossyImageCompressionMethod != nil {
+        if !encodeLossless, wasTranscoded, target.isEncapsulated,
+           target.lossyImageCompressionMethod != nil, dataSet[.pixelData] != nil {
+            let descriptor = try CompressionManager.buildPixelDataDescriptor(from: dataSet)
+            let frameBytes = try descriptor.checkedNativeConversionFrameBytes()
+            let sourceUncompressedPixelBytes = frameBytes * descriptor.numberOfFrames // product checked above
             outputData = try applyLossyProvenance(
                 to: outputData, target: target, uncompressedPixelByteCount: sourceUncompressedPixelBytes)
         }

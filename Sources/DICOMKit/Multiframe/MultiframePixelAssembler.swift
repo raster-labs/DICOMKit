@@ -113,47 +113,58 @@ public enum MultiframePixelAssembler {
                                      descriptor: decoded.descriptor)
 
         case .preserve:
-            if !element.valueData.isEmpty {
-                // Native: slice the frame's raw bytes; keep the data set's byte order
-                // because the transfer syntax is preserved.
-                if descriptor.bitsAllocated < 8 {
-                    // Bit-packed (PS3.5 8.1.1): frames are packed contiguously.
-                    // Slicing (and later concatenating) per frame is only exact
-                    // when each frame ends on a byte boundary.
-                    // Continuous packing across samples (the standard only defines
-                    // sub-byte pixels for Samples per Pixel 1); the byte-boundary
-                    // guard below rejects anything this math can't slice exactly.
-                    let bitsPerFrame = descriptor.pixelsPerFrame * descriptor.samplesPerPixel * descriptor.bitsAllocated
-                    guard bitsPerFrame % 8 == 0 else {
-                        throw MultiframePixelError.unalignedSubBytePixels(bitsPerFrame: bitsPerFrame)
-                    }
-                    let packedBytesPerFrame = bitsPerFrame / 8
-                    let start = element.valueData.startIndex + frame * packedBytesPerFrame
-                    let end = start + packedBytesPerFrame
-                    guard end <= element.valueData.endIndex else {
-                        throw MultiframePixelError.frameExtractionFailed(frame)
-                    }
-                    return FramePixelPayload(storage: .native(Data(element.valueData[start..<end])),
-                                             transferSyntaxUID: tsUID, descriptor: single)
-                }
-                let bytesPerFrame = descriptor.bytesPerFrame
-                let start = element.valueData.startIndex + frame * bytesPerFrame
-                let end = start + bytesPerFrame
-                guard bytesPerFrame > 0, end <= element.valueData.endIndex else {
+            if !element.isEncapsulated {
+                guard !element.valueData.isEmpty else { throw MultiframePixelError.missingPixelData }
+                guard TransferSyntax.from(uid: tsUID)?.isEncapsulated != true else {
                     throw MultiframePixelError.frameExtractionFailed(frame)
                 }
-                return FramePixelPayload(storage: .native(Data(element.valueData[start..<end])),
-                                         transferSyntaxUID: tsUID, descriptor: single)
+                let bytes = try storedNativeFrame(frame, in: element.valueData, descriptor: descriptor)
+                return FramePixelPayload(storage: .native(bytes), transferSyntaxUID: tsUID, descriptor: single)
+            }
+            guard TransferSyntax.from(uid: tsUID)?.isEncapsulated != false else {
+                throw MultiframePixelError.frameExtractionFailed(frame)
             }
             guard let encapsulated = file.dataSet.encapsulatedPixelData() else {
                 throw MultiframePixelError.missingPixelData
             }
-            guard let index = encapsulated.makeFrameIndex(extendedOffsets: file.extendedOffsetTableValues()),
-                  let codestream = encapsulated.frameData(at: frame, using: index) else {
+            guard let index = encapsulated.makeFrameIndex(
+                extendedOffsetTableData: file.dataSet[.extendedOffsetTable]?.valueData,
+                extendedOffsetTableLengthsData: file.dataSet[.extendedOffsetTableLengths]?.valueData
+            ),
+                  let codestream = encapsulated.frameData(at: frame, using: index,
+                      maximumBytes: PixelDecodeLimits.default.maximumEncodedBytes) else {
                 throw MultiframePixelError.frameExtractionFailed(frame)
             }
             return FramePixelPayload(storage: .encapsulated(codestream), transferSyntaxUID: tsUID, descriptor: single)
         }
+    }
+
+    /// Preserves stored byte order. Packed frames can be sliced exactly only when
+    /// their bit length ends on a byte boundary.
+    private static func storedNativeFrame(_ frame: Int, in data: Data, descriptor: PixelDataDescriptor) throws -> Data {
+        guard descriptor.rows > 0, descriptor.columns > 0, descriptor.samplesPerPixel > 0,
+              descriptor.bitsAllocated > 0 else { throw MultiframePixelError.frameExtractionFailed(frame) }
+        let (pixels, pixelOverflow) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+        let (samples, sampleOverflow) = pixels.multipliedReportingOverflow(by: descriptor.samplesPerPixel)
+        guard !pixelOverflow, !sampleOverflow else { throw MultiframePixelError.frameExtractionFailed(frame) }
+
+        let size: Int
+        if descriptor.bitsAllocated < 8 {
+            let (bits, overflow) = samples.multipliedReportingOverflow(by: descriptor.bitsAllocated)
+            guard !overflow else { throw MultiframePixelError.frameExtractionFailed(frame) }
+            guard bits.isMultiple(of: 8) else { throw MultiframePixelError.unalignedSubBytePixels(bitsPerFrame: bits) }
+            size = bits / 8
+        } else {
+            let (bytes, overflow) = samples.multipliedReportingOverflow(by: descriptor.bytesPerSample)
+            guard !overflow else { throw MultiframePixelError.frameExtractionFailed(frame) }
+            size = bytes
+        }
+        let (offset, overflow) = frame.multipliedReportingOverflow(by: size)
+        guard !overflow, size <= data.count, offset <= data.count - size else {
+            throw MultiframePixelError.frameExtractionFailed(frame)
+        }
+        let start = data.startIndex + offset
+        return Data(data[start..<(start + size)])
     }
 
     /// Loads the (only) frame of a single-frame input, or frame 0 of a multi-frame one.
@@ -172,13 +183,22 @@ public enum MultiframePixelAssembler {
         case .native(let bytes):
             return nativeElement(bytes, bitsAllocated: payload.descriptor.bitsAllocated)
         case .encapsulated(let codestream):
-            return encapsulatedElement(fragments: [codestream])
+            // A single fragment starts at offset zero irrespective of its length.
+            return DataElement(tag: .pixelData, vr: .OB, length: UInt32.max, valueData: Data(),
+                               encapsulatedFragments: [codestream], encapsulatedOffsetTable: [0])
         }
     }
 
     /// Concatenates payloads into one multi-frame Pixel Data element. Every payload
     /// must share the transfer syntax and (for native data) the frame byte size.
     public static func assemble(_ payloads: [FramePixelPayload]) throws -> (element: DataElement, transferSyntaxUID: String) {
+        try assemble(payloads, maximumBytes: Int(UInt32.max))
+    }
+
+    /// Native output uses a defined Value Length; encapsulated output uses the
+    /// finite serialized-element bound of the canonical offset builder.
+    static func assemble(_ payloads: [FramePixelPayload], maximumBytes: Int) throws
+        -> (element: DataElement, transferSyntaxUID: String) {
         guard let first = payloads.first else {
             throw MultiframePixelError.missingPixelData
         }
@@ -188,20 +208,27 @@ public enum MultiframePixelAssembler {
         }
 
         if first.isEncapsulated {
-            var fragments: [Data] = []
-            fragments.reserveCapacity(payloads.count)
             for payload in payloads {
                 guard case .encapsulated(let codestream) = payload.storage else {
                     throw MultiframePixelError.mixedTransferSyntaxes(expected: first.transferSyntaxUID,
                                                                      found: payload.transferSyntaxUID)
                 }
-                fragments.append(codestream)
+                guard codestream.count <= PixelDecodeLimits.default.maximumEncodedBytes else {
+                    throw DICOMError.limitExceeded("Compressed frame exceeds the assembly byte limit")
+                }
             }
-            return (encapsulatedElement(fragments: fragments), first.transferSyntaxUID)
+            let checked = try EncapsulatedPixelData.buildCheckedBasicOffsetTable(
+                lengths: payloads.lazy.map(\.byteCount), includeSingleFrameOffset: true, maxSerializedBytes: maximumBytes)
+            var fragments: [Data] = []
+            fragments.reserveCapacity(payloads.count)
+            for payload in payloads {
+                if case .encapsulated(let codestream) = payload.storage { fragments.append(codestream) }
+            }
+            let element = DataElement(tag: .pixelData, vr: .OB, length: UInt32.max, valueData: Data(),
+                                      encapsulatedFragments: fragments, encapsulatedOffsetTable: checked.offsets)
+            return (element, first.transferSyntaxUID)
         }
 
-        var combined = Data()
-        combined.reserveCapacity(payloads.reduce(0) { $0 + $1.byteCount })
         let expected = first.byteCount
         for payload in payloads {
             guard case .native(let bytes) = payload.storage else {
@@ -211,9 +238,20 @@ public enum MultiframePixelAssembler {
             guard bytes.count == expected else {
                 throw MultiframePixelError.mixedFrameSize(expected: expected, found: bytes.count)
             }
-            combined.append(bytes)
         }
-        return (nativeElement(combined, bitsAllocated: first.descriptor.bitsAllocated), first.transferSyntaxUID)
+        let (logical, overflow) = expected.multipliedReportingOverflow(by: payloads.count)
+        let (padded, padOverflow) = logical.addingReportingOverflow(logical % 2)
+        guard !overflow, !padOverflow, logical > 0, padded <= maximumBytes, padded < Int(UInt32.max) else {
+            throw DICOMError.limitExceeded("Assembled native Pixel Data exceeds its Value Length or byte limit")
+        }
+        var combined = Data(capacity: padded)
+        for payload in payloads {
+            if case .native(let bytes) = payload.storage { combined.append(bytes) }
+        }
+        if padded != logical { combined.append(0) }
+        let element = DataElement(tag: .pixelData, vr: first.descriptor.bitsAllocated > 8 ? .OW : .OB,
+                                  length: UInt32(padded), valueData: combined)
+        return (element, first.transferSyntaxUID)
     }
 
     /// Writes the Image Pixel attributes that may change when frames are decoded
@@ -230,10 +268,10 @@ public enum MultiframePixelAssembler {
             dataSet.setUInt16(UInt16(payload.descriptor.planarConfiguration), for: .planarConfiguration)
         }
         fileMeta.setString(payload.transferSyntaxUID, for: .transferSyntaxUID, vr: .UI)
-        if !payload.isEncapsulated {
-            dataSet[.extendedOffsetTable] = nil
-            dataSet[.extendedOffsetTableLengths] = nil
-        }
+        // Reassembled codestreams carry a newly built BOT, and native output
+        // has no fragment table. Neither representation uses source EOT entries.
+        dataSet[.extendedOffsetTable] = nil
+        dataSet[.extendedOffsetTableLengths] = nil
     }
 
     // MARK: - Helpers
@@ -245,25 +283,6 @@ public enum MultiframePixelAssembler {
                            vr: bitsAllocated > 8 ? .OW : .OB,
                            length: UInt32(padded.count),
                            valueData: padded)
-    }
-
-    /// Encapsulated element with one fragment per frame and a Basic Offset Table
-    /// pointing at each fragment's Item header (PS3.5 A.4).
-    static func encapsulatedElement(fragments: [Data]) -> DataElement {
-        var offsets: [UInt32] = []
-        offsets.reserveCapacity(fragments.count)
-        var running: UInt32 = 0
-        for fragment in fragments {
-            offsets.append(running)
-            let padded = fragment.count % 2 == 0 ? fragment.count : fragment.count + 1
-            running += 8 + UInt32(padded)
-        }
-        return DataElement(tag: .pixelData,
-                           vr: .OB,
-                           length: 0xFFFFFFFF,
-                           valueData: Data(),
-                           encapsulatedFragments: fragments,
-                           encapsulatedOffsetTable: offsets)
     }
 
     static func singleFrame(_ d: PixelDataDescriptor) -> PixelDataDescriptor {

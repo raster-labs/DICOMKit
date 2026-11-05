@@ -34,181 +34,132 @@ extension DICOMFile {
     /// - Parameter frame: Zero-based frame index.
     /// - Throws: `PixelDataError` when the frame cannot be located or decoded.
     public func pixelData(frame: Int) throws -> PixelData {
-        let descriptor = try dataSet.tryPixelDataDescriptor()
-        guard frame >= 0, frame < descriptor.numberOfFrames else {
-            throw PixelDataError.frameExtractionFailed(frameIndex: frame)
-        }
-
-        guard let element = dataSet[.pixelData] else {
-            throw PixelDataError.missingPixelData
-        }
-
-        // --- Native (uncompressed) path ---------------------------------
-        if !element.valueData.isEmpty {
-            return try nativeFrame(frame, element: element, descriptor: descriptor)
-        }
-
-        // --- Encapsulated path -------------------------------------------
-        guard let encapsulated = dataSet.encapsulatedPixelData() else {
-            throw PixelDataError.missingPixelData
-        }
-        guard let tsUID = transferSyntaxUID else {
-            throw PixelDataError.missingTransferSyntax
-        }
-        guard let codec = CodecRegistry.shared.codec(for: tsUID) else {
-            throw PixelDataError.unsupportedTransferSyntax(tsUID)
-        }
-
-        guard let index = encapsulated.makeFrameIndex(extendedOffsets: extendedOffsetTableValues()),
-              let frameBytes = encapsulated.frameData(at: frame, using: index) else {
-            throw PixelDataError.frameExtractionFailed(frameIndex: frame)
-        }
-
-        let decoded: DecodedPixelFrame
-        do {
-            decoded = try codec.decodePixelFrame(frameBytes, descriptor: descriptor, frameIndex: frame)
-        } catch {
-            throw PixelDataError.decodingFailed(frameIndex: frame, reason: error.localizedDescription)
-        }
-
-        return PixelData(data: decoded.data, descriptor: Self.singleFrame(decoded.descriptor))
+        try pixelData(frame: frame, codecRegistry: .shared)
     }
 
-    /// Decodes one frame directly into page-aligned, GPU-ready storage (plan M3)
-    ///
-    /// Same semantics as `pixelData(frame:)`, but the decoded samples land in an
-    /// `AlignedPixelBuffer` that Metal can wrap with `makeBuffer(bytesNoCopy:)` —
-    /// removing the separate `pageAligned()` re-copy the render path otherwise
-    /// pays, and (for codecs with a caller-owned override, e.g. RLE) the codec's
-    /// own intermediate output buffer as well.
-    public func alignedPixelData(frame: Int) throws -> PixelData {
+    public func pixelData(frame: Int, codecRegistry: CodecRegistry) throws -> PixelData {
         let descriptor = try dataSet.tryPixelDataDescriptor()
+        let source = try frameSource(descriptor: descriptor, frame: frame, registry: codecRegistry)
+        return try readFrame(frame, descriptor: descriptor, source: source, aligned: false)
+    }
+
+    /// Decodes a single frame for page-aligned access, preserving the codec's output descriptor.
+    public func alignedPixelData(frame: Int) throws -> PixelData {
+        try alignedPixelData(frame: frame, codecRegistry: .shared)
+    }
+
+    public func alignedPixelData(frame: Int, codecRegistry: CodecRegistry) throws -> PixelData {
+        let descriptor = try dataSet.tryPixelDataDescriptor()
+        let source = try frameSource(descriptor: descriptor, frame: frame, registry: codecRegistry)
+        return try readFrame(frame, descriptor: descriptor, source: source, aligned: true)
+    }
+
+    /// Captured once for a complete operation, including all parallel frames and previews.
+    enum FrameSource: Sendable {
+        case native(DataElement)
+        case encapsulated(EncapsulatedPixelData, EncapsulatedPixelData.FrameIndex, any ImageCodec)
+    }
+
+    func frameSource(descriptor: PixelDataDescriptor, frame: Int, registry: CodecRegistry) throws -> FrameSource {
         guard frame >= 0, frame < descriptor.numberOfFrames else {
             throw PixelDataError.frameExtractionFailed(frameIndex: frame)
         }
-        guard let element = dataSet[.pixelData] else {
-            throw PixelDataError.missingPixelData
-        }
-
-        // JPEG/JPEG-LS must validate effective headers and limits before allocating
-        // the destination; this also retains the codec's actual color descriptor.
-        if element.valueData.isEmpty, let uid = transferSyntaxUID,
-           JLICodec.supportedTransferSyntaxes.contains(uid) || JPEGLSCodec.supportedTransferSyntaxes.contains(uid) {
-            return try pixelData(frame: frame).pageAligned()
-        }
-
-        let bytesPerFrame = descriptor.rows * descriptor.columns
-            * descriptor.samplesPerPixel * (descriptor.bitsAllocated / 8)
-        guard descriptor.bitsAllocated >= 8, bytesPerFrame > 0,
-              let buffer = AlignedPixelBuffer(byteCount: bytesPerFrame) else {
-            // Sub-byte layouts or allocation failure: unaligned path still works.
-            return try pixelData(frame: frame)
-        }
-
-        // Native: copy the frame's byte range straight into aligned storage.
-        if !element.valueData.isEmpty {
-            let start = element.valueData.startIndex + frame * bytesPerFrame
-            let end = start + bytesPerFrame
-            guard end <= element.valueData.endIndex else {
-                throw PixelDataError.frameExtractionFailed(frameIndex: frame)
+        guard let element = dataSet[.pixelData] else { throw PixelDataError.missingPixelData }
+        if !element.isEncapsulated {
+            guard !element.valueData.isEmpty else { throw PixelDataError.missingPixelData }
+            if let uid = transferSyntaxUID, TransferSyntax.from(uid: uid)?.isEncapsulated == true {
+                throw PixelDataError.decodingFailed(frameIndex: frame, reason: "Compressed transfer syntax carries native Pixel Data")
             }
-            element.valueData[start..<end].withUnsafeBytes { source in
-                if let src = source.baseAddress {
-                    buffer.baseAddress.copyMemory(from: src, byteCount: bytesPerFrame)
-                }
-            }
-            if element.byteOrder == .bigEndian && descriptor.bitsAllocated == 16 {
-                let words = buffer.baseAddress.assumingMemoryBound(to: UInt16.self)
-                for i in 0..<(bytesPerFrame / 2) { words[i] = words[i].byteSwapped }
-            }
-            return PixelData(alignedStorage: buffer, descriptor: Self.singleFrame(descriptor))
+            return .native(element)
         }
+        guard let uid = transferSyntaxUID else { throw PixelDataError.missingTransferSyntax }
+        guard let resolved = registry.resolveDecoder(for: uid, descriptor: descriptor) else {
+            throw PixelDataError.unsupportedTransferSyntax(uid)
+        }
+        guard let encapsulated = dataSet.encapsulatedPixelData(),
+              let index = encapsulated.makeFrameIndex(
+                extendedOffsetTableData: dataSet[.extendedOffsetTable]?.valueData,
+                extendedOffsetTableLengthsData: dataSet[.extendedOffsetTableLengths]?.valueData
+              ) else { throw PixelDataError.frameExtractionFailed(frameIndex: frame) }
+        return .encapsulated(encapsulated, index, resolved.codec)
+    }
 
-        // Encapsulated: codec writes into the aligned buffer (directly for
-        // caller-owned codecs; via one bounded copy otherwise).
-        guard let encapsulated = dataSet.encapsulatedPixelData() else {
-            throw PixelDataError.missingPixelData
-        }
-        guard let tsUID = transferSyntaxUID else {
-            throw PixelDataError.missingTransferSyntax
-        }
-        guard let codec = CodecRegistry.shared.codec(for: tsUID) else {
-            throw PixelDataError.unsupportedTransferSyntax(tsUID)
-        }
-        guard let index = encapsulated.makeFrameIndex(extendedOffsets: extendedOffsetTableValues()),
-              let frameBytes = encapsulated.frameData(at: frame, using: index) else {
+    func readFrame(_ frame: Int, descriptor: PixelDataDescriptor, source: FrameSource, aligned: Bool) throws -> PixelData {
+        guard frame >= 0, frame < descriptor.numberOfFrames else {
             throw PixelDataError.frameExtractionFailed(frameIndex: frame)
         }
-
-        let written: Int
-        do {
-            written = try codec.decodeFrame(
-                frameBytes, descriptor: descriptor, frameIndex: frame,
-                into: UnsafeMutableRawBufferPointer(start: buffer.baseAddress,
-                                                    count: buffer.byteCount))
-        } catch {
-            throw PixelDataError.decodingFailed(frameIndex: frame, reason: error.localizedDescription)
+        switch source {
+        case .native(let element):
+            return try nativeFrame(frame, element: element, descriptor: descriptor, aligned: aligned)
+        case .encapsulated(let encapsulated, let index, let codec):
+            guard let bytes = encapsulated.frameData(at: frame, using: index, maximumBytes: PixelDecodeLimits.default.maximumEncodedBytes) else {
+                throw PixelDataError.frameExtractionFailed(frameIndex: frame)
+            }
+            do {
+                if aligned, let rle = codec as? RLECodec, descriptor.bitsAllocated >= 8 {
+                    let size = try descriptor.checkedNativeConversionFrameBytes()
+                    if let buffer = AlignedPixelBuffer(byteCount: size) {
+                        let written = try rle.decodeFrame(bytes, descriptor: descriptor, frameIndex: frame,
+                            into: UnsafeMutableRawBufferPointer(start: buffer.baseAddress, count: size))
+                        guard written == size else { throw DICOMError.parsingFailed("Unexpected decoded frame size") }
+                        return PixelData(alignedStorage: buffer, descriptor: Self.singleFrame(descriptor))
+                    }
+                }
+                let decoded = try codec.decodePixelFrame(bytes, descriptor: descriptor, frameIndex: frame)
+                let result = PixelData(data: decoded.data, descriptor: Self.singleFrame(decoded.descriptor))
+                return aligned ? result.pageAligned() : result
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw PixelDataError.decodingFailed(frameIndex: frame, reason: error.localizedDescription)
+            }
         }
-        guard written == bytesPerFrame else {
-            // Codec produced an unexpected size (e.g. photometric conversion
-            // changed the layout) — fall back to the Data-returning path rather
-            // than hand out a partially filled buffer.
-            return try pixelData(frame: frame)
-        }
-
-        let corrected = Self.correctedDescriptorForDecodedBytes(descriptor, transferSyntaxUID: tsUID)
-        return PixelData(alignedStorage: buffer, descriptor: Self.singleFrame(corrected))
     }
 
     // MARK: - Helpers
 
-    private func nativeFrame(_ frame: Int, element: DataElement,
-                             descriptor: PixelDataDescriptor) throws -> PixelData {
-        // Packed sub-byte samples (e.g. 1-bit segmentation masks) don't have
-        // byte-aligned frame boundaries in general; take the safe whole-decode
-        // route for those rather than slice mid-byte.
-        guard descriptor.bitsAllocated >= 8 else {
-            guard let all = dataSet.pixelData(),
-                  let frameBytes = all.frameData(at: frame) else {
-                throw PixelDataError.frameExtractionFailed(frameIndex: frame)
-            }
-            return PixelData(data: frameBytes, descriptor: Self.singleFrame(descriptor))
+    /// Geometry comes from the dataset. Reject integer overflow before reserving a buffer.
+    static func checkedFrameBytes(_ descriptor: PixelDataDescriptor, frame: Int) throws -> Int {
+        guard descriptor.rows > 0, descriptor.columns > 0, descriptor.samplesPerPixel > 0,
+              descriptor.bitsAllocated > 0 else { throw PixelDataError.frameExtractionFailed(frameIndex: frame) }
+        var size = descriptor.rows
+        for factor in [descriptor.columns, descriptor.samplesPerPixel, max(1, descriptor.bitsAllocated / 8)] {
+            let (product, overflow) = size.multipliedReportingOverflow(by: factor)
+            guard !overflow else { throw PixelDataError.frameExtractionFailed(frameIndex: frame) }
+            size = product
         }
-
-        let bytesPerFrame = descriptor.rows * descriptor.columns
-            * descriptor.samplesPerPixel * (descriptor.bitsAllocated / 8)
-        let start = element.valueData.startIndex + frame * bytesPerFrame
-        let end = start + bytesPerFrame
-        guard bytesPerFrame > 0, end <= element.valueData.endIndex else {
-            throw PixelDataError.frameExtractionFailed(frameIndex: frame)
-        }
-
-        let slice = Data(element.valueData[start..<end])
-        let bytes = DataSet.nativePixelBytesLittleEndian(
-            slice, byteOrder: element.byteOrder, bitsAllocated: descriptor.bitsAllocated)
-        return PixelData(data: bytes, descriptor: Self.singleFrame(descriptor))
+        return size
     }
 
-    /// Reads (7FE0,0001) Extended Offset Table values (64-bit LE), when present.
-    ///
-    /// The element is OV (PS3.5 Table 6.2-1); a file that carries it as UN has the
-    /// same value layout, so `valueData` holds the table either way.
-    func extendedOffsetTableValues() -> [UInt64]? {
-        guard let element = dataSet[Tag.extendedOffsetTable] else { return nil }
-        guard !element.valueData.isEmpty, element.valueData.count % 8 == 0 else { return [] }
-        let data = element.valueData
-        var offsets: [UInt64] = []
-        offsets.reserveCapacity(data.count / 8)
-        var i = data.startIndex
-        while i + 8 <= data.endIndex {
-            var value: UInt64 = 0
-            for b in 0..<8 {
-                value |= UInt64(data[i + b]) << (8 * b)
+    private func nativeFrame(_ frame: Int, element: DataElement, descriptor: PixelDataDescriptor,
+                             aligned: Bool) throws -> PixelData {
+        guard descriptor.bitsAllocated >= 8 else {
+            guard let all = dataSet.pixelData(), let frameBytes = all.frameData(at: frame) else {
+                throw PixelDataError.frameExtractionFailed(frameIndex: frame)
             }
-            offsets.append(value)
-            i += 8
+            let result = PixelData(data: frameBytes, descriptor: Self.singleFrame(descriptor))
+            return aligned ? result.pageAligned() : result
         }
-        return offsets
+        let size = try Self.checkedFrameBytes(descriptor, frame: frame)
+        let (offset, overflow) = frame.multipliedReportingOverflow(by: size)
+        guard !overflow, size <= element.valueData.count, offset <= element.valueData.count - size else {
+            throw PixelDataError.frameExtractionFailed(frameIndex: frame)
+        }
+        let start = element.valueData.startIndex + offset
+        let slice = element.valueData[start..<(start + size)]
+        if aligned, let buffer = AlignedPixelBuffer(byteCount: size) {
+            slice.withUnsafeBytes { bytes in
+                if let src = bytes.baseAddress { buffer.baseAddress.copyMemory(from: src, byteCount: size) }
+            }
+            if element.byteOrder == .bigEndian && descriptor.bitsAllocated == 16 {
+                let words = buffer.baseAddress.assumingMemoryBound(to: UInt16.self)
+                for i in 0..<(size / 2) { words[i] = words[i].byteSwapped }
+            }
+            return PixelData(alignedStorage: buffer, descriptor: Self.singleFrame(descriptor))
+        }
+        let bytes = DataSet.nativePixelBytesLittleEndian(Data(slice), byteOrder: element.byteOrder,
+                                                          bitsAllocated: descriptor.bitsAllocated)
+        return PixelData(data: bytes, descriptor: Self.singleFrame(descriptor))
     }
 
     private static func singleFrame(_ d: PixelDataDescriptor) -> PixelDataDescriptor {
