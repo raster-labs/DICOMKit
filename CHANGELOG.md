@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add `Integrations/DICOMSwiftJ2KIntegration`, a standalone Apple OS 26 Swift package integrating `SwiftJ2K` (`76850bc2286184847a1ecd1dc3ea61ab449ac4bd`) for scalar 2D JPEG 2000 Part 1 (`.90`, `.91`) and HTJ2K (`.201`, `.202`, lossless `.203`) encoding, decoding, and 1-component unsigned lossless compressed-domain transcoding (`dicom-swiftj2k`), while preserving root `DICOMKit` (`iOS 18` / `macOS 15` / `tvOS 18` / `visionOS 2`) and `DICOMStudio` (`macOS 15.6`) deployment floors and `J2KSwift` `11.0.3` pinning.
-- Add `codecRegistry` injection overloads on `DICOMConverter.checkConversion` and `DICOMConverter.convertToDICOM` (with resolved provider IDs on `DICOMConverter.Outcome`) and `CompressionManager.decompressDataWithMetrics`.
+- Add `Integrations/DICOMSwiftJ2KIntegration`, a standalone Apple OS 26 Swift package integrating `SwiftJ2K` (`c95ac7b3cbb6d76039d16390497e68a1d8a07bfc`) across all seven 2D JPEG 2000 and HTJ2K DICOM transfer syntaxes—Part 1 (`.90`, `.91`), Part 2 Annex I/J Multi-Component Transforms (`.92`, `.93` lossless and lossy), and Part 15 HTJ2K (`.201`, `.202`, and lossless/lossy `HTIRV` `.203`)—with `auto`/`.scalar`/`.accelerate`/`.metal` backend routing, zero-pixel-allocation compressed-domain transcoding (`pixelAllocationCount == 0`) for canonical signed/unsigned monochrome and 3-component lossless `RGB`/`YBR_RCT` frames, `DICOMAllocationBudget` / `ManagedDecodedPixelFrame` decoding (`decodeManagedPixelFrameOutcome`), and the `dicom-swiftj2k` CLI, while preserving root `DICOMKit` (`iOS 18` / `macOS 15` / `tvOS 18` / `visionOS 2`) and `DICOMStudio` (`macOS 15.6`) deployment floors and keeping legacy `J2KSwift` `11.0.3` refusing `.92`/`.93` MCT.
+- Add `DICOMByteBuffer.admitInitialized` and Part 2 `CBD` (`0xFF78`) / `CAP` (`Pcap^2` vs `Pcap^15`) header inspection in `J2KCodestreamInspector`, plus `codecRegistry` injection overloads on `DICOMConverter.checkConversion`, `DICOMConverter.convertToDICOM`, and `CompressionManager.decompressDataWithMetrics`.
 
 ### Changed
 

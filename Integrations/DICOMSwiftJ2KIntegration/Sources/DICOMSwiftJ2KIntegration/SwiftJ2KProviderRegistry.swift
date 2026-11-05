@@ -2,12 +2,12 @@ import Foundation
 import DICOMCore
 
 extension J2KCodecProvider {
-    /// Default OS 26 scalar 2D `SwiftJ2K` provider (`SwiftJ2KProviderOptions.default`).
+    /// Default OS 26 2D `SwiftJ2K` provider (`SwiftJ2KProviderOptions.default`).
     public static var swiftJ2K: J2KCodecProvider {
         swiftJ2K(options: .default)
     }
 
-    /// Creates an immutable OS 26 scalar 2D `SwiftJ2K` provider with explicit admission, deadline, and telemetry options.
+    /// Creates an immutable OS 26 2D `SwiftJ2K` provider with explicit admission, deadline, backend, and telemetry options.
     public static func swiftJ2K(options: SwiftJ2KProviderOptions) -> J2KCodecProvider {
         J2KCodecProvider(
             providerID: .swiftJ2K,
@@ -43,13 +43,13 @@ extension J2KCodecProvider {
 }
 
 extension CodecRegistry {
-    /// Creates an immutable `CodecRegistry` wired to the OS 26 scalar 2D `SwiftJ2K` provider.
+    /// Creates an immutable `CodecRegistry` wired to the OS 26 2D `SwiftJ2K` provider.
     ///
     /// - Parameters:
-    ///   - options: Finite `SwiftJ2K` admission, deadline, and telemetry configuration.
+    ///   - options: Finite `SwiftJ2K` admission, deadline, backend, and telemetry configuration.
     ///   - fallbackPolicy: Pre-execution fallback policy (`.strict` by default, or
     ///     `.preselectPredecessorOnUnsupportedCapability` to preselect `J2KSwift` before execution
-    ///     for capabilities outside the scalar `SwiftJ2K` slice such as lossy HTJ2K `.203` or forced Metal/Accelerate).
+    ///     when a requested profile or hardware backend is unavailable).
     public static func swiftJ2K(
         options: SwiftJ2KProviderOptions = .default,
         fallbackPolicy: J2KProviderFallbackPolicy = .strict

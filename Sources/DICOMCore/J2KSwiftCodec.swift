@@ -484,6 +484,10 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         _ codestream: Data,
         descriptor: PixelDataDescriptor
     ) -> DICOMManagedFailure? {
+        if !J2KRoutePlanner.part2MCTDecodeSupported,
+           J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream) {
+            return DICOMManagedFailure(.invalidDescriptor, 403)
+        }
         guard let header = J2KCodestreamInspector.imageHeader(in: codestream) else {
             return DICOMManagedFailure(.malformed, 402)
         }
@@ -498,10 +502,6 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
                   component.isSigned == descriptor.isSigned else {
                 return DICOMManagedFailure(.codecResultMismatch, 408)
             }
-        }
-        if !J2KRoutePlanner.part2MCTDecodeSupported,
-           J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream) {
-            return DICOMManagedFailure(.invalidDescriptor, 403)
         }
         if syntaxRestriction.isLosslessOnly,
            J2KCodestreamInspector.usesIrreversibleWavelet(in: codestream) {

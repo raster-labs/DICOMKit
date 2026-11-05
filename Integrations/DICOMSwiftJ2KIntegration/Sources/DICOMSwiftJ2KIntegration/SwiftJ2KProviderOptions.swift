@@ -3,7 +3,7 @@ import Synchronization
 import DICOMCore
 import SwiftJ2K
 
-/// Operation kind executed by the OS 26 scalar 2D `SwiftJ2K` provider.
+/// Operation kind executed by the OS 26 2D `SwiftJ2K` provider.
 public enum SwiftJ2KOperationKind: String, Sendable, Equatable, Codable {
     case decode
     case encode
@@ -32,17 +32,21 @@ public struct SwiftJ2KOperationRecord: Sendable, Equatable {
         self.report = report
     }
 
-    /// Maps `SwiftJ2K`'s `Backend` onto `DICOMCore.CodecBackend` without mislabelling generic acceleration.
-    ///
-    /// This scalar 2D OS 26 integration executes exclusively under `ExecutionPolicy.required(.scalarCPU)`,
-    /// so `report.backend` is `.scalarCPU` (`CodecBackend.scalar`). Generic `SwiftJ2K` `.accelerated`
-    /// reports return `nil` rather than mislabelling Metal/SIMD acceleration as `CodecBackend.accelerate`.
+    /// Maps `SwiftJ2K`'s `Backend` and concrete `AcceleratedEngine` onto `DICOMCore.CodecBackend`
+    /// without mislabelling CPU SIMD vs Metal GPU execution.
     public var dicomBackend: CodecBackend? {
         switch report.backend {
         case .scalarCPU:
             return .scalar
         case .accelerated:
-            return nil
+            switch report.acceleratedEngine {
+            case .cpuSIMD:
+                return .accelerate
+            case .metalGPU:
+                return .metal
+            case .none:
+                return .scalar
+            }
         }
     }
 }
@@ -66,7 +70,7 @@ public final class SwiftJ2KTelemetryCollector: Sendable {
     }
 }
 
-/// Immutable per-provider options for the OS 26 scalar 2D `SwiftJ2K` adapter.
+/// Immutable per-provider options for the OS 26 2D `SwiftJ2K` adapter.
 public struct SwiftJ2KProviderOptions: Sendable {
     /// Finite `SwiftJ2K` admission and deadline bounds applied to every frame operation.
     public let resourceLimits: ResourceLimits
@@ -74,13 +78,17 @@ public struct SwiftJ2KProviderOptions: Sendable {
     /// Per-frame DICOM pre-admission bounds validated before sample decoding or encoding.
     public let decodingLimits: PixelDecodeLimits
 
-    /// Bounded grace window (in seconds) waited for scalar worker unwind after cancellation or deadline expiry.
+    /// Bounded grace window (in seconds) waited for worker unwind after cancellation or deadline expiry.
     public let joinGraceSeconds: Double
+
+    /// Optional provider-level forced backend (`nil` = automatic backend selection) applied when
+    /// an individual call leaves its per-operation backend set to `.auto` / `nil`.
+    public let defaultBackend: CodecBackend?
 
     /// Optional per-operation telemetry sink invoked with the exact `SwiftJ2K.OperationReport`.
     public let telemetryHandler: (@Sendable (SwiftJ2KOperationRecord) -> Void)?
 
-    /// Default bounded per-frame scalar options aligned with `PixelDecodeLimits.default` (64 MiB encoded/decoded, 16M pixels, 30s deadline).
+    /// Default bounded per-frame options aligned with `PixelDecodeLimits.default` (64 MiB encoded/decoded, 16M pixels, 30s deadline).
     public static let `default`: SwiftJ2KProviderOptions = {
         // Constants below are positive and finite, so ResourceLimits initialisation cannot fail.
         let limits = try! ResourceLimits(
@@ -105,6 +113,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
                 maximumPixels: limits.maximumPixels
             ),
             joinGraceSeconds: 5.0,
+            defaultBackend: nil,
             telemetryHandler: nil
         )
     }()
@@ -113,6 +122,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
         resourceLimits: ResourceLimits = SwiftJ2KProviderOptions.default.resourceLimits,
         decodingLimits: PixelDecodeLimits? = nil,
         joinGraceSeconds: Double = 5.0,
+        defaultBackend: CodecBackend? = nil,
         telemetryHandler: (@Sendable (SwiftJ2KOperationRecord) -> Void)? = nil
     ) {
         self.resourceLimits = resourceLimits
@@ -123,6 +133,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
         )
         let clampedGrace = joinGraceSeconds.isFinite ? max(0.05, min(joinGraceSeconds, 30.0)) : 5.0
         self.joinGraceSeconds = clampedGrace
+        self.defaultBackend = defaultBackend
         self.telemetryHandler = telemetryHandler
     }
 
@@ -131,12 +142,14 @@ public struct SwiftJ2KProviderOptions: Sendable {
         resourceLimits: ResourceLimits = SwiftJ2KProviderOptions.default.resourceLimits,
         decodingLimits: PixelDecodeLimits? = nil,
         joinGraceSeconds: Double = 5.0,
+        defaultBackend: CodecBackend? = nil,
         collector: SwiftJ2KTelemetryCollector
     ) {
         self.init(
             resourceLimits: resourceLimits,
             decodingLimits: decodingLimits,
             joinGraceSeconds: joinGraceSeconds,
+            defaultBackend: defaultBackend,
             telemetryHandler: { collector.record($0) }
         )
     }

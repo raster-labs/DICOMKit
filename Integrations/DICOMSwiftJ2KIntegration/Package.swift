@@ -24,7 +24,7 @@ let package = Package(
         .package(name: "DICOMKit", path: "../.."),
         .package(
             url: "https://github.com/raster-labs/SwiftJ2K.git",
-            revision: "76850bc2286184847a1ecd1dc3ea61ab449ac4bd"
+            revision: "c95ac7b3cbb6d76039d16390497e68a1d8a07bfc"
         )
     ],
     targets: [

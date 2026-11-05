@@ -23,6 +23,7 @@ public enum J2KCodestreamInspector {
     private static let siz: UInt16 = 0xFF51  // Image and tile size
     private static let cod: UInt16 = 0xFF52  // Coding style default
     private static let coc: UInt16 = 0xFF53  // Coding style component
+    private static let cbd: UInt16 = 0xFF78  // Component bit depth definition (Part 2)
 
     /// ISO/IEC 15444-2 (Part 2) multi-component transform marker segments.
     ///
@@ -133,7 +134,7 @@ public enum J2KCodestreamInspector {
         public var subsamplingY: Int
     }
 
-    /// Main-header image geometry, component precisions, and HTJ2K capability marker presence.
+    /// Main-header image geometry, component precisions, and capability marker presence.
     public struct ImageHeader: Sendable, Equatable {
         /// Effective image width (`Xsiz - XOsiz`).
         public var width: Int
@@ -141,11 +142,40 @@ public enum J2KCodestreamInspector {
         public var height: Int
         /// Component headers declared in `SIZ`.
         public var components: [ComponentHeader]
-        /// Whether the main header carries an ISO/IEC 15444-15 `CAP` (`0xFF50`) marker segment.
+        /// Whether the main header carries a `CAP` (`0xFF50`) marker segment.
         public var hasCAPMarker: Bool
+        /// Whether `CAP` (`0xFF50`) sets `Pcap^15` (`0x0002_0000`, ISO/IEC 15444-15 HTJ2K).
+        public var hasPart15CAPMarker: Bool
+        /// Whether `CAP` (`0xFF50`) sets `Pcap^2` (`0x4000_0000`, ISO/IEC 15444-2 extensions).
+        public var hasPart2CAPMarker: Bool
+        /// Reconstructed logical component bit depths declared in Part 2 `CBD` (`0xFF78`), if present.
+        public var cbdComponents: [ComponentHeader]?
+
+        /// Reconstructed logical component headers (`cbdComponents` when Part 2 `CBD` is present, otherwise `components`).
+        public var logicalComponents: [ComponentHeader] {
+            cbdComponents ?? components
+        }
+
+        public init(
+            width: Int,
+            height: Int,
+            components: [ComponentHeader],
+            hasCAPMarker: Bool,
+            hasPart15CAPMarker: Bool? = nil,
+            hasPart2CAPMarker: Bool = false,
+            cbdComponents: [ComponentHeader]? = nil
+        ) {
+            self.width = width
+            self.height = height
+            self.components = components
+            self.hasCAPMarker = hasCAPMarker
+            self.hasPart15CAPMarker = hasPart15CAPMarker ?? hasCAPMarker
+            self.hasPart2CAPMarker = hasPart2CAPMarker
+            self.cbdComponents = cbdComponents
+        }
     }
 
-    /// Parses the main-header `SIZ` and `CAP` markers without allocating or decoding tile data.
+    /// Parses the main-header `SIZ`, `CAP`, and Part 2 `CBD` markers without allocating or decoding tile data.
     /// Returns `nil` when the input is not a recognizable J2K/JP2 stream or lacks a valid `SIZ`.
     public static func imageHeader(in data: Data) -> ImageHeader? {
         guard let codestream = locateCodestream(in: data),
@@ -156,7 +186,10 @@ public enum J2KCodestreamInspector {
         var parsedWidth: Int?
         var parsedHeight: Int?
         var parsedComponents: [ComponentHeader]?
+        var parsedCBDComponents: [ComponentHeader]?
         var hasCAP = false
+        var hasPart15CAP = false
+        var hasPart2CAP = false
 
         while let marker = readUInt16(codestream, at: offset) {
             guard marker & 0xFF00 == 0xFF00 else { return nil }
@@ -172,6 +205,56 @@ public enum J2KCodestreamInspector {
             }
             if marker == cap {
                 hasCAP = true
+                if segmentLength >= 6, let pcap = readUInt32(codestream, at: offset + 4) {
+                    if (pcap & 0x0002_0000) != 0 {
+                        hasPart15CAP = true
+                    }
+                    if (pcap & 0x4000_0000) != 0 {
+                        hasPart2CAP = true
+                    }
+                }
+            } else if marker == cbd {
+                // Lcbd(2) Ncbd(2) Bd^i(1 or count): ISO/IEC 15444-2 Annex I.2.1.
+                guard segmentLength >= 5,
+                      let ncbd = readUInt16(codestream, at: offset + 4) else {
+                    return nil
+                }
+                let isUniform = (ncbd & 0x8000) != 0
+                let count = Int(ncbd & 0x7FFF)
+                guard count >= 1 && count <= 16_384 else { return nil }
+                if isUniform {
+                    guard Int(segmentLength) == 5,
+                          let raw = readUInt8(codestream, at: offset + 6) else {
+                        return nil
+                    }
+                    let bitDepth = Int(raw & 0x7F) + 1
+                    guard (1...38).contains(bitDepth) else { return nil }
+                    let comp = ComponentHeader(
+                        bitDepth: bitDepth,
+                        isSigned: (raw & 0x80) != 0,
+                        subsamplingX: 1,
+                        subsamplingY: 1
+                    )
+                    parsedCBDComponents = Array(repeating: comp, count: count)
+                } else {
+                    guard Int(segmentLength) == 4 + count else { return nil }
+                    var cbdComps: [ComponentHeader] = []
+                    cbdComps.reserveCapacity(count)
+                    for idx in 0..<count {
+                        guard let raw = readUInt8(codestream, at: offset + 6 + idx) else {
+                            return nil
+                        }
+                        let bitDepth = Int(raw & 0x7F) + 1
+                        guard (1...38).contains(bitDepth) else { return nil }
+                        cbdComps.append(ComponentHeader(
+                            bitDepth: bitDepth,
+                            isSigned: (raw & 0x80) != 0,
+                            subsamplingX: 1,
+                            subsamplingY: 1
+                        ))
+                    }
+                    parsedCBDComponents = cbdComps
+                }
             } else if marker == siz {
                 guard segmentLength >= 38,
                       let xsiz = readUInt32(codestream, at: offset + 6),
@@ -217,11 +300,24 @@ public enum J2KCodestreamInspector {
               let components = parsedComponents else {
             return nil
         }
+        if let cbdComps = parsedCBDComponents, cbdComps.count == components.count {
+            parsedCBDComponents = zip(cbdComps, components).map { cbdComp, sizComp in
+                ComponentHeader(
+                    bitDepth: cbdComp.bitDepth,
+                    isSigned: cbdComp.isSigned,
+                    subsamplingX: sizComp.subsamplingX,
+                    subsamplingY: sizComp.subsamplingY
+                )
+            }
+        }
         return ImageHeader(
             width: width,
             height: height,
             components: components,
-            hasCAPMarker: hasCAP
+            hasCAPMarker: hasCAP,
+            hasPart15CAPMarker: hasPart15CAP,
+            hasPart2CAPMarker: hasPart2CAP,
+            cbdComponents: parsedCBDComponents
         )
     }
 

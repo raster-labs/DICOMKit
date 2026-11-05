@@ -1243,8 +1243,12 @@ public struct TransferSyntaxConverter: Sendable {
             // relabelled: the transformation is defined on RGB (ISO/IEC 15444-1 Annex G).
             if style.multipleComponentTransform == 1 {
                 outputElements = Self.replacingPhotometricInterpretation(
-                    in: outputElements, when: ["RGB", "YBR_FULL"],
+                    in: outputElements, when: ["RGB", "YBR_FULL", "YBR_RCT", "YBR_ICT"],
                     with: style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT")
+            } else {
+                outputElements = Self.replacingPhotometricInterpretation(
+                    in: outputElements, when: ["YBR_RCT", "YBR_ICT"],
+                    with: "RGB")
             }
             outputElements = outputElements.map { element in
                 guard element.tag == .planarConfiguration else { return element }

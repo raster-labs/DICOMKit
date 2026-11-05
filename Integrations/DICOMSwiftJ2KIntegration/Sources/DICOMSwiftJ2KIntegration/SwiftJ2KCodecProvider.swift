@@ -4,11 +4,11 @@ import SwiftJ2K
 
 /// Lossless compressed-domain `J2K <-> HTJ2K` transcoder backed by `SwiftJ2K.Transcoder`.
 ///
-/// `SwiftJ2K.Transcoder` transcodes single-component unsigned `1...16`-bit reversible codestreams
-/// directly in the wavelet coefficient domain with `pixelAllocationCount == 0`. Profiles outside
-/// that envelope (signed pixel data, 3-component RGB, or RPCL `.202` target) return `false` from
-/// `canTranscode` before execution so `TransferSyntaxConverter` routes them through verified
-/// pixel decode and encode.
+/// `SwiftJ2K.Transcoder` transcodes lossless reversible 5/3 codestreams (1-component unsigned or canonical
+/// signed monochrome, and 3-component lossless `RGB` / `YBR_RCT`) directly in the wavelet coefficient domain
+/// with `pixelAllocationCount == 0`. Profiles outside that envelope (such as Part 2 MCT `.92`/`.93` or RPCL
+/// `.202` targets) return `false` from `canTranscode` before execution so `TransferSyntaxConverter` routes
+/// them through verified pixel decode and encode.
 public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
     public let providerID: CodecProviderID = .swiftJ2K
     public let options: SwiftJ2KProviderOptions
@@ -38,6 +38,15 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
         to targetTransferSyntaxUID: String,
         descriptor: PixelDataDescriptor?
     ) -> Bool {
+        guard SwiftJ2KDICOMCodec.supportsBackend(options.defaultBackend) else {
+            return false
+        }
+        // Part 1 EBCOT target block coding has CPU scalar/SIMD backends only; if the caller forced
+        // Metal GPU at the provider level and the target is Part 1, route through pixel decode/encode
+        // so Metal wavelet kernels execute truthfully on both halves rather than mislabelling CPU SIMD.
+        if options.defaultBackend == .metal && !Self.htj2kTargetUIDs.contains(targetTransferSyntaxUID) {
+            return false
+        }
         let validPair = (Self.part1UIDs.contains(sourceTransferSyntaxUID) && Self.htj2kTargetUIDs.contains(targetTransferSyntaxUID))
             || (Self.htj2kSourceUIDs.contains(sourceTransferSyntaxUID) && Self.part1UIDs.contains(targetTransferSyntaxUID))
         guard validPair, let descriptor else {
@@ -46,10 +55,17 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
         guard SwiftJ2KDICOMCodec.validateCommonGeometry(descriptor, options: options) != nil else {
             return false
         }
-        return descriptor.samplesPerPixel == 1
-            && !descriptor.isSigned
-            && (descriptor.photometricInterpretation == .monochrome1
-                || descriptor.photometricInterpretation == .monochrome2)
+        switch descriptor.samplesPerPixel {
+        case 1:
+            return descriptor.photometricInterpretation == .monochrome1
+                || descriptor.photometricInterpretation == .monochrome2
+        case 3:
+            return descriptor.planarConfiguration == 0
+                && (descriptor.photometricInterpretation == .rgb
+                    || descriptor.photometricInterpretation == .ybrRCT)
+        default:
+            return false
+        }
     }
 
     public func transcodeCodestream(
@@ -91,29 +107,37 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
         }
 
         let cleaned = SwiftJ2KDICOMCodec.stripTrailingEvenPadByteIfPresent(codestream)
-        if let part2Reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: cleaned) {
-            throw DICOMError.unsupportedTransferSyntax(part2Reason)
+        if J2KCodestreamInspector.containsPart2MultiComponentTransform(in: cleaned) {
+            throw DICOMError.unsupportedTransferSyntax(
+                "Part 1 <-> HTJ2K compressed-domain transcoding does not accept Part 2 MCT markers"
+            )
         }
-        guard let header = J2KCodestreamInspector.imageHeader(in: cleaned) else {
+        guard let header = J2KCodestreamInspector.imageHeader(in: cleaned),
+              header.cbdComponents == nil else {
             throw DICOMError.parsingFailed("Malformed JPEG 2000 codestream in compressed-domain transcode")
         }
         guard header.width == descriptor.columns,
               header.height == descriptor.rows,
-              header.components.count == 1,
-              let comp = header.components.first,
-              comp.bitDepth == descriptor.bitsStored,
-              !comp.isSigned,
-              comp.subsamplingX == 1,
-              comp.subsamplingY == 1 else {
+              header.components.count == descriptor.samplesPerPixel else {
             throw DICOMError.parsingFailed("JPEG 2000 codestream SIZ header conflicts with DICOM descriptor during transcode")
+        }
+        for comp in header.components {
+            guard comp.bitDepth == descriptor.bitsStored,
+                  comp.isSigned == descriptor.isSigned,
+                  comp.subsamplingX == 1,
+                  comp.subsamplingY == 1 else {
+                throw DICOMError.parsingFailed(
+                    "JPEG 2000 component header (bitDepth=\(comp.bitDepth), signed=\(comp.isSigned), subsampling=\(comp.subsamplingX)x\(comp.subsamplingY)) conflicts with DICOM descriptor during transcode"
+                )
+            }
         }
 
         let sourceIsHT = Self.htj2kSourceUIDs.contains(sourceTransferSyntaxUID)
-        if sourceIsHT && !header.hasCAPMarker {
-            throw DICOMError.parsingFailed("HTJ2K source transfer syntax \(sourceTransferSyntaxUID) lacks CAP marker")
+        if sourceIsHT && !header.hasPart15CAPMarker {
+            throw DICOMError.parsingFailed("HTJ2K source transfer syntax \(sourceTransferSyntaxUID) lacks Part 15 CAP marker")
         }
         if !sourceIsHT && header.hasCAPMarker {
-            throw DICOMError.parsingFailed("Part 1 JPEG 2000 source transfer syntax \(sourceTransferSyntaxUID) carries unexpected HTJ2K CAP marker")
+            throw DICOMError.parsingFailed("Part 1 JPEG 2000 source transfer syntax \(sourceTransferSyntaxUID) carries unexpected CAP marker")
         }
         if sourceTransferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid {
             let violations = J2KCodestreamInspector.htj2kRPCLViolations(
@@ -134,22 +158,24 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
         }
 
         let target: TranscodeTarget = Self.htj2kTargetUIDs.contains(targetTransferSyntaxUID) ? .htj2k : .jpeg2000
+        let execution = SwiftJ2KDICOMCodec.resolveExecution(for: options.defaultBackend)
         let transcoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
             let transcoder = try Transcoder()
             let transcodeOptions = TranscodeOptions(
                 resourceLimits: options.resourceLimits,
-                executionPolicy: .required(.scalarCPU),
+                executionPolicy: execution.policy,
+                acceleratedEnginePreference: execution.enginePreference,
                 copyPolicy: .requireSharedStorage,
                 metadataPolicy: .preserve
             )
             return try await transcoder.transcode(cleaned, to: target, options: transcodeOptions)
         }
 
-        guard transcoded.report.backend == .scalarCPU,
-              transcoded.report.fidelity == .exactSamples,
+        try SwiftJ2KDICOMCodec.verifyExecutedBackend(report: transcoded.report, requested: options.defaultBackend)
+        guard transcoded.report.fidelity == .exactSamples,
               transcoded.report.pixelAllocationCount == 0 else {
             throw DICOMError.parsingFailed(
-                "SwiftJ2K transcoder report violated scalar zero-pixel-allocation contract: \(transcoded.report)"
+                "SwiftJ2K transcoder report violated lossless zero-pixel-allocation contract: \(transcoded.report)"
             )
         }
 
