@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `Integrations/DICOMSwiftJ2KIntegration`, a standalone Apple OS 26 Swift package integrating `SwiftJ2K` (`76850bc2286184847a1ecd1dc3ea61ab449ac4bd`) for scalar 2D JPEG 2000 Part 1 (`.90`, `.91`) and HTJ2K (`.201`, `.202`, lossless `.203`) encoding, decoding, and 1-component unsigned lossless compressed-domain transcoding (`dicom-swiftj2k`), while preserving root `DICOMKit` (`iOS 18` / `macOS 15` / `tvOS 18` / `visionOS 2`) and `DICOMStudio` (`macOS 15.6`) deployment floors and `J2KSwift` `11.0.3` pinning.
+- Add `codecRegistry` injection overloads on `DICOMConverter.checkConversion` and `DICOMConverter.convertToDICOM` (with resolved provider IDs on `DICOMConverter.Outcome`) and `CompressionManager.decompressDataWithMetrics`.
+
 ### Changed
 
 - JPEG 2000 and HTJ2K conversions can use an immutable, application-selected codec provider for a complete operation. Lossless conversions with J2KSwift 11.0.3 use pixel decoding and a verified re-encode. The bare coefficient conversion helpers refuse operations that could change samples.

@@ -947,6 +947,22 @@ public struct CompressionManager: Sendable {
         ).data
     }
 
+    /// In-memory decompress with explicit decode backend preference and resolved provider reporting.
+    public func decompressDataWithMetrics(
+        _ inputData: Data,
+        syntax: TransferSyntax = .explicitVRLittleEndian,
+        backend: CodecBackendPreference = .auto
+    ) throws -> (data: Data, resolvedDecodeProviderID: CodecProviderID?) {
+        let registry = self.codecRegistry
+        let outcome = try decompressDataInternal(
+            inputData,
+            syntax: syntax,
+            backend: backend,
+            codecRegistry: registry
+        )
+        return (data: outcome.data, resolvedDecodeProviderID: outcome.decodeProviderID)
+    }
+
     private func decompressDataInternal(
         _ inputData: Data,
         syntax: TransferSyntax,

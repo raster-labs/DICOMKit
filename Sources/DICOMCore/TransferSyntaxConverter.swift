@@ -485,7 +485,9 @@ public struct TransferSyntaxConverter: Sendable {
             )
         } else if sourceSyntax.isEncapsulated && targetSyntax.isEncapsulated {
             // Compressed to compressed
-            if Self.canUseFastPathTranscode(from: sourceSyntax, to: targetSyntax),
+            let targetAllowsLosslessFastPath = targetSyntax.isLossless || compressionConfiguration.preferLossless
+            if targetAllowsLosslessFastPath,
+               Self.canUseFastPathTranscode(from: sourceSyntax, to: targetSyntax),
                let fastPathResult = try transcodeFastPathIfSupported(
                    elements: elements,
                    from: sourceSyntax,
@@ -632,11 +634,25 @@ public struct TransferSyntaxConverter: Sendable {
                     throw TranscodingError.pixelDataExtractionFailed(error.description)
                 }
 
-                var transcodedFrames: [Data] = []
-                var wireBytes = 28
+                var frameCodestreams: [Data] = []
+                frameCodestreams.reserveCapacity(descriptor.numberOfFrames)
                 for frame in 0..<descriptor.numberOfFrames {
                     try Task.checkCancellation()
                     let frameCodestream = try encapsulated.conversionCodestream(at: frame, using: index)
+                    // A general UID (.91 / .203) may hold an irreversible 9/7 codestream, which
+                    // cannot be losslessly transcoded in the wavelet coefficient domain; route
+                    // those streams through pixel decode + target encode before invoking the transcoder.
+                    if source.losslessCapability != .losslessOnly,
+                       J2KCodestreamInspector.usesIrreversibleWavelet(in: frameCodestream) {
+                        return nil
+                    }
+                    frameCodestreams.append(frameCodestream)
+                }
+
+                var transcodedFrames: [Data] = []
+                var wireBytes = 28
+                for frameCodestream in frameCodestreams {
+                    try Task.checkCancellation()
                     let transcoded = try resolved.transcoder.transcodeCodestream(
                         frameCodestream,
                         from: source.uid,

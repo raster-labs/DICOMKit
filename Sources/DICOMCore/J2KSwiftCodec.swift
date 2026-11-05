@@ -1144,12 +1144,14 @@ private extension J2KSwiftCodec {
         return min(10, max(5, need))
     }
 
-    /// J2KSwift writes SGcod progression LRCP whatever `progressionOrder` says and no TLM
-    /// (D187). For .202 the codestream is brought to PS3.5 2026a 10.18.1 by
-    /// ``J2KCodestreamInspector/conformingToHTJ2KRPCL(_:)``; other syntaxes are returned as is.
+    /// J2KSwift writes SGcod progression LRCP whatever `progressionOrder` says, no TLM (D187),
+    /// and a hardcoded `CAP` `Ccap^15 = 0x0020` (`HTIRV = 1, MAGB = 0`) even on reversible 5/3
+    /// HTJ2K encodes. Repairs reversible `CAP` Table A.3 flags on HTJ2K outputs and brings `.202`
+    /// codestreams to PS3.5 2026a 10.18.1 via ``J2KCodestreamInspector/conformingToHTJ2KRPCL(_:)``.
     static func conformingCodestream(_ codestream: Data, transferSyntaxUID: String?) -> Data {
-        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid else { return codestream }
-        return J2KCodestreamInspector.conformingToHTJ2KRPCL(codestream)
+        let capRepaired = J2KCodestreamInspector.conformingToReversibleHTJ2KCAP(codestream)
+        guard transferSyntaxUID == TransferSyntax.htj2kRPCLLossless.uid else { return capRepaired }
+        return J2KCodestreamInspector.conformingToHTJ2KRPCL(capRepaired)
     }
 
     /// Translates a planner progression choice into the J2KCodec enum.

@@ -254,6 +254,16 @@ extension DICOMConverter {
     /// Called by ``convertToDICOM(dicomFile:to:stripPrivate:)-(_,SelectableEncoding,_)``,
     /// and public so a UI can validate a choice before running.
     public static func checkConversion(dicomFile: DICOMFile, to encoding: SelectableEncoding) throws {
+        try checkConversion(dicomFile: dicomFile, to: encoding, codecRegistry: .shared)
+    }
+
+    /// Checks that `dicomFile` can be converted to `encoding` using `codecRegistry` and throws a
+    /// ``ConversionFailure`` naming the exact mismatch when it cannot.
+    public static func checkConversion(
+        dicomFile: DICOMFile,
+        to encoding: SelectableEncoding,
+        codecRegistry: CodecRegistry
+    ) throws {
         let target = encoding.transferSyntax
         let targetLabel = ConversionFailure.label(for: target)
         let dataSet = dicomFile.dataSet
@@ -288,12 +298,20 @@ extension DICOMConverter {
 
         // 3. An encapsulated source must be decodable, unless the target keeps the
         //    codestream (J2K ↔ HTJ2K fast path is handled by the transcoder itself).
-        if source.isEncapsulated, !source.isDeflated,
-           !CodecRegistry.shared.hasCodec(for: source.uid) {
-            throw ConversionFailure(
-                category: .unsupportedSource, source: sourceLabel, target: targetLabel,
-                reason: "DICOMKit has no decoder for \(source.displayName), so its pixel data cannot be read.",
-                sourceDetails: details)
+        if source.isEncapsulated, !source.isDeflated {
+            if !codecRegistry.hasCodec(for: source.uid) {
+                throw ConversionFailure(
+                    category: .unsupportedSource, source: sourceLabel, target: targetLabel,
+                    reason: "DICOMKit has no decoder for \(source.displayName), so its pixel data cannot be read.",
+                    sourceDetails: details)
+            }
+            if let descriptor,
+               codecRegistry.resolveDecoder(for: source.uid, descriptor: descriptor) == nil {
+                throw ConversionFailure(
+                    category: .unsupportedSource, source: sourceLabel, target: targetLabel,
+                    reason: "Codec provider '\(codecRegistry.j2kProvider.providerID.rawValue)' cannot decode \(source.displayName) for this pixel profile.",
+                    sourceDetails: details)
+            }
         }
 
         // 4. Uncompressed and deflated targets accept any pixel format.
@@ -306,7 +324,7 @@ extension DICOMConverter {
                 reason: reason,
                 suggestion: suggestion(forTarget: target, descriptor: descriptor))
         }
-        guard let encoder = CodecRegistry.shared.encoder(for: target.uid) else {
+        guard codecRegistry.hasEncoder(for: target.uid) else {
             throw ConversionFailure(
                 category: .unsupportedTarget, source: sourceLabel, target: targetLabel,
                 reason: "DICOMKit can read \(target.displayName) but cannot write it.",
@@ -323,10 +341,50 @@ extension DICOMConverter {
         case .lossyOnly:    encodeLossless = false
         }
         let configuration: DICOMCore.CompressionConfiguration = encodeLossless ? .lossless : .default
-        if encoder.canEncode(with: configuration, descriptor: descriptor) { return }
+        let effectiveDescriptor: PixelDataDescriptor
+        if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull, !encodeLossless {
+            effectiveDescriptor = PixelDataDescriptor(
+                rows: descriptor.rows,
+                columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames,
+                bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored,
+                highBit: descriptor.highBit,
+                isSigned: descriptor.isSigned,
+                samplesPerPixel: descriptor.samplesPerPixel,
+                photometricInterpretation: .rgb,
+                planarConfiguration: 0
+            )
+        } else {
+            effectiveDescriptor = descriptor
+        }
+        if let resolved = codecRegistry.resolveEncoder(
+            for: target.uid,
+            configuration: configuration,
+            descriptor: effectiveDescriptor
+        ), resolved.encoder.canEncode(with: configuration, descriptor: effectiveDescriptor) {
+            return
+        }
 
         let rule = PixelRule.forTarget(target)
         let violations = rule?.violations(of: descriptor, targetName: target.displayName) ?? []
+        if violations.isEmpty,
+           CodecRegistry.j2kFamilyTransferSyntaxUIDs.contains(target.uid),
+           let sharedResolved = CodecRegistry.shared.resolveEncoder(
+               for: target.uid,
+               configuration: configuration,
+               descriptor: effectiveDescriptor
+           ),
+           sharedResolved.encoder.canEncode(with: configuration, descriptor: effectiveDescriptor) {
+            throw ConversionFailure(
+                category: .unsupportedTarget,
+                source: sourceLabel,
+                target: targetLabel,
+                reason: "Codec provider '\(codecRegistry.j2kProvider.providerID.rawValue)' does not support \(encoding.displayName) encoding for this configuration.",
+                sourceDetails: details,
+                suggestion: suggestion(forTarget: target, descriptor: descriptor)
+            )
+        }
         let reason = violations.isEmpty
             ? "\(target.displayName) cannot encode this pixel format."
                 + (rule.map { " It needs \($0.requirement)." } ?? "")
