@@ -419,6 +419,32 @@ public protocol J2KCompressedDomainTranscoder: Sendable {
         to targetTransferSyntaxUID: String,
         descriptor: PixelDataDescriptor?
     ) throws -> Data
+
+    /// Transcodes a single frame's complete codestream in the compressed domain, recording its zero-based frame index.
+    func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?,
+        frameIndex: Int
+    ) throws -> Data
+}
+
+extension J2KCompressedDomainTranscoder {
+    public func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?,
+        frameIndex: Int
+    ) throws -> Data {
+        try transcodeCodestream(
+            codestream,
+            from: sourceTransferSyntaxUID,
+            to: targetTransferSyntaxUID,
+            descriptor: descriptor
+        )
+    }
 }
 
 /// Policy governing finite pre-execution fallback when a primary J2K provider does not support

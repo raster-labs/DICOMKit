@@ -651,13 +651,14 @@ public struct TransferSyntaxConverter: Sendable {
 
                 var transcodedFrames: [Data] = []
                 var wireBytes = 28
-                for frameCodestream in frameCodestreams {
+                for (frameIdx, frameCodestream) in frameCodestreams.enumerated() {
                     try Task.checkCancellation()
                     let transcoded = try resolved.transcoder.transcodeCodestream(
                         frameCodestream,
                         from: source.uid,
                         to: target.uid,
-                        descriptor: descriptor
+                        descriptor: descriptor,
+                        frameIndex: frameIdx
                     )
                     try Self.appendConvertedFrame(transcoded, to: &transcodedFrames, wireBytes: &wireBytes)
                 }

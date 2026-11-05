@@ -35,13 +35,14 @@ public struct SwiftJ2KOperationRecord: Sendable, Equatable {
     /// Maps `SwiftJ2K`'s `Backend` onto `DICOMCore.CodecBackend` without mislabelling generic acceleration.
     ///
     /// This scalar 2D OS 26 integration executes exclusively under `ExecutionPolicy.required(.scalarCPU)`,
-    /// so `report.backend` is `.scalarCPU` (`CodecBackend.scalar`).
-    public var dicomBackend: CodecBackend {
+    /// so `report.backend` is `.scalarCPU` (`CodecBackend.scalar`). Generic `SwiftJ2K` `.accelerated`
+    /// reports return `nil` rather than mislabelling Metal/SIMD acceleration as `CodecBackend.accelerate`.
+    public var dicomBackend: CodecBackend? {
         switch report.backend {
         case .scalarCPU:
             return .scalar
         case .accelerated:
-            return .accelerate
+            return nil
         }
     }
 }

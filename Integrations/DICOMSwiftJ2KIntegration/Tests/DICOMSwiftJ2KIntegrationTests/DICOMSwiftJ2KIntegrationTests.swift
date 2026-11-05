@@ -515,9 +515,11 @@ final class DICOMSwiftJ2KIntegrationTests: XCTestCase {
         XCTAssertNil(toHTJ2K.resolvedDecodeProviderID)
         XCTAssertNil(toHTJ2K.resolvedEncodeProviderID)
         XCTAssertEqual(collector.records.count, 3)
+        XCTAssertEqual(collector.records.map(\.frameIndex), [0, 1, 2])
         XCTAssertTrue(collector.records.allSatisfy {
             $0.kind == .transcode
                 && $0.report.backend == .scalarCPU
+                && $0.dicomBackend == .scalar
                 && $0.report.fidelity == .exactSamples
                 && $0.report.pixelAllocationCount == 0
                 && $0.report.peakPixelBytes == 0

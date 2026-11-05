@@ -58,6 +58,22 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
         to targetTransferSyntaxUID: String,
         descriptor: PixelDataDescriptor?
     ) throws -> Data {
+        try transcodeCodestream(
+            codestream,
+            from: sourceTransferSyntaxUID,
+            to: targetTransferSyntaxUID,
+            descriptor: descriptor,
+            frameIndex: 0
+        )
+    }
+
+    public func transcodeCodestream(
+        _ codestream: Data,
+        from sourceTransferSyntaxUID: String,
+        to targetTransferSyntaxUID: String,
+        descriptor: PixelDataDescriptor?,
+        frameIndex: Int
+    ) throws -> Data {
         guard canTranscode(from: sourceTransferSyntaxUID, to: targetTransferSyntaxUID, descriptor: descriptor),
               let descriptor else {
             throw DICOMError.unsupportedTransferSyntax(
@@ -141,7 +157,7 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
             kind: .transcode,
             transferSyntaxUID: sourceTransferSyntaxUID,
             targetTransferSyntaxUID: targetTransferSyntaxUID,
-            frameIndex: 0,
+            frameIndex: frameIndex,
             report: transcoded.report
         ))
 

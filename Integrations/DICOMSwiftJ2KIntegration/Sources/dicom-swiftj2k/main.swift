@@ -245,7 +245,7 @@ private func writeReportIfRequested(_ payload: CLIReportPayload, path: String?) 
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
     let jsonData = try encoder.encode(payload)
-    try jsonData.write(to: URL(fileURLWithPath: path))
+    try jsonData.write(to: URL(fileURLWithPath: path), options: .atomic)
 }
 
 private func mapTelemetry(_ records: [SwiftJ2KOperationRecord]) -> [TelemetrySummaryEntry] {
@@ -301,7 +301,7 @@ private func runCLI() -> CLIExitStatus {
                 quality: args.quality,
                 backend: args.backend
             )
-            try outputData.write(to: outputURL)
+            try outputData.write(to: outputURL, options: .atomic)
             let outputFile = try? DICOMFile.read(from: outputData)
             let report = CLIReportPayload(
                 subcommand: "compress",
@@ -337,7 +337,7 @@ private func runCLI() -> CLIExitStatus {
                 syntax: .explicitVRLittleEndian,
                 backend: args.backend
             )
-            try outputData.write(to: outputURL)
+            try outputData.write(to: outputURL, options: .atomic)
             let report = CLIReportPayload(
                 subcommand: "decompress",
                 configuredProvider: args.provider,
@@ -376,7 +376,7 @@ private func runCLI() -> CLIExitStatus {
                 stripPrivate: args.stripPrivate,
                 codecRegistry: registry
             )
-            try outcome.data.write(to: outputURL)
+            try outcome.data.write(to: outputURL, options: .atomic)
             let report = CLIReportPayload(
                 subcommand: "convert",
                 configuredProvider: args.provider,
