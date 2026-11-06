@@ -14,7 +14,7 @@ import re
 import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
-RESOURCES = ('DICOMKit_DICOMRenderKit.bundle', 'J2KSwift_J2KMetal.bundle',
+RESOURCES = ('DICOMKit_DICOMRenderKit.bundle',
              'DICOMKit_DICOMDictionary.bundle')
 
 

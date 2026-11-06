@@ -1,4 +1,6 @@
-# dicom-3d — 3D Reconstruction, MPR, and JP3D Volumetric Encoding
+# dicom-3d — 3D Reconstruction, MPR, and JP3D Volumetric Encoding [DEFERRED — pending SwiftJ2K 12.2.0]
+
+> **Status (SwiftJ2K 12.1.0 cutover):** `dicom-3d` CLI execution and JP3D volumetric encode/decode (`JP3DCodec`, `JP3DVolumeDocument`) are **deferred from usage** pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification). `--help` and CLI option parsing remain available for documentation and inventory compatibility, while operational subcommands exit `1` with an explicit deferral message. Pure 3D slice-geometry, MPR, intensity projection, surface extraction, and NIfTI/MetaImage library types remain available in Swift.
 
 **Version:** 1.5.0  
 **Part of:** DICOMKit CLI Tools (Phases 7 + 9.2)

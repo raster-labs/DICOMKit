@@ -1,7 +1,6 @@
 import Foundation
 import Dispatch
 import Synchronization
-import DICOMCore
 import SwiftJ2K
 
 private final class SwiftJ2KTaskExecutor: TaskExecutor {

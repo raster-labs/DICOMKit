@@ -1,8 +1,6 @@
 // NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a Table C.7-10 (Pixel Spacing row\column order, Image Position/Orientation (Patient), Slice Thickness nominal, Spacing Between Slices), C.7.6.2.1.1 normal, Table C.7-11c Image Pixel (Photometric Interpretation, Bits Stored, High Bit, Pixel Representation read from the source; High Bit default per PS3.5 8.1.1) (P-VOL); Photometric Interpretation and High Bit carried into DICOMVolume and required identical across slices (Table C.7-11c; C.7.6.3.1.2 MONOCHROME1 not inverted) (D33)
 import Foundation
 import DICOMCore
-import J2KCore
-import J2K3D
 
 /// Volume loading entry points for DICOMKit.
 ///
@@ -511,13 +509,8 @@ extension DICOMFile {
     ///   - jpipServerURL: Base URL of the JPIP server.
     /// - Returns: A ``DICOMVolume`` containing the fully fetched image as a single slice.
     /// - Throws: ``DICOMError`` if the file cannot be read, ``DICOMJPIPError`` if retrieval fails.
-    @available(*, unavailable, message: "JPIP retrieval is not implemented in the pinned J2KSwift JPIP module (11.0.2), so this cannot return data. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.")
+    @available(*, unavailable, message: "JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).")
     public static func openVolume(from url: URL, jpipServerURL: URL) async throws -> DICOMVolume {
-        // Unreachable: this API is @available(*, unavailable). The body is stubbed
-        // because Swift does not permit an unavailable function to call the
-        // (also unavailable) DICOMJPIPClient.fetchImage. The original implementation
-        // is recoverable from git history at de67c39 and should be restored when the
-        // upstream JPIP request path lands. F1 in RESEARCH_ADOPTION_PLAN.md.
         throw DICOMJPIPError.retrievalUnavailable
     }
 
@@ -555,16 +548,12 @@ extension DICOMFile {
     ///   - sliceJPIPURIs: Ordered JPIP target URIs, one per slice, in Z order.
     ///   - qualityLayers: Number of progressive quality passes (default 4; 1 = single full fetch).
     /// - Returns: An `AsyncStream` of ``DICOMVolumeProgressiveUpdate`` values.
-    @available(*, unavailable, message: "JPIP retrieval is not implemented in the pinned J2KSwift JPIP module (11.0.2), so this cannot return data. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.")
+    @available(*, unavailable, message: "JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).")
     public static func openVolumeProgressively(
         serverURL: URL,
         sliceJPIPURIs: [URL],
         qualityLayers: Int = 4
     ) -> AsyncStream<DICOMVolumeProgressiveUpdate> {
-        // Unreachable: this API is @available(*, unavailable). Stubbed for the same
-        // reason as openVolume(from:jpipServerURL:) above — an unavailable function
-        // may not call the unavailable fetchProgressiveQuality. Original body at
-        // git de67c39; restore when upstream JPIP retrieval lands.
         AsyncStream { $0.finish() }
     }
 }

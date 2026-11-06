@@ -409,7 +409,7 @@ struct ProgressiveVolumeAPISurfaceTests {
         #expect(!description.isEmpty)
         // The message must name the cause, not just say "unavailable" — an integrator
         // hitting this needs to know it is upstream and not their configuration.
-        #expect(description.contains("J2KSwift"))
+        #expect(description.contains("SwiftJ2K"))
         #expect(description.lowercased().contains("retrieval"))
     }
 

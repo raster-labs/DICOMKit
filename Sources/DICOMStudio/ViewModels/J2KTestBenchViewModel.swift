@@ -15,7 +15,6 @@ import Observation
 import CoreGraphics
 import DICOMKit
 import DICOMCore
-import J2KCore
 
 #if os(macOS)
 import AppKit
@@ -174,9 +173,9 @@ public final class J2KTestBenchViewModel {
         !isRunning && !corpus.isEmpty && !plan.syntaxes.isEmpty && !activeCodecs.isEmpty
     }
 
-    /// "J2KSwift 10.9.3" — the codec version under test, shown in the header.
+    /// "SwiftJ2K 12.1.0" — the codec version under test, shown in the header.
     public var j2kSwiftVersionLabel: String {
-        "J2KSwift \(J2KCore.getVersion())"
+        "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion)"
     }
 
     // MARK: - Displayed run
@@ -656,7 +655,7 @@ public final class J2KTestBenchViewModel {
         #else
         let architecture = "x86_64"
         #endif
-        return "J2KSwift \(J2KCore.getVersion()) · \(architecture)"
+        return "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion) · \(architecture)"
     }
 
     private func shortTimestamp(_ date: Date) -> String {

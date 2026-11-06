@@ -157,7 +157,7 @@ jobs:
       run: |
         for tool in ${{ matrix.tools }}; do
           echo "Building $tool..."
-          swift build -c release --product $tool -Xswiftc -warnings-as-errors
+          swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product $tool -Xswiftc -warnings-as-errors
         done
         
     - name: Stage CLI binaries
@@ -166,10 +166,10 @@ jobs:
         # One batch must build its owning target before archive assembly.
         RESOURCE_OPTIONS=(--exclude-renderer)
         if [[ "${{ matrix.batch }}" == "4" ]]; then
-          swift build -c release --target DICOMRenderKit -Xswiftc -warnings-as-errors
+          swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --target DICOMRenderKit -Xswiftc -warnings-as-errors
           RESOURCE_OPTIONS=()
         fi
-        PRODUCTS=$(swift build -c release --show-bin-path)
+        PRODUCTS=$(swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --show-bin-path)
         python3 Scripts/package_release_cli.py stage --products "$PRODUCTS" \
           --archive staged-cli.tar --tools ${{ matrix.tools }} "${RESOURCE_OPTIONS[@]}"
         

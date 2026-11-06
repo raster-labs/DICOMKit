@@ -64,16 +64,16 @@ final class J2KTestBenchPart2Tests: XCTestCase {
         XCTAssertTrue(rows.allSatisfy { $0.format == .jpeg2000 })
     }
 
-    /// Every Part-2 row must be refused up front, flagged as unsupported (→ skipped)
-    /// rather than as an error, and must never yield a codestream to time.
-    func test_everyPart2Row_isSkippedNotBenchmarked() throws {
+    /// Every Part-2 row now benchmarks cleanly on SwiftJ2K 12.1.0+ and produces a real
+    /// Part-2 multi-component transform codestream on RGB input.
+    func test_everyPart2Row_benchmarksSuccessfully() throws {
         let descriptor = PixelDataDescriptor(
-            rows: 8, columns: 8, numberOfFrames: 1,
+            rows: 16, columns: 16, numberOfFrames: 1,
             bitsAllocated: 8, bitsStored: 8, highBit: 7,
             isSigned: false, samplesPerPixel: 3,
             photometricInterpretation: .rgb
         )
-        let frame = Data(repeating: 0x7F, count: descriptor.bytesPerFrame)
+        let frame = Data((0..<descriptor.bytesPerFrame).map { UInt8(($0 * 17 + 5) & 0xFF) })
 
         for row in part2Rows {
             let result = J2KTestBenchService.encodeReference(
@@ -81,14 +81,11 @@ final class J2KTestBenchPart2Tests: XCTestCase {
                 mode: .cpu, warmups: 0, runs: 1
             )
             switch result {
-            case .success:
-                XCTFail("\(row.shortName) was benchmarked; a blocked target must not produce a codestream")
+            case .success(let out):
+                XCTAssertFalse(out.codestream.isEmpty, "\(row.shortName) must emit a non-empty Part-2 codestream")
+                XCTAssertTrue(J2KCodestreamInspector.containsPart2MultiComponentTransform(in: out.codestream))
             case .failure(let error):
-                XCTAssertTrue(
-                    error.isUnsupported,
-                    "\(row.shortName) must be flagged unsupported so the grid shows it as skipped, not a red error"
-                )
-                XCTAssertTrue(error.message.contains("not supported"), "reason should explain the block: \(error.message)")
+                XCTFail("\(row.shortName) should benchmark cleanly on SwiftJ2K, got \(error)")
             }
         }
     }
@@ -119,16 +116,15 @@ final class J2KTestBenchPart2Tests: XCTestCase {
         }
     }
 
-    /// The DICOMCore bench entry point is the actual bypass that made Part-2 look
-    /// green — it must refuse on its own, independent of the bench service.
-    func test_benchEncode_refusesPart2AtCoreLevel() {
+    /// The DICOMCore bench entry point produces a real Part-2 MCT codestream on SwiftJ2K 12.1.0+.
+    func test_benchEncode_succeedsWithPart2MCTAtCoreLevel() {
         let descriptor = PixelDataDescriptor(
-            rows: 8, columns: 8, numberOfFrames: 1,
+            rows: 16, columns: 16, numberOfFrames: 1,
             bitsAllocated: 8, bitsStored: 8, highBit: 7,
             isSigned: false, samplesPerPixel: 3,
             photometricInterpretation: .rgb
         )
-        let frame = Data(repeating: 0x7F, count: descriptor.bytesPerFrame)
+        let frame = Data((0..<descriptor.bytesPerFrame).map { UInt8(($0 * 11 + 3) & 0xFF) })
 
         let result = J2KSwiftCodec.benchEncode(
             frame, descriptor: descriptor,
@@ -136,8 +132,11 @@ final class J2KTestBenchPart2Tests: XCTestCase {
             configuration: CompressionConfiguration(quality: .maximum, preferLossless: true),
             mode: .cpu, warmups: 0, runs: 1
         )
-        XCTAssertNil(result.data, "benchEncode must not produce a substitute codestream for Part-2")
-        XCTAssertTrue(result.samples.isEmpty, "no timings should be reported for a blocked target")
-        XCTAssertNotNil(result.error)
+        XCTAssertNil(result.error)
+        XCTAssertNotNil(result.data)
+        XCTAssertEqual(result.samples.count, 1)
+        if let codestream = result.data {
+            XCTAssertTrue(J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream))
+        }
     }
 }

@@ -118,27 +118,27 @@ struct J2KGPUEncodeRoundTripTests {
         try assertLosslessRoundTrip(uid: TS.jpeg2000.uid, descriptor: d, original: frame8(d))
     }
 
-    // MARK: - Part-2 encode is rejected (Phase 3, option 2)
-    //
-    // J2KSwift v11.0.2 cannot decode real Part-2 MCT (probe: 253/255 error), so
-    // DICOMKit refuses to encode .92/.93 rather than emit an unreadable codestream.
+    // MARK: - Part-2 encode and decode round-trip (SwiftJ2K 12.1.0+)
 
-    @Test("Part-2 lossless-only (.92) encode is rejected")
-    func part2_losslessOnly_rejected() {
+    @Test("Part-2 lossless-only (.92) 16-bit grayscale round-trips byte-identically")
+    func part2_losslessOnly_roundTrips() throws {
         let d = grayscaleDescriptor(rows: 64, columns: 64, bitsAllocated: 16, bitsStored: 16)
+        let original = frame16(d)
         let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TS.jpeg2000Part2Lossless.uid)
-        #expect(throws: (any Error).self) {
-            _ = try codec.encodeFrame(frame16(d), descriptor: d, frameIndex: 0, configuration: losslessMetalConfig())
-        }
+        let encoded = try codec.encodeFrame(original, descriptor: d, frameIndex: 0, configuration: losslessMetalConfig())
+        let decoded = try codec.decodeFrame(encoded, descriptor: d, frameIndex: 0)
+        #expect(decoded == original)
     }
 
-    @Test("Part-2 (.93) RGB encode is rejected")
-    func part2_rgb_rejected() {
+    @Test("Part-2 (.93) RGB lossless round-trips byte-identically with Part-2 MCT")
+    func part2_rgb_roundTrips() throws {
         let d = rgbDescriptor(rows: 48, columns: 48)
+        let original = frame8(d)
         let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TS.jpeg2000Part2.uid)
-        #expect(throws: (any Error).self) {
-            _ = try codec.encodeFrame(frame8(d), descriptor: d, frameIndex: 0, configuration: losslessMetalConfig())
-        }
+        let encoded = try codec.encodeFrame(original, descriptor: d, frameIndex: 0, configuration: losslessMetalConfig())
+        #expect(J2KCodestreamInspector.containsPart2MultiComponentTransform(in: encoded))
+        let decoded = try codec.decodeFrame(encoded, descriptor: d, frameIndex: 0)
+        #expect(decoded == original)
     }
 
     // MARK: - Above the 3 MP GPU forward-5/3 threshold (exercises the GPU DWT stage)

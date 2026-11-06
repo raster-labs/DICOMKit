@@ -2,8 +2,7 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — decode-volume slices: Image Position (Patient) = origin + i·spacing·(row × column cosine) per PS3.3 2026a C.7.6.2.1.1 Equation C.7.6.2.1-1, Image Orientation (Patient) / Pixel Spacing per Table C.7-10, one Frame of Reference UID per series (C.7.4.1.1.1), Rescale from the source, source SOP Class kept (D204); sidecar origin and spacing from the bridge's sorted order along the slice normal (D205)
 import Foundation
 import DICOMCore
-import J2KCore
-import J2K3D
+import SwiftJ2K
 
 /// Encapsulated SOP adapter for JP3D volumetric data.
 ///

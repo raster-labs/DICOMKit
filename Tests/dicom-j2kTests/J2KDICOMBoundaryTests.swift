@@ -560,31 +560,21 @@ struct J2KPItemTests {
     }
 
     // PS3.5 2026a A.4.4: .92 / .93 specify the Part 2 (Annex J) multiple component
-    // transformation extensions; the encoder writes Part 1 only.
-    @Test("The three j2k-part2-* targets are refused with exit 1 and listed as refused")
-    func part2Refused() throws {
-        for target in ["j2k-part2-lossy", "j2k-part2-lossless", "j2k-part2-lossless-only", "JPEG2000MC", "JPEG2000MCLossless"] {
-            do {
-                _ = try DICOMJ2K.TranscodeCommand.parse(["a.dcm", "-o", "o.dcm", "-t", target])
-                Issue.record("\(target) accepted")
-            } catch {
-                #expect(DICOMJ2K.TranscodeCommand.exitCode(for: error) == .failure, "\(target)")
-                #expect("\(error)".contains("PS3.5 2026a A.4.4") || DICOMJ2K.TranscodeCommand.message(for: error).contains("A.4.4"), "\(target)")
-            }
-        }
-        for target in ["j2k-lossy", "j2k-lossless", "j2k-lossless-only", "htj2k-lossy", "htj2k-lossless",
-                       "htj2k-lossless-only", "htj2k-rpcl-lossless-only"] {
+    // transformation extensions; SwiftJ2K 12.1.0+ supports both encode and decode.
+    @Test("The j2k-part2-* and Table A-1 Part 2 targets are accepted and listed")
+    func part2Supported() throws {
+        for target in ["j2k-lossy", "j2k-lossless", "j2k-lossless-only",
+                       "j2k-part2-lossy", "j2k-part2-lossless", "j2k-part2-lossless-only",
+                       "JPEG2000MC", "JPEG2000MCLossless",
+                       "htj2k-lossy", "htj2k-lossless", "htj2k-lossless-only", "htj2k-rpcl-lossless-only"] {
             #expect(throws: Never.self) { _ = try DICOMJ2K.TranscodeCommand.parse(["a.dcm", "-o", "o.dcm", "-t", target]) }
         }
         let help = DICOMJ2K.TranscodeCommand.configuration.discussion
-        let refused = try #require(help.range(of: "Refused (exit 1)"))
         for row in ["j2k-part2-lossy", "j2k-part2-lossless ", "j2k-part2-lossless-only"] {
-            let at = try #require(help.range(of: "  " + row))
-            #expect(at.lowerBound > refused.lowerBound, "\(row) listed as refused")
+            #expect(help.contains("  " + row), "\(row) listed in Targets")
         }
-        #expect(DICOMJ2K.TranscodeCommand.part2RefusalReason(.jpeg2000Part2) != nil)
-        #expect(DICOMJ2K.TranscodeCommand.part2RefusalReason(.jpeg2000Part2Lossless) != nil)
-        for ts: TransferSyntax in [.jpeg2000, .jpeg2000Lossless, .htj2kLossless, .htj2kRPCLLossless, .htj2kLossy] {
+        for ts: TransferSyntax in [.jpeg2000, .jpeg2000Lossless, .jpeg2000Part2, .jpeg2000Part2Lossless,
+                                   .htj2kLossless, .htj2kRPCLLossless, .htj2kLossy] {
             #expect(DICOMJ2K.TranscodeCommand.part2RefusalReason(ts) == nil)
         }
     }

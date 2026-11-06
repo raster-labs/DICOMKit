@@ -1,7 +1,7 @@
 # dicom-j2k
 
-Purpose-built CLI for JPEG 2000 / HTJ2K codestream operations on DICOM files.
-Part of DICOMKit, powered by J2KSwift v3.2.0.
+Purpose-built CLI for JPEG 2000 / Part 2 / HTJ2K codestream operations on DICOM files.
+Part of DICOMKit, powered by SwiftJ2K v12.1.0+.
 
 ## Subcommands
 
@@ -29,9 +29,9 @@ Part of DICOMKit, powered by J2KSwift v3.2.0.
 | `1.2.840.10008.1.2.4.203` | High-Throughput JPEG 2000 Image Compression |
 
 Names as in PS3.6 2026a Table A-1. `.91`, `.93` and `.203` carry either a lossless or a lossy
-codestream (PS3.5 A.4.4). `.92` / `.93` are read; `transcode` refuses them as targets
-(`j2k-part2-*`, exit 1): they specify the JPEG 2000 Part 2 multiple component transformation
-extensions (PS3.5 A.4.4), which the encoder does not write.
+codestream (PS3.5 A.4.4). `.92` and `.93` (JPEG 2000 Part 2 Annex I/J Multi-Component Transforms)
+are supported for both read and `transcode` (`j2k-part2-lossless-only`, `j2k-part2-lossless`,
+`j2k-part2-lossy`, `JPEG2000MCLossless`, `JPEG2000MC`) via `SwiftJ2K` 12.1.0+.
 
 `--target` also takes a PS3.6 Table A-1 keyword, which selects its Table A-1 UID:
 `JPEG2000Lossless` is .90 and `HTJ2KLossless` .201 (changed 2026-10-01, a note is printed);

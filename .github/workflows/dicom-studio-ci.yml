@@ -59,19 +59,19 @@ jobs:
           ${{ runner.os }}-studio-spm-
 
     - name: Build DICOMStudio
-      run: swift build --target DICOMStudio -v
+      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --target DICOMStudio -v
 
     # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
     - name: Build Release CLI parity prerequisites
       run: |
-        swift build -c release --product dicom-split
-        swift build -c release --product dicom-merge
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-split
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-merge
 
     - name: Run DICOMStudio Tests
-      run: swift test --filter DICOMStudioTests -v
+      run: swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests -v
 
     - name: Build DICOMStudio (Release)
-      run: swift build --target DICOMStudio -c release
+      run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --target DICOMStudio -c release
 
   test-coverage:
     name: Test Coverage Report
@@ -97,18 +97,19 @@ jobs:
     # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
     - name: Build Release CLI parity prerequisites
       run: |
-        swift build -c release --product dicom-split
-        swift build -c release --product dicom-merge
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-split
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-merge
 
     - name: Run Tests with Coverage
       run: |
-        swift test --filter DICOMStudioTests \
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays \
+          --test-product DICOMStudioTests \
           --enable-code-coverage \
           -v
 
     - name: Generate Coverage Report
       run: |
-        BIN_PATH=$(swift build --show-bin-path)
+        BIN_PATH=$(swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --show-bin-path)
         PROFDATA=$(find .build -name "default.profdata" -type f | head -1)
         
         if [ -z "$PROFDATA" ]; then

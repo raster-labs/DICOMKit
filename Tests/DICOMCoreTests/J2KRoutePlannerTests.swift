@@ -130,33 +130,29 @@ struct J2KRoutePlannerTests {
         #expect(plan.quality == cfg.quality.value)
     }
 
-    @Test("Phase-1 parity: progression is RPCL and Part-2 MCT is off for every syntax")
-    func test_planEncode_phase1_parity() {
+    @Test("Progression is RPCL across selectable syntaxes and Part-2 MCT is enabled only for Part-2 syntaxes")
+    func test_planEncode_progression_and_part2_mct() {
         for uid in TS.selectableEncodings.map(\.uid) where TransferSyntax.from(uid: uid)?.isJPEG2000 == true {
             let plan = Planner.planEncode(transferSyntaxUID: uid, configuration: config(preferLossless: true))
             #expect(plan.progression == .rpcl)
-            #expect(plan.enablePart2MCT == false)
+            #expect(plan.enablePart2MCT == (plan.type == .part2))
         }
     }
 
-    // MARK: - Part-2 capability (Phase 3)
+    // MARK: - Part-2 capability (SwiftJ2K 12.1.0+)
 
-    @Test("Part-2 MCT decode is unsupported on the pinned J2KSwift")
-    func test_part2_decode_unsupported() {
-        // Guards the empirical finding: J2KSwift v11.0.2 does not invert Part-2 MCT
-        // on decode (probe measured 253/255 max pixel error). If a future library
-        // flips this, wire mctConfiguration in planEncode + add a round-trip test.
-        #expect(J2KRoutePlanner.part2MCTDecodeSupported == false)
+    @Test("Part-2 MCT decode is supported on SwiftJ2K")
+    func test_part2_decode_supported() {
+        #expect(J2KRoutePlanner.part2MCTDecodeSupported == true)
     }
 
-    @Test("Part-2 encode is rejected with a reason; Part-1/HTJ2K are supported")
-    func test_part2_encode_rejected() {
-        // Part-2 targets return a non-nil rejection reason (option 2).
+    @Test("Part-2, Part-1, and HTJ2K encode are all supported")
+    func test_part2_encode_supported() {
         for uid in [TS.jpeg2000Part2Lossless.uid, TS.jpeg2000Part2.uid] {
-            #expect(J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: uid) != nil)
+            #expect(J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: uid) == nil)
             let plan = Planner.planEncode(transferSyntaxUID: uid, configuration: config(preferLossless: true))
             #expect(plan.type == .part2)
-            #expect(plan.enablePart2MCT == false)
+            #expect(plan.enablePart2MCT == true)
         }
         // Part-1 and HTJ2K remain fully supported (nil reason).
         for uid in [TS.jpeg2000Lossless.uid, TS.jpeg2000.uid,

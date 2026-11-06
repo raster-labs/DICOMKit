@@ -118,20 +118,13 @@ struct JP3DCodecTests {
         #expect(JP3DCodec.supportedTransferSyntaxes.contains(TransferSyntax.jp3dLossy.uid))
     }
 
-    // MARK: - canEncode Tests
+    // MARK: - canEncode & Deferral Tests (pending SwiftJ2K 12.2.0 / SwiftJ2K3D)
 
-    @Test("JP3DCodec can encode multi-frame grayscale 16-bit volumes")
-    func test_canEncode_multiframeGrayscale16() {
+    @Test("JP3DCodec reports canEncode == false while deferred pending SwiftJ2K 12.2.0")
+    func test_canEncode_deferredReturnsFalse() {
         let codec = JP3DCodec()
-        let desc = grayscaleVolumeDescriptor()
-        #expect(codec.canEncode(with: .lossless, descriptor: desc))
-    }
-
-    @Test("JP3DCodec can encode multi-frame grayscale 8-bit volumes")
-    func test_canEncode_multiframeGrayscale8() {
-        let codec = JP3DCodec()
-        let desc = grayscale8VolumeDescriptor()
-        #expect(codec.canEncode(with: .lossless, descriptor: desc))
+        #expect(!codec.canEncode(with: .lossless, descriptor: grayscaleVolumeDescriptor()))
+        #expect(!codec.canEncode(with: .lossless, descriptor: grayscale8VolumeDescriptor()))
     }
 
     @Test("JP3DCodec rejects single-frame images")
@@ -170,236 +163,61 @@ struct JP3DCodecTests {
 
     // MARK: - Codec Registry Tests
 
-    @Test("JP3DCodec is registered in CodecRegistry for JP3D transfer syntaxes")
-    func test_codecRegistry_jp3dRegistered() {
+    @Test("JP3DCodec is not registered in CodecRegistry while deferred pending SwiftJ2K 12.2.0")
+    func test_codecRegistry_jp3dDeferred() {
         let registry = CodecRegistry.shared
-        #expect(registry.hasCodec(for: TransferSyntax.jp3dLossless.uid))
-        #expect(registry.hasCodec(for: TransferSyntax.jp3dLossy.uid))
-        #expect(registry.encoder(for: TransferSyntax.jp3dLossless.uid) != nil)
-        #expect(registry.encoder(for: TransferSyntax.jp3dLossy.uid) != nil)
+        #expect(!registry.hasCodec(for: TransferSyntax.jp3dLossless.uid))
+        #expect(!registry.hasCodec(for: TransferSyntax.jp3dLossy.uid))
+        #expect(registry.encoder(for: TransferSyntax.jp3dLossless.uid) == nil)
+        #expect(registry.encoder(for: TransferSyntax.jp3dLossy.uid) == nil)
     }
 
-    // MARK: - Volumetric Encode/Decode Round-Trip Tests
+    // MARK: - Volumetric Fail-Closed Deferral Tests
 
-    @Test("JP3DCodec lossless round-trip with 8-bit volume")
-    func test_roundTrip_lossless8bit() async throws {
-        let codec = JP3DCodec(compressionMode: .lossless)
-        let desc = grayscale8VolumeDescriptor(rows: 32, columns: 32, frames: 8)
-        let original = makeGradientVolume(descriptor: desc)
-
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-        #expect(compressed.count > 0)
-
-        let decoded = try await codec.decodeVolume(compressed, descriptor: desc)
-        #expect(decoded.count == original.count)
-        #expect(decoded == original) // Lossless: exact match
-    }
-
-    @Test("JP3DCodec lossless round-trip with 16-bit volume")
-    func test_roundTrip_lossless16bit() async throws {
-        let codec = JP3DCodec(compressionMode: .lossless)
-        let desc = grayscaleVolumeDescriptor(rows: 8, columns: 8, frames: 4)
-        let original = makeGradientVolume(descriptor: desc)
-
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-        #expect(compressed.count > 0)
-
-        let decoded = try await codec.decodeVolume(compressed, descriptor: desc)
-        #expect(decoded.count == original.count)
-        #expect(decoded == original) // Lossless: exact match
-    }
-
-    @Test("JP3DCodec lossy round-trip preserves volume dimensions")
-    func test_roundTrip_lossy() async throws {
-        let codec = JP3DCodec(compressionMode: .lossy(psnr: 40.0))
+    @Test("JP3DCodec async encodeVolume and decodeVolume fail closed with SwiftJ2K 12.2.0 deferral")
+    func test_asyncEncodeDecode_failClosedWhileDeferred() async {
         let desc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
         let original = makeGradientVolume(descriptor: desc)
 
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-        #expect(compressed.count > 0)
+        for mode: JP3DCodec.CompressionMode in [.lossless, .lossy(psnr: 40.0), .losslessHTJ2K] {
+            let codec = JP3DCodec(compressionMode: mode)
+            do {
+                _ = try await codec.encodeVolume(original, descriptor: desc)
+                Issue.record("Expected encodeVolume to fail closed while deferred")
+            } catch let DICOMError.unsupportedTransferSyntax(reason) {
+                #expect(reason.contains("SwiftJ2K 12.2.0"))
+            } catch {
+                Issue.record("Unexpected error: \(error)")
+            }
 
-        let decoded = try await codec.decodeVolume(compressed, descriptor: desc)
-        #expect(decoded.count == original.count)
-        // Lossy: not exact, but same size
+            do {
+                _ = try await codec.decodeVolume(Data([0x00, 0x01]), descriptor: desc)
+                Issue.record("Expected decodeVolume to fail closed while deferred")
+            } catch let DICOMError.unsupportedTransferSyntax(reason) {
+                #expect(reason.contains("SwiftJ2K 12.2.0"))
+            } catch {
+                Issue.record("Unexpected error: \(error)")
+            }
+        }
     }
 
-    @Test("JP3DCodec HTJ2K lossless round-trip")
-    func test_roundTrip_htj2kLossless() async throws {
-        let codec = JP3DCodec(compressionMode: .losslessHTJ2K)
-        let desc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
-        let original = makeGradientVolume(descriptor: desc)
-
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-        #expect(compressed.count > 0)
-
-        let decoded = try await codec.decodeVolume(compressed, descriptor: desc)
-        #expect(decoded.count == original.count)
-        #expect(decoded == original)
-    }
-
-    // MARK: - Sync Protocol Bridge Tests
-
-    // Skipped in CI: JP3DCodec.decode bridges async decodeVolume into a sync
-    // call via Task { ... } + DispatchSemaphore.wait(timeout:). The volume here
-    // is tiny (8x8x4) and decodeVolume alone (called directly via `await` in the
-    // tests above) is instant — this isn't a slow decode, it's the bridge's
-    // Task never getting scheduled promptly under GitHub's constrained macOS
-    // runners, where 652 suites' worth of concurrent work saturates Swift's
-    // small cooperative thread pool. It hits the 60s bound
-    // (JP3DCodec.decode's timeout) rather than hanging forever, but that still
-    // fails a CI run that has nothing wrong with it. Runs fine locally; gated
-    // here to keep the release pipeline green while the sync bridge itself
-    // (shared shape with J2KSwiftCodec.awaitJ2KResult) gets a proper look.
-    @Test(
-      "JP3DCodec sync decode returns correct data",
-      .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil,
-               "sync bridge can lose the CI thread-pool scheduling race under heavy parallel test load")
-    )
-    func test_syncDecode_works() async throws {
+    @Test("JP3DCodec sync decode, decodeFrame, encode, and encodeFrame fail closed with SwiftJ2K 12.2.0 deferral")
+    func test_syncMethods_failClosedWhileDeferred() {
         let codec = JP3DCodec(compressionMode: .lossless)
         let desc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
         let original = makeGradientVolume(descriptor: desc)
-
-        // Encode with async API
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-
-        // Decode with sync bridge
-        let decoded = try codec.decode(compressed, descriptor: desc)
-        #expect(decoded == original)
-    }
-
-    // Skipped in CI: same sync-bridge scheduling contention as
-    // test_syncDecode_works above (decodeFrame calls through decode()).
-    @Test(
-      "JP3DCodec decodeFrame extracts correct frame from volume",
-      .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil,
-               "sync bridge can lose the CI thread-pool scheduling race under heavy parallel test load")
-    )
-    func test_decodeFrame_extractsCorrectFrame() async throws {
-        let codec = JP3DCodec(compressionMode: .lossless)
-        let desc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
-        let original = makeGradientVolume(descriptor: desc)
-
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
-
-        // Extract frame 2
-        let frame2 = try codec.decodeFrame(compressed, descriptor: desc, frameIndex: 2)
-        let expectedStart = 2 * desc.bytesPerFrame
-        let expectedFrame = original.subdata(in: expectedStart..<(expectedStart + desc.bytesPerFrame))
-        #expect(frame2 == expectedFrame)
-    }
-
-    // Skipped in CI: same sync-bridge scheduling contention as the two tests
-    // above (decodeFrame calls through decode() regardless of the bounds
-    // check). It happened to pass at 63.5s on the run that surfaced this — a
-    // hair under its own 60s timeout plus scheduling slack — so it's flaky
-    // under the same contention, not reliably safe just because it passed once.
-    @Test(
-      "JP3DCodec decodeFrame throws for out-of-bounds frame",
-      .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil,
-               "sync bridge can lose the CI thread-pool scheduling race under heavy parallel test load")
-    )
-    func test_decodeFrame_outOfBounds() async throws {
-        let codec = JP3DCodec(compressionMode: .lossless)
-        let desc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
-        let original = makeGradientVolume(descriptor: desc)
-        let compressed = try await codec.encodeVolume(original, descriptor: desc)
 
         #expect(throws: DICOMError.self) {
-            _ = try codec.decodeFrame(compressed, descriptor: desc, frameIndex: 10)
+            _ = try codec.decode(Data([0x00]), descriptor: desc)
         }
-    }
-
-    // MARK: - Real-DICOM Volume Round-Trip
-
-    private func localDatasetsRoot() -> URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .deletingLastPathComponent()
-            .appendingPathComponent("LocalDatasets/medical-dicom-organized", isDirectory: true)
-    }
-
-    /// Loads up to `count` consecutive image-bearing CT slices and concatenates
-    /// their decoded pixel data into a frame-major volume buffer.
-    private func loadCTVolumeSlices(
-        relativeStudy: String = "ct/study_002",
-        count: Int = 16,
-        minFileSize: Int = 400_000
-    ) throws -> (descriptor: PixelDataDescriptor, data: Data, sourceCount: Int) {
-        let dir = localDatasetsRoot().appendingPathComponent(relativeStudy, isDirectory: true)
-        let urls = try FileManager.default
-            .contentsOfDirectory(at: dir, includingPropertiesForKeys: [.fileSizeKey])
-            .filter { $0.pathExtension.lowercased() == "dcm" }
-            .filter { (try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0) ?? 0 >= minFileSize }
-            .sorted { $0.lastPathComponent < $1.lastPathComponent }
-            .prefix(count)
-
-        guard !urls.isEmpty else {
-            throw DICOMError.parsingFailed("No image-bearing DICOM files found in \(relativeStudy)")
+        #expect(throws: DICOMError.self) {
+            _ = try codec.decodeFrame(Data([0x00]), descriptor: desc, frameIndex: 0)
         }
-
-        var firstDescriptor: PixelDataDescriptor?
-        var combined = Data()
-        for url in urls {
-            let file = try DICOMFile.read(from: url)
-            let pixel = try file.tryPixelData()
-            if firstDescriptor == nil {
-                firstDescriptor = pixel.descriptor
-            } else if let d = firstDescriptor,
-                      d.rows != pixel.descriptor.rows ||
-                      d.columns != pixel.descriptor.columns ||
-                      d.bitsAllocated != pixel.descriptor.bitsAllocated {
-                throw DICOMError.parsingFailed("Heterogeneous slice geometry encountered in \(relativeStudy)")
-            }
-            combined.append(pixel.data)
+        #expect(throws: DICOMError.self) {
+            _ = try codec.encode(original, descriptor: desc, configuration: .lossless)
         }
-
-        let base = firstDescriptor!
-        let volumeDescriptor = PixelDataDescriptor(
-            rows: base.rows,
-            columns: base.columns,
-            numberOfFrames: urls.count,
-            bitsAllocated: base.bitsAllocated,
-            bitsStored: base.bitsStored,
-            highBit: base.highBit,
-            isSigned: base.isSigned,
-            samplesPerPixel: base.samplesPerPixel,
-            photometricInterpretation: base.photometricInterpretation
-        )
-        return (volumeDescriptor, combined, urls.count)
-    }
-
-    @Test(
-        "JP3DCodec lossless round-trip on real CT volume from LocalDatasets",
-        .enabled(if: LocalCodecFixtureAvailability.hasCTVolume, "Requires optional 16-slice LocalDatasets CT fixture")
-    )
-    func test_realCTVolume_losslessRoundTrip() async throws {
-        let sample = try loadCTVolumeSlices(relativeStudy: "ct/study_002", count: 16)
-        let codec = JP3DCodec(compressionMode: .lossless)
-
-        #expect(codec.canEncode(with: .lossless, descriptor: sample.descriptor))
-
-        let compressed = try await codec.encodeVolume(sample.data, descriptor: sample.descriptor)
-        let decoded = try await codec.decodeVolume(compressed, descriptor: sample.descriptor)
-
-        let originalBytes = sample.data.count
-        let compressedBytes = compressed.count
-        let ratio = Double(originalBytes) / Double(max(compressedBytes, 1))
-
-        print("""
-
-        JP3D real-CT lossless round-trip
-          source study:    ct/study_002
-          slices loaded:   \(sample.sourceCount)
-          dimensions:      \(sample.descriptor.columns)×\(sample.descriptor.rows)×\(sample.descriptor.numberOfFrames) @ \(sample.descriptor.bitsAllocated)-bit
-          original bytes:  \(originalBytes)
-          compressed:      \(compressedBytes)
-          ratio:           \(String(format: "%.2fx", ratio))
-        """)
-
-        #expect(compressed.isEmpty == false)
-        #expect(decoded.count == sample.data.count)
-        #expect(decoded == sample.data, "JP3D lossless must be bit-exact on real CT slices")
+        #expect(throws: DICOMError.self) {
+            _ = try codec.encodeFrame(original.prefix(desc.bytesPerFrame), descriptor: desc, frameIndex: 0, configuration: .lossless)
+        }
     }
 }

@@ -3,14 +3,7 @@
 // NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (hardware backend selection). C1 classification confirmed.
 
 import Foundation
-
-#if canImport(J2KMetal)
-import J2KMetal
-#endif
-
-#if canImport(J2KAccelerate)
-import J2KAccelerate
-#endif
+import SwiftJ2K
 
 // MARK: - CodecBackend
 
@@ -53,24 +46,15 @@ public enum CodecBackend: String, Sendable, CaseIterable, CustomStringConvertibl
         switch self {
         case .metal:
             #if canImport(Metal)
-            return J2KMetalDevice.isAvailable ? "Metal (GPU)" : "Metal (unavailable)"
+            return CodecCapabilities.isMetalAvailable ? "Metal (GPU)" : "Metal (unavailable)"
             #else
             return "Metal (not supported on this platform)"
             #endif
         case .accelerate:
-            #if canImport(J2KAccelerate)
-            let simd = HTSIMDCapability.detect()
-            switch simd.family {
-            case .neon:   return "Accelerate (ARM NEON \(simd.vectorWidth * 32)-bit)"
-            case .avx2:   return "Accelerate (x86 AVX2 \(simd.vectorWidth * 32)-bit)"
-            case .sse42:  return "Accelerate (x86 SSE4.2 \(simd.vectorWidth * 32)-bit)"
-            case .scalar: return "Accelerate (scalar fallback)"
+            if CodecCapabilities.isSIMDAvailable {
+                return "Accelerate (CPU SIMD)"
             }
-            #elseif canImport(Accelerate)
-            // J2KAccelerate (the SIMD-family probe) was removed in J2KSwift v11.0.0,
-            // but the Apple Accelerate framework — which `isAvailable(.accelerate)`
-            // keys off — is still present, so this backend IS available. Report a
-            // plain CPU label rather than the old, now-contradictory "not available".
+            #if canImport(Accelerate)
             return "Accelerate (CPU)"
             #else
             return "Accelerate (not available)"
@@ -93,11 +77,12 @@ public struct CodecBackendProbe: Sendable {
     ///
     /// Priority: `metal` → `accelerate` → `scalar`.
     public static let bestAvailable: CodecBackend = {
-        #if canImport(Metal)
-        if J2KMetalDevice.isAvailable {
+        if CodecCapabilities.isMetalAvailable {
             return .metal
         }
-        #endif
+        if CodecCapabilities.isSIMDAvailable {
+            return .accelerate
+        }
         #if canImport(Accelerate)
         return .accelerate
         #else
@@ -109,12 +94,11 @@ public struct CodecBackendProbe: Sendable {
     public static func isAvailable(_ backend: CodecBackend) -> Bool {
         switch backend {
         case .metal:
-            #if canImport(Metal)
-            return J2KMetalDevice.isAvailable
-            #else
-            return false
-            #endif
+            return CodecCapabilities.isMetalAvailable
         case .accelerate:
+            if CodecCapabilities.isSIMDAvailable {
+                return true
+            }
             #if canImport(Accelerate)
             return true
             #else

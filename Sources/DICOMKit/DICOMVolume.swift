@@ -1,8 +1,6 @@
 // NEMA-verified: 2026a, checked 2026-09-29 — PS3.3 2026a Table C.7-11c (High Bit "shall be one less than Bits Stored"; Photometric Interpretation) and C.7.6.3.1.2 (MONOCHROME1 "minimum sample value is intended to be displayed as white after any VOI gray scale transformations"): carried as fields, voxel() masks to Bits Stored and sign-extends from High Bit (D33); other defaults are API defaults, not standard claims
 import Foundation
 import DICOMCore
-import J2KCore
-import J2K3D
 
 /// A decoded, in-memory representation of a DICOM volumetric image.
 ///

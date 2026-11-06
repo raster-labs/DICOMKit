@@ -99,9 +99,7 @@ final class J2KCodestreamInspectorTests: XCTestCase {
     func test_allThreeMarkers_areReportedInOrder() {
         let data = Self.codestream(mainHeaderExtras: Self.mctSegment + Self.mccSegment + Self.mcoSegment)
         XCTAssertEqual(J2KCodestreamInspector.part2MultiComponentMarkers(in: data), [.mct, .mcc, .mco])
-        let reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: data)
-        XCTAssertNotNil(reason)
-        XCTAssertTrue(reason!.contains("MCT, MCC, MCO"), "reason should name every marker found: \(reason!)")
+        XCTAssertNil(J2KRoutePlanner.unsupportedDecodeReason(frameData: data))
     }
 
     /// MCT/MCC/MCO are legal in a tile-part header too, not just the main header.
@@ -110,12 +108,8 @@ final class J2KCodestreamInspectorTests: XCTestCase {
         XCTAssertEqual(J2KCodestreamInspector.part2MultiComponentMarkers(in: data), [.mcc])
     }
 
-    func test_rejectionReason_isActionable() {
-        let reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: Self.codestream(mainHeaderExtras: Self.mctSegment))
-        XCTAssertNotNil(reason)
-        // The message must explain the risk and name a way forward.
-        XCTAssertTrue(reason!.contains("incorrect pixel"))
-        XCTAssertTrue(reason!.contains("Part 1") || reason!.contains("HTJ2K"))
+    func test_part2DecodeReason_isNilWhenPart2MCTSupported() {
+        XCTAssertNil(J2KRoutePlanner.unsupportedDecodeReason(frameData: Self.codestream(mainHeaderExtras: Self.mctSegment)))
     }
 
     // MARK: - Marker codes
@@ -144,52 +138,48 @@ final class J2KCodestreamInspectorTests: XCTestCase {
 
     // MARK: - Codec integration
 
-    func test_decodeFrame_refusesPart2MCT() throws {
+    func test_decodeFrame_roundTripsRealPart2MCT() throws {
         let descriptor = PixelDataDescriptor(
-            rows: 4,
-            columns: 4,
+            rows: 16,
+            columns: 16,
             numberOfFrames: 1,
             bitsAllocated: 8,
             bitsStored: 8,
             highBit: 7,
             isSigned: false,
             samplesPerPixel: 3,
-            photometricInterpretation: .rgb
+            photometricInterpretation: .rgb,
+            planarConfiguration: 0
         )
-        let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TransferSyntax.jpeg2000Part2.uid)
-        let data = Self.codestream(mainHeaderExtras: Self.mctSegment)
+        let original = Data((0..<descriptor.bytesPerFrame).map { UInt8(($0 * 19 + 7) & 0xFF) })
+        let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TransferSyntax.jpeg2000Part2Lossless.uid)
+        let encoded = try codec.encodeFrame(original, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+        XCTAssertTrue(J2KCodestreamInspector.containsPart2MultiComponentTransform(in: encoded))
 
-        XCTAssertThrowsError(try codec.decodeFrame(data, descriptor: descriptor, frameIndex: 0)) { error in
-            guard case DICOMError.unsupportedTransferSyntax(let reason) = error else {
-                return XCTFail("expected unsupportedTransferSyntax, got \(error)")
-            }
-            XCTAssertTrue(reason.contains("multi-component transform"))
-        }
+        let decoded = try codec.decodeFrame(encoded, descriptor: descriptor, frameIndex: 0)
+        XCTAssertEqual(decoded, original)
     }
 
-    func test_decodeFrameAtResolution_refusesPart2MCTBeforePreview() async {
+    func test_decodeFrameAtResolution_decodesPart2MCTPreview() async throws {
         let descriptor = PixelDataDescriptor(
-            rows: 4,
-            columns: 4,
+            rows: 32,
+            columns: 32,
             numberOfFrames: 1,
             bitsAllocated: 8,
             bitsStored: 8,
             highBit: 7,
             isSigned: false,
             samplesPerPixel: 3,
-            photometricInterpretation: .rgb
+            photometricInterpretation: .rgb,
+            planarConfiguration: 0
         )
-        let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TransferSyntax.jpeg2000Part2.uid)
-        let data = Self.codestream(mainHeaderExtras: Self.mctSegment)
-
-        do {
-            _ = try await codec.decodeFrameAtResolution(data, descriptor: descriptor, level: 1)
-            XCTFail("expected reduced-resolution decode to reject Part-2 MCT")
-        } catch DICOMError.unsupportedTransferSyntax(let reason) {
-            XCTAssertTrue(reason.contains("multi-component transform"))
-        } catch {
-            XCTFail("expected unsupportedTransferSyntax, got \(error)")
-        }
+        let original = Data((0..<descriptor.bytesPerFrame).map { UInt8(($0 * 13 + 3) & 0xFF) })
+        let codec = J2KSwiftCodec(encodingTransferSyntaxUID: TransferSyntax.jpeg2000Part2Lossless.uid)
+        let encoded = try codec.encodeFrame(original, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
+        let preview = try await codec.decodeFrameAtResolution(encoded, descriptor: descriptor, level: 1)
+        XCTAssertEqual(preview.rows, 16)
+        XCTAssertEqual(preview.columns, 16)
+        XCTAssertEqual(preview.data.count, 16 * 16 * 3)
     }
 }
 

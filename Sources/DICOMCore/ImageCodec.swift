@@ -589,7 +589,7 @@ public struct CodecRegistry: Sendable {
     
     /// Creates an immutable codec registry with the specified JPEG 2000 / HTJ2K provider and fallback policy.
     public init(
-        j2kProvider: J2KCodecProvider = .j2kSwift,
+        j2kProvider: J2KCodecProvider = .swiftJ2K,
         j2kFallbackPolicy: J2KProviderFallbackPolicy = .strict
     ) {
         self.j2kProvider = j2kProvider
@@ -656,14 +656,8 @@ public struct CodecRegistry: Sendable {
             encoderRegistry[uid] = jpegLSCodec
         }
 
-        // JP3D volumetric codec (experimental — private transfer syntaxes)
-        let jp3dCodec = JP3DCodec()
-        for uid in JP3DCodec.supportedTransferSyntaxes {
-            decoderRegistry[uid] = jp3dCodec
-        }
-        for uid in JP3DCodec.supportedEncodingTransferSyntaxes {
-            encoderRegistry[uid] = JP3DCodec(compressionMode: uid == TransferSyntax.jp3dLossless.uid ? .lossless : .lossy())
-        }
+        // JP3D volumetric codec is deferred pending SwiftJ2K 12.2.0 (SwiftJ2K3D qualification).
+        // Do not register experimental JP3D transfer syntaxes in the active registry.
 
         // JPEG XL codec (JXLSwift pure-Swift — lossless + lossy encode, lossless + lossy decode).
         for uid in JXLCodec.supportedTransferSyntaxes {

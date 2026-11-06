@@ -17,8 +17,7 @@ import XCTest
 import Foundation
 @testable import DICOMKit
 @testable import DICOMCore
-import J2KCore
-import J2KCodec
+import SwiftJ2K
 
 @available(macOS 10.15, *)
 final class J2KRoundTripTests: XCTestCase {
@@ -39,7 +38,7 @@ final class J2KRoundTripTests: XCTestCase {
         let comp = J2KComponent(
             index: 0, bitDepth: bitDepth, signed: false,
             width: width, height: height,
-            data: leBytes, sampleByteOrder: .littleEndian
+            data: leBytes
         )
         return J2KImage(width: width, height: height, components: [comp], colorSpace: .grayscale)
     }
@@ -71,12 +70,25 @@ final class J2KRoundTripTests: XCTestCase {
         var cfg = J2KEncodingConfiguration()
         cfg.lossless = true
         cfg.useHTJ2K = true
-        cfg.htj2kBlockFormat = .conformant
         return cfg
     }
 
     private func encode(_ image: J2KImage, _ cfg: J2KEncodingConfiguration) async throws -> Data {
-        try await J2KEncoder(encodingConfiguration: cfg).encode(image)
+        if cfg.useHTJ2K && !cfg.lossless {
+            let options = try CodecOptions(
+                blockCoding: .htj2k,
+                wavelet: .irreversible97,
+                quality: cfg.quality,
+                qualityLayers: 1,
+                containerFormat: .codestream
+            )
+            let encoder = try SwiftJ2K.Encoder(
+                configuration: try EncoderConfiguration(mode: .lossy, codecOptions: options)
+            )
+            let contractImage = try image.toContractImage()
+            return try await encoder.encode(contractImage).data
+        }
+        return try await J2KEncoder(encodingConfiguration: cfg).encode(image)
     }
 
     private func decode(_ data: Data) async throws -> J2KImage {
@@ -137,7 +149,7 @@ final class J2KRoundTripTests: XCTestCase {
         XCTAssertEqual(decoded.components[0].bitDepth, bitDepth)
         XCTAssertEqual(out.count, le.count)
         var mismatches = 0
-        for i in 0..<(w * h) where be16(out, i) != le16(le, i) { mismatches += 1 }
+        for i in 0..<(w * h) where le16(out, i) != le16(le, i) { mismatches += 1 }
         XCTAssertEqual(mismatches, 0, "lossless 16-bit must preserve every sample value")
     }
 
@@ -149,7 +161,6 @@ final class J2KRoundTripTests: XCTestCase {
         var cfg = J2KEncodingConfiguration()
         cfg.lossless = encoding.isLossless
         cfg.useHTJ2K = encoding.transferSyntax.isHTJ2K
-        if encoding.transferSyntax.isHTJ2K { cfg.htj2kBlockFormat = .conformant }
         if !encoding.isLossless { cfg.quality = quality }
         return cfg
     }
@@ -530,7 +541,6 @@ final class J2KRoundTripTests: XCTestCase {
         let src = gradient8(w, h)
         var cfg = lossyConfig(quality: 0.8)
         cfg.useHTJ2K = true
-        cfg.htj2kBlockFormat = .conformant
         XCTAssertFalse(cfg.lossless)
         XCTAssertTrue(cfg.useHTJ2K)
 

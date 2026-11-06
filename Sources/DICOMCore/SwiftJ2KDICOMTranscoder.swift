@@ -1,5 +1,4 @@
 import Foundation
-import DICOMCore
 import SwiftJ2K
 
 /// Lossless compressed-domain `J2K <-> HTJ2K` transcoder backed by `SwiftJ2K.Transcoder`.

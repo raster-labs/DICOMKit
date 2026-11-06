@@ -9,7 +9,6 @@ import Foundation
 import Observation
 import DICOMKit
 import DICOMCore
-import J2KCore
 
 #if canImport(CoreGraphics)
 import CoreGraphics
@@ -125,10 +124,9 @@ public final class J2KTestingViewModel {
     public let bestBackend: CodecBackend = CodecBackendProbe.bestAvailable
     public let supportMatrix: [J2KSupportEntry] = J2KTestingViewModel.buildSupportMatrix()
 
-    /// Display name for the J2KSwift codec, including its library version
-    /// (e.g. "J2KSwift 10.7.0"). Sourced from `J2KCore.getVersion()` so the
-    /// comparison UI always shows the J2KSwift build under test.
-    public nonisolated static let j2kSwiftCodecName = "J2KSwift \(J2KCore.getVersion())"
+    /// Display name for the active JPEG 2000 codec, including its library version
+    /// (e.g. "SwiftJ2K 12.1.0").
+    public nonisolated static let j2kSwiftCodecName = "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion)"
 
     // MARK: - Benchmark
 

@@ -5,7 +5,6 @@ import Testing
 import Foundation
 import DICOMCore
 import DICOMKit
-import J2KCore
 
 // MARK: - Transfer Syntax Helpers
 

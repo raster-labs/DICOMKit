@@ -1,19 +1,14 @@
 import Foundation
 
-#if canImport(J2KCore) && canImport(J2KCodec)
-import J2KCore
-import J2KCodec
-#endif
-
 /// Dedicated HTJ2K (ISO/IEC 15444-15) codec adapter for DICOMKit.
 ///
-/// Wraps `J2KSwiftCodec` with HTJ2K-specific configuration, including
+/// Wraps `J2KSwiftCodec` (backed by `SwiftJ2K`) with HTJ2K-specific configuration, including
 /// RPCL progression ordering for `.htj2kRPCLLossless` (1.2.840.10008.1.2.4.202).
 ///
 /// Reference: DICOM PS3.5 Section A.4.4 — JPEG 2000 Image Compression (the HTJ2K syntaxes .201/.202/.203 are defined there)
 ///
 /// NEMA-verified: 2026a, checked 2026-09-25 — the three HTJ2K UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1) and the RPCL requirement for .202 is in PS3.5 2026a A.4.4. The citation said A.4.6, which is MPEG-4 AVC/H.264; corrected.
-public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
+public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, ProgressiveResolutionDecodableCodec, Sendable {
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
         /// Admit any HTJ2K codestream.
@@ -179,29 +174,39 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCod
         try backing.encodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex, configuration: configuration)
     }
 
+    // MARK: - Progressive Resolution Preview
+
+    public func decodeFrameAtResolution(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        level: Int
+    ) async throws -> (data: Data, rows: Int, columns: Int) {
+        try await backing.decodeFrameAtResolution(frameData, descriptor: descriptor, level: level)
+    }
+
     // MARK: - Fast-Path Transcoding
 
-    /// The pinned J2KSwift coefficient transcoder can change decoded samples.
-    /// Use TransferSyntaxConverter with the source and target image attributes
-    /// for a lossless decode and verified re-encode.
+    /// Unscoped raw-codestream transcoding without DICOM descriptor and budget admission is disabled.
+    /// Use `TransferSyntaxConverter` or `CodecRegistry.shared.resolveJ2KTranscoder` for
+    /// descriptor-validated, budget-accounted compressed-domain lossless `J2K <-> HTJ2K` transcoding.
     public static func transcodeToHTJ2K(_ codestreamData: Data) throws -> Data {
-        throw DICOMError.unsupportedTransferSyntax("J2KSwift 11.0.3 coefficient transcoding cannot guarantee exact samples")
+        throw DICOMError.unsupportedTransferSyntax(
+            "Use TransferSyntaxConverter or CodecRegistry.shared.resolveJ2KTranscoder for descriptor-validated J2K <-> HTJ2K transcoding"
+        )
     }
 
     /// See `transcodeToHTJ2K(_:)` for the qualified alternative.
     public static func transcodeFromHTJ2K(_ codestreamData: Data) throws -> Data {
-        throw DICOMError.unsupportedTransferSyntax("J2KSwift 11.0.3 coefficient transcoding cannot guarantee exact samples")
+        throw DICOMError.unsupportedTransferSyntax(
+            "Use TransferSyntaxConverter or CodecRegistry.shared.resolveJ2KTranscoder for descriptor-validated J2K <-> HTJ2K transcoding"
+        )
     }
 
-    /// Detects whether a codestream uses HTJ2K encoding.
+    /// Detects whether a codestream uses HTJ2K encoding (`CAP` `Pcap^15` marker).
     ///
     /// - Parameter codestreamData: A JPEG 2000 codestream.
-    /// - Returns: `true` when the codestream is HTJ2K-encoded.
+    /// - Returns: `true` when the codestream carries ISO/IEC 15444-15 capability signalling.
     public static func isHTJ2K(_ codestreamData: Data) -> Bool {
-        #if canImport(J2KCore) && canImport(J2KCodec)
-        return (try? J2KTranscoder().isHTJ2K(codestreamData)) ?? false
-        #else
-        return false
-        #endif
+        J2KCodestreamInspector.imageHeader(in: codestreamData)?.hasPart15CAPMarker ?? false
     }
 }
