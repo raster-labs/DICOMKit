@@ -1,5 +1,5 @@
 {
-  "originHash" : "2c0afb224ed93bb4b68ade268af866df1944c46f5f9f601dcced2d75b6be9e2d",
+  "originHash" : "99e184136034e707307532056ad6460a41a8ee4f21c940cc415d4e97bfd61a28",
   "pins" : [
     {
       "identity" : "compressionfamily",
@@ -60,7 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftJ2K.git",
       "state" : {
-        "revision" : "c95ac7b3cbb6d76039d16390497e68a1d8a07bfc"
+        "revision" : "3059a3c87d471028f3524241ec4f881f97cac264",
+        "version" : "12.1.0"
       }
     }
   ],

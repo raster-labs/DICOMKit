@@ -5,8 +5,8 @@
 ## Package & Dependency Pinning
 
 - **Deployment floors**: `.macOS(.v26)`, `.iOS(.v26)`, `.tvOS(.v26)`, `.visionOS(.v26)`.
-- **SwiftJ2K pin**: immutable GitHub URL revision `c95ac7b3cbb6d76039d16390497e68a1d8a07bfc` (`https://github.com/raster-labs/SwiftJ2K.git`), recorded in `Integrations/DICOMSwiftJ2KIntegration/Package.resolved`.
-- **Root `DICOMKit` isolation**: root `Package.swift` retains `J2KSwift` `11.0.3` (`768f6b53499b806fd0304962056e1fc7833f12e5`) and existing OS 18 / macOS 15 deployment targets unchanged. Legacy `J2KSwiftCodec` continues refusing `.92` / `.93` Part 2 MCT encode and decode (`J2KRoutePlanner.part2MCTDecodeSupported == false`).
+- **SwiftJ2K dependency**: released SemVer version `12.1.0` (`from: "12.1.0"`, tag `v12.1.0` @ `3059a3c87d471028f3524241ec4f881f97cac264` on `https://github.com/raster-labs/SwiftJ2K.git`), recorded in `Integrations/DICOMSwiftJ2KIntegration/Package.resolved`.
+- **Root `DICOMKit` isolation**: root `Package.swift` retains `J2KSwift` `11.0.3` (`768f6b53499b806fd0304962056e1fc7833f12e5`) and existing OS 18 / macOS 15 deployment targets unchanged (including JP3D `.96`/`.97` and JPIP `.94`/`.95`/`.204`/`.205` routes until `SwiftJ2K 12.2.0`). Legacy `J2KSwiftCodec` continues refusing `.92` / `.93` Part 2 MCT encode and decode (`J2KRoutePlanner.part2MCTDecodeSupported == false`).
 
 ## Supported 2D Profiles & Transfer Syntaxes
 
