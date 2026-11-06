@@ -35,12 +35,14 @@ public struct PixelDecodeLimits: Sendable {
         }
     }
 
-    func validateManaged(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
+    /// Validate per-frame resource bounds before sample decoding, throwing `DICOMManagedFailure` on refusal.
+    public func validateManaged(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
                          frameIndex: Int) throws(DICOMManagedFailure) -> Int {
         try validateManagedOutcome(encodedByteCount: encodedByteCount, descriptor: d, frameIndex: frameIndex).get()
     }
 
-    func validateManagedOutcome(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
+    /// Validate per-frame resource bounds before sample decoding using a scalar outcome.
+    public func validateManagedOutcome(encodedByteCount: Int, descriptor d: PixelDataDescriptor,
                          frameIndex: Int) -> DICOMManagedOutcome<Int> {
         guard encodedByteCount > 0, encodedByteCount <= maximumEncodedBytes else {
             return .failure(DICOMManagedFailure(.limitExceeded, 0, encodedByteCount))

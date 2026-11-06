@@ -1009,4 +1009,149 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
         XCTAssertNil(reduced[.windowCenter])
         XCTAssertNil(reduced[.rescaleIntercept])
     }
+
+    // MARK: - 6. Phase B: Part 2 CAP/CBD Header Inspection, Provider-Aware Part 2 Routing & Managed Init
+
+    func testJ2KCodestreamInspectorParsesPart2CAPAndCBDAndPart15CAP() throws {
+        // Construct minimal valid SOC + CAP (Pcap^2 = 0x4000_0000) + SIZ (3 comps, 8-bit) + CBD (signed 12-bit) + COD + SOT + SOD
+        var stream = Data()
+        func appendU16(_ v: UInt16) {
+            stream.append(UInt8(v >> 8))
+            stream.append(UInt8(v & 0xFF))
+        }
+        func appendU32(_ v: UInt32) {
+            stream.append(UInt8((v >> 24) & 0xFF))
+            stream.append(UInt8((v >> 16) & 0xFF))
+            stream.append(UInt8((v >> 8) & 0xFF))
+            stream.append(UInt8(v & 0xFF))
+        }
+
+        appendU16(0xFF4F) // SOC
+        // CAP: Lcap=8, Pcap = Pcap^2 (0x4000_0000), Ccap^2 = 0x0001
+        appendU16(0xFF50)
+        appendU16(8)
+        appendU32(0x4000_0000)
+        appendU16(0x0001)
+        // SIZ: Lsiz = 38 + 3*3 = 47, Rsiz = 0x8002, 16x16, Csiz = 3, Ssiz = 7 (unsigned 8-bit)
+        appendU16(0xFF51)
+        appendU16(47)
+        appendU16(0x8002)
+        appendU32(16); appendU32(16)
+        appendU32(0); appendU32(0)
+        appendU32(16); appendU32(16)
+        appendU32(0); appendU32(0)
+        appendU16(3)
+        for _ in 0..<3 {
+            stream.append(7) // unsigned 8-bit in SIZ
+            stream.append(1)
+            stream.append(1)
+        }
+        // CBD (0xFF78): uniform Ncbd = 0x8003, Bd = 0x8B (signed 12-bit), Lcbd = 5
+        appendU16(0xFF78)
+        appendU16(5)
+        appendU16(0x8003)
+        stream.append(0x8B)
+        // COD (0xFF52): Lcod=12, Scod=0, SGcod(prog=0, layers=1, mct=4), SPcod(NL=1, xcb=4, ycb=4, style=0, wav=1)
+        appendU16(0xFF52)
+        appendU16(12)
+        stream.append(0)
+        stream.append(0)
+        appendU16(1)
+        stream.append(4)
+        stream.append(1); stream.append(4); stream.append(4); stream.append(0); stream.append(1)
+        // SOT + SOD + payload + EOC
+        appendU16(0xFF90)
+        appendU16(10)
+        appendU16(0)
+        appendU32(14)
+        stream.append(0); stream.append(1)
+        appendU16(0xFF93)
+        appendU16(0xFFD9)
+
+        let header = try XCTUnwrap(J2KCodestreamInspector.imageHeader(in: stream))
+        XCTAssertTrue(header.hasCAPMarker)
+        XCTAssertTrue(header.hasPart2CAPMarker)
+        XCTAssertFalse(header.hasPart15CAPMarker)
+        XCTAssertEqual(header.cbdComponents?.count, 3)
+        XCTAssertEqual(header.logicalComponents.map(\.bitDepth), [12, 12, 12])
+        XCTAssertEqual(header.logicalComponents.map(\.isSigned), [true, true, true])
+    }
+
+    func testAdmitInitializedRollsBackAndDebitsBudgetOnCallbackFailure() throws {
+        let budget = try DICOMAllocationBudget()
+        let ok = try DICOMByteBuffer.admitInitialized(count: 64, budget: budget, resource: .decoded) { slice in
+            for i in 0..<slice.count { slice[i] = UInt8(i & 0xFF) }
+            return nil
+        }.get()
+        XCTAssertEqual(ok.count, 64)
+        XCTAssertEqual(budget.receipt.current.decoded, ok.capacity)
+        XCTAssertEqual(ok.withUnsafeBytes { $0[7] }, 7)
+        _ = consumeBuffer(ok)
+        XCTAssertEqual(budget.receipt.current.decoded, 0)
+
+        let failed = DICOMByteBuffer.admitInitialized(count: 128, budget: budget, resource: .decoded) { slice in
+            slice[0] = 0xAA
+            return DICOMManagedFailure(.codecFailure)
+        }
+        switch consume failed {
+        case .success:
+            XCTFail("Expected callback failure to roll back buffer")
+        case .failure(let err):
+            XCTAssertEqual(err.code, .codecFailure)
+        }
+        XCTAssertEqual(budget.receipt.current.decoded, 0, "Failed admitInitialized must release .decoded charge")
+    }
+
+    private func consumeBuffer(_ buffer: consuming DICOMByteBuffer) -> Int { buffer.count }
+
+    func testDefaultRegistryRefusesPart2WhilePart2CapableProviderRoutesThroughCompressionAndDiagnostics() throws {
+        let native = makeNativeDataSet(rows: 8, cols: 8, frames: 1, bitsAllocated: 8, bitsStored: 8)
+        let part10 = try DICOMFile.create(dataSet: native).write()
+        let file = try DICOMFile.read(from: part10)
+        let target92 = SelectableEncoding(transferSyntax: .jpeg2000Part2Lossless, intent: .notApplicable)
+
+        // Default CodecRegistry.shared (J2KSwift 11.0.3) refuses .92 in both checkConversion and CompressionManager
+        XCTAssertThrowsError(
+            try DICOMConverter.checkConversion(dicomFile: file, to: target92, codecRegistry: .shared)
+        )
+        XCTAssertThrowsError(
+            try CompressionManager(codecRegistry: .shared)
+                .compressData(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
+        )
+
+        // A provider advertising .92 / .93 encode is permitted by both checkConversion and CompressionManager
+        let recorder = InvocationRecorder()
+        let mockPart2 = MockJ2KCodec(
+            providerID: .swiftJ2K,
+            recorder: recorder,
+            canDecodeDescriptor: { _ in true },
+            canEncodeConfig: { _, _ in true },
+            decodeAction: { _, d, _ in Data(repeating: 0, count: d.bytesPerFrame) },
+            encodeAction: { _, _, _ in [Data([0xFF, 0x4F, 0xFF, 0xD9])] }
+        )
+        let part2Provider = J2KCodecProvider(
+            providerID: .swiftJ2K,
+            supportedDecodingTransferSyntaxUIDs: [
+                TransferSyntax.jpeg2000Part2Lossless.uid,
+                TransferSyntax.jpeg2000Part2.uid
+            ],
+            supportedEncodingTransferSyntaxUIDs: [
+                TransferSyntax.jpeg2000Part2Lossless.uid,
+                TransferSyntax.jpeg2000Part2.uid
+            ],
+            makeDecoder: { _ in mockPart2 },
+            makeEncoder: { _ in mockPart2 },
+            canDecodeProfile: { _, _, _ in true },
+            canEncodeProfile: { _, _, _ in true }
+        )
+        let part2Registry = CodecRegistry(j2kProvider: part2Provider)
+        XCTAssertNoThrow(
+            try DICOMConverter.checkConversion(dicomFile: file, to: target92, codecRegistry: part2Registry)
+        )
+
+        let (_, metrics) = try CompressionManager(codecRegistry: part2Registry)
+            .compressDataWithMetrics(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
+        XCTAssertEqual(metrics.resolvedEncodeProviderID, .swiftJ2K)
+        XCTAssertEqual(recorder.snapshot.encodedCalls, [.swiftJ2K])
+    }
 }

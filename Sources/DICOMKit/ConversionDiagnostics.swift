@@ -318,7 +318,8 @@ extension DICOMConverter {
         guard target.isEncapsulated, !target.isDeflated else { return }
 
         // 5. The target needs an encoder.
-        if let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: target.uid) {
+        if !codecRegistry.hasEncoder(for: target.uid),
+           let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: target.uid) {
             throw ConversionFailure(
                 category: .unsupportedTarget, source: sourceLabel, target: targetLabel,
                 reason: reason,
@@ -342,7 +343,9 @@ extension DICOMConverter {
         }
         let configuration: DICOMCore.CompressionConfiguration = encodeLossless ? .lossless : .default
         let effectiveDescriptor: PixelDataDescriptor
-        if target.isJPEG2000, descriptor.photometricInterpretation == .ybrFull, !encodeLossless {
+        let sourceDecodesToRGB = source.isJPEG2000
+            && (descriptor.photometricInterpretation == .ybrRCT || descriptor.photometricInterpretation == .ybrICT)
+        if sourceDecodesToRGB || (target.isJPEG2000 && descriptor.photometricInterpretation == .ybrFull && !encodeLossless) {
             effectiveDescriptor = PixelDataDescriptor(
                 rows: descriptor.rows,
                 columns: descriptor.columns,

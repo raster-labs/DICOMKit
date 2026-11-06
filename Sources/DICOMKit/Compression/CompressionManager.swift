@@ -556,9 +556,11 @@ public struct CompressionManager: Sendable {
             return CompressionConfiguration(forcedBackend: forced)
         }()
 
-        // Reject unsupported target syntaxes (currently JPEG 2000 Part-2) with a clear,
+        // Reject unsupported target syntaxes (such as JPEG 2000 Part-2 when the active
+        // registry's J2K provider does not advertise a Part-2 encoder) with a clear,
         // specific reason before the generic layout check below.
-        if let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: targetSyntax.uid) {
+        if !codecRegistry.hasEncoder(for: targetSyntax.uid),
+           let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: targetSyntax.uid) {
             throw CompressionError.unsupportedPixelDataConfiguration(reason)
         }
 
@@ -644,6 +646,12 @@ public struct CompressionManager: Sendable {
                   style.componentCount == 3 else { return }
             if style.multipleComponentTransform == 1 {
                 newPI = style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT"
+            } else {
+                let existingPI = dataSet.string(for: .photometricInterpretation)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if existingPI == "YBR_RCT" || existingPI == "YBR_ICT" {
+                    newPI = "RGB"
+                }
             }
         } else if targetSyntax.uid == TransferSyntax.jpegBaseline.uid
                     || targetSyntax.uid == TransferSyntax.jpegExtended.uid {

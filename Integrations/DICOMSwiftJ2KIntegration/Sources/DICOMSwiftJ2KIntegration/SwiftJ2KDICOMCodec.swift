@@ -2,10 +2,13 @@ import Foundation
 import DICOMCore
 import SwiftJ2K
 
-/// OS 26 scalar 2D JPEG 2000 Part 1 and HTJ2K (Part 15) DICOM codec backed by `SwiftJ2K`.
+/// OS 26 2D JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Multi-component (`.92`/`.93`), and Part 15 HTJ2K
+/// (`.201`/`.202`/`.203`) DICOM codec backed by `SwiftJ2K`.
 ///
-/// Executes exclusively on `SwiftJ2K`'s verified `.scalarCPU` backend (`ExecutionPolicy.required(.scalarCPU)`),
-/// preserving exact sample values, signedness, and bit depth without implicit scaling or pointer escapes.
+/// Supports `auto` (`nil`), `.scalar`, `.accelerate` (CPU SIMD), and `.metal` (Metal GPU) backend
+/// routing without mislabelling, preserves exact sample values, signedness, and bit depth without
+/// implicit scaling or pointer escapes, and participates in `DICOMAllocationBudget` /
+/// `ManagedDecodedPixelFrame` bounded admission alongside `SwiftJ2K.ResourceLimits`.
 public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,
@@ -20,6 +23,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
     public static let supportedEncodingTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,
         TransferSyntax.jpeg2000.uid,
+        TransferSyntax.jpeg2000Part2Lossless.uid,
+        TransferSyntax.jpeg2000Part2.uid,
         TransferSyntax.htj2kLossless.uid,
         TransferSyntax.htj2kRPCLLossless.uid,
         TransferSyntax.htj2kLossy.uid
@@ -58,13 +63,63 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         )
     }
 
-    // MARK: - Pre-Execution Capability Predicates
+    // MARK: - Pre-Execution Capability & Backend Predicates
 
-    /// This first OS 26 integration slice executes on `.scalarCPU` only; explicit `.metal` or `.accelerate`
-    /// forced backend requests are refused before execution rather than mislabelled.
+    /// Checks whether the requested `CodecBackend` (`nil`/`auto`, `.scalar`, `.accelerate`, `.metal`)
+    /// is available on the current runtime without mislabelling CPU SIMD vs Metal GPU execution.
     public static func supportsBackend(_ backend: CodecBackend?) -> Bool {
         guard let backend else { return true }
-        return backend == .scalar
+        switch backend {
+        case .scalar:
+            return true
+        case .accelerate:
+            return CodecCapabilities.isSIMDAvailable
+        case .metal:
+            return CodecCapabilities.isMetalAvailable
+        }
+    }
+
+    static func resolveExecution(
+        for backend: CodecBackend?
+    ) -> (policy: ExecutionPolicy, enginePreference: AcceleratedEnginePreference) {
+        guard let backend else {
+            return (.automatic, .automatic)
+        }
+        switch backend {
+        case .scalar:
+            return (.required(.scalarCPU), .automatic)
+        case .accelerate:
+            return (.required(.accelerated), .cpuSIMD)
+        case .metal:
+            return (.required(.accelerated), .metalGPU)
+        }
+    }
+
+    static func verifyExecutedBackend(
+        report: OperationReport,
+        requested: CodecBackend?
+    ) throws {
+        guard let requested else { return }
+        switch requested {
+        case .scalar:
+            guard report.backend == .scalarCPU && report.acceleratedEngine == .none else {
+                throw DICOMError.parsingFailed(
+                    "Requested scalar backend, but SwiftJ2K reported backend=\(report.backend) engine=\(report.acceleratedEngine)"
+                )
+            }
+        case .accelerate:
+            guard report.backend == .accelerated && report.acceleratedEngine == .cpuSIMD else {
+                throw DICOMError.parsingFailed(
+                    "Requested CPU SIMD (.accelerate) backend, but SwiftJ2K reported backend=\(report.backend) engine=\(report.acceleratedEngine)"
+                )
+            }
+        case .metal:
+            guard report.backend == .accelerated && report.acceleratedEngine == .metalGPU else {
+                throw DICOMError.parsingFailed(
+                    "Requested Metal GPU (.metal) backend, but SwiftJ2K reported backend=\(report.backend) engine=\(report.acceleratedEngine)"
+                )
+            }
+        }
     }
 
     public static func supportsDecodeProfile(
@@ -73,7 +128,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         decodeBackend: CodecBackend?,
         options: SwiftJ2KProviderOptions = .default
     ) -> Bool {
-        guard supportsBackend(decodeBackend) else { return false }
+        let effectiveBackend = decodeBackend ?? options.defaultBackend
+        guard supportsBackend(effectiveBackend) else { return false }
         if let transferSyntaxUID, !supportedTransferSyntaxes.contains(transferSyntaxUID) {
             return false
         }
@@ -106,11 +162,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         descriptor: PixelDataDescriptor,
         options: SwiftJ2KProviderOptions = .default
     ) -> Bool {
-        guard supportsBackend(configuration.forcedBackend) else { return false }
-        if let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: transferSyntaxUID) {
-            _ = reason
-            return false
-        }
+        let effectiveBackend = configuration.forcedBackend ?? options.defaultBackend
+        guard supportsBackend(effectiveBackend) else { return false }
         if let transferSyntaxUID, !supportedEncodingTransferSyntaxes.contains(transferSyntaxUID) {
             return false
         }
@@ -119,14 +172,6 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         }
         if let maxBits = configuration.maxBitsPerSample, maxBits < descriptor.bitsStored {
             // Never silently reduce bit depth in the successor integration.
-            return false
-        }
-
-        let intent = J2KRoutePlanner.resolveIntent(uid: transferSyntaxUID, configuration: configuration)
-        let family = J2KRoutePlanner.compressionType(forUID: transferSyntaxUID)
-
-        // SwiftJ2K 76850bc supports lossless HTJ2K (Part 15) only; refuse lossy .203 before execution.
-        if family == .htj2k && !intent.isLossless {
             return false
         }
 
@@ -152,6 +197,15 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         default:
             return false
         }
+    }
+
+    public func canDecode(_ descriptor: PixelDataDescriptor) -> Bool {
+        Self.supportsDecodeProfile(
+            transferSyntaxUID: decodingTransferSyntaxUID,
+            descriptor: descriptor,
+            decodeBackend: decodeBackend,
+            options: options
+        )
     }
 
     public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
@@ -247,6 +301,271 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         }
     }
 
+    // MARK: - Managed Budget-Accounted Decoding
+
+    /// Decode a JPEG 2000 Part 1 / Part 2 / HTJ2K frame into explicitly admitted `DICOMAllocationBudget` backing.
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData,
+            descriptor: descriptor,
+            frameIndex: frameIndex,
+            budget: budget,
+            cancellation: cancellation
+        ).get()
+    }
+
+    /// Throwing compatibility adapter for an admitted worker; use the outcome overload inside qualified work.
+    @available(*, noasync, message: "Invoke on the synchronous worker owning the execution reservation")
+    public func decodeManagedPixelFrame(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
+        try decodeManagedPixelFrameOutcome(
+            frameData,
+            descriptor: descriptor,
+            frameIndex: frameIndex,
+            budget: budget,
+            execution: execution,
+            cancellation: cancellation
+        ).get()
+    }
+
+    /// Decode on the original admitted worker with scalar identity/refusal status.
+    @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        execution: borrowing DICOMExecutionReservation,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        switch execution.validateOutcome(budget: budget) {
+        case .success: break
+        case .failure(let failure): return .failure(DICOMManagedFailure(allocation: failure))
+        }
+        return decodeManagedPixelFrameOutcome(
+            frameData,
+            descriptor: descriptor,
+            frameIndex: frameIndex,
+            budget: budget,
+            cancellation: cancellation
+        )
+    }
+
+    /// Decode a JPEG 2000 Part 1 / Part 2 / HTJ2K frame using scalar outcomes and budget-owned `.staging` / `.decoded` backing.
+    @available(*, noasync, message: "Invoke on a synchronous worker thread outside Swift's cooperative pool")
+    public func decodeManagedPixelFrameOutcome(
+        _ frameData: borrowing DICOMByteBuffer,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        budget: borrowing DICOMAllocationBudget,
+        cancellation: DICOMCancellation = .never
+    ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        guard frameData.isOwned(by: budget) else {
+            return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
+        }
+
+        let expectedBytes: Int
+        switch options.decodingLimits.validateManagedOutcome(
+            encodedByteCount: frameData.count,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        ) {
+        case .success(let value): expectedBytes = value
+        case .failure(let failure): return .failure(failure)
+        }
+
+        let effectiveBackend = decodeBackend ?? options.defaultBackend
+        guard Self.supportsBackend(effectiveBackend) else {
+            return .failure(DICOMManagedFailure(.invalidTransferSyntax, 500, domain: 2))
+        }
+        if let uid = decodingTransferSyntaxUID, !Self.supportedTransferSyntaxes.contains(uid) {
+            return .failure(DICOMManagedFailure(.invalidTransferSyntax, 501, domain: 2))
+        }
+        guard frameData.count <= options.resourceLimits.maximumCompressedBytes,
+              descriptor.rows <= options.resourceLimits.maximumDimension,
+              descriptor.columns <= options.resourceLimits.maximumDimension,
+              descriptor.pixelsPerFrame <= options.resourceLimits.maximumPixels,
+              expectedBytes <= options.resourceLimits.maximumDecodedBytes else {
+            return .failure(DICOMManagedFailure(.limitExceeded, 502, domain: 2))
+        }
+        guard Self.supportsDecodeProfile(
+            transferSyntaxUID: decodingTransferSyntaxUID,
+            descriptor: descriptor,
+            decodeBackend: decodeBackend,
+            options: options
+        ) else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 503, domain: 2))
+        }
+
+        let swiftDescriptor: ImageDescriptor
+        do {
+            swiftDescriptor = try Self.makeSwiftImageDescriptor(
+                from: descriptor,
+                limits: options.resourceLimits
+            )
+        } catch {
+            return .failure(SwiftJ2KSyncBridge.translateManagedError(error))
+        }
+
+        return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
+            guard let encodedBase = encoded.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  encoded.count >= 2 else {
+                return .failure(DICOMManagedFailure(.malformed, 504, domain: 2))
+            }
+
+            let isBareCodestream = encodedBase[0] == 0xFF && encodedBase[1] == 0x4F
+            let initialCount: Int
+            if isBareCodestream,
+               encoded.count >= 4,
+               encoded.count % 2 == 0,
+               encodedBase[encoded.count - 3] == 0xFF,
+               encodedBase[encoded.count - 2] == 0xD9,
+               encodedBase[encoded.count - 1] == 0x00 {
+                initialCount = encoded.count - 1
+            } else {
+                initialCount = encoded.count
+            }
+
+            var resolvedCount = initialCount
+            let initialView = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: encodedBase),
+                count: initialCount,
+                deallocator: .none
+            )
+            if let headerFailure = Self.validateCodestreamHeaderManaged(
+                initialView,
+                descriptor: descriptor,
+                transferSyntaxUID: decodingTransferSyntaxUID
+            ) {
+                if !isBareCodestream,
+                   initialCount == encoded.count,
+                   encoded.count % 2 == 0,
+                   encodedBase[encoded.count - 1] == 0x00 {
+                    let unpaddedView = Data(
+                        bytesNoCopy: UnsafeMutableRawPointer(mutating: encodedBase),
+                        count: encoded.count - 1,
+                        deallocator: .none
+                    )
+                    if Self.validateCodestreamHeaderManaged(
+                        unpaddedView,
+                        descriptor: descriptor,
+                        transferSyntaxUID: decodingTransferSyntaxUID
+                    ) == nil {
+                        resolvedCount = encoded.count - 1
+                    } else {
+                        return .failure(headerFailure)
+                    }
+                } else {
+                    return .failure(headerFailure)
+                }
+            }
+
+            let (stagingByteCount, stagingOverflow) = expectedBytes.addingReportingOverflow(resolvedCount)
+            guard !stagingOverflow, stagingByteCount > 0 else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 505, domain: 2))
+            }
+
+            let isLosslessOnly = decodingTransferSyntaxUID.map(Self.losslessOnlyTransferSyntaxes.contains) ?? false
+            let decoded: DecodedImage
+            do {
+                let staging: DICOMAllocationLease
+                switch budget.reserveOutcome(stagingByteCount, as: .staging) {
+                case .success(let value): staging = value
+                case .failure(let error): return .failure(DICOMManagedFailure(allocation: error))
+                }
+                if let failure = cancellation.failure {
+                    _ = staging.isOwned(by: budget)
+                    return .failure(failure)
+                }
+
+                let codestream = Data(bytes: encodedBase, count: resolvedCount)
+                let prepared = PreparedDecode(
+                    codestream: codestream,
+                    swiftDescriptor: swiftDescriptor,
+                    expectedFrameBytes: expectedBytes,
+                    transferSyntaxUID: decodingTransferSyntaxUID,
+                    isLosslessOnly: isLosslessOnly,
+                    requestedBackend: effectiveBackend
+                )
+                let decodeOutcome = SwiftJ2KSyncBridge.runManaged(
+                    options: options,
+                    cancellation: cancellation
+                ) { [options] in
+                    try await Self.executeDecode(prepared: prepared, options: options)
+                }
+                _ = staging.isOwned(by: budget)
+                switch decodeOutcome {
+                case .success(let value): decoded = value
+                case .failure(let failure): return .failure(failure)
+                }
+            }
+
+            do {
+                try Self.verifyExecutedBackend(report: decoded.report, requested: effectiveBackend)
+            } catch {
+                return .failure(DICOMManagedFailure(.codecResultMismatch, 506, domain: 2))
+            }
+            if isLosslessOnly && decoded.report.fidelity != .exactSamples {
+                return .failure(DICOMManagedFailure(.malformed, 507, domain: 2))
+            }
+
+            options.telemetryHandler?(SwiftJ2KOperationRecord(
+                kind: .decode,
+                transferSyntaxUID: decodingTransferSyntaxUID ?? "unknown",
+                targetTransferSyntaxUID: nil,
+                frameIndex: frameIndex,
+                report: decoded.report
+            ))
+
+            switch DICOMByteBuffer.admitInitialized(
+                count: expectedBytes,
+                budget: budget,
+                resource: .decoded,
+                initializingWith: { dst in
+                    if let failure = cancellation.failure {
+                        return failure
+                    }
+                    do {
+                        return try decoded.image.storage.withUnsafeBytes { rawBytes in
+                            guard rawBytes.count >= expectedBytes,
+                                  let srcBase = rawBytes.baseAddress,
+                                  let dstBase = dst.baseAddress else {
+                                return DICOMManagedFailure(.codecResultMismatch, 508, domain: 2)
+                            }
+                            dstBase.copyMemory(from: srcBase, byteCount: expectedBytes)
+                            return nil
+                        }
+                    } catch {
+                        return DICOMManagedFailure(.codecFailure, 509, domain: 2)
+                    }
+                }
+            ) {
+            case .failure(let failure):
+                return .failure(failure)
+            case .success(let outputBuffer):
+                return .success(ManagedDecodedPixelFrame(
+                    data: outputBuffer,
+                    descriptor: Self.outputDescriptor(for: descriptor),
+                    sourceFrameIndex: frameIndex
+                ))
+            }
+        }
+    }
+
     // MARK: - Encoding
 
     public func encodeFrame(
@@ -298,6 +617,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         let expectedFrameBytes: Int
         let transferSyntaxUID: String?
         let isLosslessOnly: Bool
+        let requestedBackend: CodecBackend?
     }
 
     struct PreparedEncode: Sendable {
@@ -305,6 +625,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         let encoderConfiguration: EncoderConfiguration
         let transferSyntaxUID: String
         let isLossless: Bool
+        let requestedBackend: CodecBackend?
     }
 
     static func outputDescriptor(for descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
@@ -439,14 +760,116 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         }
     }
 
+    private static func validateCodestreamHeader(
+        _ codestream: Data,
+        descriptor: PixelDataDescriptor,
+        transferSyntaxUID: String?
+    ) throws {
+        guard let header = J2KCodestreamInspector.imageHeader(in: codestream) else {
+            throw DICOMError.parsingFailed("Malformed JPEG 2000 codestream: missing valid SOC/SIZ header")
+        }
+        guard header.width == descriptor.columns, header.height == descriptor.rows else {
+            throw DICOMError.parsingFailed(
+                "JPEG 2000 SIZ dimensions (\(header.width)x\(header.height)) do not match DICOM descriptor (\(descriptor.columns)x\(descriptor.rows))"
+            )
+        }
+        for sizComp in header.components {
+            guard sizComp.subsamplingX == 1, sizComp.subsamplingY == 1 else {
+                throw DICOMError.parsingFailed(
+                    "JPEG 2000 component subsampling (\(sizComp.subsamplingX)x\(sizComp.subsamplingY)) is unsupported"
+                )
+            }
+        }
+        let logicalComponents = header.logicalComponents
+        guard logicalComponents.count == descriptor.samplesPerPixel else {
+            throw DICOMError.parsingFailed(
+                "JPEG 2000 logical component count (\(logicalComponents.count)) does not match SamplesPerPixel (\(descriptor.samplesPerPixel))"
+            )
+        }
+        for comp in logicalComponents {
+            guard comp.bitDepth == descriptor.bitsStored,
+                  comp.isSigned == descriptor.isSigned else {
+                throw DICOMError.parsingFailed(
+                    "JPEG 2000 logical component header (bitDepth=\(comp.bitDepth), signed=\(comp.isSigned)) conflicts with DICOM descriptor (bitsStored=\(descriptor.bitsStored), signed=\(descriptor.isSigned))"
+                )
+            }
+        }
+
+        let isLosslessOnly = transferSyntaxUID.map(Self.losslessOnlyTransferSyntaxes.contains) ?? false
+        if isLosslessOnly, J2KCodestreamInspector.usesIrreversibleWavelet(in: codestream) {
+            throw DICOMError.parsingFailed(
+                "JPEG 2000 codestream selects the irreversible 9/7 wavelet under lossless-only transfer syntax \(transferSyntaxUID ?? "")"
+            )
+        }
+
+        if let uid = transferSyntaxUID {
+            let isHTSyntax = uid == TransferSyntax.htj2kLossless.uid
+                || uid == TransferSyntax.htj2kRPCLLossless.uid
+                || uid == TransferSyntax.htj2kLossy.uid
+            let isPart1Syntax = uid == TransferSyntax.jpeg2000Lossless.uid
+                || uid == TransferSyntax.jpeg2000.uid
+            let isPart2Syntax = uid == TransferSyntax.jpeg2000Part2Lossless.uid
+                || uid == TransferSyntax.jpeg2000Part2.uid
+            let hasPart2Markers = J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream)
+                || header.cbdComponents != nil
+                || header.hasPart2CAPMarker
+
+            if isHTSyntax {
+                if !header.hasPart15CAPMarker {
+                    throw DICOMError.parsingFailed("HTJ2K transfer syntax \(uid) requires an ISO/IEC 15444-15 CAP marker")
+                }
+                if hasPart2Markers {
+                    throw DICOMError.parsingFailed("HTJ2K transfer syntax \(uid) must not carry Part 2 multi-component transform markers")
+                }
+            }
+            if isPart1Syntax {
+                if header.hasCAPMarker {
+                    throw DICOMError.parsingFailed("Part 1 JPEG 2000 transfer syntax \(uid) must not carry a CAP marker")
+                }
+                if hasPart2Markers {
+                    throw DICOMError.parsingFailed("Part 1 JPEG 2000 transfer syntax \(uid) must not carry Part 2 multi-component transform markers")
+                }
+            }
+            if isPart2Syntax && header.hasPart15CAPMarker {
+                throw DICOMError.parsingFailed("Part 2 JPEG 2000 transfer syntax \(uid) must not carry an HTJ2K Part 15 CAP marker")
+            }
+            if uid == TransferSyntax.htj2kRPCLLossless.uid {
+                let violations = J2KCodestreamInspector.htj2kRPCLViolations(
+                    in: codestream,
+                    rows: descriptor.rows,
+                    columns: descriptor.columns
+                )
+                if !violations.isEmpty {
+                    throw DICOMError.parsingFailed(
+                        "HTJ2K RPCL Lossless (.202) violation: \(violations.joined(separator: "; "))"
+                    )
+                }
+            }
+        }
+    }
+
+    private static func validateCodestreamHeaderManaged(
+        _ codestream: Data,
+        descriptor: PixelDataDescriptor,
+        transferSyntaxUID: String?
+    ) -> DICOMManagedFailure? {
+        do {
+            try validateCodestreamHeader(codestream, descriptor: descriptor, transferSyntaxUID: transferSyntaxUID)
+            return nil
+        } catch {
+            return DICOMManagedFailure(.malformed, 509, domain: 2)
+        }
+    }
+
     private func prepareDecode(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
         frameIndex: Int
     ) throws -> PreparedDecode {
-        guard Self.supportsBackend(decodeBackend) else {
+        let effectiveBackend = decodeBackend ?? options.defaultBackend
+        guard Self.supportsBackend(effectiveBackend) else {
             throw DICOMError.unsupportedTransferSyntax(
-                "SwiftJ2K scalar OS 26 provider does not support forced decode backend '\(decodeBackend?.rawValue ?? "unknown")'"
+                "SwiftJ2K OS 26 provider cannot satisfy forced decode backend '\(effectiveBackend?.rawValue ?? "unknown")' on this runtime"
             )
         }
         if let uid = decodingTransferSyntaxUID, !Self.supportedTransferSyntaxes.contains(uid) {
@@ -496,65 +919,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         }
 
         let codestream = Self.stripTrailingEvenPadByteIfPresent(frameData)
-        if let part2Reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: codestream) {
-            throw DICOMError.unsupportedTransferSyntax(part2Reason)
-        }
-        guard let header = J2KCodestreamInspector.imageHeader(in: codestream) else {
-            throw DICOMError.parsingFailed("Malformed JPEG 2000 codestream: missing valid SOC/SIZ header")
-        }
-        guard header.width == descriptor.columns, header.height == descriptor.rows else {
-            throw DICOMError.parsingFailed(
-                "JPEG 2000 SIZ dimensions (\(header.width)x\(header.height)) do not match DICOM descriptor (\(descriptor.columns)x\(descriptor.rows))"
-            )
-        }
-        guard header.components.count == descriptor.samplesPerPixel else {
-            throw DICOMError.parsingFailed(
-                "JPEG 2000 component count (\(header.components.count)) does not match SamplesPerPixel (\(descriptor.samplesPerPixel))"
-            )
-        }
-        for comp in header.components {
-            guard comp.bitDepth == descriptor.bitsStored,
-                  comp.isSigned == descriptor.isSigned,
-                  comp.subsamplingX == 1,
-                  comp.subsamplingY == 1 else {
-                throw DICOMError.parsingFailed(
-                    "JPEG 2000 component header (bitDepth=\(comp.bitDepth), signed=\(comp.isSigned), subsampling=\(comp.subsamplingX)x\(comp.subsamplingY)) conflicts with DICOM descriptor"
-                )
-            }
-        }
-
-        let isLosslessOnly = decodingTransferSyntaxUID.map(Self.losslessOnlyTransferSyntaxes.contains) ?? false
-        if isLosslessOnly, J2KCodestreamInspector.usesIrreversibleWavelet(in: codestream) {
-            throw DICOMError.parsingFailed(
-                "JPEG 2000 codestream selects the irreversible 9/7 wavelet under lossless-only transfer syntax \(decodingTransferSyntaxUID ?? "")"
-            )
-        }
-
-        if let uid = decodingTransferSyntaxUID {
-            let isHTSyntax = uid == TransferSyntax.htj2kLossless.uid
-                || uid == TransferSyntax.htj2kRPCLLossless.uid
-                || uid == TransferSyntax.htj2kLossy.uid
-            let isPart1Syntax = uid == TransferSyntax.jpeg2000Lossless.uid
-                || uid == TransferSyntax.jpeg2000.uid
-            if isHTSyntax && !header.hasCAPMarker {
-                throw DICOMError.parsingFailed("HTJ2K transfer syntax \(uid) requires an ISO/IEC 15444-15 CAP marker")
-            }
-            if isPart1Syntax && header.hasCAPMarker {
-                throw DICOMError.parsingFailed("Part 1 JPEG 2000 transfer syntax \(uid) must not carry an HTJ2K CAP marker")
-            }
-            if uid == TransferSyntax.htj2kRPCLLossless.uid {
-                let violations = J2KCodestreamInspector.htj2kRPCLViolations(
-                    in: codestream,
-                    rows: descriptor.rows,
-                    columns: descriptor.columns
-                )
-                if !violations.isEmpty {
-                    throw DICOMError.parsingFailed(
-                        "HTJ2K RPCL Lossless (.202) violation: \(violations.joined(separator: "; "))"
-                    )
-                }
-            }
-        }
+        try Self.validateCodestreamHeader(codestream, descriptor: descriptor, transferSyntaxUID: decodingTransferSyntaxUID)
 
         let swiftDescriptor: ImageDescriptor
         do {
@@ -566,12 +931,14 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             throw SwiftJ2KSyncBridge.translateError(error)
         }
 
+        let isLosslessOnly = decodingTransferSyntaxUID.map(Self.losslessOnlyTransferSyntaxes.contains) ?? false
         return PreparedDecode(
             codestream: codestream,
             swiftDescriptor: swiftDescriptor,
             expectedFrameBytes: geometry.frameBytes,
             transferSyntaxUID: decodingTransferSyntaxUID,
-            isLosslessOnly: isLosslessOnly
+            isLosslessOnly: isLosslessOnly,
+            requestedBackend: effectiveBackend
         )
     }
 
@@ -584,9 +951,11 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             limits: options.resourceLimits
         )
         let decoder = try Decoder()
+        let execution = resolveExecution(for: prepared.requestedBackend)
         let decodeOptions = DecodeOptions(
             resourceLimits: options.resourceLimits,
-            executionPolicy: .required(.scalarCPU),
+            executionPolicy: execution.policy,
+            acceleratedEnginePreference: execution.enginePreference,
             copyPolicy: .requireSharedStorage,
             metadataPolicy: .preserve
         )
@@ -598,9 +967,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         prepared: PreparedDecode,
         frameIndex: Int
     ) throws {
-        guard decoded.report.backend == .scalarCPU else {
-            throw DICOMError.parsingFailed("Unexpected non-scalar SwiftJ2K backend reported in scalar provider")
-        }
+        try Self.verifyExecutedBackend(report: decoded.report, requested: prepared.requestedBackend)
         if prepared.isLosslessOnly && decoded.report.fidelity != .exactSamples {
             throw DICOMError.parsingFailed(
                 "Lossless-only transfer syntax \(prepared.transferSyntaxUID ?? "") produced non-exact fidelity (\(decoded.report.fidelity))"
@@ -621,12 +988,10 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         frameIndex: Int,
         configuration: CompressionConfiguration
     ) throws -> PreparedEncode {
-        if let reason = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: encodingTransferSyntaxUID) {
-            throw DICOMError.unsupportedTransferSyntax(reason)
-        }
-        guard Self.supportsBackend(configuration.forcedBackend) else {
+        let effectiveBackend = configuration.forcedBackend ?? options.defaultBackend
+        guard Self.supportsBackend(effectiveBackend) else {
             throw DICOMError.unsupportedTransferSyntax(
-                "SwiftJ2K scalar OS 26 provider does not support forced encode backend '\(configuration.forcedBackend?.rawValue ?? "unknown")'"
+                "SwiftJ2K OS 26 provider cannot satisfy forced encode backend '\(effectiveBackend?.rawValue ?? "unknown")' on this runtime"
             )
         }
         let targetUID = encodingTransferSyntaxUID ?? TransferSyntax.jpeg2000Lossless.uid
@@ -636,11 +1001,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
 
         let intent = J2KRoutePlanner.resolveIntent(uid: targetUID, configuration: configuration)
         let family = J2KRoutePlanner.compressionType(forUID: targetUID)
-        if family == .htj2k && !intent.isLossless {
-            throw DICOMError.unsupportedTransferSyntax(
-                "SwiftJ2K 76850bc supports lossless HTJ2K encoding only; lossy HTJ2K (\(targetUID)) is not supported"
-            )
-        }
+
         guard frameIndex >= 0, frameIndex < descriptor.numberOfFrames else {
             throw DICOMError.parsingFailed("Invalid frame index \(frameIndex) for \(descriptor.numberOfFrames)-frame image")
         }
@@ -718,10 +1079,14 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             }
 
             let isLossless = intent.isLossless
+            let isPart2 = (family == .part2)
             let blockCoding: CodecOptions.BlockCoding = (family == .htj2k) ? .htj2k : .part1
             let wavelet: CodecOptions.WaveletTransform = isLossless ? .reversible53 : .irreversible97
+            let multiComponentTransform: CodecOptions.MultiComponentTransform = isPart2 ? .part2 : .automatic
             let colourTransform: CodecOptions.ColourTransform
-            if descriptor.samplesPerPixel == 3 {
+            if isPart2 {
+                colourTransform = (descriptor.samplesPerPixel == 3) ? .automatic : .none
+            } else if descriptor.samplesPerPixel == 3 {
                 colourTransform = isLossless ? .rct : .ict
             } else {
                 colourTransform = .none
@@ -747,7 +1112,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
                 colourTransform: colourTransform,
                 progressionOrder: progressionOrder,
                 quality: isLossless ? nil : configuration.quality.value,
-                containerFormat: .codestream
+                containerFormat: .codestream,
+                multiComponentTransform: multiComponentTransform
             )
             encoderConfiguration = try EncoderConfiguration(
                 mode: isLossless ? .lossless : .lossy,
@@ -761,7 +1127,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             image: image,
             encoderConfiguration: encoderConfiguration,
             transferSyntaxUID: targetUID,
-            isLossless: intent.isLossless
+            isLossless: intent.isLossless,
+            requestedBackend: effectiveBackend
         )
     }
 
@@ -770,9 +1137,11 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         options: SwiftJ2KProviderOptions
     ) async throws -> EncodedImage {
         let encoder = try Encoder(configuration: prepared.encoderConfiguration)
+        let execution = resolveExecution(for: prepared.requestedBackend)
         let encodeOptions = EncodeOptions(
             resourceLimits: options.resourceLimits,
-            executionPolicy: .required(.scalarCPU),
+            executionPolicy: execution.policy,
+            acceleratedEnginePreference: execution.enginePreference,
             copyPolicy: .requireSharedStorage,
             metadataPolicy: .preserve
         )
@@ -785,9 +1154,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         descriptor: PixelDataDescriptor,
         frameIndex: Int
     ) throws -> Data {
-        guard encoded.report.backend == .scalarCPU else {
-            throw DICOMError.parsingFailed("Unexpected non-scalar SwiftJ2K backend reported in scalar provider")
-        }
+        try Self.verifyExecutedBackend(report: encoded.report, requested: prepared.requestedBackend)
         let expectedFidelity: Fidelity = prepared.isLossless ? .exactSamples : .lossy
         guard encoded.report.fidelity == expectedFidelity else {
             throw DICOMError.parsingFailed(

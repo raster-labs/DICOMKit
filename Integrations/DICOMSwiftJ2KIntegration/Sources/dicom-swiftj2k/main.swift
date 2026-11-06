@@ -29,6 +29,8 @@ private struct TelemetrySummaryEntry: Codable {
     let targetTransferSyntaxUID: String?
     let frameIndex: Int
     let backend: String
+    let acceleratedEngine: String
+    let dicomBackend: String?
     let fallbackReason: String?
     let fidelity: String
     let pixelAllocationCount: Int?
@@ -75,6 +77,10 @@ private func backendLabel(_ backend: Backend) -> String {
     }
 }
 
+private func acceleratedEngineLabel(_ engine: AcceleratedEngine) -> String {
+    engine.rawValue
+}
+
 private func fallbackLabel(_ policy: J2KProviderFallbackPolicy) -> String {
     switch policy {
     case .strict:
@@ -89,7 +95,7 @@ private func printUsage(to stream: UnsafeMutablePointer<FILE> = stderr) {
     Usage:
       dicom-swiftj2k compress <input> <output> --codec <name> [--quality <preset|0.0..1.0>] [--provider swiftj2k|j2kswift] [--fallback strict|predecessor] [--backend auto|scalar|accelerate|metal] [--report-json <path>]
       dicom-swiftj2k decompress <input> <output> [--provider swiftj2k|j2kswift] [--fallback strict|predecessor] [--backend auto|scalar|accelerate|metal] [--report-json <path>]
-      dicom-swiftj2k convert <input> <output> --transfer-syntax <token|uid> [--strip-private] [--provider swiftj2k|j2kswift] [--fallback strict|predecessor] [--report-json <path>]
+      dicom-swiftj2k convert <input> <output> --transfer-syntax <token|uid> [--strip-private] [--provider swiftj2k|j2kswift] [--fallback strict|predecessor] [--backend auto|scalar|accelerate|metal] [--report-json <path>]
       dicom-swiftj2k info <input>
       dicom-swiftj2k --help
     """
@@ -231,12 +237,16 @@ private func parseArguments(_ rawArgs: [String]) throws -> CLIArguments? {
 private func buildRegistry(
     provider: String,
     fallback: J2KProviderFallbackPolicy,
+    backend: CodecBackendPreference,
     collector: SwiftJ2KTelemetryCollector
 ) -> CodecRegistry {
     if provider == "j2kswift" {
         return .j2kSwiftRollback
     }
-    let options = SwiftJ2KProviderOptions(collector: collector)
+    let options = SwiftJ2KProviderOptions(
+        defaultBackend: backend.forced,
+        collector: collector
+    )
     return .swiftJ2K(options: options, fallbackPolicy: fallback)
 }
 
@@ -256,6 +266,8 @@ private func mapTelemetry(_ records: [SwiftJ2KOperationRecord]) -> [TelemetrySum
             targetTransferSyntaxUID: record.targetTransferSyntaxUID,
             frameIndex: record.frameIndex,
             backend: backendLabel(record.report.backend),
+            acceleratedEngine: acceleratedEngineLabel(record.report.acceleratedEngine),
+            dicomBackend: record.dicomBackend?.rawValue,
             fallbackReason: record.report.fallbackReason,
             fidelity: fidelityLabel(record.report.fidelity),
             pixelAllocationCount: record.report.pixelAllocationCount,
@@ -281,7 +293,12 @@ private func runCLI() -> CLIExitStatus {
     }
 
     let collector = SwiftJ2KTelemetryCollector()
-    let registry = buildRegistry(provider: args.provider, fallback: args.fallback, collector: collector)
+    let registry = buildRegistry(
+        provider: args.provider,
+        fallback: args.fallback,
+        backend: args.backend,
+        collector: collector
+    )
 
     do {
         switch args.subcommand {

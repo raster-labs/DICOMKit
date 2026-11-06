@@ -65,7 +65,7 @@ enum SwiftJ2KSyncBridge {
                     return try unwrapResult(settled)
                 }
                 throw DICOMError.limitExceeded(
-                    "SwiftJ2K scalar operation exceeded deadline (\(options.resourceLimits.deadlineSeconds)s)"
+                    "SwiftJ2K operation exceeded deadline (\(options.resourceLimits.deadlineSeconds)s)"
                 )
             }
         }
@@ -75,6 +75,114 @@ enum SwiftJ2KSyncBridge {
             throw DICOMError.parsingFailed("SwiftJ2K synchronous bridge completed without a result")
         }
         return try unwrapResult(settled)
+    }
+
+    /// Scalar-outcome synchronous bridge for `DICOMAllocationBudget` / `ManagedDecodedPixelFrame` decoding.
+    /// Propagates synchronous `DICOMCancellation` callbacks, cooperative `Task` cancellation, and finite
+    /// wall-clock deadlines with bounded worker join.
+    static func runManaged<T: Sendable>(
+        options: SwiftJ2KProviderOptions,
+        cancellation: DICOMCancellation,
+        operation: @escaping @Sendable () async throws -> T
+    ) -> DICOMManagedOutcome<T> {
+        if let failure = cancellation.failure {
+            return .failure(failure)
+        }
+        if Task.isCancelled {
+            return .failure(DICOMManagedFailure(.cancelled))
+        }
+
+        let semaphore = DispatchSemaphore(value: 0)
+        let resultBox = Mutex<Result<T, any Error>?>(nil)
+
+        let worker = Task.detached(executorPreference: SwiftJ2KTaskExecutor.shared, priority: .userInitiated) {
+            let outcome: Result<T, any Error>
+            do {
+                outcome = .success(try await operation())
+            } catch {
+                outcome = .failure(error)
+            }
+            resultBox.withLock { $0 = outcome }
+            semaphore.signal()
+        }
+
+        let clock = ContinuousClock()
+        let totalBudgetSeconds = max(0.05, options.resourceLimits.deadlineSeconds + min(options.joinGraceSeconds, 2.0))
+        let hardDeadline = clock.now.advanced(by: .milliseconds(Int((totalBudgetSeconds * 1_000.0).rounded(.up))))
+        let joinTimeoutMs = max(50, Int((options.joinGraceSeconds * 1_000.0).rounded(.up)))
+
+        while semaphore.wait(timeout: .now() + .milliseconds(5)) == .timedOut {
+            if let failure = cancellation.failure {
+                worker.cancel()
+                _ = semaphore.wait(timeout: .now() + .milliseconds(joinTimeoutMs))
+                return .failure(failure)
+            }
+            if Task.isCancelled {
+                worker.cancel()
+                _ = semaphore.wait(timeout: .now() + .milliseconds(joinTimeoutMs))
+                return .failure(DICOMManagedFailure(.cancelled))
+            }
+            if clock.now >= hardDeadline {
+                worker.cancel()
+                _ = semaphore.wait(timeout: .now() + .milliseconds(joinTimeoutMs))
+                if let settled = resultBox.withLock({ $0 }) {
+                    return translateManagedResult(settled)
+                }
+                return .failure(DICOMManagedFailure(.limitExceeded, 3, domain: 2))
+            }
+        }
+
+        if let failure = cancellation.failure {
+            return .failure(failure)
+        }
+        if Task.isCancelled {
+            return .failure(DICOMManagedFailure(.cancelled))
+        }
+        guard let settled = resultBox.withLock({ $0 }) else {
+            return .failure(DICOMManagedFailure(.codecFailure, 1, domain: 2))
+        }
+        return translateManagedResult(settled)
+    }
+
+    static func translateManagedError(_ error: any Error) -> DICOMManagedFailure {
+        if error is CancellationError {
+            return DICOMManagedFailure(.cancelled)
+        }
+        if let managed = error as? DICOMManagedFailure {
+            return managed
+        }
+        if let codecError = error as? CodecError {
+            switch codecError.category {
+            case .resourceLimitExceeded:
+                return DICOMManagedFailure(.limitExceeded, 4, domain: 2)
+            case .unsupportedFeature, .unsupportedFormat, .backendUnavailable:
+                return DICOMManagedFailure(.invalidTransferSyntax, 5, domain: 2)
+            case .malformedInput, .invalidArgument, .incompatibleImageLayout:
+                return DICOMManagedFailure(.malformed, 6, domain: 2)
+            case .storageUnavailable, .ioFailure, .internalFailure:
+                return DICOMManagedFailure(.codecFailure, 7, domain: 2)
+            }
+        }
+        if let dicomError = error as? DICOMError {
+            switch dicomError {
+            case .limitExceeded:
+                return DICOMManagedFailure(.limitExceeded, 8, domain: 2)
+            case .unsupportedTransferSyntax:
+                return DICOMManagedFailure(.invalidTransferSyntax, 9, domain: 2)
+            default:
+                return DICOMManagedFailure(.malformed, 10, domain: 2)
+            }
+        }
+        return DICOMManagedFailure(.codecFailure, 11, domain: 2)
+    }
+
+    private static func translateManagedResult<T>(_ result: Result<T, any Error>) -> DICOMManagedOutcome<T> {
+        switch result {
+        case .success(let value):
+            return .success(value)
+        case .failure(let error):
+            return .failure(translateManagedError(error))
+        }
     }
 
     static func translateError(_ error: any Error) -> any Error {
