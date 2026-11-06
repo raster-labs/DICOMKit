@@ -2,12 +2,12 @@ import Testing
 import Foundation
 @testable import DICOMCore
 
-/// Verifies that JLISwift is wired into `CodecRegistry` as the JPEG codec for all
+/// Verifies that SwiftJLI is wired into `CodecRegistry` as the JPEG codec for all
 /// four DICOM JPEG transfer syntaxes, and that the target syntax selects the right
 /// process: bit-exact lossless (SOF3) for `.57`/`.70`, and lossy DCT (SOF0/SOF1)
 /// for Baseline `.50` / Extended `.51`. Complements the bench-level direct-call
 /// coverage in `MultiCodecBenchAdaptersTests`.
-@Suite("JLISwift JPEG codec — registry wiring & lossy/lossless modes")
+@Suite("SwiftJLI JPEG codec — registry wiring & lossy/lossless modes")
 struct JLICodecRegistryTests {
 
     // MARK: - Transfer syntaxes
@@ -93,7 +93,7 @@ struct JLICodecRegistryTests {
 
     // MARK: - Registry wiring
 
-    @Test("CodecRegistry exposes a JLISwift decoder and encoder for all four JPEG syntaxes")
+    @Test("CodecRegistry exposes a SwiftJLI decoder and encoder for all four JPEG syntaxes")
     func registryWiring() {
         let reg = CodecRegistry.shared
         for uid in allJPEG {

@@ -1,10 +1,10 @@
 // DjpegCLICodec.swift
 // DICOMCore
 //
-// Decodes JLISwift-produced JPEG via the libjpeg-turbo `djpeg` CLI, for
+// Decodes SwiftJLI-produced JPEG via the libjpeg-turbo `djpeg` CLI, for
 // head-to-head comparison in the DICOMStudio JPEG bench. Decode-only —
-// JLISwift is the reference encoder. libjpeg-turbo 3.x decodes lossless
-// (SOF3) JPEG, so JLISwift's lossless output round-trips through djpeg.
+// SwiftJLI is the reference encoder. libjpeg-turbo 3.x decodes lossless
+// (SOF3) JPEG, so SwiftJLI's lossless output round-trips through djpeg.
 // macOS-only, mirrors the Kakadu/Grok CLI peers.
 // NEMA-verified: 2026a, checked 2026-09-25 — carries no DICOM-standard data (external libjpeg-turbo CLI wrapper). C1 classification confirmed.
 

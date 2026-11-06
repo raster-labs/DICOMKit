@@ -124,4 +124,159 @@ public enum JPEGInterchangeFormat {
     public static func containsJFIFSegment(_ stream: Data) -> Bool {
         removingJFIFSegments(stream).count != stream.count
     }
+
+    /// Rewrites 3-component Lossless JPEG (`SOF3`, `0xC3`) frame and scan component
+    /// identifiers to ASCII `'R'`, `'G'`, `'B'` (`0x52`, `0x47`, `0x42`) when an external
+    /// encoder emitted numeric component IDs (such as `1, 2, 3`).
+    ///
+    /// `SwiftJLI` requires explicit `'R','G','B'` component identifiers on 3-component
+    /// `SOF3` streams because `SOF3` applies no colour transform. Segment lengths and
+    /// entropy-coded bytes are never altered; malformed headers return `stream` unchanged
+    /// so the downstream envelope/codec parser rejects them normally.
+    static func normalizingLosslessRGBComponentIDs(_ stream: Data) -> Data {
+        guard stream.count >= 20 else { return stream }
+        var bytes = [UInt8](stream)
+        guard bytes[0] == 0xFF, bytes[1] == 0xD8 else { return stream }
+        var offset = 2
+        var idMap: (c0: UInt8, c1: UInt8, c2: UInt8)?
+
+        while offset < bytes.count {
+            guard bytes[offset] == 0xFF else { return stream }
+            while offset < bytes.count, bytes[offset] == 0xFF { offset += 1 }
+            guard offset < bytes.count else { return stream }
+            let marker = bytes[offset]
+            offset += 1
+            if marker == 0xD9 || marker == 0x00 || (0xD0...0xD8).contains(marker) {
+                return stream
+            }
+            guard offset + 2 <= bytes.count else { return stream }
+            let length = (Int(bytes[offset]) << 8) | Int(bytes[offset + 1])
+            guard length >= 2, length <= bytes.count - offset else { return stream }
+            let payload = offset + 2
+
+            if marker == 0xC3 {
+                guard idMap == nil, length == 17, bytes[payload + 5] == 3 else { return stream }
+                let c0 = bytes[payload + 6]
+                let c1 = bytes[payload + 9]
+                let c2 = bytes[payload + 12]
+                if c0 == 0x52 && c1 == 0x47 && c2 == 0x42 {
+                    return stream
+                }
+                guard c0 != c1, c1 != c2, c0 != c2 else { return stream }
+                idMap = (c0, c1, c2)
+                bytes[payload + 6] = 0x52
+                bytes[payload + 9] = 0x47
+                bytes[payload + 12] = 0x42
+            } else if marker == 0xDA {
+                guard let map = idMap, length == 12, bytes[payload] == 3 else { return stream }
+                for j in 0..<3 {
+                    let csIndex = payload + 1 + 2 * j
+                    switch bytes[csIndex] {
+                    case map.c0: bytes[csIndex] = 0x52
+                    case map.c1: bytes[csIndex] = 0x47
+                    case map.c2: bytes[csIndex] = 0x42
+                    default: return stream
+                    }
+                }
+                return Data(bytes)
+            } else if (0xC0...0xCF).contains(marker), ![0xC4, 0xC8, 0xCC].contains(marker) {
+                return stream
+            }
+
+            offset += length
+        }
+        return stream
+    }
+
+    /// Strips ancillary `APPn` (`0xE0...0xEF`) and `COM` (`0xFE`) marker segments from a
+    /// validated JPEG Interchange Format stream after DICOM envelope admission has already
+    /// recorded any JFIF / Adobe APP14 colour signalling.
+    ///
+    /// Returns `stream` unchanged without copying when no ancillary `APPn`/`COM` segments
+    /// exist (the common case for `SwiftJLI`-encoded DICOM frames). When rewriting, stops
+    /// cleanly at `EOI` (`0xFF 0xD9`) so odd-length segment removal never leaves an invalid
+    /// trailing padding byte at an even offset.
+    static func removingAncillaryMetadataSegments(_ stream: Data) -> Data {
+        let needsRewrite: Bool = stream.withUnsafeBytes { raw in
+            guard raw.count >= 4, raw[0] == 0xFF, raw[1] == 0xD8 else { return false }
+            var p = 2
+            var entropy = false
+            while p < raw.count {
+                if entropy {
+                    while p < raw.count {
+                        if raw[p] != 0xFF { p += 1; continue }
+                        guard p + 1 < raw.count else { return false }
+                        let next = raw[p + 1]
+                        if next == 0x00 || (0xD0...0xD7).contains(next) { p += 2; continue }
+                        break
+                    }
+                    entropy = false
+                }
+                guard p + 1 < raw.count, raw[p] == 0xFF else { return false }
+                while p < raw.count, raw[p] == 0xFF { p += 1 }
+                guard p < raw.count else { return false }
+                let marker = raw[p]
+                p += 1
+                if marker == 0xD9 { return false }
+                if (0xE0...0xEF).contains(marker) || marker == 0xFE { return true }
+                guard marker != 0xD8, marker != 0x00, !(0xD0...0xD7).contains(marker),
+                      p + 2 <= raw.count else { return false }
+                let length = (Int(raw[p]) << 8) | Int(raw[p + 1])
+                guard length >= 2, length <= raw.count - p else { return false }
+                if marker == 0xDA { entropy = true }
+                p += length
+            }
+            return false
+        }
+        guard needsRewrite else { return stream }
+
+        return stream.withUnsafeBytes { raw -> Data in
+            guard let base = raw.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  raw.count >= 4, base[0] == 0xFF, base[1] == 0xD8 else {
+                return stream
+            }
+            var out = Data()
+            out.reserveCapacity(raw.count)
+            out.append(base, count: 2)
+            var p = 2
+            var entropy = false
+            while p < raw.count {
+                if entropy {
+                    let entropyStart = p
+                    while p < raw.count {
+                        if base[p] != 0xFF { p += 1; continue }
+                        guard p + 1 < raw.count else { return stream }
+                        let next = base[p + 1]
+                        if next == 0x00 || (0xD0...0xD7).contains(next) { p += 2; continue }
+                        break
+                    }
+                    if p > entropyStart {
+                        out.append(base.advanced(by: entropyStart), count: p - entropyStart)
+                    }
+                    entropy = false
+                }
+                guard p + 1 < raw.count, base[p] == 0xFF else { return stream }
+                while p < raw.count, base[p] == 0xFF { p += 1 }
+                guard p < raw.count else { return stream }
+                let marker = base[p]
+                p += 1
+                if marker == 0xD9 {
+                    out.append(contentsOf: [0xFF, 0xD9])
+                    return out
+                }
+                guard marker != 0xD8, marker != 0x00, !(0xD0...0xD7).contains(marker),
+                      p + 2 <= raw.count else { return stream }
+                let length = (Int(base[p]) << 8) | Int(base[p + 1])
+                guard length >= 2, length <= raw.count - p else { return stream }
+                let segmentEnd = p + length
+                if !((0xE0...0xEF).contains(marker) || marker == 0xFE) {
+                    out.append(contentsOf: [0xFF, marker])
+                    out.append(base.advanced(by: p), count: length)
+                }
+                if marker == 0xDA { entropy = true }
+                p = segmentEnd
+            }
+            return stream
+        }
+    }
 }

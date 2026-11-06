@@ -10,7 +10,7 @@ import DICOMKit
 /// step with the registered `CodecRegistry` encoders.
 ///
 /// Anchors the four JPEG Swift libraries integrated into DICOMCore:
-///   • JLISwift → JPEG (baseline / extended / lossless / SV1)
+///   • SwiftJLI → JPEG (baseline / extended / lossless / SV1)
 ///   • SwiftJ2K → JPEG 2000 / HTJ2K
 ///   • SwiftJLS → JPEG-LS        ← was registered but UNREACHABLE from the codec map
 ///   • JXLSwift → JPEG XL
@@ -61,17 +61,17 @@ struct CompressionCodecMapTests {
     /// registered encoder.
     @Test("All four JPEG Swift libraries are reachable through the codec map",
           arguments: [
-            ("jpeg-baseline", TransferSyntax.jpegBaseline.uid),          // JLISwift
-            ("jpeg-extended", TransferSyntax.jpegExtended.uid),          // JLISwift
-            ("jpeg-lossless", TransferSyntax.jpegLossless.uid),          // JLISwift
-            ("jpeg-lossless-sv1", TransferSyntax.jpegLosslessSV1.uid),   // JLISwift
-            ("jpeg2000", TransferSyntax.jpeg2000.uid),                   // J2KSwift (.91 lossy)
-            ("jpeg2000-lossless", TransferSyntax.jpeg2000.uid),          // J2KSwift (.91 reversible)
-            ("jpeg2000-lossless-only", TransferSyntax.jpeg2000Lossless.uid), // J2KSwift (.90)
-            ("htj2k-lossless", TransferSyntax.htj2kLossy.uid),           // J2KSwift (HTJ2KCodec, .203 reversible)
-            ("htj2k-lossless-only", TransferSyntax.htj2kLossless.uid),   // J2KSwift (HTJ2KCodec, .201)
-            ("jpeg-ls-lossless", TransferSyntax.jpegLSLossless.uid),     // JLSwift
-            ("jpeg-ls", TransferSyntax.jpegLSNearLossless.uid),          // JLSwift
+            ("jpeg-baseline", TransferSyntax.jpegBaseline.uid),          // SwiftJLI
+            ("jpeg-extended", TransferSyntax.jpegExtended.uid),          // SwiftJLI
+            ("jpeg-lossless", TransferSyntax.jpegLossless.uid),          // SwiftJLI
+            ("jpeg-lossless-sv1", TransferSyntax.jpegLosslessSV1.uid),   // SwiftJLI
+            ("jpeg2000", TransferSyntax.jpeg2000.uid),                   // SwiftJ2K (.91 lossy)
+            ("jpeg2000-lossless", TransferSyntax.jpeg2000.uid),          // SwiftJ2K (.91 reversible)
+            ("jpeg2000-lossless-only", TransferSyntax.jpeg2000Lossless.uid), // SwiftJ2K (.90)
+            ("htj2k-lossless", TransferSyntax.htj2kLossy.uid),           // SwiftJ2K (HTJ2KCodec, .203 reversible)
+            ("htj2k-lossless-only", TransferSyntax.htj2kLossless.uid),   // SwiftJ2K (HTJ2KCodec, .201)
+            ("jpeg-ls-lossless", TransferSyntax.jpegLSLossless.uid),     // SwiftJLS
+            ("jpeg-ls", TransferSyntax.jpegLSNearLossless.uid),          // SwiftJLS
             ("jpeg-xl-lossless", TransferSyntax.jpegXL.uid),             // JXLSwift (.112 reversible, Modular)
             ("jpeg-xl-lossless-only", TransferSyntax.jpegXLLossless.uid),// JXLSwift (.110)
             ("jpeg-xl", TransferSyntax.jpegXL.uid),                      // JXLSwift (.112 lossy, VarDCT)

@@ -237,11 +237,8 @@ let package = Package(
         .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.1"),
         // SwiftJLS — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
         .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.0"),
-        // JLISwift — native-Swift JPEG codec (baseline/extended/progressive/
-        // lossless SOF0–3, 8/12/16-bit, Accelerate-backed; jpegli-parity target).
-        // Distinct from SwiftJLS (JPEG-LS). Products: `JLISwift` (core codec) and
-        // `JLIDICOM` (DICOM bridge helpers). No external deps → URL-consumable.
-        .package(url: "https://github.com/raster-labs/JLISwift.git", exact: "0.6.0"),
+        // SwiftJLI — pure-Swift JPEG (ITU-T T.81 SOF0/SOF1/SOF2/SOF3) codec.
+        .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.0.2"),
         // JXLSwift — pure-Swift JPEG XL (ISO/IEC 18181) codec. URL-consumable as
         // of v1.0.1: the library target dropped its CompressionFamily dependency
         // (v1.0.0 referenced it via a local path, which SwiftPM rejected for a
@@ -259,8 +256,8 @@ let package = Package(
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
                 // JPEG-LS — SwiftJLS backs DICOMCore's JPEGLSCodec.
                 .product(name: "SwiftJLS", package: "SwiftJLS"),
-                // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
-                .product(name: "JLISwift", package: "JLISwift"),
+                // JPEG — SwiftJLI backs DICOMCore's JLICodec.
+                .product(name: "SwiftJLI", package: "SwiftJLI"),
                 // JPEG XL — JXLSwift pure-Swift JPEG XL codec.
                 .product(name: "JXLSwift", package: "JXLSwift")
             ],
@@ -343,7 +340,8 @@ let package = Package(
                 "DICOMKit",
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
-                .product(name: "SwiftJLS", package: "SwiftJLS")
+                .product(name: "SwiftJLS", package: "SwiftJLS"),
+                .product(name: "SwiftJLI", package: "SwiftJLI")
             ]
         ),
         .testTarget(
