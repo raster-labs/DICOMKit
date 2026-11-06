@@ -13,7 +13,7 @@ import DICOMKit
 ///   • SwiftJLI → JPEG (baseline / extended / lossless / SV1)
 ///   • SwiftJ2K → JPEG 2000 / HTJ2K
 ///   • SwiftJLS → JPEG-LS        ← was registered but UNREACHABLE from the codec map
-///   • JXLSwift → JPEG XL
+///   • SwiftJXL → JPEG XL
 @Suite("dicom-compress codec map ↔ DICOMCore encoder parity")
 struct CompressionCodecMapTests {
 
@@ -72,9 +72,9 @@ struct CompressionCodecMapTests {
             ("htj2k-lossless-only", TransferSyntax.htj2kLossless.uid),   // SwiftJ2K (HTJ2KCodec, .201)
             ("jpeg-ls-lossless", TransferSyntax.jpegLSLossless.uid),     // SwiftJLS
             ("jpeg-ls", TransferSyntax.jpegLSNearLossless.uid),          // SwiftJLS
-            ("jpeg-xl-lossless", TransferSyntax.jpegXL.uid),             // JXLSwift (.112 reversible, Modular)
-            ("jpeg-xl-lossless-only", TransferSyntax.jpegXLLossless.uid),// JXLSwift (.110)
-            ("jpeg-xl", TransferSyntax.jpegXL.uid),                      // JXLSwift (.112 lossy, VarDCT)
+            ("jpeg-xl-lossless", TransferSyntax.jpegXL.uid),             // SwiftJXL (.112 reversible, Modular)
+            ("jpeg-xl-lossless-only", TransferSyntax.jpegXLLossless.uid),// SwiftJXL (.110)
+            ("jpeg-xl", TransferSyntax.jpegXL.uid),                      // SwiftJXL (.112 lossy, VarDCT)
           ])
     func allFourLibrariesReachable(codec: String, expectedUID: String) {
         #expect(CompressionManager.transferSyntax(for: codec)?.uid == expectedUID,

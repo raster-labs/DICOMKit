@@ -659,7 +659,7 @@ public struct CodecRegistry: Sendable {
         // JP3D volumetric codec is deferred pending SwiftJ2K 12.2.0 (SwiftJ2K3D qualification).
         // Do not register experimental JP3D transfer syntaxes in the active registry.
 
-        // JPEG XL codec (JXLSwift pure-Swift — lossless + lossy encode, lossless + lossy decode).
+        // JPEG XL codec (SwiftJXL pure-Swift — lossless + lossy encode, lossless + lossy + jbrd decode).
         for uid in JXLCodec.supportedTransferSyntaxes {
             decoderRegistry[uid] = JXLCodec(decodingTransferSyntaxUID: uid)
         }

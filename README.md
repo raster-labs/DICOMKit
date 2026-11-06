@@ -1666,7 +1666,7 @@ material for other platforms does not establish support.
 | SwiftRLE | 1.0.1+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
 | SwiftJLS | 2.0.0+ | JPEG-LS Lossless & Near-Lossless (`1.2.840.10008.1.2.4.80` / `.81`) codec |
 | SwiftJLI | 2.0.2+ | JPEG Baseline, Extended, Lossless & Lossless SV1 (`.50` / `.51` / `.57` / `.70`) codec |
-| JXLSwift | 1.4.0+ | JPEG XL codec |
+| SwiftJXL | 2.0.0+ | JPEG XL Lossless, JPEG Recompression & Lossy (`.110` / `.111` / `.112`) codec |
 
 ---
 

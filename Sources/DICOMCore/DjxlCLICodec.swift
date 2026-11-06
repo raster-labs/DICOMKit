@@ -1,8 +1,8 @@
 // DjxlCLICodec.swift
 // DICOMCore
 //
-// Decodes JXLSwift-produced JPEG XL via the libjxl `djxl` CLI, for head-to-head
-// comparison in the DICOMStudio JPEG XL bench. Decode-only — JXLSwift is the
+// Decodes SwiftJXL-produced JPEG XL via the libjxl `djxl` CLI, for head-to-head
+// comparison in the DICOMStudio JPEG XL bench. Decode-only — SwiftJXL is the
 // reference encoder. djxl is selected by output extension: `.pgm` for
 // grayscale, `.ppm` for RGB, both binary PNM. macOS-only, mirrors the
 // Kakadu/Grok CLI peers.

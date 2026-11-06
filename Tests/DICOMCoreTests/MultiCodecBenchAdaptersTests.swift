@@ -3,7 +3,7 @@ import Foundation
 @testable import DICOMCore
 
 /// Round-trip + interop verification for the multi-format codec-bench adapters
-/// (SwiftJLI JPEG, JXLSwift JPEG XL) and their CLI peers (libjpeg-turbo `djpeg`,
+/// (SwiftJLI JPEG, SwiftJXL JPEG XL) and their CLI peers (libjpeg-turbo `djpeg`,
 /// libjxl `djxl`). The bench's entire premise is bit-exact lossless round-trips,
 /// so these guard against silent layout/endianness/precision regressions.
 @Suite("Multi-codec bench adapters")
@@ -73,9 +73,9 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    // MARK: - JXLSwift (JPEG XL, lossless Modular)
+    // MARK: - SwiftJXL (JPEG XL, lossless Modular)
 
-    @Test("JXLSwift lossless round-trip — 8-bit grayscale")
+    @Test("SwiftJXL lossless round-trip — 8-bit grayscale")
     func jxlGray8() throws {
         let d = descriptor(40, 32, bitsAllocated: 8, bitsStored: 8, spp: 1)
         let original = frame(40, 32, bitsStored: 8, spp: 1, bytesPerSample: 1)
@@ -84,7 +84,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("JXLSwift lossless round-trip — 16-bit (12-bit stored) grayscale")
+    @Test("SwiftJXL lossless round-trip — 16-bit (12-bit stored) grayscale")
     func jxlGray16() throws {
         let d = descriptor(40, 32, bitsAllocated: 16, bitsStored: 12, spp: 1)
         let original = frame(40, 32, bitsStored: 12, spp: 1, bytesPerSample: 2)
@@ -93,7 +93,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("JXLSwift lossless round-trip — 8-bit RGB")
+    @Test("SwiftJXL lossless round-trip — 8-bit RGB")
     func jxlRGB8() throws {
         let d = descriptor(24, 24, bitsAllocated: 8, bitsStored: 8, spp: 3)
         let original = frame(24, 24, bitsStored: 8, spp: 3, bytesPerSample: 1)
@@ -125,7 +125,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("djxl decodes JXLSwift's lossless JXL bit-exactly — 8-bit")
+    @Test("djxl decodes SwiftJXL's lossless JXL bit-exactly — 8-bit")
     func djxlInterop8() throws {
         guard DjxlCLICodec.binaryPath != nil else { return }
         let d = descriptor(40, 32, bitsAllocated: 8, bitsStored: 8, spp: 1)
@@ -135,7 +135,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("djxl decodes JXLSwift's lossless JXL bit-exactly — 16-bit")
+    @Test("djxl decodes SwiftJXL's lossless JXL bit-exactly — 16-bit")
     func djxlInterop16() throws {
         guard DjxlCLICodec.binaryPath != nil else { return }
         let d = descriptor(40, 32, bitsAllocated: 16, bitsStored: 12, spp: 1)
