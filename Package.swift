@@ -233,6 +233,8 @@ let package = Package(
         // SwiftJ2K — pure-Swift JPEG 2000 Part 1, Part 2 MCT, and Part 15 HTJ2K codec.
         // Volumetric JP3D (`SwiftJ2K3D`) and JPIP (`SwiftJ2KJPIP`) remain deferred pending 12.2.0.
         .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.1.0"),
+        // SwiftRLE — pure-Swift DICOM RLE Lossless (PS3.5 Annex G) and PackBits codec.
+        .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.1"),
         // JLSwift — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
         // Provides the `JPEGLS` product, which backs DICOMCore.JPEGLSCodec.
         .package(url: "https://github.com/raster-labs/JLSwift.git", exact: "0.10.1"),
@@ -254,6 +256,8 @@ let package = Package(
             name: "DICOMCore",
             dependencies: [
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                // RLE Lossless — SwiftRLE backs DICOMCore's RLECodec (PS3.5 Annex G).
+                .product(name: "SwiftRLE", package: "SwiftRLE"),
                 // JPEG-LS — JLSwift backs DICOMCore's JPEGLSCodec.
                 .product(name: "JPEGLS", package: "JLSwift"),
                 // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
@@ -338,7 +342,8 @@ let package = Package(
             dependencies: [
                 "DICOMCore",
                 "DICOMKit",
-                .product(name: "SwiftJ2K", package: "SwiftJ2K")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftRLE", package: "SwiftRLE")
             ]
         ),
         .testTarget(
