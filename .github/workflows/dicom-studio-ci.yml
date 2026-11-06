@@ -61,9 +61,10 @@ jobs:
     - name: Build DICOMStudio
       run: swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --target DICOMStudio -v
 
-    # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
-    - name: Build Release CLI parity prerequisites
+    # SplitMergeWorkshopCLIParityTests and AnonWorkshopCLIParityTests compare against actual CLI tools.
+    - name: Build CLI parity prerequisites
       run: |
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --product dicom-anon
         swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-split
         swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-merge
 
@@ -94,9 +95,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-studio-coverage-
 
-    # SplitMergeWorkshopCLIParityTests compares against actual Release tools.
-    - name: Build Release CLI parity prerequisites
+    # SplitMergeWorkshopCLIParityTests and AnonWorkshopCLIParityTests compare against actual CLI tools.
+    - name: Build CLI parity prerequisites
       run: |
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --product dicom-anon
         swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-split
         swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release --product dicom-merge
 
@@ -118,7 +120,10 @@ jobs:
         fi
         
         # Find the test binary
-        TEST_BIN=$(find .build -name "DICOMKitPackageTests" -type f | head -1)
+        TEST_BIN=$(find .build -path "*/DICOMStudioTests.xctest/Contents/MacOS/DICOMStudioTests" -type f | head -1)
+        if [ -z "$TEST_BIN" ]; then
+          TEST_BIN=$(find .build -name "DICOMKitPackageTests" -type f | head -1)
+        fi
         if [ -z "$TEST_BIN" ]; then
           TEST_BIN=$(find .build -name "*.xctest" -type d | head -1)
         fi
