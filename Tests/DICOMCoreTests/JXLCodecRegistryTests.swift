@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import DICOMCore
 
-/// Verifies that JXLSwift is wired into `CodecRegistry` for the DICOM JPEG XL
+/// Verifies that SwiftJXL is wired into `CodecRegistry` for the DICOM JPEG XL
 /// transfer syntaxes added in Supplement 232 (DICOM 2024d): JPEG XL Lossless
 /// (.110) encodes (Modular) + decodes, the general JPEG XL syntax (.112) encodes
 /// (lossy VarDCT, with a lossless Modular fallback) + decodes, and JPEG XL JPEG
@@ -10,7 +10,7 @@ import Foundation
 /// reconstructs the wrapped JPEG; the forward *encode* is a fragment-level
 /// JPEG-bitstream wrap driven by `TransferSyntaxConverter`, not a pixel encoder).
 /// Complements the bench-level direct-call coverage in `MultiCodecBenchAdaptersTests`.
-@Suite("JXLSwift JPEG XL codec — registry wiring")
+@Suite("SwiftJXL JPEG XL codec — registry wiring")
 struct JXLCodecRegistryTests {
 
     private let lossless = TransferSyntax.jpegXLLossless.uid            // .110  encode + decode

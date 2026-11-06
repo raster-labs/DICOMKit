@@ -239,13 +239,9 @@ let package = Package(
         .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.0"),
         // SwiftJLI — pure-Swift JPEG (ITU-T T.81 SOF0/SOF1/SOF2/SOF3) codec.
         .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.0.2"),
-        // JXLSwift — pure-Swift JPEG XL (ISO/IEC 18181) codec. URL-consumable as
-        // of v1.0.1: the library target dropped its CompressionFamily dependency
-        // (v1.0.0 referenced it via a local path, which SwiftPM rejected for a
-        // stable-versioned consumer). Provides the `JXLSwift` product.
-        // Floor 1.4.0: JXLCodec relies on the `PixelType.int16` signed-16-bit level
-        // shift and `JXLDecoder.decode(_:signedOutput:)` added in that release.
-        .package(url: "https://github.com/Raster-Lab/JXLSwift.git", from: "1.4.0")
+        // SwiftJXL — pure-Swift JPEG XL (ISO/IEC 18181) codec with Modular lossless,
+        // VarDCT lossy, and reversible JPEG bitstream recompression (`jbrd`).
+        .package(url: "https://github.com/raster-labs/SwiftJXL.git", from: "2.0.0")
     ],
     targets: [
         .target(
@@ -258,8 +254,8 @@ let package = Package(
                 .product(name: "SwiftJLS", package: "SwiftJLS"),
                 // JPEG — SwiftJLI backs DICOMCore's JLICodec.
                 .product(name: "SwiftJLI", package: "SwiftJLI"),
-                // JPEG XL — JXLSwift pure-Swift JPEG XL codec.
-                .product(name: "JXLSwift", package: "JXLSwift")
+                // JPEG XL — SwiftJXL backs DICOMCore's JXLCodec.
+                .product(name: "SwiftJXL", package: "SwiftJXL")
             ],
             exclude: ["CharacterSetHandler+README.md"]
         ),
@@ -341,7 +337,8 @@ let package = Package(
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
                 .product(name: "SwiftJLS", package: "SwiftJLS"),
-                .product(name: "SwiftJLI", package: "SwiftJLI")
+                .product(name: "SwiftJLI", package: "SwiftJLI"),
+                .product(name: "SwiftJXL", package: "SwiftJXL")
             ]
         ),
         .testTarget(

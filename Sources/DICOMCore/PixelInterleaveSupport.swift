@@ -3,12 +3,12 @@
 import Foundation
 
 // Helpers for bridging DICOM frame buffers to/from the channel-interleaved,
-// little-endian pixel layout that the SwiftJLI / JXLSwift codecs expect.
+// little-endian pixel layout that the SwiftJLI / SwiftJXL codecs expect.
 //
 // A DICOM frame for a multi-component image may be stored either
 // sample-interleaved (Planar Configuration 0: R,G,B,R,G,B,…) or planar
-// (Planar Configuration 1: R…R,G…G,B…B). Both SwiftJLI's `ImageDestination` and
-// JXLSwift's `ImageFrame.data` use channel-interleaved `[UInt8]`, row-major,
+// (Planar Configuration 1: R…R,G…G,B…B). Both SwiftJLI's and SwiftJXL's
+// `ImageDestination` use channel-interleaved `[UInt8]`, row-major,
 // with 16-bit samples little-endian — which matches DICOM's little-endian
 // sample storage, so only the planar↔interleaved reshuffle is ever needed.
 

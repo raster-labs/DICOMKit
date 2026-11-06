@@ -1,9 +1,9 @@
 import Foundation
-import JXLSwift
+import SwiftJXL
 
-/// JPEG XL codec backed by the JXLSwift pure-Swift package (ISO/IEC 18181).
+/// JPEG XL codec backed by the `SwiftJXL` pure-Swift package (ISO/IEC 18181).
 ///
-/// Bridges DICOM pixel data to JXLSwift for the JPEG XL transfer syntaxes added
+/// Bridges DICOM pixel data to `SwiftJXL` for the JPEG XL transfer syntaxes added
 /// in Supplement 232 (DICOM 2024d). NEMA-verified: 2026a, checked 2026-09-24 — text-diffed
 /// against PS3.6 2026a Table A-1 (the three UIDs) and PS3.5 2026a §10.19 / §A.4.12 (.110
 /// lossless, .111 reversible JPEG transcoding, .112 any JPEG XL mode); see
@@ -12,16 +12,14 @@ import JXLSwift
 /// distance → …4.112), and decodes lossless (Modular), general/lossy (VarDCT),
 /// and JPEG-recompressed JPEG XL back to pixels. The target transfer syntax
 /// selects the encode mode (see ``encodingTransferSyntaxUID``). Also used by the
-/// DICOMStudio codec bench to compare JXLSwift against other JPEG XL
+/// DICOMStudio codec bench to compare `SwiftJXL` against other JPEG XL
 /// implementations (libjxl `djxl`).
 ///
-/// JXLSwift's lossy VarDCT encoder (v1.4.0) covers 8- or 16-bit grayscale,
-/// grayscale+alpha, RGB and RGBA within its size limits; only inputs beyond the
-/// writer's size cap transparently fall back to the lossless Modular path, so a
-/// lossy (…4.112) encode always yields a valid JPEG XL codestream — which is
-/// conformant, since the general JPEG XL syntax permits both lossy and lossless
-/// bitstreams. Note a grayscale …4.112 encode is now a genuine lossy VarDCT encode
-/// (earlier JXLSwift silently emitted lossless Modular for grayscale).
+/// `SwiftJXL`'s lossy VarDCT encoder (v2.0.0+) covers 8–16-bit greyscale and RGB
+/// within its bounded size limits (`<= 4096` per axis and `<= 4,194,304` pixels);
+/// inputs beyond VarDCT's size cap transparently fall back to the lossless Modular
+/// path, so a lossy (…4.112) encode always yields a valid, conformant JPEG XL
+/// codestream.
 ///
 /// Transfer syntaxes:
 ///   • 1.2.840.10008.1.2.4.110  JPEG XL Lossless             (encode + decode, pixel)
@@ -37,16 +35,16 @@ import JXLSwift
 /// / ``reconstructJPEGFragment(_:)`` and driven by ``TransferSyntaxConverter`` at the
 /// encapsulated-fragment level. Decoding a …4.111 file *to pixels* (for viewing, or to
 /// transcode onward to any other syntax) does go through the standard pixel path — a
-/// recompressed JXL is still a valid codestream — which is why …4.111 is listed in
-/// ``supportedTransferSyntaxes`` but not in ``supportedEncodingTransferSyntaxes``.
+/// recompressed JXL reconstructs its original JPEG and decodes via ``JLICodec`` — which is
+/// why …4.111 is listed in ``supportedTransferSyntaxes`` but not in
+/// ``supportedEncodingTransferSyntaxes``.
 ///
-/// Pixel bridging: JXLSwift's `ImageFrame.data` is channel-interleaved `[UInt8]`,
-/// row-major, 16-bit samples little-endian — matching DICOM little-endian storage.
-/// Signed 16-bit pixel data (Pixel Representation = 1, e.g. CT) maps to JXLSwift's
-/// `PixelType.int16`, which level-shifts to unsigned offset-binary for the
-/// codestream and un-shifts on decode via `JXLDecoder.decode(_:signedOutput:)`.
-/// JPEG XL has no signed 8-bit sample type, so signed 8-bit is the one pixel
-/// layout rejected here rather than silently mis-encoded.
+/// Pixel bridging: `SwiftJXL` operates on explicit caller-allocated planar or interleaved
+/// little-endian `UInt8` / `UInt16` buffers (`copyPolicy: .requireSharedStorage`).
+/// Signed 16-bit pixel data (Pixel Representation = 1, e.g. CT) is level-shifted from
+/// two's-complement `Int16` (`word ^ 0x8000`) to unsigned offset-binary for the JPEG XL
+/// codestream and un-shifted on decode. JPEG XL has no signed 8-bit sample type, so
+/// signed 8-bit is rejected rather than silently mis-encoded.
 public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
@@ -61,9 +59,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     }
 
     /// JPEG XL transfer syntaxes this codec can decode to pixels (lossless, JPEG
-    /// recompression, and general/lossy). A JPEG-recompressed JXL (…4.111) is a
-    /// valid codestream, so the standard pixel decode below yields its pixels;
-    /// byte-exact reconstruction of the *original JPEG* uses ``reconstructJPEGFragment(_:)``.
+    /// recompression, and general/lossy).
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpegXLLossless.uid,        // 1.2.840.10008.1.2.4.110
         TransferSyntax.jpegXLRecompression.uid,   // 1.2.840.10008.1.2.4.111
@@ -72,10 +68,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// JPEG XL transfer syntaxes this codec can produce *from pixels*: Lossless
     /// (…4.110, Modular) and general/lossy (…4.112, VarDCT — with a lossless Modular
-    /// fallback for inputs VarDCT can't take). The target UID selects the mode via
-    /// ``encodingTransferSyntaxUID``. JPEG Recompression (…4.111) is produced from a
-    /// JPEG bitstream, not pixels, via ``recompressJPEGFragment(_:)`` — it is
-    /// deliberately absent from this list.
+    /// fallback for inputs beyond VarDCT's dimension/pixel cap).
     public static let supportedEncodingTransferSyntaxes: [String] = [
         TransferSyntax.jpegXLLossless.uid,    // 1.2.840.10008.1.2.4.110
         TransferSyntax.jpegXL.uid             // 1.2.840.10008.1.2.4.112 (lossy)
@@ -95,12 +88,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     private let decodingLimits: PixelDecodeLimits
 
     /// The transfer syntax this instance is decoding, when known (set per-UID at registry
-    /// wiring time). It disambiguates the …4.111 JPEG-Recompression decode from the …4.110
-    /// / …4.112 pixel decode: for a known …4.111 source a reconstruction failure is a hard
-    /// error (we must not fall back to the VarDCT pixel path, which can desync the channel
-    /// count from Samples per Pixel), and …4.110 / …4.112 skip the reconstruction probe
-    /// entirely. `nil` (a bare `JXLCodec()`, e.g. in benches) auto-detects via the `jbrd`
-    /// box and falls back to pixels — the legacy best-effort behaviour.
+    /// wiring time).
     public var decodingTransferSyntaxUID: String? {
         if let explicitDecodingTransferSyntaxUID {
             return explicitDecodingTransferSyntaxUID
@@ -114,11 +102,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     }
 
     /// The transfer syntax this instance encodes *to* (…4.110 Lossless or …4.112
-    /// general/lossy), set per-UID at registry wiring time. It selects the encode
-    /// mode: …4.110 → lossless Modular (distance 0); …4.112 → lossy VarDCT at a
-    /// quality-derived distance. Ignored when the instance is used as a decoder (the
-    /// codestream drives the decoder). Defaults to Lossless so a bare `JXLCodec()`
-    /// encodes bit-exactly (the bench / adapter-test contract).
+    /// general/lossy), set per-UID at registry wiring time. Defaults to Lossless so a bare
+    /// `JXLCodec()` encodes bit-exactly.
     public var encodingTransferSyntaxUID: String {
         explicitEncodingTransferSyntaxUID ?? TransferSyntax.jpegXLLossless.uid
     }
@@ -152,9 +137,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     }
 
     /// Whether the target UID *forces* reversible encoding. True for JPEG XL Lossless
-    /// (…4.110) and any unexpected UID (fail-safe bit-exact). For the general …4.112 UID
-    /// this is false, so the caller's intent (`preferLossless`) chooses lossless vs lossy —
-    /// see ``encoderOptions(for:)``.
+    /// (…4.110) and any unexpected UID (fail-safe bit-exact).
     private var encodesLossless: Bool {
         encodingTransferSyntaxUID != TransferSyntax.jpegXL.uid
     }
@@ -162,13 +145,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     // MARK: - Encoding capability
 
     /// Whether this encoder can compress the given pixel data: 8-bit unsigned or
-    /// 16-bit (unsigned, or signed via JXLSwift's `int16` level shift) grayscale or
-    /// RGB, for both the lossless (…4.110) and lossy (…4.112) targets. The gate is the
-    /// same for both modes: JXLSwift's VarDCT encoder (v1.4.0) handles grayscale and
-    /// RGB directly and only falls back to the lossless Modular path for inputs beyond
-    /// its size cap — so a lossy encode of any accepted input still yields a valid JPEG
-    /// XL codestream. Signed 8-bit is rejected because JPEG XL has no signed 8-bit
-    /// sample type; signed 16-bit (e.g. CT, Pixel Representation = 1) is supported.
+    /// 16-bit (unsigned, or signed via two's-complement offset-binary level shift)
+    /// greyscale or RGB within `SwiftJXL`'s `16384 x 16384` dimension bound.
     public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
         guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
             return false
@@ -176,8 +154,10 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         guard descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3 else {
             return false
         }
-        // Signed samples map to JXLSwift's 16-bit `int16` type; there is no signed
-        // 8-bit JPEG XL sample type, so signed 8-bit is rejected.
+        guard (1...16384).contains(descriptor.columns),
+              (1...16384).contains(descriptor.rows) else {
+            return false
+        }
         if descriptor.isSigned && descriptor.bitsAllocated != 16 {
             return false
         }
@@ -190,74 +170,495 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                             frameIndex: Int, configuration: CompressionConfiguration) throws -> Data {
         let spp = descriptor.samplesPerPixel
         guard spp == 1 || spp == 3 else {
-            throw DICOMError.parsingFailed("JXLSwift: unsupported samplesPerPixel \(spp)")
+            throw DICOMError.parsingFailed("SwiftJXL: unsupported samplesPerPixel \(spp)")
         }
-        guard descriptor.columns > 0, descriptor.rows > 0 else {
-            throw DICOMError.parsingFailed("JXLSwift: invalid frame dimensions")
+        let width = descriptor.columns
+        let height = descriptor.rows
+        guard (1...16384).contains(width), (1...16384).contains(height) else {
+            throw DICOMError.parsingFailed("SwiftJXL: invalid frame dimensions \(width)x\(height)")
         }
-        // 8-bit is always unsigned (JPEG XL has no signed 8-bit sample type); 16-bit
-        // signed maps to `int16`, which JXLSwift level-shifts to unsigned offset-binary
-        // for the codestream (recovered on decode via `decode(_:signedOutput:)`).
-        let pixelType: PixelType
+        let storageBits: Int
         if descriptor.bitsAllocated <= 8 {
             guard !descriptor.isSigned else {
-                throw DICOMError.parsingFailed("JXLSwift: signed 8-bit pixel data not supported (no signed 8-bit JPEG XL sample type)")
+                throw DICOMError.parsingFailed(
+                    "SwiftJXL: signed 8-bit pixel data not supported (no signed 8-bit JPEG XL sample type)"
+                )
             }
-            pixelType = .uint8
+            storageBits = 8
         } else {
-            pixelType = descriptor.isSigned ? .int16 : .uint16
+            storageBits = 16
         }
-        let colorSpace: ColorSpace = spp == 1 ? .grayscale : .sRGB
+        let bps = storageBits / 8
+        let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
 
-        var frame = ImageFrame(width: descriptor.columns, height: descriptor.rows,
-                               channels: spp, pixelType: pixelType,
-                               colorSpace: colorSpace, alphaChannels: 0)
-        frame.data = interleavedFrameBytes(from: frameData, descriptor: descriptor)
+        // …4.110 forces lossless. The general …4.112 UID honours `configuration.preferLossless`
+        // (we deliberately do not flip to lossless on `quality.isLossless`, so lossy-intent
+        // encodes at maximum quality remain VarDCT codestreams with truthful lossy provenance).
+        // Frames exceeding VarDCT's 4096-axis / 4-megapixel bound transparently fall back to
+        // lossless Modular, which remains a conformant …4.112 codestream.
+        let (pixels, pixOver) = width.multipliedReportingOverflow(by: height)
+        guard !pixOver, pixels > 0 else {
+            throw DICOMError.parsingFailed("SwiftJXL: frame dimensions overflow")
+        }
+        let fitsVarDCT = width <= 4096 && height <= 4096 && pixels <= (4 * 1024 * 1024)
+        let useLossless = encodesLossless || configuration.preferLossless || !fitsVarDCT
 
         do {
-            return try JXLEncoder(options: encoderOptions(for: configuration)).encode(frame).data
+            let limits = try Self.makeEncodeResourceLimits(
+                width: width,
+                height: height,
+                spp: spp,
+                bps: bps
+            )
+            let image = try Self.buildEncodeImage(
+                interleaved: interleaved,
+                width: width,
+                height: height,
+                spp: spp,
+                storageBits: storageBits,
+                isSigned16: descriptor.isSigned && storageBits == 16,
+                limits: limits
+            )
+            let encoderConfig = try Self.makeEncoderConfiguration(
+                useLossless: useLossless,
+                quality: configuration.quality
+            )
+            let encoder = try SwiftJXL.Encoder(configuration: encoderConfig)
+            let encodeOptions = SwiftJXL.EncodeOptions(
+                resourceLimits: limits,
+                copyPolicy: .requireSharedStorage,
+                metadataPolicy: .discardAncillary
+            )
+            let encoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJXL"
+            ) {
+                try await encoder.encode(image, options: encodeOptions)
+            }
+            guard encoded.report.copyEvents.isEmpty else {
+                throw DICOMError.parsingFailed("SwiftJXL encode violated requireSharedStorage copy policy")
+            }
+            if useLossless {
+                guard encoded.report.fidelity == .exactSamples else {
+                    throw DICOMError.parsingFailed(
+                        "SwiftJXL lossless encode reported non-exact fidelity: \(encoded.report.fidelity)"
+                    )
+                }
+            }
+            return encoded.data
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJXL.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("SwiftJXL encode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("SwiftJXL encode failed: \(error.message)")
         } catch {
-            throw DICOMError.parsingFailed("JXLSwift encode failed: \(error)")
+            throw DICOMError.parsingFailed("SwiftJXL encode failed: \(error)")
         }
     }
 
-    // MARK: - Encoding configuration
-
-    /// Builds the JXLSwift ``EncodingOptions`` for this instance's target syntax:
-    /// …4.110 → lossless Modular (distance 0); …4.112 → lossy VarDCT at a distance
-    /// derived from `configuration.quality`. As of JXLSwift 1.4.0 VarDCT handles
-    /// grayscale as well as RGB, so a grayscale …4.112 request is a genuine lossy
-    /// encode; only frames beyond VarDCT's size cap fall back to lossless Modular
-    /// inside JXLSwift — still a valid, conformant general JPEG XL codestream.
-    private func encoderOptions(for configuration: CompressionConfiguration) -> EncodingOptions {
-        // …4.110 forces lossless. The general …4.112 UID may carry either, so the caller's
-        // INTENT (preferLossless) decides — mirroring J2KSwiftCodec's `.both` branch. Note we
-        // deliberately do NOT flip to lossless on `quality.isLossless`: a lossy-intent encode
-        // at maximum quality must stay a (near-)lossy codestream so its Lossy Image Compression
-        // provenance attributes are truthful (a `--quality maximum` lossy request otherwise
-        // produced a bit-exact file falsely stamped 0028,2110="01").
-        let lossless = encodesLossless || configuration.preferLossless
-        if lossless {
-            return .lossless
-        }
-        return EncodingOptions(mode: .lossy(quality: Self.jxlQuality(from: configuration.quality)),
-                               effort: .squirrel)
-    }
+    // MARK: - Encoding configuration & helpers
 
     /// Maps a DICOM ``CompressionQuality`` (0.0–1.0) to a JPEG XL quality score (1–100,
-    /// where 90 is visually lossless and 100 is mathematically lossless). Mirrors
-    /// ``JLICodec/jpegQuality(from:)`` so the `--quality` knob behaves consistently
-    /// across the pure-Swift codecs.
+    /// where 90 is visually lossless and 100 is highest quality). Mirrors
+    /// ``JLICodec/jpegQuality(from:)`` so the `--quality` knob behaves consistently.
     static func jxlQuality(from quality: CompressionQuality) -> Float {
         Float(max(1.0, min(100.0, quality.value * 100.0)))
     }
 
-    // MARK: - Decoding
+    /// Maps a JPEG XL quality score (`1...100`) to a positive finite VarDCT Butteraugli-style
+    /// distance (`> 0`). Even at `q == 100`, lossy intent retains a small positive distance
+    /// (`0.1`) so `.112` lossy requests emit a genuine VarDCT codestream.
+    static func varDCTDistance(from quality: CompressionQuality) -> Float {
+        let q = jxlQuality(from: quality)
+        if q >= 30.0 {
+            return max(0.05, 0.1 + (100.0 - q) * 0.09)
+        }
+        let scaled = 6.4 + Float(pow(2.5, Double((30.0 - q) / 5.0))) * 0.25
+        return min(25.0, max(0.05, scaled))
+    }
+
+    private static func makeEncoderConfiguration(
+        useLossless: Bool,
+        quality: CompressionQuality
+    ) throws -> SwiftJXL.EncoderConfiguration {
+        if useLossless {
+            return .default
+        }
+        let varDCT = try SwiftJXL.VarDCTEncodingOptions(distance: varDCTDistance(from: quality))
+        return try SwiftJXL.EncoderConfiguration(
+            mode: .lossy,
+            codecOptions: SwiftJXL.CodecOptions(varDCT: varDCT, container: .codestream)
+        )
+    }
+
+    private static func makeEncodeResourceLimits(
+        width: Int,
+        height: Int,
+        spp: Int,
+        bps: Int
+    ) throws -> SwiftJXL.ResourceLimits {
+        let (pixels, pOver) = width.multipliedReportingOverflow(by: height)
+        let (samples, sOver) = pixels.multipliedReportingOverflow(by: spp)
+        let (rawBytes, bOver) = samples.multipliedReportingOverflow(by: bps)
+        guard !pOver, !sOver, !bOver, pixels > 0, rawBytes > 0 else {
+            throw DICOMError.parsingFailed("SwiftJXL: frame geometry overflows addressable range")
+        }
+        let maxDecoded = max(512 * 1024 * 1024, rawBytes * 4)
+        let maxCompressed = max(256 * 1024 * 1024, rawBytes * 2)
+        return try SwiftJXL.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: max(64_000_000, pixels),
+            maximumDimension: max(1_000_000, max(width, height)),
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func buildEncodeImage(
+        interleaved: [UInt8],
+        width: Int,
+        height: Int,
+        spp: Int,
+        storageBits: Int,
+        isSigned16: Bool,
+        limits: SwiftJXL.ResourceLimits
+    ) throws -> SwiftJXL.Image {
+        let bps = storageBits / 8
+        let pixelStride = spp * bps
+        let rowBytes = width * pixelStride
+        let byteCount = rowBytes * height
+        guard interleaved.count >= byteCount else {
+            throw DICOMError.parsingFailed(
+                "SwiftJXL: input frame truncated (expected \(byteCount) bytes, got \(interleaved.count))"
+            )
+        }
+        let plane = try SwiftJXL.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<spp),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: byteCount
+        )
+        // Encode the full 8- or 16-bit cell width so unsigned sub-16-bit frames (e.g. 12-in-16)
+        // interoperate with external PNM/PGM decoders (`djxl` MAXVAL 65535 without rescaling)
+        // and signed 16-bit CT words preserve sign-extended upper bits bit-for-bit.
+        let descriptor = try SwiftJXL.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: storageBits,
+            byteOrder: .littleEndian,
+            components: spp == 1 ? [.grey] : [.red, .green, .blue],
+            colour: spp == 1 ? .greyscale : .rgb,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: nil,
+            limits: limits
+        )
+        let destination = try SwiftJXL.ImageDestination.allocate(
+            descriptor: descriptor,
+            limits: limits
+        )
+        return try destination.write { dstRaw in
+            guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  dstRaw.count >= byteCount else {
+                throw DICOMError.parsingFailed("SwiftJXL: destination buffer unavailable")
+            }
+            if isSigned16 {
+                // Shift little-endian Int16 two's-complement words to unsigned offset-binary
+                // (`word ^ 0x8000`, i.e. flip bit 7 of the high byte).
+                let sampleCount = byteCount / 2
+                interleaved.withUnsafeBufferPointer { srcBuf in
+                    guard let src = srcBuf.baseAddress else { return }
+                    for idx in 0..<sampleCount {
+                        dst[idx * 2] = src[idx * 2]
+                        dst[idx * 2 + 1] = src[idx * 2 + 1] ^ 0x80
+                    }
+                }
+            } else {
+                interleaved.withUnsafeBufferPointer { srcBuf in
+                    if let src = srcBuf.baseAddress {
+                        dst.update(from: src, count: byteCount)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Zero-Copy Pre-Admission Header & SizeHeader Inspection
 
     private struct ValidatedJXLStream {
         let isJPEGRecompression: Bool
         let bitsPerSample: Int
+        let iccProfile: Data?
         let trimmedLength: Int
+    }
+
+    private struct ZeroCopyJXLEnvelope {
+        let xsize: UInt32
+        let ysize: UInt32
+        let hasJBRD: Bool
+    }
+
+    /// Parses the JXL naked codestream or ISOBMFF container box structure and `SizeHeader`
+    /// (`ISO/IEC 18181-1 §C.3.2` / `18181-2`) directly from a borrowed byte pointer with
+    /// zero heap allocations.
+    private static func parseZeroCopyEnvelope(
+        base: UnsafePointer<UInt8>,
+        length: Int
+    ) -> ZeroCopyJXLEnvelope? {
+        guard length >= 2 else { return nil }
+
+        // Case 1: Naked codestream (`FF 0A`).
+        if base[0] == 0xFF && base[1] == 0x0A {
+            guard let dims = parseSizeHeader(codestreamAfterSig: base.advanced(by: 2), count: length - 2) else {
+                return nil
+            }
+            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: false)
+        }
+
+        // Case 2: ISOBMFF container (`00 00 00 0C 4A 58 4C 20 0D 0A 87 0A`).
+        let sig: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8) = (
+            0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87, 0x0A
+        )
+        guard length >= 12,
+              base[0] == sig.0, base[1] == sig.1, base[2] == sig.2, base[3] == sig.3,
+              base[4] == sig.4, base[5] == sig.5, base[6] == sig.6, base[7] == sig.7,
+              base[8] == sig.8, base[9] == sig.9, base[10] == sig.10, base[11] == sig.11 else {
+            return nil
+        }
+
+        func readU32BE(_ p: Int) -> UInt32 {
+            (UInt32(base[p]) << 24) | (UInt32(base[p + 1]) << 16)
+                | (UInt32(base[p + 2]) << 8) | UInt32(base[p + 3])
+        }
+        func readU64BE(_ p: Int) -> UInt64 {
+            var v: UInt64 = 0
+            for i in 0..<8 { v = (v << 8) | UInt64(base[p + i]) }
+            return v
+        }
+        func isBoxType(_ p: Int, _ a: UInt8, _ b: UInt8, _ c: UInt8, _ d: UInt8) -> Bool {
+            base[p] == a && base[p + 1] == b && base[p + 2] == c && base[p + 3] == d
+        }
+
+        var cursor = 12
+        var boxCount = 0
+        var ftypCount = 0
+        var firstWasFTYP = false
+        var hasJBRD = false
+        var jxlcRange: Range<Int>?
+        var sawJXLP = false
+
+        while cursor < length {
+            guard cursor + 8 <= length else { return nil }
+            let sizeRaw = readU32BE(cursor)
+            let typeOffset = cursor + 4
+            for k in 0..<4 {
+                let ch = base[typeOffset + k]
+                guard ch >= 0x20 && ch <= 0x7E else { return nil }
+            }
+            let payloadStart: Int
+            let boxEnd: Int
+            switch sizeRaw {
+            case 0:
+                payloadStart = cursor + 8
+                boxEnd = length
+            case 1:
+                guard cursor + 16 <= length else { return nil }
+                let extSize = readU64BE(cursor + 8)
+                guard extSize >= 16, extSize <= UInt64(length - cursor) else { return nil }
+                payloadStart = cursor + 16
+                boxEnd = cursor + Int(extSize)
+            default:
+                guard sizeRaw >= 8, UInt64(sizeRaw) <= UInt64(length - cursor) else { return nil }
+                payloadStart = cursor + 8
+                boxEnd = cursor + Int(sizeRaw)
+            }
+            boxCount += 1
+            guard boxCount <= 4096 else { return nil }
+
+            // 'ftyp' = 0x66 0x74 0x79 0x70
+            if isBoxType(typeOffset, 0x66, 0x74, 0x79, 0x70) {
+                if boxCount == 1 { firstWasFTYP = true }
+                ftypCount += 1
+            } else if isBoxType(typeOffset, 0x6A, 0x62, 0x72, 0x64) {
+                // 'jbrd' = 0x6A 0x62 0x72 0x64
+                hasJBRD = true
+            } else if isBoxType(typeOffset, 0x6A, 0x78, 0x6C, 0x63) {
+                // 'jxlc' = 0x6A 0x78 0x6C 0x63
+                guard jxlcRange == nil && !sawJXLP else { return nil }
+                jxlcRange = payloadStart..<boxEnd
+            } else if isBoxType(typeOffset, 0x6A, 0x78, 0x6C, 0x70) {
+                // 'jxlp' = 0x6A 0x78 0x6C 0x70
+                guard jxlcRange == nil, boxEnd - payloadStart >= 4 else { return nil }
+                sawJXLP = true
+            }
+            cursor = boxEnd
+        }
+
+        guard firstWasFTYP, ftypCount == 1 else { return nil }
+
+        if let range = jxlcRange {
+            guard range.count >= 2,
+                  base[range.lowerBound] == 0xFF,
+                  base[range.lowerBound + 1] == 0x0A,
+                  let dims = parseSizeHeader(
+                      codestreamAfterSig: base.advanced(by: range.lowerBound + 2),
+                      count: range.count - 2
+                  ) else {
+                return nil
+            }
+            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: hasJBRD)
+        }
+
+        guard sawJXLP else { return nil }
+        // Gather the first 16 bytes of the concatenated partial codestream (`jxlp` seq 0, 1, ...)
+        // into a fixed-size stack tuple (`SizeHeader` requires at most 11 bytes including `FF 0A`).
+        var head: (
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
+        ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        var headCount = 0
+        var nextSeq: UInt32 = 0
+        var reachedLast = false
+
+        while headCount < 16 && !reachedLast {
+            var foundSeq = false
+            var scan = 12
+            while scan < length {
+                let sizeRaw = readU32BE(scan)
+                let typeOffset = scan + 4
+                let payloadStart: Int
+                let boxEnd: Int
+                if sizeRaw == 0 {
+                    payloadStart = scan + 8; boxEnd = length
+                } else if sizeRaw == 1 {
+                    payloadStart = scan + 16; boxEnd = scan + Int(readU64BE(scan + 8))
+                } else {
+                    payloadStart = scan + 8; boxEnd = scan + Int(sizeRaw)
+                }
+                if isBoxType(typeOffset, 0x6A, 0x78, 0x6C, 0x70) {
+                    let rawSeq = readU32BE(payloadStart)
+                    if (rawSeq & 0x7FFF_FFFF) == nextSeq {
+                        foundSeq = true
+                        reachedLast = (rawSeq & 0x8000_0000) != 0
+                        let chunkStart = payloadStart + 4
+                        var idx = chunkStart
+                        withUnsafeMutableBytes(of: &head) { headBuf in
+                            while idx < boxEnd && headCount < 16 {
+                                headBuf[headCount] = base[idx]
+                                headCount += 1
+                                idx += 1
+                            }
+                        }
+                        break
+                    }
+                }
+                scan = boxEnd
+            }
+            if !foundSeq { return nil }
+            nextSeq &+= 1
+        }
+
+        return withUnsafeBytes(of: &head) { headBuf -> ZeroCopyJXLEnvelope? in
+            guard headCount >= 2,
+                  let ptr = headBuf.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  ptr[0] == 0xFF, ptr[1] == 0x0A,
+                  let dims = parseSizeHeader(codestreamAfterSig: ptr.advanced(by: 2), count: headCount - 2) else {
+                return nil
+            }
+            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: hasJBRD)
+        }
+    }
+
+    /// Parses ISO/IEC 18181-1 §C.3.2 `SizeHeader` (LSB-first bit stream positioned right after `FF 0A`).
+    private static func parseSizeHeader(
+        codestreamAfterSig ptr: UnsafePointer<UInt8>,
+        count: Int
+    ) -> (xsize: UInt32, ysize: UInt32)? {
+        let totalBits = count * 8
+        var bitPos = 0
+
+        func readBits(_ n: Int) -> UInt32? {
+            guard n >= 0, n <= 32, bitPos + n <= totalBits else { return nil }
+            var result: UInt32 = 0
+            for i in 0..<n {
+                let byteIdx = (bitPos + i) >> 3
+                let bitIdx = (bitPos + i) & 7
+                let bit = (UInt32(ptr[byteIdx]) >> UInt32(bitIdx)) & 1
+                result |= (bit << UInt32(i))
+            }
+            bitPos += n
+            return result
+        }
+
+        func readSizeField() -> UInt32? {
+            guard let selector = readBits(2) else { return nil }
+            let extraBits: Int
+            switch selector {
+            case 0: extraBits = 9
+            case 1: extraBits = 13
+            case 2: extraBits = 18
+            case 3: extraBits = 30
+            default: return nil
+            }
+            guard let extra = readBits(extraBits) else { return nil }
+            return 1 &+ extra
+        }
+
+        func aspectXsize(ysize: UInt32, ratio: UInt32) -> UInt32? {
+            let num: UInt64
+            let den: UInt64
+            switch ratio {
+            case 1: num = 1; den = 1
+            case 2: num = 12; den = 10
+            case 3: num = 4; den = 3
+            case 4: num = 3; den = 2
+            case 5: num = 16; den = 9
+            case 6: num = 5; den = 4
+            case 7: num = 2; den = 1
+            default: return nil
+            }
+            return UInt32((UInt64(ysize) &* num) / den)
+        }
+
+        guard let smallBit = readBits(1) else { return nil }
+        let ysize: UInt32
+        let xsize: UInt32
+        if smallBit == 1 {
+            guard let yDiv8 = readBits(5), let ratio = readBits(3) else { return nil }
+            ysize = (yDiv8 + 1) &* 8
+            if ratio == 0 {
+                guard let xDiv8 = readBits(5) else { return nil }
+                xsize = (xDiv8 + 1) &* 8
+            } else {
+                guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
+                xsize = derived
+            }
+        } else {
+            guard let y = readSizeField(), let ratio = readBits(3) else { return nil }
+            ysize = y
+            if ratio == 0 {
+                guard let x = readSizeField() else { return nil }
+                xsize = x
+            } else {
+                guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
+                xsize = derived
+            }
+        }
+        guard xsize > 0, ysize > 0 else { return nil }
+        return (xsize, ysize)
     }
 
     private func inspectAndValidateJXLOutcome(
@@ -272,100 +673,205 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             return .failure(DICOMManagedFailure(.malformed, 502))
         }
 
-        func tryInspect(length: Int) -> Result<(JXLInspection, Data), Error> {
-            let view = Data(
-                bytesNoCopy: UnsafeMutableRawPointer(mutating: base),
-                count: length,
-                deallocator: .none
-            )
-            do {
-                let info = try JXLDecoder().inspect(view)
-                return .success((info, view))
-            } catch {
-                return .failure(error)
-            }
-        }
-
-        let inspection: JXLInspection
-        let resolvedView: Data
-        let resolvedLength: Int
-        switch tryInspect(length: count) {
-        case .success(let pair):
-            inspection = pair.0
-            resolvedView = pair.1
+        let envelope: ZeroCopyJXLEnvelope
+        var resolvedLength: Int
+        if let parsed = Self.parseZeroCopyEnvelope(base: base, length: count) {
+            envelope = parsed
             resolvedLength = count
-        case .failure:
-            if count >= 2, count % 2 == 0, base[count - 1] == 0,
-               case .success(let trimmedPair) = tryInspect(length: count - 1) {
-                inspection = trimmedPair.0
-                resolvedView = trimmedPair.1
-                resolvedLength = count - 1
-            } else {
-                return .failure(DICOMManagedFailure(.malformed, 502))
-            }
+        } else if count >= 2, count % 2 == 0, base[count - 1] == 0,
+                  let trimmed = Self.parseZeroCopyEnvelope(base: base, length: count - 1) {
+            envelope = trimmed
+            resolvedLength = count - 1
+        } else {
+            return .failure(DICOMManagedFailure(.malformed, 502))
         }
 
         // Enforce codestream dimensions against descriptor BEFORE any pixel or jbrd allocation.
-        guard Int(inspection.xsize) == descriptor.columns,
-              Int(inspection.ysize) == descriptor.rows else {
+        guard Int(envelope.xsize) == descriptor.columns,
+              Int(envelope.ysize) == descriptor.rows else {
             return .failure(DICOMManagedFailure(.codecResultMismatch, 506))
         }
 
-        let hasJBRD = inspection.boxTypes.contains("jbrd")
         if syntaxRestriction == .recompression {
-            guard hasJBRD else {
+            guard envelope.hasJBRD else {
                 return .failure(DICOMManagedFailure(.codecFailure, 503, domain: 0x0500))
             }
             return .success(ValidatedJXLStream(
                 isJPEGRecompression: true,
                 bitsPerSample: descriptor.bitsStored,
+                iccProfile: nil,
                 trimmedLength: resolvedLength
             ))
         }
-        if syntaxRestriction == .any && hasJBRD {
+        if (syntaxRestriction == .any || syntaxRestriction == .general) && envelope.hasJBRD {
             return .success(ValidatedJXLStream(
                 isJPEGRecompression: true,
                 bitsPerSample: descriptor.bitsStored,
+                iccProfile: nil,
                 trimmedLength: resolvedLength
             ))
         }
-        if syntaxRestriction == .lossless && hasJBRD {
+        if syntaxRestriction == .lossless && envelope.hasJBRD {
             return .failure(DICOMManagedFailure(.invalidDescriptor, 508))
         }
 
-        guard let metadata = inspection.metadata,
-              !metadata.bitDepth.floatingPoint,
-              metadata.extraChannels.isEmpty else {
+        // Non-jbrd pixel codestream: inspect header via SwiftJXL.Decoder using a non-copying view.
+        // Naked codestreams (`FF 0A ...`) pass `parseZeroCopyEnvelope` even when an odd-length
+        // fragment has a DICOM even-length `0x00` pad byte appended at the end (PS3.5 §A.4);
+        // retry `inspect` with `count - 1` when that trailing pad byte causes framing rejection.
+        func inspectView(length: Int) throws -> SwiftJXL.ImageInfo {
+            let view = Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: base),
+                count: length,
+                deallocator: .none
+            )
+            let inspectLimits = try makeDecodeResourceLimits(
+                encodedByteCount: length,
+                width: descriptor.columns,
+                height: descriptor.rows,
+                spp: max(1, descriptor.samplesPerPixel),
+                bps: 2
+            )
+            let decoder = try SwiftJXL.Decoder()
+            let options = SwiftJXL.DecodeOptions(
+                resourceLimits: inspectLimits,
+                copyPolicy: .requireSharedStorage,
+                metadataPolicy: .discardAncillary
+            )
+            return try decoder.inspect(view, options: options)
+        }
+
+        let info: SwiftJXL.ImageInfo
+        do {
+            info = try inspectView(length: resolvedLength)
+        } catch let error as SwiftJXL.CodecError {
+            if error.category == .resourceLimitExceeded {
+                return .failure(DICOMManagedFailure(.limitExceeded, 508))
+            }
+            if error.category == .unsupportedFeature || error.category == .unsupportedFormat {
+                return .failure(DICOMManagedFailure(.invalidDescriptor, 508))
+            }
+            if resolvedLength == count, count >= 3, count % 2 == 0, base[count - 1] == 0,
+               let trimmedInfo = try? inspectView(length: count - 1) {
+                info = trimmedInfo
+                resolvedLength = count - 1
+            } else {
+                return .failure(DICOMManagedFailure(.malformed, 502))
+            }
+        } catch {
+            return .failure(DICOMManagedFailure(.malformed, 502))
+        }
+
+        guard info.descriptor.sampleType == .unsignedInteger,
+              info.descriptor.alpha == .absent else {
             return .failure(DICOMManagedFailure(.invalidDescriptor, 508))
         }
 
-        let codestreamChannels = (metadata.colorEncoding.colorSpace == .grayscale) ? 1 : 3
+        let codestreamChannels = (info.descriptor.colour == .greyscale) ? 1 : 3
         guard codestreamChannels == descriptor.samplesPerPixel else {
             return .failure(DICOMManagedFailure(.codecResultMismatch, 506))
         }
 
-        let b = Int(metadata.bitDepth.bitsPerSample)
+        let b = info.descriptor.meaningfulBits
         guard b == descriptor.bitsStored || b == descriptor.bitsAllocated else {
             return .failure(DICOMManagedFailure(.codecResultMismatch, 509))
-        }
-
-        if syntaxRestriction == .lossless {
-            guard !metadata.xybEncoded else {
-                return .failure(DICOMManagedFailure(.invalidDescriptor, 510))
-            }
-            guard let frames = try? JXLDecoder().inspectFrames(resolvedView),
-                  let firstFrame = frames.first,
-                  firstFrame.encoding == .modular else {
-                return .failure(DICOMManagedFailure(.invalidDescriptor, 510))
-            }
         }
 
         return .success(ValidatedJXLStream(
             isJPEGRecompression: false,
             bitsPerSample: b,
+            iccProfile: info.descriptor.iccProfile,
             trimmedLength: resolvedLength
         ))
     }
+
+    private func makeDecodeResourceLimits(
+        encodedByteCount: Int,
+        width: Int,
+        height: Int,
+        spp: Int,
+        bps: Int
+    ) throws -> SwiftJXL.ResourceLimits {
+        let (pixels, pOver) = width.multipliedReportingOverflow(by: height)
+        let (samples, sOver) = pixels.multipliedReportingOverflow(by: max(1, spp))
+        let (rawBytes, bOver) = samples.multipliedReportingOverflow(by: max(1, bps))
+        let (quadRaw, qOver) = rawBytes.multipliedReportingOverflow(by: 4)
+        guard !pOver, !sOver, !bOver, !qOver, pixels > 0, rawBytes > 0 else {
+            throw DICOMError.parsingFailed("JPEG XL header dimensions overflow addressable range")
+        }
+        // Note: SwiftJXL.Decoder.decode(_:into:options:) reserves destination bytes in both
+        // `prepare` and `finish`, so `maximumDecodedBytes` must cover at least `2 * rawBytes`.
+        let maxCompressed = max(1, max(decodingLimits.maximumEncodedBytes, encodedByteCount))
+        let maxPixels = max(1, max(decodingLimits.maximumPixels, pixels))
+        let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes * 2, quadRaw))
+        let maxDim = max(16384, max(width, height))
+        return try SwiftJXL.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: maxPixels,
+            maximumDimension: maxDim,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func decodeWithSwiftJXL(
+        _ cleanData: Data,
+        width: Int,
+        height: Int,
+        spp: Int,
+        bitsPerSample: Int,
+        iccProfile: Data?,
+        limits: SwiftJXL.ResourceLimits
+    ) async throws -> SwiftJXL.DecodedImage {
+        let storageBits = bitsPerSample <= 8 ? 8 : 16
+        let bps = storageBits / 8
+        let pixelStride = spp * bps
+        let rowBytes = width * pixelStride
+        let byteCount = rowBytes * height
+        let plane = try SwiftJXL.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<spp),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: byteCount
+        )
+        let dstDescriptor = try SwiftJXL.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: bitsPerSample,
+            byteOrder: .littleEndian,
+            components: spp == 1 ? [.grey] : [.red, .green, .blue],
+            colour: spp == 1 ? .greyscale : .rgb,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: iccProfile,
+            limits: limits
+        )
+        let destination = try SwiftJXL.ImageDestination.allocate(
+            descriptor: dstDescriptor,
+            limits: limits
+        )
+        let decoder = try SwiftJXL.Decoder()
+        let decodeOptions = SwiftJXL.DecodeOptions(
+            resourceLimits: limits,
+            copyPolicy: .requireSharedStorage,
+            metadataPolicy: .discardAncillary
+        )
+        let decoded = try await decoder.decode(cleanData, into: destination, options: decodeOptions)
+        guard decoded.report.copyEvents.isEmpty else {
+            throw DICOMError.parsingFailed("SwiftJXL decode violated requireSharedStorage copy policy")
+        }
+        return decoded
+    }
+
+    // MARK: - Decoding
 
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
         guard !frameData.isEmpty else {
@@ -407,37 +913,92 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         }
 
         let b = validated.bitsPerSample
-        let useJXLInt16Shift = descriptor.isSigned && (b == 16)
-        let frame: ImageFrame
-        do {
-            frame = try JXLDecoder().decode(cleanData, signedOutput: useJXLInt16Shift)
-        } catch {
-            throw DICOMError.parsingFailed("JXLSwift decode failed: \(error)")
-        }
-
         let rawBytesPerSample = (b <= 8) ? 1 : 2
         let expectedRawBytes = descriptor.rows * descriptor.columns * descriptor.samplesPerPixel * rawBytesPerSample
-        guard frame.width == descriptor.columns,
-              frame.height == descriptor.rows,
-              frame.channels == descriptor.samplesPerPixel,
-              frame.data.count == expectedRawBytes else {
-            throw DICOMError.parsingFailed(
-                "JXLSwift decoded frame (\(frame.width)x\(frame.height), \(frame.channels) ch, \(frame.data.count) B) does not match descriptor"
+
+        let decoded: SwiftJXL.DecodedImage
+        do {
+            let limits = try makeDecodeResourceLimits(
+                encodedByteCount: cleanData.count,
+                width: descriptor.columns,
+                height: descriptor.rows,
+                spp: descriptor.samplesPerPixel,
+                bps: rawBytesPerSample
             )
+            let width = descriptor.columns
+            let height = descriptor.rows
+            let spp = descriptor.samplesPerPixel
+            let iccProfile = validated.iccProfile
+            decoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJXL"
+            ) {
+                try await Self.decodeWithSwiftJXL(
+                    cleanData,
+                    width: width,
+                    height: height,
+                    spp: spp,
+                    bitsPerSample: b,
+                    iccProfile: iccProfile,
+                    limits: limits
+                )
+            }
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJXL.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("SwiftJXL decode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("SwiftJXL decode failed: \(error.message)")
+        } catch {
+            throw DICOMError.parsingFailed("SwiftJXL decode failed: \(error)")
+        }
+
+        if syntaxRestriction == .lossless {
+            guard decoded.report.fidelity == .exactSamples else {
+                throw DICOMError.parsingFailed("JPEG XL Lossless (.110) rejected lossy VarDCT codestream")
+            }
+        }
+
+        guard decoded.image.descriptor.width == descriptor.columns,
+              decoded.image.descriptor.height == descriptor.rows,
+              decoded.image.descriptor.components.count == descriptor.samplesPerPixel,
+              decoded.image.storage.byteCount == expectedRawBytes else {
+            throw DICOMError.parsingFailed("SwiftJXL decoded frame geometry does not match DICOM descriptor")
         }
 
         if rawBytesPerSample == descriptor.bytesPerSample && !(descriptor.isSigned && b < 16) {
-            return dicomFrameBytes(fromInterleaved: frame.data, descriptor: descriptor)
+            let interleaved: [UInt8] = try decoded.image.storage.withUnsafeBytes { raw in
+                guard raw.count >= expectedRawBytes,
+                      let src = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    throw DICOMError.parsingFailed("SwiftJXL decoded storage unavailable")
+                }
+                var copy = Array(UnsafeBufferPointer(start: src, count: expectedRawBytes))
+                if descriptor.isSigned && b == 16 {
+                    let sampleCount = expectedRawBytes / 2
+                    for idx in 0..<sampleCount {
+                        copy[idx * 2 + 1] ^= 0x80
+                    }
+                }
+                return copy
+            }
+            return dicomFrameBytes(fromInterleaved: interleaved, descriptor: descriptor)
         }
 
         var normalizedInterleaved = [UInt8](repeating: 0, count: descriptor.bytesPerFrame)
         let totalSamples = descriptor.rows * descriptor.columns * descriptor.samplesPerPixel
         let maxUnsigned = Int32(1) << b
         let signedMidpoint = Int32(1) << (b - 1)
-        try frame.data.withUnsafeBufferPointer { srcBuf in
+        try decoded.image.storage.withUnsafeBytes { raw in
+            guard raw.count >= expectedRawBytes,
+                  let src = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                throw DICOMError.parsingFailed("SwiftJXL decoded storage unavailable")
+            }
             try normalizedInterleaved.withUnsafeMutableBufferPointer { dstBuf in
-                let src = srcBuf.baseAddress!
-                let dst = dstBuf.baseAddress!
+                guard let dst = dstBuf.baseAddress else { return }
                 for i in 0..<totalSamples {
                     let u: Int32
                     if b <= 8 {
@@ -446,7 +1007,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                         u = Int32(UInt16(src[i * 2]) | (UInt16(src[i * 2 + 1]) << 8))
                     }
                     guard u >= 0, u < maxUnsigned else {
-                        throw DICOMError.parsingFailed("JXLSwift sample exceeds \(b)-bit codestream precision")
+                        throw DICOMError.parsingFailed("SwiftJXL sample exceeds \(b)-bit codestream precision")
                     }
                     let word: UInt16
                     if descriptor.isSigned {
@@ -644,8 +1205,10 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             }
 
             let b = validated.bitsPerSample
-            let useJXLInt16Shift = descriptor.isSigned && (b == 16)
-            let decodedFrame: ImageFrame
+            let rawBytesPerSample = (b <= 8) ? 1 : 2
+            let expectedRawBytes = descriptor.rows * descriptor.columns * descriptor.samplesPerPixel * rawBytesPerSample
+
+            let decoded: SwiftJXL.DecodedImage
             do {
                 let staging: DICOMByteBuffer
                 switch DICOMByteBuffer.admit(count: stagingByteCount, budget: budget, resource: .staging) {
@@ -658,21 +1221,55 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                 }
 
                 let cleanData = Data(bytes: encodedBase, count: validated.trimmedLength)
+                let limits: SwiftJXL.ResourceLimits
                 do {
-                    decodedFrame = try JXLDecoder().decode(cleanData, signedOutput: useJXLInt16Shift)
-                    staging.keepAlive()
+                    limits = try makeDecodeResourceLimits(
+                        encodedByteCount: cleanData.count,
+                        width: descriptor.columns,
+                        height: descriptor.rows,
+                        spp: descriptor.samplesPerPixel,
+                        bps: rawBytesPerSample
+                    )
                 } catch {
                     staging.keepAlive()
-                    return .failure(DICOMManagedFailure(.codecFailure, 505, domain: 0x0500))
+                    return .failure(DICOMManagedFailure(.limitExceeded, 508, domain: 0x0500))
+                }
+
+                let width = descriptor.columns
+                let height = descriptor.rows
+                let spp = descriptor.samplesPerPixel
+                let iccProfile = validated.iccProfile
+                let bridgeOutcome = CompressionSuiteSyncBridge.runManaged(
+                    deadlineSeconds: 30.0,
+                    joinGraceSeconds: 1.0,
+                    domain: 0x0500,
+                    cancellation: cancellation
+                ) {
+                    try await Self.decodeWithSwiftJXL(
+                        cleanData,
+                        width: width,
+                        height: height,
+                        spp: spp,
+                        bitsPerSample: b,
+                        iccProfile: iccProfile,
+                        limits: limits
+                    )
+                }
+                staging.keepAlive()
+                switch bridgeOutcome {
+                case .success(let value): decoded = value
+                case .failure(let failure): return .failure(failure)
                 }
             }
 
-            let rawBytesPerSample = (b <= 8) ? 1 : 2
-            let expectedRawBytes = descriptor.rows * descriptor.columns * descriptor.samplesPerPixel * rawBytesPerSample
-            guard decodedFrame.width == descriptor.columns,
-                  decodedFrame.height == descriptor.rows,
-                  decodedFrame.channels == descriptor.samplesPerPixel,
-                  decodedFrame.data.count == expectedRawBytes else {
+            if syntaxRestriction == .lossless && decoded.report.fidelity != .exactSamples {
+                return .failure(DICOMManagedFailure(.invalidDescriptor, 510))
+            }
+
+            guard decoded.image.descriptor.width == descriptor.columns,
+                  decoded.image.descriptor.height == descriptor.rows,
+                  decoded.image.descriptor.components.count == descriptor.samplesPerPixel,
+                  decoded.image.storage.byteCount == expectedRawBytes else {
                 return .failure(DICOMManagedFailure(.codecResultMismatch, 506))
             }
 
@@ -681,48 +1278,70 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             case .success(let value): bytes = value
             case .failure(let failure): return .failure(failure)
             }
-            if let failure = cancellation.failure { return .failure(failure) }
+            if let failure = cancellation.failure {
+                bytes.keepAlive()
+                return .failure(failure)
+            }
             guard let dstBase = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                bytes.keepAlive()
                 return .failure(DICOMManagedFailure(.codecResultMismatch, 507))
             }
 
             let spp = descriptor.samplesPerPixel
             let pixels = descriptor.rows * descriptor.columns
             let requiresSampleConversion = (rawBytesPerSample != descriptor.bytesPerSample) || (descriptor.isSigned && b < 16)
+            let isSigned16 = descriptor.isSigned && (b == 16)
 
-            if !requiresSampleConversion {
-                if spp == 1 || descriptor.planarConfiguration == 0 {
-                    decodedFrame.data.withUnsafeBufferPointer { src in
-                        if let base = src.baseAddress {
-                            dstBase.update(from: base, count: expectedBytes)
-                        }
-                    }
-                    bytes.keepAlive()
-                } else {
-                    let bps = descriptor.bitsAllocated <= 8 ? 1 : 2
-                    for p in 0..<pixels {
-                        if (p & 0xFFFF) == 0, let failure = cancellation.failure {
-                            bytes.keepAlive()
-                            return .failure(failure)
-                        }
-                        for c in 0..<spp {
-                            let srcByte = (p * spp + c) * bps
-                            let dstByte = (c * pixels + p) * bps
-                            for byteOffset in 0..<bps {
-                                dstBase[dstByte + byteOffset] = decodedFrame.data[srcByte + byteOffset]
-                            }
-                        }
-                    }
-                    bytes.keepAlive()
-                }
-            } else {
-                let maxUnsigned = Int32(1) << b
-                let signedMidpoint = Int32(1) << (b - 1)
-                let planar = (spp > 1 && descriptor.planarConfiguration == 1)
-                let convFailure: DICOMManagedFailure? = decodedFrame.data.withUnsafeBufferPointer { srcBuf in
-                    guard let src = srcBuf.baseAddress else {
+            let copyFailure: DICOMManagedFailure?
+            do {
+                copyFailure = try decoded.image.storage.withUnsafeBytes { raw -> DICOMManagedFailure? in
+                    guard raw.count >= expectedRawBytes,
+                          let src = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                         return DICOMManagedFailure(.codecResultMismatch, 507)
                     }
+                    if !requiresSampleConversion {
+                        if spp == 1 || descriptor.planarConfiguration == 0 {
+                            if isSigned16 {
+                                let sampleCount = expectedBytes / 2
+                                for idx in 0..<sampleCount {
+                                    if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                    dstBase[idx * 2] = src[idx * 2]
+                                    dstBase[idx * 2 + 1] = src[idx * 2 + 1] ^ 0x80
+                                }
+                            } else {
+                                let chunk = 65_536
+                                var offset = 0
+                                while offset < expectedBytes {
+                                    if let failure = cancellation.failure { return failure }
+                                    let step = min(chunk, expectedBytes - offset)
+                                    dstBase.advanced(by: offset).update(from: src.advanced(by: offset), count: step)
+                                    offset += step
+                                }
+                            }
+                        } else {
+                            let bps = descriptor.bitsAllocated <= 8 ? 1 : 2
+                            for p in 0..<pixels {
+                                if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                for c in 0..<spp {
+                                    let srcByte = (p * spp + c) * bps
+                                    let dstByte = (c * pixels + p) * bps
+                                    if isSigned16 {
+                                        dstBase[dstByte] = src[srcByte]
+                                        dstBase[dstByte + 1] = src[srcByte + 1] ^ 0x80
+                                    } else {
+                                        for byteOffset in 0..<bps {
+                                            dstBase[dstByte + byteOffset] = src[srcByte + byteOffset]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return nil
+                    }
+
+                    let maxUnsigned = Int32(1) << b
+                    let signedMidpoint = Int32(1) << (b - 1)
+                    let planar = (spp > 1 && descriptor.planarConfiguration == 1)
                     for p in 0..<pixels {
                         if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
                         for c in 0..<spp {
@@ -750,9 +1369,13 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                     }
                     return nil
                 }
+            } catch {
                 bytes.keepAlive()
-                if let convFailure { return .failure(convFailure) }
+                return .failure(DICOMManagedFailure(.codecFailure, 507, domain: 0x0500))
             }
+
+            bytes.keepAlive()
+            if let copyFailure { return .failure(copyFailure) }
 
             if let failure = cancellation.failure {
                 bytes.keepAlive()
@@ -820,58 +1443,99 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
     // MARK: - JPEG Recompression (TS …4.111 — bitstream level, not pixel level)
 
+    private static func makeTranscodeOptions(inputByteCount: Int) throws -> SwiftJXL.TranscodeOptions {
+        let maxCompressed = max(256 * 1024 * 1024, inputByteCount + 4 * 1024 * 1024)
+        let limits = try SwiftJXL.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: 512 * 1024 * 1024,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: 64_000_000,
+            maximumDimension: 65_535,
+            maximumMetadataBytes: 16 * 1024 * 1024,
+            maximumICCBytes: 4 * 1024 * 1024,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+        return SwiftJXL.TranscodeOptions(
+            resourceLimits: limits,
+            copyPolicy: .allowCopy,
+            metadataPolicy: .preserve
+        )
+    }
+
     /// Forward JPEG recompression (DICOM transfer syntax 1.2.840.10008.1.2.4.111):
     /// losslessly wraps an existing JPEG bitstream in a JPEG XL ISOBMFF container
     /// (with the `jbrd` reconstruction box) from which the original JPEG can be
     /// recovered **byte-for-byte**.
-    ///
-    /// The input is the *compressed JPEG fragment* from a source file's encapsulated
-    /// pixel data — not raw pixels — so this bypasses the pixel `ImageEncoder` path.
-    /// Scope follows JXLSwift's `encodeLosslessJPEG`: baseline-DCT, 8-bit, 1- or
-    /// 3-component JPEG (i.e. DICOM JPEG Baseline, …4.50). Any DICOM even-length pad
-    /// byte after the JPEG End-Of-Image marker is trimmed first so the recompressor
-    /// sees a clean bitstream.
-    ///
-    /// - Parameter jpegBytes: one encapsulated JPEG frame fragment.
-    /// - Returns: the JPEG XL recompression bytes for that frame.
-    /// - Throws: ``DICOMError/parsingFailed(_:)`` if the JPEG is outside the
-    ///   supported recompression scope.
     public static func recompressJPEGFragment(_ jpegBytes: Data) throws -> Data {
         let clean = trimmedToJPEGEOI(jpegBytes)
         do {
-            return try JXLEncoder().encodeLosslessJPEG(clean).data
+            let transcoder = try SwiftJXL.Transcoder()
+            let options = try makeTranscodeOptions(inputByteCount: clean.count)
+            let transcoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJXL"
+            ) {
+                try await transcoder.transcode(clean, to: .jpegXL, options: options)
+            }
+            guard transcoded.report.fidelity == .originalBitstream else {
+                throw DICOMError.parsingFailed(
+                    "SwiftJXL JPEG recompression reported unexpected fidelity: \(transcoded.report.fidelity)"
+                )
+            }
+            return transcoded.data
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJXL.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("SwiftJXL JPEG recompression exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("SwiftJXL JPEG recompression failed: \(error.message)")
         } catch {
-            throw DICOMError.parsingFailed("JXLSwift JPEG recompression failed: \(error)")
+            throw DICOMError.parsingFailed("SwiftJXL JPEG recompression failed: \(error)")
         }
     }
 
     /// Reverse JPEG recompression: reconstructs the **byte-identical** original JPEG
-    /// bitstream from a JPEG XL recompression fragment (…4.111). The symmetric mirror
-    /// of ``recompressJPEGFragment(_:)`` — the round trip returns the source JPEG
-    /// bit-for-bit (no generational loss).
-    ///
-    /// - Parameter jxlBytes: one encapsulated JPEG XL recompression frame fragment.
-    /// - Returns: the reconstructed original JPEG frame bytes.
-    /// - Throws: ``DICOMError/parsingFailed(_:)`` if the fragment carries no `jbrd`
-    ///   reconstruction data (i.e. it is not a recompressed JPEG) or is otherwise
-    ///   outside the supported reconstruction scope.
+    /// bitstream from a JPEG XL recompression fragment (…4.111).
     public static func reconstructJPEGFragment(_ jxlBytes: Data) throws -> Data {
         func reverse(_ data: Data) throws -> Data {
-            try JXLDecoder().decodeLosslessJPEG(data)
+            let transcoder = try SwiftJXL.Transcoder()
+            let options = try makeTranscodeOptions(inputByteCount: data.count)
+            let reconstructed = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJXL"
+            ) {
+                try await transcoder.transcode(data, to: .jpeg, options: options)
+            }
+            guard reconstructed.report.fidelity == .originalBitstream else {
+                throw DICOMError.parsingFailed(
+                    "SwiftJXL JPEG reconstruction reported unexpected fidelity: \(reconstructed.report.fidelity)"
+                )
+            }
+            return reconstructed.data
         }
         do {
             return try reverse(jxlBytes)
+        } catch let error as CancellationError {
+            throw error
         } catch {
-            // Retry once with a single trailing DICOM pad byte removed — the JXLSwift
+            // Retry once with a single trailing DICOM pad byte removed — the SwiftJXL
             // container parser is strict about trailing bytes (mirrors `decodeFrame`).
             if jxlBytes.count % 2 == 0, jxlBytes.last == 0 {
                 do {
                     return try reverse(Data(jxlBytes.dropLast()))
+                } catch let cancel as CancellationError {
+                    throw cancel
                 } catch {
-                    throw DICOMError.parsingFailed("JXLSwift JPEG reconstruction failed: \(error)")
+                    throw DICOMError.parsingFailed("SwiftJXL JPEG reconstruction failed: \(error)")
                 }
             }
-            throw DICOMError.parsingFailed("JXLSwift JPEG reconstruction failed: \(error)")
+            throw DICOMError.parsingFailed("SwiftJXL JPEG reconstruction failed: \(error)")
         }
     }
 
@@ -879,7 +1543,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     /// a DICOM even-length pad byte so the JPEG bitstream handed to the recompressor is
     /// exactly the original image. A no-op when the fragment already ends at EOI.
     private static func trimmedToJPEGEOI(_ data: Data) -> Data {
-        let bytes = Data(data)  // rebase to 0-based indices for safe subscripting
+        let bytes = Data(data)
         guard bytes.count >= 2 else { return bytes }
         var i = bytes.count - 2
         while i >= 0 {
