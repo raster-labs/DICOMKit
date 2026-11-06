@@ -1,9 +1,9 @@
 import Foundation
-import JLISwift
+import SwiftJLI
 
-/// JPEG codec backed by the JLISwift native-Swift JPEG package.
+/// JPEG codec backed by the `SwiftJLI` pure-Swift JPEG package.
 ///
-/// Bridges DICOM pixel data (PS3.5 §A.4.1, JPEG Image Compression) to JLISwift's pure-Swift
+/// Bridges DICOM pixel data (PS3.5 §A.4.1, JPEG Image Compression) to `SwiftJLI`'s pure-Swift
 /// implementation of ITU-T T.81 for all four DICOM JPEG transfer syntaxes —
 /// **both lossy and lossless**:
 ///
@@ -21,10 +21,10 @@ import JLISwift
 /// lossless SV1, so a bare `JLICodec()` round-trips bit-exactly — the contract the
 /// DICOMStudio codec bench and the multi-codec adapter tests rely on.
 ///
-/// Pixel bridging: `JLIImage.data` is channel-interleaved `[UInt8]`, row-major,
-/// 16-bit samples little-endian — matching DICOM little-endian storage, so only
-/// planar→interleaved reshuffling (handled by `interleavedFrameBytes`) is needed.
-/// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a JLISwift limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
+/// Pixel bridging: `SwiftJLI` operates on caller-allocated `ImageDestination` storage in
+/// channel-interleaved little-endian layout (`copyPolicy: .requireSharedStorage`), with
+/// `Fidelity.exactSamples` verified on lossless `.57` and `.70` paths.
+/// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a SwiftJLI/ITU-T T.81 SOF3 precision limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
 public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
@@ -118,6 +118,12 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
 
     // MARK: - Decoding
 
+    private struct DecodePlan: Sendable {
+        let expectedBytes: Int
+        let sourceColourModel: SwiftJLI.JPEGSourceColourModel?
+        let normalizeLosslessRGBIDs: Bool
+    }
+
     /// Decodes a supported JPEG frame to DICOM pixel bytes.
     /// - Parameters:
     ///   - frameData: A single JPEG codestream.
@@ -134,46 +140,113 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                                  frameIndex: Int) throws -> DecodedPixelFrame {
         _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let header = try JPEGFrameEnvelope.parse(frameData, jpegLS: false)
-        let plan = try prepare(encodedByteCount: frameData.count, header: header, descriptor: descriptor, frameIndex: frameIndex)
+        let plan = try prepare(
+            encodedByteCount: frameData.count,
+            header: header,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        )
         let expectedBytes = plan.expectedBytes
-        let configuration = plan.configuration
-        let lossless = header.process == 0xc3
+        let lossless = header.process == 0xC3
+        let strippedData = JPEGInterchangeFormat.removingAncillaryMetadataSegments(frameData)
+        let inputData = plan.normalizeLosslessRGBIDs
+            ? JPEGInterchangeFormat.normalizingLosslessRGBComponentIDs(strippedData)
+            : strippedData
+
         do {
-            let image = try JLIDecoder().decode(from: [UInt8](frameData), configuration: configuration)
-            // JLISwift chooses its container from encoded precision, whereas DICOM may allocate 16 bits for 8 stored.
-            var bytes = image.data
-            if header.precision <= 8 && descriptor.bitsAllocated == 16 {
-                bytes = bytes.flatMap { [$0, 0] }
+            let jliLimits = try makeDecodeResourceLimits(encodedByteCount: inputData.count, header: header)
+            let decoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJLI"
+            ) {
+                try await Self.decodeWithSwiftJLI(
+                    inputData,
+                    header: header,
+                    sourceColourModel: plan.sourceColourModel,
+                    limits: jliLimits
+                )
             }
-            guard image.width == descriptor.columns, image.height == descriptor.rows, bytes.count == expectedBytes else {
+
+            let rawBps = header.precision <= 8 ? 1 : 2
+            let widen8To16 = header.precision <= 8 && descriptor.bitsAllocated == 16
+            let expectedRawCount = widen8To16 ? (expectedBytes / 2) : expectedBytes
+
+            let interleaved: [UInt8] = try decoded.image.storage.withUnsafeBytes { raw in
+                guard raw.count >= expectedRawCount else {
+                    throw DICOMError.parsingFailed("JPEG decoder returned truncated pixel storage")
+                }
+                if widen8To16 {
+                    var widened = [UInt8](repeating: 0, count: expectedBytes)
+                    for idx in 0..<expectedRawCount {
+                        widened[idx * 2] = raw[idx]
+                    }
+                    return widened
+                }
+                if let base = raw.baseAddress {
+                    return Array(UnsafeBufferPointer(start: base.assumingMemoryBound(to: UInt8.self), count: expectedBytes))
+                }
+                return []
+            }
+
+            guard decoded.image.descriptor.width == descriptor.columns,
+                  decoded.image.descriptor.height == descriptor.rows,
+                  rawBps == (decoded.image.descriptor.storageBits / 8),
+                  interleaved.count == expectedBytes else {
                 throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
             }
+
             let outputPI: PhotometricInterpretation
-            if lossless { outputPI = descriptor.photometricInterpretation }
-            else {
-                switch image.colorModel {
+            if lossless {
+                outputPI = descriptor.photometricInterpretation
+            } else {
+                switch decoded.image.descriptor.colour {
                 case .rgb: outputPI = .rgb
-                case .grayscale: outputPI = descriptor.photometricInterpretation
+                case .greyscale: outputPI = descriptor.photometricInterpretation
                 default: throw DICOMError.parsingFailed("Unexpected JPEG decoder output color model")
                 }
             }
-            let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
-                numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
-                bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
-                samplesPerPixel: descriptor.samplesPerPixel, photometricInterpretation: outputPI,
-                planarConfiguration: descriptor.planarConfiguration)
-            return DecodedPixelFrame(data: dicomFrameBytes(fromInterleaved: bytes, descriptor: output),
-                                     descriptor: output, sourceFrameIndex: frameIndex)
+            let output = PixelDataDescriptor(
+                rows: descriptor.rows,
+                columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames,
+                bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored,
+                highBit: descriptor.highBit,
+                isSigned: descriptor.isSigned,
+                samplesPerPixel: descriptor.samplesPerPixel,
+                photometricInterpretation: outputPI,
+                planarConfiguration: descriptor.planarConfiguration
+            )
+            return DecodedPixelFrame(
+                data: dicomFrameBytes(fromInterleaved: interleaved, descriptor: output),
+                descriptor: output,
+                sourceFrameIndex: frameIndex
+            )
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJLI.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("SwiftJLI decode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("SwiftJLI decode failed: \(error.message)")
         } catch {
-            throw DICOMError.parsingFailed("JLISwift decode failed: \(error)")
+            throw DICOMError.parsingFailed("SwiftJLI decode failed: \(error)")
         }
     }
 
     private func prepare(encodedByteCount: Int, header: JPEGFrameEnvelope, descriptor: PixelDataDescriptor,
-        frameIndex: Int) throws -> (expectedBytes: Int, configuration: JLIDecoderConfiguration) {
-        do { return try prepareManaged(encodedByteCount: encodedByteCount, header: header,
-                                        descriptor: descriptor, frameIndex: frameIndex) }
-        catch {
+                         frameIndex: Int) throws -> DecodePlan {
+        do {
+            return try prepareManaged(
+                encodedByteCount: encodedByteCount,
+                header: header,
+                descriptor: descriptor,
+                frameIndex: frameIndex
+            )
+        } catch {
             switch error.operand1 {
             case 200: throw DICOMError.parsingFailed("JPEG header does not match DICOM dimensions, components or precision")
             case 201: throw DICOMError.parsingFailed("Unsupported JPEG decoding transfer syntax")
@@ -189,16 +262,24 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     }
 
     private func prepareManaged(encodedByteCount: Int, header: JPEGFrameEnvelope, descriptor: PixelDataDescriptor,
-        frameIndex: Int) throws(DICOMManagedFailure) -> (expectedBytes: Int, configuration: JLIDecoderConfiguration) {
-        try prepareManagedOutcome(encodedByteCount: encodedByteCount, header: header,
-                                  descriptor: descriptor, frameIndex: frameIndex).get()
+                                frameIndex: Int) throws(DICOMManagedFailure) -> DecodePlan {
+        try prepareManagedOutcome(
+            encodedByteCount: encodedByteCount,
+            header: header,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        ).get()
     }
 
     private func prepareManagedOutcome(encodedByteCount: Int, header: JPEGFrameEnvelope,
-        descriptor: PixelDataDescriptor, frameIndex: Int) -> DICOMManagedOutcome<(expectedBytes: Int, configuration: JLIDecoderConfiguration)> {
+                                       descriptor: PixelDataDescriptor,
+                                       frameIndex: Int) -> DICOMManagedOutcome<DecodePlan> {
         let expectedBytes: Int
-        switch decodingLimits.validateManagedOutcome(encodedByteCount: encodedByteCount,
-            descriptor: descriptor, frameIndex: frameIndex) {
+        switch decodingLimits.validateManagedOutcome(
+            encodedByteCount: encodedByteCount,
+            descriptor: descriptor,
+            frameIndex: frameIndex
+        ) {
         case .success(let value): expectedBytes = value
         case .failure(let failure): return .failure(failure)
         }
@@ -209,16 +290,16 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         if syntaxRestriction != .any {
             let expected: UInt8
             switch syntaxRestriction {
-            case .baseline: expected = 0xc0
-            case .extended: expected = 0xc1
-            case .lossless, .losslessSV1: expected = 0xc3
+            case .baseline: expected = 0xC0
+            case .extended: expected = 0xC1
+            case .lossless, .losslessSV1: expected = 0xC3
             case .any, .unsupported: return .failure(DICOMManagedFailure(.invalidDescriptor, 201))
             }
             guard header.process == expected else {
                 return .failure(DICOMManagedFailure(.invalidDescriptor, 202))
             }
         }
-        let lossless = header.process == 0xc3
+        let lossless = header.process == 0xC3
         if lossless {
             guard header.components.hasUnitSampling,
                   header.scanParameters.allSatisfy({ (1...7).contains($0.first) && $0.last == 0
@@ -228,7 +309,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             }
         } else {
             guard !descriptor.isSigned,
-                  (header.process == 0xc0 ? header.precision == 8 : (header.precision == 8 || header.precision == 12)),
+                  (header.process == 0xC0 ? header.precision == 8 : (header.precision == 8 || header.precision == 12)),
                   header.scanParameters.allSatisfy({ $0.first == 0 && $0.last == 63 && $0.approximation == 0 }) else {
                 return .failure(DICOMManagedFailure(.invalidDescriptor, 204))
             }
@@ -237,23 +318,125 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                 return .failure(DICOMManagedFailure(.invalidDescriptor, 205))
             }
         }
-        let sourceColor: JLIColorModel?
-        if lossless || descriptor.samplesPerPixel == 1 { sourceColor = nil }
-        else if header.adobeTransform == 0 || header.components.hasRGBIdentifiers { sourceColor = .rgb }
-        else if header.jfif || header.adobeTransform == 1 || descriptor.photometricInterpretation.isYBR {
-            sourceColor = .yCbCr
-        } else { sourceColor = .rgb }
-        let configuration = JLIDecoderConfiguration(sourceColorModel: sourceColor,
-            maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-            maximumPixels: decodingLimits.maximumPixels,
-            maximumDecodedBytes: decodingLimits.maximumDecodedBytes)
-        return .success((expectedBytes, configuration))
+        // JPEGFrameEnvelope has already recorded any JFIF (APP0) and Adobe (APP14) markers;
+        // ancillary APPn/COM segments are stripped before SwiftJLI envelope validation so
+        // external encoders (e.g. Apple ImageIO XMP/ICC/COM segments) never fail metadata admission.
+        let sourceColourModel: SwiftJLI.JPEGSourceColourModel?
+        if lossless || descriptor.samplesPerPixel == 1 {
+            sourceColourModel = nil
+        } else if let adobe = header.adobeTransform {
+            sourceColourModel = (adobe == 0) ? .rgb : .yCbCr
+        } else if header.components.hasRGBIdentifiers {
+            sourceColourModel = .rgb
+        } else if header.jfif || descriptor.photometricInterpretation.isYBR {
+            sourceColourModel = .yCbCr
+        } else {
+            sourceColourModel = .rgb
+        }
+        let normalizeLosslessRGBIDs = lossless
+            && descriptor.samplesPerPixel == 3
+            && !header.components.hasRGBIdentifiers
+        return .success(DecodePlan(
+            expectedBytes: expectedBytes,
+            sourceColourModel: sourceColourModel,
+            normalizeLosslessRGBIDs: normalizeLosslessRGBIDs
+        ))
     }
 
-    /// Managed payload decoding for monochrome lossless UInt16 and baseline RGB8
-    /// interleaved output. Full retained capacity is charged before allocation;
-    /// baseline RGB retains its larger reconstruction arena. Other profiles throw
-    /// without falling back. Runtime/control heap qualification remains separate.
+    private func makeDecodeResourceLimits(
+        encodedByteCount: Int,
+        header: JPEGFrameEnvelope
+    ) throws -> SwiftJLI.ResourceLimits {
+        let rawBps = header.precision <= 8 ? 1 : 2
+        let (pixels, pOver) = header.width.multipliedReportingOverflow(by: header.height)
+        let (samples, sOver) = pixels.multipliedReportingOverflow(by: max(1, header.components.count))
+        let (rawBytes, bOver) = samples.multipliedReportingOverflow(by: rawBps)
+        guard !pOver, !sOver, !bOver, pixels > 0, rawBytes > 0 else {
+            throw DICOMError.parsingFailed("JPEG header dimensions overflow addressable range")
+        }
+        let maxCompressed = max(1, max(decodingLimits.maximumEncodedBytes, encodedByteCount))
+        let maxPixels = max(1, max(decodingLimits.maximumPixels, pixels))
+        let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes, rawBytes))
+        let maxDim = max(65535, max(header.width, header.height))
+        return try SwiftJLI.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: maxPixels,
+            maximumDimension: maxDim,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func decodeWithSwiftJLI(
+        _ inputData: Data,
+        header: JPEGFrameEnvelope,
+        sourceColourModel: SwiftJLI.JPEGSourceColourModel?,
+        limits: SwiftJLI.ResourceLimits
+    ) async throws -> SwiftJLI.DecodedImage {
+        let width = header.width
+        let height = header.height
+        let nc = header.components.count
+        let bps = header.precision <= 8 ? 1 : 2
+        let pixelStride = nc * bps
+        let rowBytes = width * pixelStride
+        let byteCount = rowBytes * height
+        let plane = try SwiftJLI.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<nc),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: byteCount
+        )
+        let dstDescriptor = try SwiftJLI.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: bps * 8,
+            meaningfulBits: header.precision,
+            byteOrder: .littleEndian,
+            components: nc == 1 ? [.grey] : [.red, .green, .blue],
+            colour: nc == 1 ? .greyscale : .rgb,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: nil,
+            limits: limits
+        )
+        let destination = try SwiftJLI.ImageDestination.allocate(
+            descriptor: dstDescriptor,
+            limits: limits
+        )
+        let decoderConfig = SwiftJLI.DecoderConfiguration(
+            scale: 1,
+            sampleFormat: .nativeInteger,
+            sourceColourModel: sourceColourModel
+        )
+        let decoder = try SwiftJLI.Decoder(configuration: decoderConfig)
+        let decodeOptions = SwiftJLI.DecodeOptions(
+            resourceLimits: limits,
+            copyPolicy: .requireSharedStorage,
+            metadataPolicy: .discardAncillary
+        )
+        let decoded = try await decoder.decode(inputData, into: destination, options: decodeOptions)
+        guard decoded.report.copyEvents.isEmpty else {
+            throw DICOMError.parsingFailed("SwiftJLI decode violated requireSharedStorage copy policy")
+        }
+        if header.process == 0xC3 {
+            guard decoded.report.fidelity == .exactSamples else {
+                throw DICOMError.parsingFailed(
+                    "SwiftJLI lossless decode reported non-exact fidelity: \(decoded.report.fidelity)"
+                )
+            }
+        }
+        return decoded
+    }
+
+    /// Managed payload decoding for validated DICOM JPEG profiles using caller-governed
+    /// `DICOMAllocationBudget` admission.
     /// - Parameters:
     ///   - frameData: Immutable encoded frame allocated using `budget`.
     ///   - descriptor: Source pixel interpretation to validate against the codestream.
@@ -278,9 +461,9 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             budget: budget, execution: execution, cancellation: cancellation).get()
     }
 
-    /// Decode admitted lossless mono or baseline RGB through scalar canonical outcomes.
+    /// Decode admitted JPEG frames through scalar canonical outcomes.
     /// This backing-only entry requires caller-owned execution storage; the execution overload
-    /// additionally validates the admitted worker. Baseline RGB retains the complete arena.
+    /// additionally validates the admitted worker.
     /// - Parameters:
     ///   - frameData: Immutable encoded backing owned by the same ledger.
     ///   - descriptor: Source interpretation to validate against the codestream.
@@ -298,289 +481,208 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         case .success: break
         case .failure(let failure): return .failure(failure)
         }
-        return withUnsafePointer(to: cancellation) { token -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
-            let codecCancellation = JLICancellation(context: UnsafeRawPointer(token),
-                                                     isCancelled: managedJLICancellation)
-            return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
-                let header: JPEGFrameEnvelope
-                switch JPEGFrameEnvelope.parseOutcome(encoded, jpegLS: false, cancellation: cancellation) {
-                case .success(let value): header = value
+        return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
+            let header: JPEGFrameEnvelope
+            switch JPEGFrameEnvelope.parseOutcome(encoded, jpegLS: false, cancellation: cancellation) {
+            case .success(let value): header = value
+            case .failure(let failure): return .failure(failure)
+            }
+            let plan: DecodePlan
+            switch prepareManagedOutcome(encodedByteCount: encoded.count, header: header,
+                                         descriptor: descriptor, frameIndex: frameIndex) {
+            case .success(let value): plan = value
+            case .failure(let failure): return .failure(failure)
+            }
+
+            let (pixels, pOver) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+            let (samples, sOver) = pixels.multipliedReportingOverflow(by: descriptor.samplesPerPixel)
+            let (twoByteSamples, tOver) = samples.multipliedReportingOverflow(by: 2)
+            guard !pOver, !sOver, !tOver else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 2))
+            }
+            let basePlaneCount = max(plan.expectedBytes, twoByteSamples)
+            let (stagingCount, stOverflow) = basePlaneCount.addingReportingOverflow(encoded.count)
+            guard !stOverflow, stagingCount > 0 else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 2))
+            }
+
+            let decoded: SwiftJLI.DecodedImage
+            do {
+                let staging: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: stagingCount, budget: budget, resource: .staging) {
+                case .success(let value): staging = value
                 case .failure(let failure): return .failure(failure)
                 }
-                let plan: (expectedBytes: Int, configuration: JLIDecoderConfiguration)
-                switch prepareManagedOutcome(encodedByteCount: encoded.count, header: header,
-                                              descriptor: descriptor, frameIndex: frameIndex) {
-                case .success(let value): plan = value
-                case .failure(let failure): return .failure(failure)
-                }
-                let decoder = JLIDecoder()
-                if header.process == 0xc3 && descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 16 {
-                    let workspace: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: JLIDecoder.losslessMonochromeWorkspaceByteCount,
-                                                 budget: budget, resource: .staging) {
-                    case .success(let value): workspace = value
-                    case .failure(let failure): return .failure(failure)
-                    }
-                    let inspectResult = decoder.inspectLosslessMonochromeCore(
-                        encoded, workspace: workspace.unsafeMutableBytes,
-                        configuration: plan.configuration, cancellation: codecCancellation
-                    )
-                    let info: JLIDecoder.LosslessMonochromeInfo
-                    switch inspectResult {
-                    case .success(let value): info = value
-                    case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
-                    }
-                    guard info.outputByteCount == plan.expectedBytes else {
-                        workspace.keepAlive()
-                        return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
-                    let bytes: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: info.outputByteCount, budget: budget, resource: .decoded) {
-                    case .success(let value): bytes = value
-                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
-                    }
-                    let decodeResult = decoder.decodeLosslessMonochromeCore(
-                        encoded, into: bytes.unsafeMutableBytes,
-                        workspace: workspace.unsafeMutableBytes, configuration: plan.configuration,
-                        cancellation: codecCancellation
-                    )
-                    workspace.keepAlive()
-                    let decoded: JLIDecoder.LosslessMonochromeInfo
-                    switch decodeResult {
-                    case .success(let value): decoded = value
-                    case .failure(let failure): return .failure(Self.managedFailure(failure))
-                    }
-                    guard decoded == info else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
-                    if let failure = cancellation.failure { return .failure(failure) }
-                    return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: descriptor,
-                                                              sourceFrameIndex: frameIndex))
-                }
-                if header.process == 0xc3 && descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 8 {
-                    let wideExpectedBytes = descriptor.rows * descriptor.columns * 2
-                    let wideConfig = JLIDecoderConfiguration(
-                        sourceColorModel: plan.configuration.sourceColorModel,
-                        maximumEncodedBytes: plan.configuration.maximumEncodedBytes,
-                        maximumPixels: plan.configuration.maximumPixels,
-                        maximumDecodedBytes: max(plan.configuration.maximumDecodedBytes, wideExpectedBytes)
-                    )
-                    let workspace: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: JLIDecoder.losslessMonochromeWorkspaceByteCount,
-                                                 budget: budget, resource: .staging) {
-                    case .success(let value): workspace = value
-                    case .failure(let failure): return .failure(failure)
-                    }
-                    let inspectResult = decoder.inspectLosslessMonochromeCore(
-                        encoded, workspace: workspace.unsafeMutableBytes,
-                        configuration: wideConfig, cancellation: codecCancellation
-                    )
-                    let info: JLIDecoder.LosslessMonochromeInfo
-                    switch inspectResult {
-                    case .success(let value): info = value
-                    case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
-                    }
-                    guard info.outputByteCount == wideExpectedBytes else {
-                        workspace.keepAlive()
-                        return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
-                    let wideStaging: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: wideExpectedBytes, budget: budget, resource: .staging) {
-                    case .success(let value): wideStaging = value
-                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
-                    }
-                    let decodeResult = decoder.decodeLosslessMonochromeCore(
-                        encoded, into: wideStaging.unsafeMutableBytes,
-                        workspace: workspace.unsafeMutableBytes, configuration: wideConfig,
-                        cancellation: codecCancellation
-                    )
-                    workspace.keepAlive()
-                    let decoded: JLIDecoder.LosslessMonochromeInfo
-                    switch decodeResult {
-                    case .success(let value): decoded = value
-                    case .failure(let failure): wideStaging.keepAlive(); return .failure(Self.managedFailure(failure))
-                    }
-                    guard decoded == info else {
-                        wideStaging.keepAlive()
-                        return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
-                    let bytes: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: plan.expectedBytes, budget: budget, resource: .decoded) {
-                    case .success(let value): bytes = value
-                    case .failure(let failure): wideStaging.keepAlive(); return .failure(failure)
-                    }
-                    if let failure = cancellation.failure { wideStaging.keepAlive(); return .failure(failure) }
-                    let maxSample = UInt16((1 << descriptor.bitsStored) - 1)
-                    let src16 = wideStaging.unsafeMutableBytes.bindMemory(to: UInt16.self)
-                    guard let dst8 = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                        wideStaging.keepAlive()
-                        return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
-                    for index in 0..<plan.expectedBytes {
-                        if (index & 0xFFFF) == 0, let failure = cancellation.failure {
-                            wideStaging.keepAlive()
-                            return .failure(failure)
-                        }
-                        let value = UInt16(littleEndian: src16[index])
-                        guard value <= maxSample else {
-                            wideStaging.keepAlive()
-                            return .failure(DICOMManagedFailure(.codecResultMismatch))
-                        }
-                        dst8[index] = UInt8(truncatingIfNeeded: value)
-                    }
-                    wideStaging.keepAlive()
-                    if let failure = cancellation.failure { return .failure(failure) }
-                    return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: descriptor,
-                                                              sourceFrameIndex: frameIndex))
-                }
-                if header.process == 0xc0 && descriptor.samplesPerPixel == 3
-                    && descriptor.bitsAllocated == 8 && descriptor.planarConfiguration == 0 {
-                    let info: JLIDecoder.BaselineRGBInfo
-                    do {
-                        let inspection: DICOMByteBuffer
-                        switch DICOMByteBuffer.admit(count: JLIDecoder.baselineHeaderWorkspaceByteCount,
-                                                     budget: budget, resource: .staging) {
-                        case .success(let value): inspection = value
-                        case .failure(let failure): return .failure(failure)
-                        }
-                        let inspectResult = decoder.inspectBaselineRGBCore(
-                            encoded, headerWorkspace: inspection.unsafeMutableBytes,
-                            configuration: plan.configuration, cancellation: codecCancellation
-                        )
-                        inspection.keepAlive()
-                        switch inspectResult {
-                        case .success(let value): info = value
-                        case .failure(let failure): return .failure(Self.managedFailure(failure))
-                        }
-                    }
-                    guard info.outputByteCount == plan.expectedBytes else {
-                        return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
-                    let workspace: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: info.workspaceByteCount, budget: budget, resource: .staging) {
-                    case .success(let value): workspace = value
-                    case .failure(let failure): return .failure(failure)
-                    }
-                    let bytes: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: info.outputByteCount, capacity: info.arenaByteCount,
-                                                 budget: budget, resource: .decoded) {
-                    case .success(let value): bytes = value
-                    case .failure(let failure): workspace.keepAlive(); return .failure(failure)
-                    }
-                    let decodeResult = decoder.decodeBaselineRGBCore(
-                        encoded, arena: bytes.unsafeMutableBytes,
-                        workspace: workspace.unsafeMutableBytes, configuration: plan.configuration,
-                        cancellation: codecCancellation
-                    )
-                    workspace.keepAlive()
-                    let decoded: JLIDecoder.BaselineRGBInfo
-                    switch decodeResult {
-                    case .success(let value): decoded = value
-                    case .failure(let failure): return .failure(Self.managedFailure(failure))
-                    }
-                    guard decoded == info else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
-                    if let failure = cancellation.failure { return .failure(failure) }
-                    let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
-                        numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
-                        bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
-                        samplesPerPixel: 3, photometricInterpretation: .rgb, planarConfiguration: 0)
-                    return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex))
+                if let failure = cancellation.failure {
+                    staging.keepAlive()
+                    return .failure(failure)
                 }
 
-                // Remaining validated JPEG profiles: SOF0 8-bit monochrome (.50),
-                // SOF1 8/12-bit Extended monochrome (.51), SOF3 3-sample lossless (.57/.70),
-                // and planar 3-sample SOF0/SOF1.
-                let basePlaneCount = max(plan.expectedBytes, descriptor.rows * descriptor.columns * descriptor.samplesPerPixel * 2)
-                let (stagingCount, stOverflow) = basePlaneCount.addingReportingOverflow(encoded.count)
-                guard !stOverflow, stagingCount > 0 else {
-                    return .failure(DICOMManagedFailure(.limitExceeded, 2))
-                }
-                let image: JLIImage
-                do {
-                    let staging: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(count: stagingCount, budget: budget, resource: .staging) {
-                    case .success(let value): staging = value
-                    case .failure(let failure): return .failure(failure)
-                    }
-                    if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
-                    do {
-                        let encodedBytes = Array(encoded.bindMemory(to: UInt8.self))
-                        image = try decoder.decode(from: encodedBytes, configuration: plan.configuration)
-                    } catch {
-                        staging.keepAlive()
-                        return .failure(DICOMManagedFailure(.codecFailure, 207, domain: 0x0200))
-                    }
+                guard let encodedBase = encoded.baseAddress else {
                     staging.keepAlive()
+                    return .failure(DICOMManagedFailure(.malformed, 10, domain: 0x0200))
                 }
-                guard image.width == descriptor.columns, image.height == descriptor.rows else {
-                    return .failure(DICOMManagedFailure(.codecResultMismatch))
+                let rawEncoded = Data(bytes: encodedBase, count: encoded.count)
+                let strippedData = JPEGInterchangeFormat.removingAncillaryMetadataSegments(rawEncoded)
+                let inputData = plan.normalizeLosslessRGBIDs
+                    ? JPEGInterchangeFormat.normalizingLosslessRGBComponentIDs(strippedData)
+                    : strippedData
+
+                let jliLimits: SwiftJLI.ResourceLimits
+                do {
+                    jliLimits = try makeDecodeResourceLimits(encodedByteCount: inputData.count, header: header)
+                } catch {
+                    staging.keepAlive()
+                    return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: 0x0200))
                 }
-                let lossless = header.process == 0xc3
-                let outputPI: PhotometricInterpretation
-                if lossless {
-                    outputPI = descriptor.photometricInterpretation
-                } else {
-                    switch image.colorModel {
-                    case .rgb: outputPI = .rgb
-                    case .grayscale: outputPI = descriptor.photometricInterpretation
-                    default: return .failure(DICOMManagedFailure(.codecResultMismatch))
-                    }
+
+                let bridgeOutcome = CompressionSuiteSyncBridge.runManaged(
+                    deadlineSeconds: 30.0,
+                    joinGraceSeconds: 1.0,
+                    domain: 0x0200,
+                    cancellation: cancellation
+                ) {
+                    try await Self.decodeWithSwiftJLI(
+                        inputData,
+                        header: header,
+                        sourceColourModel: plan.sourceColourModel,
+                        limits: jliLimits
+                    )
                 }
-                let widen8To16 = header.precision <= 8 && descriptor.bitsAllocated == 16
-                let expectedRawCount = widen8To16 ? (plan.expectedBytes / 2) : plan.expectedBytes
-                guard image.data.count == expectedRawCount else {
-                    return .failure(DICOMManagedFailure(.codecResultMismatch))
-                }
-                let bytes: DICOMByteBuffer
-                switch DICOMByteBuffer.admit(count: plan.expectedBytes, budget: budget, resource: .decoded) {
-                case .success(let value): bytes = value
+                staging.keepAlive()
+                switch bridgeOutcome {
+                case .success(let value): decoded = value
                 case .failure(let failure): return .failure(failure)
                 }
-                if let failure = cancellation.failure { return .failure(failure) }
-                guard let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                    return .failure(DICOMManagedFailure(.codecResultMismatch))
+            }
+
+            guard decoded.image.descriptor.width == descriptor.columns,
+                  decoded.image.descriptor.height == descriptor.rows else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
+            }
+
+            let lossless = header.process == 0xC3
+            let outputPI: PhotometricInterpretation
+            if lossless {
+                outputPI = descriptor.photometricInterpretation
+            } else {
+                switch decoded.image.descriptor.colour {
+                case .rgb: outputPI = .rgb
+                case .greyscale: outputPI = descriptor.photometricInterpretation
+                default: return .failure(DICOMManagedFailure(.codecResultMismatch))
                 }
-                let spp = descriptor.samplesPerPixel
-                let bps = descriptor.bitsAllocated <= 8 ? 1 : 2
-                let pixels = descriptor.rows * descriptor.columns
-                if spp == 1 || descriptor.planarConfiguration == 0 {
-                    if widen8To16 {
-                        for idx in 0..<expectedRawCount {
-                            if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return .failure(failure) }
-                            dst[idx * 2] = image.data[idx]
-                            dst[idx * 2 + 1] = 0
-                        }
-                    } else {
-                        image.data.withUnsafeBufferPointer { src in
-                            if let base = src.baseAddress {
-                                dst.update(from: base, count: plan.expectedBytes)
+            }
+
+            let widen8To16 = header.precision <= 8 && descriptor.bitsAllocated == 16
+            let expectedRawCount = widen8To16 ? (plan.expectedBytes / 2) : plan.expectedBytes
+            guard decoded.image.storage.byteCount == expectedRawCount else {
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
+            }
+
+            let bytes: DICOMByteBuffer
+            switch DICOMByteBuffer.admit(count: plan.expectedBytes, budget: budget, resource: .decoded) {
+            case .success(let value): bytes = value
+            case .failure(let failure): return .failure(failure)
+            }
+            if let failure = cancellation.failure {
+                bytes.keepAlive()
+                return .failure(failure)
+            }
+
+            guard let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                bytes.keepAlive()
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
+            }
+
+            let spp = descriptor.samplesPerPixel
+            let bps = descriptor.bitsAllocated <= 8 ? 1 : 2
+            let maxSample = UInt16((1 << min(16, max(1, descriptor.bitsStored))) - 1)
+            let checkSubwordBounds = lossless && descriptor.bitsStored < descriptor.bitsAllocated
+
+            let copyFailure: DICOMManagedFailure?
+            do {
+                copyFailure = try decoded.image.storage.withUnsafeBytes { raw -> DICOMManagedFailure? in
+                    guard raw.count >= expectedRawCount,
+                          let src = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                        return DICOMManagedFailure(.codecResultMismatch)
+                    }
+                    if checkSubwordBounds {
+                        if header.precision <= 8 {
+                            let max8 = UInt8(truncatingIfNeeded: maxSample)
+                            for idx in 0..<expectedRawCount {
+                                if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                if src[idx] > max8 { return DICOMManagedFailure(.codecResultMismatch) }
+                            }
+                        } else {
+                            let sampleCount = expectedRawCount / 2
+                            for idx in 0..<sampleCount {
+                                if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                let val = UInt16(src[idx * 2]) | (UInt16(src[idx * 2 + 1]) << 8)
+                                if val > maxSample { return DICOMManagedFailure(.codecResultMismatch) }
                             }
                         }
                     }
-                } else {
-                    for p in 0..<pixels {
-                        if (p & 0xFFFF) == 0, let failure = cancellation.failure { return .failure(failure) }
-                        for c in 0..<spp {
-                            let dstByte = (c * pixels + p) * bps
-                            if widen8To16 {
-                                let srcIdx = p * spp + c
-                                dst[dstByte] = image.data[srcIdx]
-                                dst[dstByte + 1] = 0
-                            } else {
-                                let srcByte = (p * spp + c) * bps
-                                for b in 0..<bps {
-                                    dst[dstByte + b] = image.data[srcByte + b]
+
+                    if spp == 1 || descriptor.planarConfiguration == 0 {
+                        if widen8To16 {
+                            for idx in 0..<expectedRawCount {
+                                if (idx & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                                dst[idx * 2] = src[idx]
+                                dst[idx * 2 + 1] = 0
+                            }
+                        } else {
+                            let chunk = 65_536
+                            var offset = 0
+                            while offset < plan.expectedBytes {
+                                if let failure = cancellation.failure { return failure }
+                                let step = min(chunk, plan.expectedBytes - offset)
+                                (dst + offset).update(from: src + offset, count: step)
+                                offset += step
+                            }
+                        }
+                    } else {
+                        for p in 0..<pixels {
+                            if (p & 0xFFFF) == 0, let failure = cancellation.failure { return failure }
+                            for c in 0..<spp {
+                                let dstByte = (c * pixels + p) * bps
+                                if widen8To16 {
+                                    let srcIdx = p * spp + c
+                                    dst[dstByte] = src[srcIdx]
+                                    dst[dstByte + 1] = 0
+                                } else {
+                                    let srcByte = (p * spp + c) * bps
+                                    for b in 0..<bps {
+                                        dst[dstByte + b] = src[srcByte + b]
+                                    }
                                 }
                             }
                         }
                     }
+                    return nil
                 }
-                if let failure = cancellation.failure { return .failure(failure) }
-                let output = PixelDataDescriptor(rows: descriptor.rows, columns: descriptor.columns,
-                    numberOfFrames: descriptor.numberOfFrames, bitsAllocated: descriptor.bitsAllocated,
-                    bitsStored: descriptor.bitsStored, highBit: descriptor.highBit, isSigned: descriptor.isSigned,
-                    samplesPerPixel: spp, photometricInterpretation: outputPI,
-                    planarConfiguration: descriptor.planarConfiguration)
-                return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex))
+            } catch {
+                bytes.keepAlive()
+                return .failure(DICOMManagedFailure(.codecResultMismatch))
             }
+            bytes.keepAlive()
+            if let copyFailure { return .failure(copyFailure) }
+            if let failure = cancellation.failure {
+                bytes.keepAlive()
+                return .failure(failure)
+            }
+            let output = PixelDataDescriptor(
+                rows: descriptor.rows,
+                columns: descriptor.columns,
+                numberOfFrames: descriptor.numberOfFrames,
+                bitsAllocated: descriptor.bitsAllocated,
+                bitsStored: descriptor.bitsStored,
+                highBit: descriptor.highBit,
+                isSigned: descriptor.isSigned,
+                samplesPerPixel: spp,
+                photometricInterpretation: outputPI,
+                planarConfiguration: descriptor.planarConfiguration
+            )
+            return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: output, sourceFrameIndex: frameIndex))
         }
     }
 
@@ -606,18 +708,11 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                                                budget: budget, cancellation: cancellation)
     }
 
-    private static func managedFailure(_ error: JLICoreFailure) -> DICOMManagedFailure {
-        if error.kind == .cancelled { return DICOMManagedFailure(.cancelled) }
-        // Domain 0x0200 identifies JLI; its low byte preserves the dependency's failure kind.
-        return DICOMManagedFailure(.codecFailure, Int(error.code), error.detail0,
-            operand3: error.detail1, operand4: error.detail2, domain: 0x0200 | UInt16(error.kind.rawValue))
-    }
-
     // MARK: - Encoding
 
     /// Whether this codec can encode the given configuration for its target syntax.
     ///
-    /// Constraints follow each JPEG process plus JLISwift's input rules:
+    /// Constraints follow each JPEG process plus `SwiftJLI`'s input rules:
     ///   • samples per pixel must be 1 (grayscale) or 3 (RGB);
     ///   • Baseline (.50): 8-bit unsigned only;
     ///   • Extended (.51): ≤12-bit unsigned (the SOF1 precision ceiling), monochrome only;
@@ -636,12 +731,12 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             return descriptor.bitsStored >= 2 && descriptor.bitsStored <= 16
         }
 
-        // Lossy DCT: JLISwift's level shift is defined only for unsigned samples.
+        // Lossy DCT: ITU-T T.81 level shift is defined only for unsigned samples.
         if descriptor.isSigned {
             return false
         }
         // Pre-converted YCbCr (YBR_FULL_422/YBR_FULL) input only has an 8-bit path
-        // through JLIEncoder — see the `.yCbCr` colorModel branch in `encodeFrame`.
+        // through SwiftJLI — see the `.yCbCr` sourceColourSpace branch in `encodeFrame`.
         if descriptor.samplesPerPixel == 3 && descriptor.photometricInterpretation.isYBR
             && descriptor.bitsAllocated > 8 {
             return false
@@ -673,102 +768,293 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                             frameIndex: Int, configuration: CompressionConfiguration) throws -> Data {
         let spp = descriptor.samplesPerPixel
         guard spp == 1 || spp == 3 else {
-            throw DICOMError.parsingFailed("JLISwift: unsupported samplesPerPixel \(spp)")
+            throw DICOMError.parsingFailed("SwiftJLI: unsupported samplesPerPixel \(spp)")
         }
-        let pixelFormat: JLIPixelFormat = descriptor.bitsAllocated <= 8 ? .uint8 : .uint16
-        let colorModel: JLIColorModel
-        if spp == 1 {
-            colorModel = .grayscale
-        } else if !encodesLossless && descriptor.photometricInterpretation.isYBR {
-            // Samples are already YCbCr (e.g. YBR_FULL_422) — tell JLIEncoder not to
-            // re-transform them on the lossy DCT path. Only valid for 8-bit input
-            // (JLIEncoder's pre-converted YCbCr path is 8-bit only), which matches
-            // Table 8.2.1-1: the DICOM JPEG processes only permit YBR_FULL_422/RGB
-            // color on 8-bit Baseline, never on 12-bit Extended.
-            //
-            // The lossless (SOF3) path never transforms color regardless of this
-            // label — JLIEncoder requires it to literally be `.rgb`/`.rgba` there
-            // (a component-count marker, not a color-space claim), so YBR-tagged
-            // lossless input keeps `.rgb` below and round-trips byte-exact either way.
-            guard pixelFormat == .uint8 else {
-                throw DICOMError.parsingFailed(
-                    "JLISwift: \(descriptor.photometricInterpretation.rawValue) input requires "
-                    + "8-bit samples (bitsAllocated=\(descriptor.bitsAllocated))")
+        let width = descriptor.columns
+        let height = descriptor.rows
+        guard (1...65535).contains(width), (1...65535).contains(height) else {
+            throw DICOMError.parsingFailed("SwiftJLI: invalid frame dimensions \(width)x\(height)")
+        }
+
+        let storageBits = descriptor.bitsAllocated <= 8 ? 8 : 16
+        let bps = storageBits / 8
+        let lossless = encodesLossless
+        if !lossless && descriptor.isSigned {
+            throw DICOMError.parsingFailed("SwiftJLI: lossy DCT encoding rejects signed pixel data")
+        }
+
+        let isPreconvertedYBR = !lossless && spp == 3 && descriptor.photometricInterpretation.isYBR
+        if isPreconvertedYBR && storageBits != 8 {
+            throw DICOMError.parsingFailed(
+                "SwiftJLI: \(descriptor.photometricInterpretation.rawValue) input requires "
+                + "8-bit samples (bitsAllocated=\(descriptor.bitsAllocated))"
+            )
+        }
+
+        let meaningfulBits: Int
+        if lossless {
+            guard descriptor.bitsStored >= 2 && descriptor.bitsStored <= 16 else {
+                throw DICOMError.parsingFailed("SwiftJLI: lossless precision \(descriptor.bitsStored) outside 2...16")
             }
-            colorModel = .yCbCr
+            meaningfulBits = min(storageBits, max(2, descriptor.bitsStored))
         } else {
-            colorModel = .rgb
+            if storageBits == 8 {
+                guard descriptor.bitsStored <= 8 else {
+                    throw DICOMError.parsingFailed("SwiftJLI: 8-bit DCT requires bitsStored <= 8")
+                }
+                meaningfulBits = 8
+            } else {
+                guard descriptor.bitsStored <= 12 else {
+                    throw DICOMError.parsingFailed("SwiftJLI: Extended DCT requires bitsStored <= 12")
+                }
+                meaningfulBits = 12
+            }
         }
+
         let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
 
         do {
-            let image = try JLIImage(width: descriptor.columns, height: descriptor.rows,
-                                     pixelFormat: pixelFormat, colorModel: colorModel,
-                                     data: interleaved, isSigned: descriptor.isSigned)
-            let cfg = encoderConfiguration(descriptor: descriptor, configuration: configuration,
-                                           pixelFormat: pixelFormat)
-            // JLISwift writes a JFIF APP0 segment; PS3.5 2026a 8.2.1 recommends it be absent (D190).
-            var stream = JPEGInterchangeFormat.removingJFIFSegments(
-                Data(try JLIEncoder().encode(image, configuration: cfg)))
-            if encodingTransferSyntaxUID == TransferSyntax.jpegExtended.uid, pixelFormat == .uint8 {
-                // JLISwift selects SOF0 for UInt8 DCT input. Its baseline sequential
+            let limits = try makeEncodeResourceLimits(
+                width: width,
+                height: height,
+                spp: spp,
+                bps: bps
+            )
+            let image = try Self.buildEncodeImage(
+                interleaved: interleaved,
+                width: width,
+                height: height,
+                spp: spp,
+                storageBits: storageBits,
+                meaningfulBits: meaningfulBits,
+                isSigned: descriptor.isSigned,
+                lossless: lossless,
+                isPreconvertedYBR: isPreconvertedYBR,
+                limits: limits
+            )
+            let encoderConfig = try encoderConfiguration(
+                descriptor: descriptor,
+                configuration: configuration,
+                isPreconvertedYBR: isPreconvertedYBR
+            )
+            let encoder = try SwiftJLI.Encoder(configuration: encoderConfig)
+            let encodeOptions = SwiftJLI.EncodeOptions(
+                resourceLimits: limits,
+                copyPolicy: .requireSharedStorage,
+                metadataPolicy: .discardAncillary
+            )
+            let encoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJLI"
+            ) {
+                try await encoder.encode(image, options: encodeOptions)
+            }
+            guard encoded.report.copyEvents.isEmpty else {
+                throw DICOMError.parsingFailed("SwiftJLI encode violated requireSharedStorage copy policy")
+            }
+            if lossless {
+                guard encoded.report.fidelity == .exactSamples else {
+                    throw DICOMError.parsingFailed(
+                        "SwiftJLI lossless encode reported non-exact fidelity: \(encoded.report.fidelity)"
+                    )
+                }
+            }
+
+            // SwiftJLI writes a JFIF APP0 segment; PS3.5 2026a 8.2.1 recommends it be absent (D190).
+            var stream = JPEGInterchangeFormat.removingJFIFSegments(encoded.data)
+            if encodingTransferSyntaxUID == TransferSyntax.jpegExtended.uid, storageBits == 8 {
+                // SwiftJLI selects SOF0 for 8-bit DCT input. Its baseline sequential
                 // coding is also a valid subset of extended sequential coding, but
                 // PS3.5 A.4.1 requires SOF1 when the negotiated syntax is .51.
                 stream = try JPEGInterchangeFormat.promotingEightBitBaselineToExtended(stream)
             }
             return stream
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJLI.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("SwiftJLI encode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("SwiftJLI encode failed: \(error.message)")
         } catch {
-            throw DICOMError.parsingFailed("JLISwift encode failed: \(error)")
+            throw DICOMError.parsingFailed("SwiftJLI encode failed: \(error)")
         }
     }
 
-    // MARK: - Configuration mapping
+    // MARK: - Configuration & Storage Mapping
 
-    /// Builds the JLISwift encoder configuration for the target JPEG process.
-    private func encoderConfiguration(descriptor: PixelDataDescriptor,
-                                      configuration: CompressionConfiguration,
-                                      pixelFormat: JLIPixelFormat) -> JLIEncoderConfiguration {
+    private func makeEncodeResourceLimits(
+        width: Int,
+        height: Int,
+        spp: Int,
+        bps: Int
+    ) throws -> SwiftJLI.ResourceLimits {
+        let (pixels, pOver) = width.multipliedReportingOverflow(by: height)
+        let (samples, sOver) = pixels.multipliedReportingOverflow(by: spp)
+        let (decodedBytes, bOver) = samples.multipliedReportingOverflow(by: bps)
+        guard !pOver, !sOver, !bOver, pixels > 0, decodedBytes > 0 else {
+            throw DICOMError.parsingFailed("SwiftJLI encode: invalid frame dimensions")
+        }
+        let maxPixels = max(64_000_000, pixels)
+        let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
+        let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
+        let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 8192)
+        return try SwiftJLI.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: maxPixels,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func buildEncodeImage(
+        interleaved: [UInt8],
+        width: Int,
+        height: Int,
+        spp: Int,
+        storageBits: Int,
+        meaningfulBits: Int,
+        isSigned: Bool,
+        lossless: Bool,
+        isPreconvertedYBR: Bool,
+        limits: SwiftJLI.ResourceLimits
+    ) throws -> SwiftJLI.Image {
+        let bps = storageBits / 8
+        let pixelStride = spp * bps
+        let rowBytes = width * pixelStride
+        let requiredBytes = rowBytes * height
+        guard interleaved.count >= requiredBytes else {
+            throw DICOMError.parsingFailed(
+                "SwiftJLI encode: pixel buffer length \(interleaved.count) shorter than required \(requiredBytes)"
+            )
+        }
+
+        let components: [SwiftJLI.ComponentRole]
+        let colour: SwiftJLI.ColourInterpretation
+        if spp == 1 {
+            components = [.grey]
+            colour = .greyscale
+        } else if isPreconvertedYBR {
+            // Samples are already YCbCr (e.g. YBR_FULL_422) — declare uninterpreted Y/Cb/Cr
+            // components with `.unknown` colour so SwiftJLI skips RGB -> YCbCr conversion.
+            components = [.uninterpreted("Y"), .uninterpreted("Cb"), .uninterpreted("Cr")]
+            colour = .unknown
+        } else {
+            // Lossless SOF3 never applies a colour transform; SwiftJLI requires explicit RGB
+            // component roles (`'R','G','B'` component IDs) for 3-sample lossless streams.
+            components = [.red, .green, .blue]
+            colour = .rgb
+        }
+
+        let plane = try SwiftJLI.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<spp),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: requiredBytes
+        )
+        let imageDescriptor = try SwiftJLI.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: meaningfulBits,
+            byteOrder: .littleEndian,
+            components: components,
+            colour: colour,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: nil,
+            limits: limits
+        )
+        let destination = try SwiftJLI.ImageDestination.allocate(
+            descriptor: imageDescriptor,
+            limits: limits
+        )
+        let needsSignedSubwordMask = lossless && isSigned && meaningfulBits < storageBits
+
+        return try destination.write { dstRaw in
+            guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return
+            }
+            interleaved.withUnsafeBufferPointer { src in
+                if let base = src.baseAddress, requiredBytes > 0 {
+                    dst.update(from: base, count: requiredBytes)
+                }
+            }
+            if needsSignedSubwordMask {
+                let totalCells = requiredBytes / bps
+                let storedMask = UInt16((1 << meaningfulBits) - 1)
+                let signBit = UInt16(1 << (meaningfulBits - 1))
+                let containerMask: UInt16 = storageBits == 8 ? 0x00FF : 0xFFFF
+                let upperMask = containerMask ^ storedMask
+                for i in 0..<totalCells {
+                    if bps == 1 {
+                        let word = UInt16(dst[i])
+                        let upper = word & upperMask
+                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
+                            throw DICOMError.parsingFailed("Signed 8-bit sample exceeds \(meaningfulBits)-bit precision")
+                        }
+                        dst[i] = UInt8(truncatingIfNeeded: word & storedMask)
+                    } else {
+                        let word = UInt16(dst[i * 2]) | (UInt16(dst[i * 2 + 1]) << 8)
+                        let upper = word & upperMask
+                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
+                            throw DICOMError.parsingFailed("Signed 16-bit sample exceeds \(meaningfulBits)-bit precision")
+                        }
+                        let masked = word & storedMask
+                        dst[i * 2] = UInt8(masked & 0xFF)
+                        dst[i * 2 + 1] = UInt8((masked >> 8) & 0xFF)
+                    }
+                }
+            }
+        }
+    }
+
+    /// Builds the `SwiftJLI` encoder configuration for the target JPEG process.
+    private func encoderConfiguration(
+        descriptor: PixelDataDescriptor,
+        configuration: CompressionConfiguration,
+        isPreconvertedYBR: Bool
+    ) throws -> SwiftJLI.EncoderConfiguration {
         if encodesLossless {
             // SOF3 predictor 1, point-transform 0 — bit-exact. Both .57 (Process 14)
             // and .70 (SV1) are valid with the left predictor; .70 *requires* it.
-            var cfg = JLIEncoderConfiguration.diagnosticLossless
-            cfg.losslessPredictor = 1
-            cfg.losslessPointTransform = 0
-            if pixelFormat == .uint16 {
-                // Pin precision to the stored depth; otherwise JLISwift derives
-                // 12-bit and drops the high bits of >12-bit sources.
-                cfg.losslessPrecision = min(16, max(2, descriptor.bitsStored))
-            }
-            return cfg
+            return try SwiftJLI.EncoderConfiguration(
+                mode: .lossless,
+                codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: 0)
+            )
         }
 
-        // Lossy DCT — start from the tuned perceptual defaults, then force the
-        // properties the DICOM JPEG processes mandate:
+        // Lossy DCT — force the properties the DICOM JPEG processes mandate:
         //   • sequential, never progressive (Baseline/Extended are non-progressive);
         //   • colour as YCbCr 4:2:2 — PS3.5 2026a Table 8.2.1-1 allows a 3-sample JPEG Baseline
-        //     stream only as YBR_FULL_422 or RGB (components stored as RGB). JLISwift's lossy
-        //     path always applies the RGB → YCbCr transform, so the stream is written 4:2:2 and
-        //     labelled YBR_FULL_422 by the transcoders (D190 / D-CORE-2). 4:4:4 YCbCr has no
-        //     valid label.
-        // Sample precision (SOF0 8-bit vs SOF1 12-bit) follows the pixel format.
-        var cfg = JLIEncoderConfiguration.default
-        cfg.lossless = false
-        cfg.progressive = false
-        cfg.chromaSubsampling = descriptor.samplesPerPixel == 3 ? .yuv422 : .yuv444
-        cfg.distance = nil
-        cfg.quality = Self.jpegQuality(from: configuration.quality)
-        return cfg
+        //     stream only as YBR_FULL_422 or RGB (components stored as RGB). SwiftJLI's lossy
+        //     path writes 4:2:2 YCbCr, labelled YBR_FULL_422 by the transcoders (D190 / D-CORE-2).
+        let dctOptions = SwiftJLI.DCTOptions(
+            quality: Self.jpegQuality(from: configuration.quality),
+            distance: nil,
+            chromaSubsampling: descriptor.samplesPerPixel == 3 ? .yuv422 : .yuv444,
+            progressiveMode: .sequential,
+            colourSpace: .yCbCr,
+            sourceColourSpace: isPreconvertedYBR ? .yCbCr : .fromDescriptor
+        )
+        return try SwiftJLI.EncoderConfiguration(
+            mode: .lossy,
+            codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: 0, dct: dctOptions)
+        )
     }
 
     /// Maps a DICOM `CompressionQuality` (0.0–1.0) to a JPEG quality factor (1–100).
     static func jpegQuality(from quality: CompressionQuality) -> Double {
         max(1.0, min(100.0, quality.value * 100.0))
     }
-}
-
-// The context is a borrowed stack value for the entire synchronous JLI call.
-private func managedJLICancellation(_ context: UnsafeRawPointer?) -> Bool {
-    guard let context else { return false }
-    let token = context.assumingMemoryBound(to: DICOMCancellation.self).pointee
-    return token.check?(token.context) == true
 }

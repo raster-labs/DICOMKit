@@ -1665,7 +1665,7 @@ material for other platforms does not establish support.
 | SwiftJ2K | 12.1.0+ | 2D JPEG 2000 (Part 1 & Part 2 MCT) / HTJ2K (Part 15) codec stack |
 | SwiftRLE | 1.0.1+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
 | SwiftJLS | 2.0.0+ | JPEG-LS Lossless & Near-Lossless (`1.2.840.10008.1.2.4.80` / `.81`) codec |
-| JLISwift | 0.6.0 (exact) | Native-Swift JPEG codec + DICOM bridge |
+| SwiftJLI | 2.0.2+ | JPEG Baseline, Extended, Lossless & Lossless SV1 (`.50` / `.51` / `.57` / `.70`) codec |
 | JXLSwift | 1.4.0+ | JPEG XL codec |
 
 ---
@@ -4644,7 +4644,7 @@ dicom-convert scan.dcm --output compressed.dcm --transfer-syntax jpeg2000-lossle
 
 #### Anonymization
 
-The OCR workflow uses the current PS3.15 Basic Profile and preserves main’s confidentiality fixes. `--profile ps315` and `basic` are supported; legacy CLI profiles are now library-only. Automatic OCR requires Apple Vision. Linux builds remain blocked by the existing JLISwift dependency’s Apple Accelerate imports. See [dicom-anon compatibility and limitations](Sources/dicom-anon/README.md#limitations) before migrating scripts.
+The OCR workflow uses the current PS3.15 Basic Profile and preserves main’s confidentiality fixes. `--profile ps315` and `basic` are supported; legacy CLI profiles are now library-only. Automatic OCR requires Apple Vision on Apple platforms (`--ocr-mode header` remains cross-platform). See [dicom-anon compatibility and limitations](Sources/dicom-anon/README.md#limitations) before migrating scripts.
 
 ```bash
 # De-identify a single file (PS3.15 Basic Profile, header and pixels)

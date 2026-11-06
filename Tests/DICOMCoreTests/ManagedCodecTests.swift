@@ -32,12 +32,7 @@ struct ManagedCodecTests {
     }
 
     private func expectedRetainedByteCount(for profile: String, descriptor d: PixelDataDescriptor) -> Int {
-        switch profile {
-        case "rgb", "jxl-recomp":
-            return d.rows * d.columns * 12
-        default:
-            return d.bytesPerFrame
-        }
+        d.bytesPerFrame
     }
 
     private func bytes(_ descriptor: PixelDataDescriptor) -> Data {

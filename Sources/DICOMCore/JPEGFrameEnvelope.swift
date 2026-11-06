@@ -211,7 +211,7 @@ struct JPEGFrameEnvelope {
                     }
                     scanMask |= 1 << index
                 }
-                // JLISwift's lossless implementation decodes one interleaved scan only.
+                // SwiftJLI's lossless implementation decodes one interleaved scan only.
                 guard process != 0xc3 || (scans.count == 0 && count == components.count) else {
                     return .failure(DICOMManagedFailure(.malformed, offset: p, 14))
                 }

@@ -21,7 +21,7 @@ import Foundation
 /// encoders against each other. The `dicom-compress` CLI never sets it, so it
 /// always runs the ``jli`` default and its output is unchanged.
 public enum JPEGCodecEngine: String, Sendable, CaseIterable, CustomStringConvertible {
-    /// JLISwift — pure-Swift ITU-T T.81. The default, and the only engine for
+    /// SwiftJLI — pure-Swift ITU-T T.81. The default, and the only engine for
     /// every JPEG transfer syntax other than Baseline.
     case jli
 

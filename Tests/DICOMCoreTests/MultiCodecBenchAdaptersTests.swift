@@ -3,7 +3,7 @@ import Foundation
 @testable import DICOMCore
 
 /// Round-trip + interop verification for the multi-format codec-bench adapters
-/// (JLISwift JPEG, JXLSwift JPEG XL) and their CLI peers (libjpeg-turbo `djpeg`,
+/// (SwiftJLI JPEG, JXLSwift JPEG XL) and their CLI peers (libjpeg-turbo `djpeg`,
 /// libjxl `djxl`). The bench's entire premise is bit-exact lossless round-trips,
 /// so these guard against silent layout/endianness/precision regressions.
 @Suite("Multi-codec bench adapters")
@@ -44,9 +44,9 @@ struct MultiCodecBenchAdaptersTests {
         return data
     }
 
-    // MARK: - JLISwift (JPEG, lossless SOF3)
+    // MARK: - SwiftJLI (JPEG, lossless SOF3)
 
-    @Test("JLISwift lossless round-trip — 8-bit grayscale")
+    @Test("SwiftJLI lossless round-trip — 8-bit grayscale")
     func jliGray8() throws {
         let d = descriptor(40, 32, bitsAllocated: 8, bitsStored: 8, spp: 1)
         let original = frame(40, 32, bitsStored: 8, spp: 1, bytesPerSample: 1)
@@ -55,7 +55,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("JLISwift lossless round-trip — 16-bit (12-bit stored) grayscale")
+    @Test("SwiftJLI lossless round-trip — 16-bit (12-bit stored) grayscale")
     func jliGray16() throws {
         let d = descriptor(40, 32, bitsAllocated: 16, bitsStored: 12, spp: 1)
         let original = frame(40, 32, bitsStored: 12, spp: 1, bytesPerSample: 2)
@@ -64,7 +64,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("JLISwift lossless round-trip — 8-bit RGB")
+    @Test("SwiftJLI lossless round-trip — 8-bit RGB")
     func jliRGB8() throws {
         let d = descriptor(24, 24, bitsAllocated: 8, bitsStored: 8, spp: 3)
         let original = frame(24, 24, bitsStored: 8, spp: 3, bytesPerSample: 1)
@@ -105,7 +105,7 @@ struct MultiCodecBenchAdaptersTests {
     // MARK: - CLI peer interop (PNM parse + endianness)
 
     #if os(macOS)
-    @Test("djpeg decodes JLISwift's lossless JPEG bit-exactly — 8-bit")
+    @Test("djpeg decodes SwiftJLI's lossless JPEG bit-exactly — 8-bit")
     func djpegInterop8() throws {
         guard DjpegCLICodec.binaryPath != nil else { return }   // peer not installed
         let d = descriptor(40, 32, bitsAllocated: 8, bitsStored: 8, spp: 1)
@@ -115,7 +115,7 @@ struct MultiCodecBenchAdaptersTests {
         #expect(decoded == original)
     }
 
-    @Test("djpeg decodes JLISwift's lossless JPEG bit-exactly — 16-bit")
+    @Test("djpeg decodes SwiftJLI's lossless JPEG bit-exactly — 16-bit")
     func djpegInterop16() throws {
         guard DjpegCLICodec.binaryPath != nil else { return }
         let d = descriptor(40, 32, bitsAllocated: 16, bitsStored: 12, spp: 1)
