@@ -55,8 +55,9 @@ jobs:
 
     - name: Build and test
       run: |
-        swift build -c release
-        swift test --filter DICOMStudioTests
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --product dicom-anon
+        swift build -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays -c release
+        swift test -Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --test-product DICOMStudioTests
 
   build-dmg:
     name: Build DMG Installer

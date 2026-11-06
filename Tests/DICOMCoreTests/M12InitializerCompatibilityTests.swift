@@ -17,8 +17,8 @@ final class M12InitializerCompatibilityTests: XCTestCase {
 
         let policy = configuration([.jpeg2000Lossless], false, true)
         XCTAssertFalse(policy.allowBitDepthReductionTo8Bit)
-        XCTAssertEqual(manager().codecRegistry.j2kProvider.providerID, .j2kSwift)
-        XCTAssertEqual(converter(policy, .lossless).codecRegistry.j2kProvider.providerID, .j2kSwift)
+        XCTAssertEqual(manager().codecRegistry.j2kProvider.providerID, .swiftJ2K)
+        XCTAssertEqual(converter(policy, .lossless).codecRegistry.j2kProvider.providerID, .swiftJ2K)
         XCTAssertNil(result(Data(), .jpeg2000Lossless, .explicitVRLittleEndian, true, true).resolvedDecodeProviderID)
         XCTAssertNil(metrics(1, 2, false, nil, nil, nil, 0).resolvedEncodeProviderID)
     }

@@ -42,7 +42,7 @@ jobs:
       if: ${{ inputs.full_suite }}
       timeout-minutes: 5
       run: |
-        xcrun swiftc -parse-as-library -target "$(uname -m)-apple-macosx15.0" \
+        xcrun swiftc -parse-as-library -target "$(uname -m)-apple-macosx26.0" \
           .github/scripts/check-hosted-ocr.swift -o "$RUNNER_TEMP/check-hosted-ocr"
         "$RUNNER_TEMP/check-hosted-ocr"
       

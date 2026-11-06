@@ -5,17 +5,11 @@ import PackageDescription
 let package = Package(
     name: "DICOMKit",
     platforms: [
-        // Platform baselines track the codec dependency deployment targets.
-        // J2KSwift v11.x requires iOS 18 / macOS 15 / tvOS 18.
-        .iOS(.v18),
-        .macOS(.v15),
-        .tvOS(.v18),
-        // visionOS 2 is the real floor: J2KSwift's codec kernels use `Mutex`,
-        // which is visionOS 2+. J2KSwift still declares `.visionOS(.v1)` in its
-        // own manifest, so it fails to compile for visionOS until that is raised
-        // upstream — a visionOS build of DICOMKit is blocked on that, not on this
-        // line. See Raster-Lab/J2KSwift.
-        .visionOS(.v2)
+        // Platform baselines track the suite codec deployment targets (Apple OS 26.0+).
+        .iOS(.v26),
+        .macOS(.v26),
+        .tvOS(.v26),
+        .visionOS(.v26)
     ],
     products: [
         .library(
@@ -236,12 +230,9 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.8.2"),
         // Phase 1 scope: exclude aws-sdk-swift because it is unrelated to JPEG 2000 verification.
         // .package(url: "https://github.com/awslabs/aws-sdk-swift.git", from: "1.6.0"),
-        // J2KSwift — pure-Swift JPEG 2000 / HTJ2K / JP3D / JPIP codec.
-        // URL-consumable as of v10.9.3 (Raster-Lab/J2KSwift#438): its manifest
-        // always resolves CompressionFamily from its public Git URL.
-        // v11.0.3 preserves tvOS power-state monitoring without using the
-        // UIDevice battery APIs that are unavailable on Apple TV.
-        .package(url: "https://github.com/Raster-Lab/J2KSwift.git", from: "11.0.3"),
+        // SwiftJ2K — pure-Swift JPEG 2000 Part 1, Part 2 MCT, and Part 15 HTJ2K codec.
+        // Volumetric JP3D (`SwiftJ2K3D`) and JPIP (`SwiftJ2KJPIP`) remain deferred pending 12.2.0.
+        .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.1.0"),
         // JLSwift — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
         // Provides the `JPEGLS` product, which backs DICOMCore.JPEGLSCodec.
         .package(url: "https://github.com/raster-labs/JLSwift.git", exact: "0.10.1"),
@@ -262,15 +253,7 @@ let package = Package(
         .target(
             name: "DICOMCore",
             dependencies: [
-                .product(name: "J2KCore", package: "J2KSwift"),
-                .product(name: "J2KCodec", package: "J2KSwift"),
-                .product(name: "J2KFileFormat", package: "J2KSwift"),
-                .product(name: "J2K3D", package: "J2KSwift"),
-                // Phase 5: hardware acceleration backend.
-                // J2KAccelerate was removed in J2KSwift v11.0.0; the Accelerate
-                // path is now guarded by #if canImport in CodecBackend.swift and
-                // falls through to the scalar/Apple-Accelerate backend.
-                .product(name: "J2KMetal", package: "J2KSwift"),
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 // JPEG-LS — JLSwift backs DICOMCore's JPEGLSCodec.
                 .product(name: "JPEGLS", package: "JLSwift"),
                 // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
@@ -300,12 +283,7 @@ let package = Package(
             dependencies: [
                 "DICOMCore",
                 "DICOMDictionary",
-                // Level-5 validation (DICOMValidator) checks JPEG 2000 / HTJ2K
-                // codestream conformance via J2KCore.
-                .product(name: "J2KCore", package: "J2KSwift"),
-                .product(name: "J2K3D", package: "J2KSwift"),
-                // Phase 6: JPIP streaming
-                .product(name: "JPIP", package: "J2KSwift")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K")
             ],
             exclude: ["AI/SIMPLIFIED_README.md"]
         ),
@@ -360,7 +338,7 @@ let package = Package(
             dependencies: [
                 "DICOMCore",
                 "DICOMKit",
-                .product(name: "J2KCodec", package: "J2KSwift")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K")
             ]
         ),
         .testTarget(
@@ -958,8 +936,6 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
-                .product(name: "J2KCore", package: "J2KSwift"),
-                .product(name: "J2KCodec", package: "J2KSwift"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-info",
@@ -982,7 +958,6 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
-                .product(name: "J2KCore", package: "J2KSwift"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-validate",
@@ -1370,7 +1345,6 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
-                .product(name: "JPIP", package: "J2KSwift"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-jpip"
@@ -1381,9 +1355,7 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
-                .product(name: "J2KCore", package: "J2KSwift"),
-                .product(name: "J2KCodec", package: "J2KSwift"),
-                .product(name: "J2KFileFormat", package: "J2KSwift"),
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-j2k",
@@ -1491,7 +1463,7 @@ let package = Package(
                 "dicom-j2k",
                 "DICOMCore",
                 "DICOMKit",
-                .product(name: "J2KCore", package: "J2KSwift"),
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         ),
@@ -1508,8 +1480,7 @@ let package = Package(
                 "DICOMCore",
                 "DICOMDictionary",
                 "DICOMWeb",
-                .product(name: "J2KCore", package: "J2KSwift"),
-                .product(name: "J2KCodec", package: "J2KSwift")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K")
             ],
             path: "Tests/DICOMRoundTripTest",
             exclude: ["Corpus"]

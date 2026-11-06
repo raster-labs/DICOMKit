@@ -2,8 +2,8 @@ import Foundation
 import Testing
 @testable import DICOMCore
 @testable import DICOMKit
-#if canImport(J2KCodec)
-import J2KCodec
+#if canImport(SwiftJ2K)
+import SwiftJ2K
 #endif
 
 /// Compares DICOMKit's HTJ2K path (J2KSwift `.conformant` Part-15) against
@@ -223,7 +223,7 @@ struct HTJ2KOpenJPHComparisonTests {
         .enabled(if: LocalCodecFixtureAvailability.hasMR, "Requires optional MR LocalDatasets fixture")
     )
     func decodeTimeBreakdown() throws {
-        #if canImport(J2KCodec)
+        #if canImport(SwiftJ2K)
         let sample = try realSample(modality: "mr")
         let descriptor = sample.pixelData.descriptor
         let original = sample.pixelData.data
@@ -233,7 +233,7 @@ struct HTJ2KOpenJPHComparisonTests {
         // Warmups
         _ = try codec.decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
         let warmSem = DispatchSemaphore(value: 0)
-        Task.detached { _ = try? await J2KDecoder().decodeGPU(codestream); warmSem.signal() }
+        Task.detached { _ = try? await J2KDecoder().decode(codestream); warmSem.signal() }
         warmSem.wait()
 
         // Full wrapper decode (includes async bridge, pack/unpack, endian swap).
@@ -244,7 +244,7 @@ struct HTJ2KOpenJPHComparisonTests {
             wrapperTimes.append((CFAbsoluteTimeGetCurrent() - t) * 1000.0)
         }
 
-        // Raw J2KSwift core — what we'd time if we could drop the Swift wrapper to zero.
+        // Raw SwiftJ2K core — what we'd time if we could drop the Swift wrapper to zero.
         final class ResultBox: @unchecked Sendable { var ms: Double = 0 }
         var coreTimes: [Double] = []
         for _ in 0..<5 {
@@ -253,7 +253,7 @@ struct HTJ2KOpenJPHComparisonTests {
             let streamCopy = codestream
             Task.detached {
                 let t = CFAbsoluteTimeGetCurrent()
-                _ = try? await J2KDecoder().decodeGPU(streamCopy)
+                _ = try? await J2KDecoder().decode(streamCopy)
                 box.ms = (CFAbsoluteTimeGetCurrent() - t) * 1000.0
                 s.signal()
             }

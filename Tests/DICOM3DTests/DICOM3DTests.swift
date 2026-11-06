@@ -289,53 +289,36 @@ final class DICOM3DTests: XCTestCase {
         XCTAssertNotNil(extractor)
     }
 
-    // MARK: - JP3D CLI Subcommand Tests (encode-volume / decode-volume / inspect)
+    // MARK: - JP3D CLI Subcommand Deferral Tests (pending SwiftJ2K 12.2.0 / SwiftJ2K3D)
 
-    func test_encodeVolume_losslessHTJ2K_roundTrip() async throws {
+    func test_encodeVolume_losslessHTJ2K_deferred() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 8, rows: 16, columns: 16)
-        let doc = try await JP3DVolumeDocument.encode(series, compressionMode: .losslessHTJ2K)
-        XCTAssertTrue(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-        XCTAssertEqual(decoded.count, 8)
-        // Lossless: all pixel bytes must be identical
-        for (i, original) in series.enumerated() {
-            let origPx = original.dataSet[.pixelData]!.valueData
-            let decodedPx = decoded[i].dataSet[.pixelData]!.valueData
-            XCTAssertEqual(origPx, decodedPx, "Slice \(i) pixel mismatch after lossless-htj2k round-trip")
+        do {
+            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .losslessHTJ2K)
+            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+        } catch let DICOMError.unsupportedTransferSyntax(reason) {
+            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
         }
     }
 
-    func test_encodeVolume_lossy_roundTrip_producesOutput() async throws {
+    func test_encodeVolume_lossy_deferred() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 4, rows: 8, columns: 8)
-        let doc = try await JP3DVolumeDocument.encode(series, compressionMode: .lossy(psnr: 40.0))
-        XCTAssertTrue(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-        XCTAssertEqual(decoded.count, 4)
+        do {
+            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .lossy(psnr: 40.0))
+            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+        } catch let DICOMError.unsupportedTransferSyntax(reason) {
+            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
+        }
     }
 
-    func test_inspectSidecar_containsExpectedFields() async throws {
+    func test_encodeVolume_lossless_deferred() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 4, rows: 16, columns: 16)
-        let doc = try await JP3DVolumeDocument.encode(series, compressionMode: .lossless)
-        // Extract sidecar JSON from payload (same path as InspectCommand)
-        guard let payloadElement = doc.dataSet[.encapsulatedDocument] else {
-            XCTFail("Missing encapsulated document element"); return
+        do {
+            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .lossless)
+            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+        } catch let DICOMError.unsupportedTransferSyntax(reason) {
+            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
         }
-        let payload = payloadElement.valueData
-        XCTAssertGreaterThanOrEqual(payload.count, 8)
-        let jp3dLen = Int(payload.subdata(in: 0..<4).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
-        let jsonOffset = 4 + jp3dLen
-        let jsonLen = Int(payload.subdata(in: jsonOffset..<(jsonOffset + 4)).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
-        let jsonData = payload.subdata(in: (jsonOffset + 4)..<(jsonOffset + 4 + jsonLen))
-        guard let meta = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            XCTFail("Sidecar JSON parse failed"); return
-        }
-        XCTAssertEqual(meta["rows"] as? Int, 16)
-        XCTAssertEqual(meta["columns"] as? Int, 16)
-        XCTAssertEqual(meta["frames"] as? Int, 4)
-        XCTAssertNotNil(meta["spacingX"])
-        XCTAssertNotNil(meta["spacingY"])
-        XCTAssertNotNil(meta["spacingZ"])
-        XCTAssertEqual(meta["compressionMode"] as? String, "lossless")
     }
 
     func test_isJP3DDocument_returnsFalse_forNormalDICOM() throws {

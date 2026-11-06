@@ -5,7 +5,6 @@
 import Foundation
 import DICOMCore
 import DICOMDictionary
-import J2KCore
 
 /// Main validator class that orchestrates DICOM file validation
 public struct DICOMValidator {

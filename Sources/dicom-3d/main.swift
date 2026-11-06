@@ -6,10 +6,17 @@ import DICOMCore
 import DICOMDictionary
 
 struct DICOM3D: ParsableCommand {
+    static let deferredMessage =
+        "Error: dicom-3d is deferred in this release pending SwiftJ2K 12.2.0 (SwiftJ2K3D volumetric module qualification)."
+
     static let configuration = CommandConfiguration(
         commandName: "dicom-3d",
-        abstract: "3D reconstruction, MPR, and JP3D volumetric encoding from DICOM series",
+        abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] 3D reconstruction, MPR, and JP3D volumetric encoding from DICOM series",
         discussion: """
+            DEFERRED: `dicom-3d` is deferred in this release pending `SwiftJ2K` 12.2.0
+            (`SwiftJ2K3D` volumetric module qualification). All operational subcommands
+            currently exit with status 1.
+
             Perform 3D volume reconstruction, MPR, projection techniques, and JP3D
             volumetric encode/decode from multi-slice DICOM series.
 
@@ -83,6 +90,11 @@ func projectionType(_ name: String) -> ProjectionType {
     case "coronal": return .coronal
     default: return .axial
     }
+}
+
+func failDeferred3D(_ subcommand: String) throws -> Never {
+    FileHandle.standardError.write(Data(("\(DICOM3D.deferredMessage) (subcommand: \(subcommand))\n").utf8))
+    throw ExitCode.failure
 }
 
 // MARK: - MPR Command
@@ -173,88 +185,7 @@ struct MPRCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        // Load volume
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        if verbose {
-            print("Volume loaded: \(volume.dimensions.width)x\(volume.dimensions.height)x\(volume.dimensions.depth)")
-            print("Spacing: \(volume.spacing.x)x\(volume.spacing.y)x\(volume.spacing.z) mm")
-        }
-        
-        // Generate MPR
-        if let note = interpolation.deprecationNote {
-            FileHandle.standardError.write(Data((note + "\n").utf8))
-        }
-        let generator = MPRGenerator(volume: volume, interpolation: interpolation.effective, verbose: verbose)
-        let requestedPlanes = planes.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
-        
-        // Output: a single .png file when one plane yields one image, otherwise a
-        // directory (one sub-directory per plane when several planes are requested).
-        let outputURL = URL(fileURLWithPath: output)
-        let singleFile = format == .png && output.lowercased().hasSuffix(".png")
-        if !singleFile {
-            try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true, attributes: nil)
-        }
-        
-        for planeName in requestedPlanes {
-            if verbose {
-                print("Generating \(planeName) MPR...")
-            }
-            
-            let planeType: PlaneType
-            switch planeName {
-            case "axial":
-                planeType = .axial
-            case "sagittal":
-                planeType = .sagittal
-            case "coronal":
-                planeType = .coronal
-            default:
-                planeType = .oblique(normal: Point3D.parse(obliqueNormal ?? "") ?? Point3D(x: 0, y: 0, z: 1),
-                                     point: obliquePoint.flatMap(Point3D.parse) ?? Self.centre(of: volume))
-            }
-            
-            let slices = try generator.generateMPR(plane: planeType, sliceThickness: thickness)
-            
-            if verbose {
-                print("Generated \(slices.count) \(planeName) slices")
-            }
-            
-            let outputDir = (requestedPlanes.count > 1 && !singleFile) ? outputURL.appendingPathComponent(planeName) : outputURL
-            if outputDir != outputURL {
-                try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true, attributes: nil)
-            }
-
-            switch format {
-            case .dcm:
-                let files = try DerivedSeries.makeInstances(slices: slices, planeName: planeType.name, volume: volume)
-                for (index, file) in files.enumerated() {
-                    let url = outputDir.appendingPathComponent("\(planeName)_\(String(format: "%04d", index)).dcm")
-                    try file.write().write(to: url)
-                }
-            case .png:
-                for (index, slice) in slices.enumerated() {
-                    let sliceURL: URL
-                    if singleFile && slices.count == 1 && requestedPlanes.count == 1 {
-                        sliceURL = outputURL
-                    } else {
-                        let directory = singleFile ? outputURL.deletingLastPathComponent() : outputDir
-                        sliceURL = directory.appendingPathComponent("\(planeName)_\(String(format: "%04d", index)).png")
-                    }
-                    try slice.savePNG(to: sliceURL, windowCenter: windowCenter, windowWidth: windowWidth,
-                                      monochrome1: isMonochrome1(volume))
-                }
-            }
-        }
-        
-        if verbose {
-            print("MPR generation complete. Output: \(output)")
-        }
+        try failDeferred3D("mpr")
     }
 
     /// Centre of the volume in patient (LPS) coordinates: the default --oblique-point.
@@ -306,46 +237,7 @@ struct MIPCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        // Load volume
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        if verbose {
-            print("Volume loaded: \(volume.dimensions.width)x\(volume.dimensions.height)x\(volume.dimensions.depth)")
-        }
-        
-        // Generate MIP
-        let renderer = ProjectionRenderer(volume: volume, verbose: verbose)
-        let projection: ProjectionType
-        
-        switch direction.lowercased() {
-        case "axial":
-            projection = .axial
-        case "sagittal":
-            projection = .sagittal
-        case "coronal":
-            projection = .coronal
-        default:
-            projection = .axial
-        }
-        
-        let result = try renderer.maximumIntensityProjection(
-            direction: projection,
-            slabThickness: thickness > 0 ? thickness : nil
-        )
-        
-        // Save output
-        let outputURL = URL(fileURLWithPath: output)
-        try result.savePNG(to: outputURL, windowCenter: windowCenter, windowWidth: windowWidth,
-                           monochrome1: isMonochrome1(volume))
-        
-        if verbose {
-            print("MIP saved to: \(output)")
-        }
+        try failDeferred3D("mip")
     }
 }
 
@@ -389,39 +281,7 @@ struct MinIPCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        let renderer = ProjectionRenderer(volume: volume, verbose: verbose)
-        let projection: ProjectionType
-        
-        switch direction.lowercased() {
-        case "axial":
-            projection = .axial
-        case "sagittal":
-            projection = .sagittal
-        case "coronal":
-            projection = .coronal
-        default:
-            projection = .axial
-        }
-        
-        let result = try renderer.minimumIntensityProjection(
-            direction: projection,
-            slabThickness: thickness > 0 ? thickness : nil
-        )
-        
-        let outputURL = URL(fileURLWithPath: output)
-        try result.savePNG(to: outputURL, windowCenter: windowCenter, windowWidth: windowWidth,
-                           monochrome1: isMonochrome1(volume))
-        
-        if verbose {
-            print("MinIP saved to: \(output)")
-        }
+        try failDeferred3D("minip")
     }
 }
 
@@ -462,36 +322,7 @@ struct AverageCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        let renderer = ProjectionRenderer(volume: volume, verbose: verbose)
-        let projection: ProjectionType
-        
-        switch direction.lowercased() {
-        case "axial":
-            projection = .axial
-        case "sagittal":
-            projection = .sagittal
-        case "coronal":
-            projection = .coronal
-        default:
-            projection = .axial
-        }
-        
-        let result = try renderer.averageIntensityProjection(direction: projection)
-        
-        let outputURL = URL(fileURLWithPath: output)
-        try result.savePNG(to: outputURL, windowCenter: windowCenter, windowWidth: windowWidth,
-                           monochrome1: isMonochrome1(volume))
-        
-        if verbose {
-            print("Average projection saved to: \(output)")
-        }
+        try failDeferred3D("average")
     }
 }
 
@@ -525,33 +356,7 @@ struct SurfaceCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        if verbose {
-            print("Extracting surface at threshold: \(threshold)")
-        }
-        
-        let extractor = SurfaceExtractor(volume: volume, verbose: verbose)
-        let mesh = try extractor.extractSurface(threshold: threshold)
-        
-        let outputURL = URL(fileURLWithPath: output)
-        
-        switch format {
-        case .stl:
-            try mesh.saveSTL(to: outputURL)
-        case .obj:
-            try mesh.saveOBJ(to: outputURL)
-        }
-        
-        if verbose {
-            print("Surface mesh saved to: \(output)")
-            print("Vertices: \(mesh.vertices.count), Triangles: \(mesh.triangles.count)")
-        }
+        try failDeferred3D("surface")
     }
 }
 
@@ -616,37 +421,7 @@ struct ExportCommand: ParsableCommand {
     }
     
     mutating func run() throws {
-        if verbose {
-            print("Loading \(inputPaths.count) DICOM files...")
-        }
-        
-        let loader = VolumeLoader(verbose: verbose)
-        let volume = try loader.loadVolume(from: inputPaths)
-        
-        let requestedFormats = formats.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
-        
-        for format in requestedFormats {
-            if verbose {
-                print("Exporting as \(format)...")
-            }
-            
-            switch format {
-            case "nifti":
-                let outputURL = URL(fileURLWithPath: output).appendingPathExtension("nii")
-                try volume.exportNIfTI(to: outputURL)
-                if verbose {
-                    print("NIfTI saved to: \(outputURL.path)")
-                }
-            case "metaimage":
-                let outputURL = URL(fileURLWithPath: output).appendingPathExtension("mhd")
-                try volume.exportMetaImage(to: outputURL)
-                if verbose {
-                    print("MetaImage saved to: \(outputURL.path)")
-                }
-            default:
-                print("Warning: Unknown format '\(format)', skipping")
-            }
-        }
+        try failDeferred3D("export")
     }
 }
 
@@ -696,32 +471,7 @@ struct BackendsCommand: ParsableCommand {
     var json: Bool = false
 
     mutating func run() throws {
-        let best = CodecBackendProbe.bestAvailable
-
-        if json {
-            var items: [[String: Any]] = []
-            for backend in CodecBackend.allCases {
-                let isAvail = CodecBackendProbe.isAvailable(backend)
-                items.append([
-                    "backend": backend.rawValue,
-                    "available": isAvail,
-                    "active": backend == best,
-                    "displayName": backend.displayName
-                ])
-            }
-            let data = try JSONSerialization.data(withJSONObject: items, options: [.prettyPrinted])
-            print(String(data: data, encoding: .utf8) ?? "")
-        } else {
-            print("Available hardware acceleration backends:")
-            print("")
-            for backend in CodecBackend.allCases {
-                let isAvail = CodecBackendProbe.isAvailable(backend)
-                let marker = isAvail ? (backend == best ? "✓ (active)" : "✓") : "✗"
-                print("  [\(marker)] \(backend.rawValue.padding(toLength: 12, withPad: " ", startingAt: 0))\(backend.displayName)")
-            }
-            print("")
-            print("Active backend: \(best.displayName)")
-        }
+        try failDeferred3D("backends")
     }
 }
 
@@ -730,11 +480,13 @@ struct BackendsCommand: ParsableCommand {
 struct EncodeVolumeCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "encode-volume",
-        abstract: "Encode a DICOM slice series as a JP3D volumetric document",
+        abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Encode a DICOM slice series as a JP3D volumetric document",
         discussion: """
+            DEFERRED: JP3D volumetric encoding is deferred pending `SwiftJ2K` 12.2.0
+            (`SwiftJ2K3D` qualification).
+
             Reads a multi-slice DICOM series, validates uniform slice spacing, and
-            encodes the volume as a single JP3D encapsulated DICOM document using
-            J2KSwift v3.2.0.
+            encodes the volume as a single JP3D encapsulated DICOM document.
 
             The output file uses the private SOP class UID
             1.2.826.0.1.3680043.10.511.10 — not suitable for standard interchange.
@@ -781,51 +533,7 @@ struct EncodeVolumeCommand: ParsableCommand {
     }
 
     mutating func run() throws {
-        let urls = try resolveInputFiles(from: inputPaths)
-        guard !urls.isEmpty else {
-            throw ValidationError("No DICOM files found at the specified path(s)")
-        }
-
-        if verbose { print("Loading \(urls.count) DICOM file(s)...") }
-
-        var series: [DICOMFile] = []
-        for url in urls {
-            do {
-                series.append(try DICOMFile.read(from: url))
-            } catch {
-                throw ValidationError("Failed to read '\(url.lastPathComponent)': \(error.localizedDescription)")
-            }
-        }
-
-        // Order the planes along the normal of Image Orientation (Patient) (PS3.3
-        // C.7.6.2.1.1), not by file name, so the first slice is the volume origin.
-        series = VolumeLoader.sortedByPosition(series)
-
-        let compressionMode: JP3DCodec.CompressionMode
-        switch mode.lowercased() {
-        case "lossless":         compressionMode = .lossless
-        case "lossless-htj2k":   compressionMode = .losslessHTJ2K
-        case "lossy":            compressionMode = .lossy(psnr: psnr)
-        case "lossy-htj2k":      compressionMode = .lossyHTJ2K(psnr: psnr)
-        default:                 compressionMode = .lossless
-        }
-
-        if verbose { print("Encoding \(series.count) slice(s) — mode: \(mode)...") }
-
-        let document = try waitForTask(Task {
-            try await JP3DVolumeDocument.encode(series: series, compressionMode: compressionMode)
-        })
-
-        let outputURL = URL(fileURLWithPath: output)
-        let data = try document.write()
-        try data.write(to: outputURL)
-
-        let sizeMB = String(format: "%.1f", Double(data.count) / 1_048_576)
-        if verbose {
-            print("JP3D document written to: \(output) (\(sizeMB) MB)")
-        } else {
-            print("Encoded \(series.count) slices → \(output) (\(sizeMB) MB)")
-        }
+        try failDeferred3D("encode-volume")
     }
 }
 
@@ -834,8 +542,11 @@ struct EncodeVolumeCommand: ParsableCommand {
 struct DecodeVolumeCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "decode-volume",
-        abstract: "Decode a JP3D volumetric document back to individual DICOM slices",
+        abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Decode a JP3D volumetric document back to individual DICOM slices",
         discussion: """
+            DEFERRED: JP3D volumetric decoding is deferred pending `SwiftJ2K` 12.2.0
+            (`SwiftJ2K3D` qualification).
+
             Reads a JP3D DICOM document, decodes the JP3D codestream, and writes one
             DICOM file per slice into the output directory.
 
@@ -862,32 +573,7 @@ struct DecodeVolumeCommand: ParsableCommand {
     }
 
     mutating func run() throws {
-        if verbose { print("Reading JP3D document: \(inputPath)") }
-
-        let file = try DICOMFile.read(from: URL(fileURLWithPath: inputPath))
-
-        guard JP3DVolumeDocument.isJP3DVolumeDocument(file) else {
-            throw ValidationError("'\(inputPath)' is not a JP3D volume document (wrong SOP class)")
-        }
-
-        if verbose { print("Decoding JP3D codestream...") }
-
-        let slices = try waitForTask(Task {
-            try await JP3DVolumeDocument.decode(from: file)
-        })
-
-        let outputURL = URL(fileURLWithPath: output)
-        try FileManager.default.createDirectory(at: outputURL, withIntermediateDirectories: true)
-
-        if verbose { print("Writing \(slices.count) slice(s) to: \(output)") }
-
-        for (index, slice) in slices.enumerated() {
-            let name = String(format: "slice_%04d.dcm", index)
-            let data = try slice.write()
-            try data.write(to: outputURL.appendingPathComponent(name))
-        }
-
-        print("Decoded \(slices.count) slices → \(output)")
+        try failDeferred3D("decode-volume")
     }
 }
 
@@ -896,8 +582,10 @@ struct DecodeVolumeCommand: ParsableCommand {
 struct InspectCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "inspect",
-        abstract: "Display metadata from a JP3D volumetric document without decoding",
+        abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Display metadata from a JP3D volumetric document without decoding",
         discussion: """
+            DEFERRED: `dicom-3d` is deferred pending `SwiftJ2K` 12.2.0 (`SwiftJ2K3D` qualification).
+
             Reads only the JSON sidecar embedded in a JP3D DICOM document, printing
             geometry, spacing, compression mode, and patient/study metadata.
             The JP3D codestream is not decoded, so this is near-instantaneous.
@@ -921,116 +609,8 @@ struct InspectCommand: ParsableCommand {
     }
 
     mutating func run() throws {
-        let file = try DICOMFile.read(from: URL(fileURLWithPath: inputPath))
-
-        guard JP3DVolumeDocument.isJP3DVolumeDocument(file) else {
-            throw ValidationError("'\(inputPath)' is not a JP3D volume document (wrong SOP class)")
-        }
-
-        guard let payloadElement = file.dataSet[.encapsulatedDocument] else {
-            throw ValidationError("JP3D document is missing the Encapsulated Document element")
-        }
-        let payload = payloadElement.valueData
-
-        guard payload.count >= 8 else {
-            throw ValidationError("JP3D payload too short (\(payload.count) bytes)")
-        }
-
-        let jp3dLen = Int(payload.subdata(in: 0..<4).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
-        let jsonOffset = 4 + jp3dLen
-        guard jsonOffset + 4 <= payload.count else {
-            throw ValidationError("JP3D codestream length overflows payload")
-        }
-        let jsonLen = Int(payload.subdata(in: jsonOffset..<(jsonOffset + 4)).withUnsafeBytes { $0.load(as: UInt32.self).littleEndian })
-        guard jsonOffset + 4 + jsonLen <= payload.count else {
-            throw ValidationError("JP3D sidecar JSON length overflows payload")
-        }
-        let jsonData = payload.subdata(in: (jsonOffset + 4)..<(jsonOffset + 4 + jsonLen))
-
-        guard let meta = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
-            throw ValidationError("Failed to parse JP3D sidecar JSON")
-        }
-
-        if json {
-            // Pretty-print the raw sidecar JSON plus size annotations
-            var augmented = meta
-            augmented["_jp3dCodestreamBytes"] = jp3dLen
-            augmented["_sidecarJsonBytes"] = jsonLen
-            augmented["_totalPayloadBytes"] = payload.count
-            let out = try JSONSerialization.data(withJSONObject: augmented, options: [.prettyPrinted, .sortedKeys])
-            print(String(data: out, encoding: .utf8) ?? "")
-            return
-        }
-
-        // Formatted text output
-        let rows       = meta["rows"]         as? Int    ?? 0
-        let columns    = meta["columns"]      as? Int    ?? 0
-        let frames     = meta["frames"]       as? Int    ?? 0
-        let bitsAlloc  = meta["bitsAllocated"]as? Int    ?? 16
-        let bitsStored = meta["bitsStored"]   as? Int    ?? 12
-        let signed     = meta["signed"]       as? Bool   ?? false
-        let spacingX   = meta["spacingX"]     as? Double ?? 0
-        let spacingY   = meta["spacingY"]     as? Double ?? 0
-        let spacingZ   = meta["spacingZ"]     as? Double ?? 0
-        let compression = meta["compressionMode"] as? String ?? "unknown"
-        let psnrVal    = meta["psnr"]         as? Double
-
-        // Labels are the PS3.6 2026a Table 6-1 attribute names.
-        let patient  = (meta["patientName"]   as? String).map { "  Patient's Name:     \($0)\n" } ?? ""
-        let patientID = (meta["patientID"]    as? String).map { "  Patient ID:         \($0)\n" } ?? ""
-        let modality = (meta["modality"]      as? String).map { "  Modality:           \($0)\n" } ?? ""
-        let study    = (meta["studyInstanceUID"] as? String).map { "  Study Instance UID: \($0)\n" } ?? ""
-        let series   = (meta["seriesDescription"] as? String).map { "  Series Description: \($0)\n" } ?? ""
-        let sopInst  = file.dataSet.string(for: .sopInstanceUID) ?? "—"
-
-        let psnrLine = psnrVal.map { "  Target PSNR:       \(String(format: "%.1f", $0)) dB\n" } ?? ""
-        let j2kMB    = String(format: "%.2f", Double(jp3dLen) / 1_048_576)
-        let totalMB  = String(format: "%.2f", Double(payload.count) / 1_048_576)
-
-        print("""
-            JP3D Volume Document
-            \(patient)\(patientID)\(modality)\(study)\(series)  SOP Instance UID:   \(sopInst)
-              Dimensions:        \(rows) × \(columns) × \(frames) (rows × cols × slices)
-              Voxel spacing:     \(String(format: "%.4g × %.4g × %.4g", spacingX, spacingY, spacingZ)) mm
-              Bits allocated:    \(bitsAlloc)  stored: \(bitsStored)  signed: \(signed)
-              Compression mode:  \(compression)\(psnrLine)  Codestream size:   \(j2kMB) MB  (\(jp3dLen) bytes)
-              Total payload:     \(totalMB) MB  (\(payload.count) bytes)
-            """)
+        try failDeferred3D("inspect")
     }
-}
-
-// MARK: - Async bridge
-
-private func waitForTask<T>(_ task: Task<T, Error>) throws -> T {
-    let sema = DispatchSemaphore(value: 0)
-    // The semaphore's signal->wait is a happens-before edge, so this manually
-    // synchronized capture is visible after sema.wait().
-    nonisolated(unsafe) var result: Result<T, Error>?
-    Task {
-        result = await task.result
-        sema.signal()
-    }
-    sema.wait()
-    return try result!.get()
-}
-
-// MARK: - Input resolution
-
-/// Resolves a list of paths into an array of DICOM file URLs.
-/// If a single directory is given, returns all `.dcm` files inside it (sorted by name).
-private func resolveInputFiles(from paths: [String]) throws -> [URL] {
-    let fm = FileManager.default
-    if paths.count == 1 {
-        var isDir: ObjCBool = false
-        if fm.fileExists(atPath: paths[0], isDirectory: &isDir), isDir.boolValue {
-            let dir = URL(fileURLWithPath: paths[0])
-            let contents = try fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)
-            return contents
-                .filter { $0.pathExtension.lowercased() == "dcm" }
-                .sorted { $0.lastPathComponent < $1.lastPathComponent }
-        }
-    }
-    return paths.map { URL(fileURLWithPath: $0) }
 }
 
 // MARK: - Main

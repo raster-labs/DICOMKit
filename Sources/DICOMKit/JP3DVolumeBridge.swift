@@ -2,8 +2,7 @@
 // NEMA-verified: 2026a, checked 2026-10-01 — makeVolume sorts and spaces slices by Image Position (Patient) projected on the normal of Image Orientation (Patient) per PS3.3 2026a C.7.6.2.1.1 (D205); makeVolume records the first slice's Image Position (Patient) as the volume origin and makeDICOMSeries steps from it along the template's Image Orientation (Patient) normal (Equation C.7.6.2.1-1), writing Image Orientation (Patient), Pixel Spacing and Slice Location (Table C.7-10, C.7.6.2.1.2) (D224)
 import Foundation
 import DICOMCore
-import J2KCore
-import J2K3D
+import SwiftJ2K
 
 /// Bridges between DICOM multi-frame series and J2KSwift's `J2KVolume` type.
 ///

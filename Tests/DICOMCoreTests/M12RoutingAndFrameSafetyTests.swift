@@ -516,11 +516,11 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
     // MARK: - 1. Immutable Per-Operation Provider Selection & Concurrent Rollback
 
     func testDefaultRegistryPreservesJ2KSwiftProviderAndImmutability() throws {
-        XCTAssertEqual(CodecRegistry.shared.j2kProvider.providerID, .j2kSwift)
+        XCTAssertEqual(CodecRegistry.shared.j2kProvider.providerID, .swiftJ2K)
         XCTAssertEqual(CodecRegistry.shared.j2kFallbackPolicy, .strict)
 
         let freshDefault = CodecRegistry()
-        XCTAssertEqual(freshDefault.j2kProvider.providerID, .j2kSwift)
+        XCTAssertEqual(freshDefault.j2kProvider.providerID, .swiftJ2K)
     }
 
     func testPerOperationProviderSelectionAndConcurrentRollbackIsolation() async throws {
@@ -685,7 +685,7 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
             sourceSyntax: .jpeg2000Lossless,
             targetSyntax: .explicitVRLittleEndian
         )
-        XCTAssertEqual(decodeProvider, .j2kSwift)
+        XCTAssertEqual(decodeProvider, .swiftJ2K)
         XCTAssertEqual(decodedInPlaceDS[.pixelData]?.valueData, nativeDS[.pixelData]?.valueData)
 
         // 3b. TransferSyntaxConverter lossless J2K -> HTJ2K on the 3-fragment / 2-frame dataset
@@ -699,9 +699,9 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
             to: .htj2kLossless
         )
         XCTAssertTrue(htj2kResult.wasTranscoded)
-        XCTAssertNil(htj2kResult.resolvedTranscodeProviderID)
-        XCTAssertEqual(htj2kResult.resolvedDecodeProviderID, .j2kSwift)
-        XCTAssertEqual(htj2kResult.resolvedEncodeProviderID, .j2kSwift)
+        XCTAssertEqual(htj2kResult.resolvedTranscodeProviderID, .swiftJ2K)
+        XCTAssertNil(htj2kResult.resolvedDecodeProviderID)
+        XCTAssertNil(htj2kResult.resolvedEncodeProviderID)
         XCTAssertThrowsError(try HTJ2KCodec.transcodeToHTJ2K(codestreams[0]))
 
         // Decode the transcoded HTJ2K dataset back to native and verify pixel equality.
@@ -729,9 +729,9 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
         }
 
         let reverse = try converter.transcode(dataSetData: htj2kResult.data, from: .htj2kLossless, to: .jpeg2000Lossless)
-        XCTAssertNil(reverse.resolvedTranscodeProviderID)
-        XCTAssertEqual(reverse.resolvedDecodeProviderID, .j2kSwift)
-        XCTAssertEqual(reverse.resolvedEncodeProviderID, .j2kSwift)
+        XCTAssertEqual(reverse.resolvedTranscodeProviderID, .swiftJ2K)
+        XCTAssertNil(reverse.resolvedDecodeProviderID)
+        XCTAssertNil(reverse.resolvedEncodeProviderID)
         let reverseDataSet = try parse(reverse.data, syntax: .jpeg2000Lossless)
         let reverseFile = DICOMFile.create(dataSet: reverseDataSet, transferSyntaxUID: TransferSyntax.jpeg2000Lossless.uid)
         XCTAssertEqual(try reverseFile.tryPixelData().data, samples)
@@ -1104,54 +1104,47 @@ final class M12RoutingAndFrameSafetyTests: XCTestCase {
 
     private func consumeBuffer(_ buffer: consuming DICOMByteBuffer) -> Int { buffer.count }
 
-    func testDefaultRegistryRefusesPart2WhilePart2CapableProviderRoutesThroughCompressionAndDiagnostics() throws {
+    func testDefaultRegistryPermitsPart2WhilePart1OnlyProviderRefusesInCompressionAndDiagnostics() throws {
         let native = makeNativeDataSet(rows: 8, cols: 8, frames: 1, bitsAllocated: 8, bitsStored: 8)
         let part10 = try DICOMFile.create(dataSet: native).write()
         let file = try DICOMFile.read(from: part10)
         let target92 = SelectableEncoding(transferSyntax: .jpeg2000Part2Lossless, intent: .notApplicable)
 
-        // Default CodecRegistry.shared (J2KSwift 11.0.3) refuses .92 in both checkConversion and CompressionManager
-        XCTAssertThrowsError(
+        // Default CodecRegistry.shared (SwiftJ2K 12.1.0) permits .92 in both checkConversion and CompressionManager
+        XCTAssertNoThrow(
             try DICOMConverter.checkConversion(dicomFile: file, to: target92, codecRegistry: .shared)
         )
-        XCTAssertThrowsError(
-            try CompressionManager(codecRegistry: .shared)
-                .compressData(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
-        )
+        let (_, sharedMetrics) = try CompressionManager(codecRegistry: .shared)
+            .compressDataWithMetrics(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
+        XCTAssertEqual(sharedMetrics.resolvedEncodeProviderID, .swiftJ2K)
 
-        // A provider advertising .92 / .93 encode is permitted by both checkConversion and CompressionManager
+        // A provider omitting .92 / .93 encode is refused by both checkConversion and CompressionManager
         let recorder = InvocationRecorder()
-        let mockPart2 = MockJ2KCodec(
-            providerID: .swiftJ2K,
+        let mockPart1Only = MockJ2KCodec(
+            providerID: CodecProviderID(rawValue: "mock.part1only"),
             recorder: recorder,
             canDecodeDescriptor: { _ in true },
             canEncodeConfig: { _, _ in true },
             decodeAction: { _, d, _ in Data(repeating: 0, count: d.bytesPerFrame) },
             encodeAction: { _, _, _ in [Data([0xFF, 0x4F, 0xFF, 0xD9])] }
         )
-        let part2Provider = J2KCodecProvider(
-            providerID: .swiftJ2K,
-            supportedDecodingTransferSyntaxUIDs: [
-                TransferSyntax.jpeg2000Part2Lossless.uid,
-                TransferSyntax.jpeg2000Part2.uid
-            ],
-            supportedEncodingTransferSyntaxUIDs: [
-                TransferSyntax.jpeg2000Part2Lossless.uid,
-                TransferSyntax.jpeg2000Part2.uid
-            ],
-            makeDecoder: { _ in mockPart2 },
-            makeEncoder: { _ in mockPart2 },
+        let part1OnlyProvider = J2KCodecProvider(
+            providerID: CodecProviderID(rawValue: "mock.part1only"),
+            supportedDecodingTransferSyntaxUIDs: [TransferSyntax.jpeg2000Lossless.uid],
+            supportedEncodingTransferSyntaxUIDs: [TransferSyntax.jpeg2000Lossless.uid],
+            makeDecoder: { _ in mockPart1Only },
+            makeEncoder: { _ in mockPart1Only },
             canDecodeProfile: { _, _, _ in true },
             canEncodeProfile: { _, _, _ in true }
         )
-        let part2Registry = CodecRegistry(j2kProvider: part2Provider)
-        XCTAssertNoThrow(
-            try DICOMConverter.checkConversion(dicomFile: file, to: target92, codecRegistry: part2Registry)
+        let part1OnlyRegistry = CodecRegistry(j2kProvider: part1OnlyProvider)
+        XCTAssertThrowsError(
+            try DICOMConverter.checkConversion(dicomFile: file, to: target92, codecRegistry: part1OnlyRegistry)
         )
-
-        let (_, metrics) = try CompressionManager(codecRegistry: part2Registry)
-            .compressDataWithMetrics(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
-        XCTAssertEqual(metrics.resolvedEncodeProviderID, .swiftJ2K)
-        XCTAssertEqual(recorder.snapshot.encodedCalls, [.swiftJ2K])
+        XCTAssertThrowsError(
+            try CompressionManager(codecRegistry: part1OnlyRegistry)
+                .compressData(part10, codec: "jpeg2000-part2-lossless-only", quality: nil)
+        )
+        XCTAssertTrue(recorder.snapshot.encodedCalls.isEmpty)
     }
 }

@@ -933,16 +933,16 @@ final class DICOMSwiftJ2KIntegrationTests: XCTestCase {
         )
         XCTAssertFalse(encoder.canEncode(with: .lossless, descriptor: subsampledDescriptor))
 
-        // 4. Legacy J2KSwift rollback registry STILL refuses .92 / .93 Part 2 encode!
+        // 4. Compatibility .j2kSwiftRollback facade (now backed by SwiftJ2K 12.1.0) also supports .92 / .93 Part 2 encode
         for part2Alias in ["jpeg2000-part2-lossless-only", "jpeg2000-part2-lossless", "jpeg2000-part2-lossy"] {
-            XCTAssertThrowsError(
+            XCTAssertNoThrow(
                 try DICOMConverter.convertToDICOM(
                     dicomFile: nativeFile,
                     to: try XCTUnwrap(DICOMConverter.resolveTargetEncoding(part2Alias)),
                     stripPrivate: false,
                     codecRegistry: .j2kSwiftRollback
                 ),
-                "Legacy J2KSwift must continue refusing \(part2Alias)"
+                "Compatibility .j2kSwiftRollback facade should support \(part2Alias)"
             )
         }
     }
@@ -1284,8 +1284,8 @@ final class DICOMSwiftJ2KIntegrationTests: XCTestCase {
                 XCTAssertEqual(decoded.data, expectedRGBFrames[f])
             }
 
-            // Legacy J2KSwift MUST refuse decoding a Part 2 MCT stream
-            XCTAssertThrowsError(try part2File.tryPixelData(codecRegistry: .j2kSwiftRollback))
+            // Compatibility .j2kSwiftRollback facade (now backed by SwiftJ2K 12.1.0) also decodes exact samples
+            XCTAssertEqual(try part2File.tryPixelData(codecRegistry: .j2kSwiftRollback).data, expectedRGBFrames[0] + expectedRGBFrames[1])
 
             // Stuffing a Part 2 stream under Part 1 (.90) or HTJ2K (.201) MUST be refused by SwiftJ2KDICOMCodec
             let rgbDescriptor = PixelDataDescriptor(

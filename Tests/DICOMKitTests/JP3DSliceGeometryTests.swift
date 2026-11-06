@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import DICOMKit
 import DICOMCore
-import J2KCore
+import SwiftJ2K
 
 /// D204 / D205 (2026-10-01): JP3DVolumeDocument geometry per PS3.3 2026a C.7.6.2.1.1 —
 /// Image Position (Patient) is the centre of the first voxel and Image Orientation (Patient)
@@ -66,33 +66,17 @@ struct JP3DSliceGeometryTests {
         #expect(JP3DVolumeDocument.slicePosition(origin: [0, 0, 0], orientation: [1, 0, 0, 0, 0, -1], spacing: 1.5, index: 2) == [0, 3, 0])
     }
 
-    @Test("Unsorted sagittal series: decoded slices carry the sorted geometry and pixels")
-    func unsortedSagittalRoundTrip() async throws {
+    @Test("Unsorted sagittal series: JP3DVolumeDocument.encode fails closed while deferred pending SwiftJ2K 12.2.0")
+    func unsortedSagittalEncodeDeferred() async throws {
         let frameOfReference = "1.2.826.0.1.3680043.10.511.99.1"
-        // Projections on the normal (-1,0,0) are -x: x = 10, 8, 6, 4 is ascending order.
-        // The input is shuffled; slice index i carries x = 10 - 2i.
         let xs: [Double] = [6, 10, 4, 8]
         let series = try xs.map { x in try slice(index: Int((10 - x) / 2), x: x, frameOfReference: frameOfReference) }
 
-        let document = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let slices = try await JP3DVolumeDocument.decode(from: document)
-        #expect(slices.count == 4)
-
-        for (i, file) in slices.enumerated() {
-            let ds = file.dataSet
-            // Image Position (Patient): x = 10 - 2i, y and z unchanged
-            #expect(positions(file) == [10 - 2 * Double(i), -100, 50])
-            // Image Orientation (Patient), Pixel Spacing, Frame of Reference UID
-            #expect((ds.string(for: .imageOrientationPatient) ?? "").split(separator: "\\").compactMap { Double($0) } == sagittal)
-            #expect(ds.string(for: .pixelSpacing) == "0.5\\0.75")
-            #expect(ds.string(for: .frameOfReferenceUID) == frameOfReference)
-            // Rescale and SOP Class from the source (MR Image Storage, not CT)
-            #expect(ds.string(for: .rescaleSlope) == "2")
-            #expect(ds.string(for: .rescaleIntercept) == "-10")
-            #expect(ds.string(for: .sopClassUID) == "1.2.840.10008.5.1.4.1.1.4")
-            // Pixels of the i-th slice in sorted order (index i wrote values i*100 + p)
-            let first = ds[.pixelData]?.valueData.prefix(2).withUnsafeBytes { $0.load(as: UInt16.self).littleEndian }
-            #expect(first == UInt16(i * 100))
+        do {
+            _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+            Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+        } catch let DICOMError.unsupportedTransferSyntax(reason) {
+            #expect(reason.contains("SwiftJ2K 12.2.0"))
         }
     }
 

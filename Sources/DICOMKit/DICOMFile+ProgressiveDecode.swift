@@ -74,14 +74,13 @@ extension DICOMFile {
                     try Task.checkCancellation()
                     let descriptor = try self.dataSet.tryPixelDataDescriptor()
                     let source = try self.frameSource(descriptor: descriptor, frame: frame, registry: codecRegistry)
-                    #if canImport(J2KCore) && canImport(J2KCodec)
                     if case .encapsulated(let pixels, let index, let selected) = source,
-                       let predecessor = (selected as? J2KSwiftCodec) ?? (selected as? HTJ2KCodec)?.progressiveDecoder,
+                       let progressive = selected as? any ProgressiveResolutionDecodableCodec,
                        let bytes = pixels.frameData(at: frame, using: index, maximumBytes: PixelDecodeLimits.default.maximumEncodedBytes),
                        let style = J2KCodestreamInspector.codingStyle(in: bytes) {
                         for level in coarseLevels where level > 0 && level <= style.decompositionLevels {
                             try Task.checkCancellation()
-                            let (data, rows, columns) = try await predecessor.decodeFrameAtResolution(
+                            let (data, rows, columns) = try await progressive.decodeFrameAtResolution(
                                 bytes, descriptor: descriptor, level: level)
                             let reduced = PixelDataDescriptor(
                                 rows: rows, columns: columns, numberOfFrames: 1,
@@ -96,7 +95,6 @@ extension DICOMFile {
                                                                       pixelData: preview))
                         }
                     }
-                    #endif
 
                     try Task.checkCancellation()
                     let final = try self.readFrame(frame, descriptor: descriptor, source: source, aligned: false)

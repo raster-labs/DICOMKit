@@ -1,24 +1,6 @@
 {
-  "originHash" : "46379ab483be826364d3797538acd63ef188113ff4d47e0a340611953a8eb6fe",
+  "originHash" : "2d51a8b92acccb2633fcd3166ef3f9eab5f52e69a563f405d1e0508bde9772fc",
   "pins" : [
-    {
-      "identity" : "compressionfamily",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Raster-Lab/CompressionFamily.git",
-      "state" : {
-        "revision" : "30fd74b6df841cf79b1a0247534a723f5e7ab4ba",
-        "version" : "1.0.0"
-      }
-    },
-    {
-      "identity" : "j2kswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Raster-Lab/J2KSwift.git",
-      "state" : {
-        "revision" : "768f6b53499b806fd0304962056e1fc7833f12e5",
-        "version" : "11.0.3"
-      }
-    },
     {
       "identity" : "jliswift",
       "kind" : "remoteSourceControl",
@@ -53,6 +35,15 @@
       "state" : {
         "revision" : "6a52f3251125d74daf04fcbd5e6f08a75d074382",
         "version" : "1.8.2"
+      }
+    },
+    {
+      "identity" : "swiftj2k",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raster-labs/SwiftJ2K.git",
+      "state" : {
+        "revision" : "3059a3c87d471028f3524241ec4f881f97cac264",
+        "version" : "12.1.0"
       }
     }
   ],

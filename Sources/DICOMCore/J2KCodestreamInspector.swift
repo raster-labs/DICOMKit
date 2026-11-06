@@ -1,6 +1,7 @@
 // NEMA-verified: 2026a, checked 2026-09-25 — implements ISO/IEC 15444, not DICOM. The one PS3.5 citation was corrected to A.4.4, which in 2026a defines all five JPEG 2000 and HTJ2K syntaxes. C1 classification confirmed.
 
 import Foundation
+import SwiftJ2K
 
 /// Read-only inspection of a JPEG 2000 codestream's headers.
 ///
@@ -582,6 +583,10 @@ public enum J2KCodestreamInspector {
     ///
     /// DICOM encapsulates a bare codestream (starting at SOC), but JP2-boxed pixel
     /// data appears in the wild, so both are handled.
+    package static func rawCodestreamPayload(in data: Data) -> Data? {
+        locateCodestream(in: data)
+    }
+
     private static func locateCodestream(in data: Data) -> Data? {
         if readUInt16(data, at: 0) == soc { return data }
         return extractJP2Codestream(from: data)
@@ -745,5 +750,543 @@ public enum J2KCodestreamInspector {
         var value: UInt64 = 0
         for k in 0..<8 { value = value << 8 | UInt64(data[absolute(data, offset + k)]) }
         return value
+    }
+}
+
+// MARK: - Codestream Conformance, Interoperability, Error Metrics & Benchmarking
+
+/// Structural codestream validator for JPEG 2000 Part 1 / Part 2 / Part 15 (HTJ2K) streams.
+public struct HTJ2KConformanceTestHarness: Sendable {
+    public init() {}
+
+    /// Validates basic ISO/IEC 15444-1 / 15444-15 codestream structure (`SOC`, `SIZ`, `COD`, `EOC`).
+    /// Returns an array of structural violation messages (empty when valid).
+    public func validateCodestreamStructure(_ codestream: Data) -> [String] {
+        guard codestream.count >= 4 else {
+            return ["Codestream too short (\(codestream.count) bytes); missing SOC marker"]
+        }
+        guard let raw = J2KCodestreamInspector.rawCodestreamPayload(in: codestream),
+              raw.count >= 4 else {
+            return ["Missing or invalid SOC marker (expected 0xFF4F)"]
+        }
+        let first0 = raw[raw.startIndex]
+        let first1 = raw[raw.index(after: raw.startIndex)]
+        guard first0 == 0xFF && first1 == 0x4F else {
+            return ["Missing SOC marker at start of codestream (expected 0xFF4F)"]
+        }
+
+        var errors: [String] = []
+        if J2KCodestreamInspector.imageHeader(in: raw) == nil {
+            errors.append("Missing or malformed main-header SIZ marker segment")
+        }
+        if J2KCodestreamInspector.codingStyle(in: raw) == nil {
+            errors.append("Missing or malformed main-header COD marker segment")
+        }
+        let last0 = raw[raw.index(raw.endIndex, offsetBy: -2)]
+        let last1 = raw[raw.index(raw.endIndex, offsetBy: -1)]
+        if !(last0 == 0xFF && last1 == 0xD9) {
+            errors.append("Missing EOC marker (0xFFD9) at end of codestream")
+        }
+        return errors
+    }
+}
+
+/// Interoperability and marker-signalling validator for JPEG 2000 and HTJ2K codestreams.
+public struct J2KHTInteroperabilityValidator: Sendable {
+    public struct CapabilityResult: Sendable, Equatable {
+        public let isHTJ2K: Bool
+        public let isMixedMode: Bool
+        public let errors: [String]
+        public let warnings: [String]
+
+        public init(isHTJ2K: Bool, isMixedMode: Bool, errors: [String], warnings: [String]) {
+            self.isHTJ2K = isHTJ2K
+            self.isMixedMode = isMixedMode
+            self.errors = errors
+            self.warnings = warnings
+        }
+    }
+
+    public struct InteroperabilityResult: Sendable, Equatable {
+        public let passed: Bool
+        public let isHTJ2K: Bool
+        public let isMixedMode: Bool
+        public let errors: [String]
+        public let warnings: [String]
+
+        public init(passed: Bool, isHTJ2K: Bool, isMixedMode: Bool, errors: [String], warnings: [String]) {
+            self.passed = passed
+            self.isHTJ2K = isHTJ2K
+            self.isMixedMode = isMixedMode
+            self.errors = errors
+            self.warnings = warnings
+        }
+    }
+
+    public init() {}
+
+    /// Inspects `CAP` (`0xFF50`) capability signalling for ISO/IEC 15444-15 (HTJ2K).
+    public func validateCapabilitySignaling(codestream: Data) -> CapabilityResult {
+        guard let raw = J2KCodestreamInspector.rawCodestreamPayload(in: codestream),
+              raw.count >= 4 else {
+            return CapabilityResult(
+                isHTJ2K: false,
+                isMixedMode: false,
+                errors: ["Cannot inspect capability signalling: missing SOC marker"],
+                warnings: []
+            )
+        }
+        let header = J2KCodestreamInspector.imageHeader(in: raw)
+        let isHTJ2K = header?.hasPart15CAPMarker ?? false
+        var isMixedMode = false
+        var errors: [String] = []
+        let warnings: [String] = []
+
+        // Inspect CAP Ccap^15 mixed-mode bit (bit 14 = 0x4000, MULTIHT) if present.
+        let bytes = [UInt8](raw)
+        var offset = 2
+        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
+            let marker = (UInt16(bytes[offset]) << 8) | UInt16(bytes[offset + 1])
+            if marker == 0xFF90 || marker == 0xFF93 || marker == 0xFFD9 { break }
+            let segLen = (Int(bytes[offset + 2]) << 8) | Int(bytes[offset + 3])
+            guard segLen >= 2, offset + 2 + segLen <= bytes.count else {
+                errors.append("Truncated main-header marker segment 0x\(String(format: "%04X", marker))")
+                break
+            }
+            if marker == 0xFF50 {
+                if segLen < 8 {
+                    errors.append("CAP marker segment length (\(segLen)) is shorter than minimum 8 bytes")
+                } else {
+                    let pcap = (UInt32(bytes[offset + 4]) << 24)
+                        | (UInt32(bytes[offset + 5]) << 16)
+                        | (UInt32(bytes[offset + 6]) << 8)
+                        | UInt32(bytes[offset + 7])
+                    if (pcap & 0x0002_0000) != 0 {
+                        // Count set bits higher than bit 17 to find Ccap^15 index.
+                        let higherMask = pcap & ~UInt32(0x0003_FFFF)
+                        let ccapIndex = higherMask.nonzeroBitCount
+                        let ccapOffset = offset + 8 + ccapIndex * 2
+                        if ccapOffset + 2 <= offset + 2 + segLen {
+                            let ccap15 = (UInt16(bytes[ccapOffset]) << 8) | UInt16(bytes[ccapOffset + 1])
+                            if (ccap15 & 0x4000) != 0 {
+                                isMixedMode = true
+                            }
+                        } else {
+                            errors.append("CAP marker declares Pcap^15 without corresponding Ccap^15 field")
+                        }
+                    }
+                }
+            }
+            offset += 2 + segLen
+        }
+
+        return CapabilityResult(
+            isHTJ2K: isHTJ2K,
+            isMixedMode: isMixedMode,
+            errors: errors,
+            warnings: warnings
+        )
+    }
+
+    /// Validates ISO/IEC 15444-1 Annex A main-header marker ordering (`SOC`, immediately `SIZ`, then `COD`/`QCD` before `SOT`).
+    public func validateMarkerOrdering(codestream: Data) -> [String] {
+        guard let raw = J2KCodestreamInspector.rawCodestreamPayload(in: codestream),
+              raw.count >= 4 else {
+            return ["Codestream does not start with SOC (0xFF4F)"]
+        }
+        let bytes = [UInt8](raw)
+        guard bytes[0] == 0xFF, bytes[1] == 0x4F else {
+            return ["Codestream does not start with SOC (0xFF4F)"]
+        }
+        guard bytes[2] == 0xFF, bytes[3] == 0x51 else {
+            return ["SIZ (0xFF51) must immediately follow SOC (0xFF4F) at offset 2"]
+        }
+
+        var issues: [String] = []
+        var seenCOD = false
+        var seenQCD = false
+        var seenSOT = false
+        var offset = 2
+        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
+            let marker = (UInt16(bytes[offset]) << 8) | UInt16(bytes[offset + 1])
+            if marker == 0xFF90 {
+                seenSOT = true
+                break
+            }
+            if marker == 0xFF93 || marker == 0xFFD9 { break }
+            let segLen = (Int(bytes[offset + 2]) << 8) | Int(bytes[offset + 3])
+            guard segLen >= 2, offset + 2 + segLen <= bytes.count else { break }
+            if marker == 0xFF52 { seenCOD = true }
+            if marker == 0xFF5C { seenQCD = true }
+            offset += 2 + segLen
+        }
+        if !seenCOD {
+            issues.append("Missing required COD (0xFF52) marker segment in main header")
+        }
+        if !seenQCD {
+            issues.append("Missing required QCD (0xFF5C) marker segment in main header")
+        }
+        if !seenSOT {
+            issues.append("Missing SOT (0xFF90) tile-part header in codestream")
+        }
+        return issues
+    }
+
+    /// Validates marker segment length fields (`Lmar`) across the main header and tile-part headers.
+    public func validateSegmentLengths(codestream: Data) -> [String] {
+        guard codestream.count >= 4 else {
+            return ["Codestream truncated (\(codestream.count) bytes)"]
+        }
+        guard let raw = J2KCodestreamInspector.rawCodestreamPayload(in: codestream) else {
+            return ["Codestream lacks valid SOC marker or JP2 codestream box"]
+        }
+        let bytes = [UInt8](raw)
+        guard bytes.count >= 4, bytes[0] == 0xFF, bytes[1] == 0x4F else {
+            return ["Codestream lacks valid SOC marker (0xFF4F)"]
+        }
+
+        var errors: [String] = []
+        var offset = 2
+        var reachedTileDataOrEOC = false
+
+        while offset < bytes.count {
+            guard offset + 2 <= bytes.count else {
+                errors.append("Truncated 2-byte marker at offset \(offset)")
+                break
+            }
+            guard bytes[offset] == 0xFF else {
+                errors.append("Expected marker prefix 0xFF at offset \(offset), found 0x\(String(format: "%02X", bytes[offset]))")
+                break
+            }
+            let marker = (UInt16(bytes[offset]) << 8) | UInt16(bytes[offset + 1])
+            if marker == 0xFFD9 {
+                reachedTileDataOrEOC = true
+                break
+            }
+            if marker == 0xFF4F {
+                offset += 2
+                continue
+            }
+            guard offset + 4 <= bytes.count else {
+                errors.append("Truncated segment length for marker 0x\(String(format: "%04X", marker)) at offset \(offset)")
+                break
+            }
+            let segLen = (Int(bytes[offset + 2]) << 8) | Int(bytes[offset + 3])
+            guard segLen >= 2 else {
+                errors.append("Invalid segment length \(segLen) (< 2) for marker 0x\(String(format: "%04X", marker))")
+                break
+            }
+            guard offset + 2 + segLen <= bytes.count else {
+                errors.append(
+                    "Segment length \(segLen) for marker 0x\(String(format: "%04X", marker)) at offset \(offset) overruns codestream (\(bytes.count) bytes)"
+                )
+                break
+            }
+            if marker == 0xFF90 {
+                guard segLen == 10 else {
+                    errors.append("SOT marker length must be 10, got \(segLen)")
+                    break
+                }
+                let psot = (UInt64(bytes[offset + 6]) << 24)
+                    | (UInt64(bytes[offset + 7]) << 16)
+                    | (UInt64(bytes[offset + 8]) << 8)
+                    | UInt64(bytes[offset + 9])
+                // Validate tile-part header segments up to SOD (0xFF93).
+                var tpOffset = offset + 12
+                var foundSOD = false
+                while tpOffset + 2 <= bytes.count {
+                    guard bytes[tpOffset] == 0xFF else {
+                        errors.append("Malformed marker inside tile-part header at offset \(tpOffset)")
+                        break
+                    }
+                    let tpMarker = (UInt16(bytes[tpOffset]) << 8) | UInt16(bytes[tpOffset + 1])
+                    if tpMarker == 0xFF93 {
+                        foundSOD = true
+                        break
+                    }
+                    guard tpOffset + 4 <= bytes.count else {
+                        errors.append("Truncated tile-part marker 0x\(String(format: "%04X", tpMarker))")
+                        break
+                    }
+                    let tpLen = (Int(bytes[tpOffset + 2]) << 8) | Int(bytes[tpOffset + 3])
+                    guard tpLen >= 2, tpOffset + 2 + tpLen <= bytes.count else {
+                        errors.append("Tile-part marker 0x\(String(format: "%04X", tpMarker)) length \(tpLen) overruns codestream")
+                        break
+                    }
+                    tpOffset += 2 + tpLen
+                }
+                if !foundSOD && errors.isEmpty {
+                    errors.append("Tile-part starting at offset \(offset) missing SOD (0xFF93) marker")
+                    break
+                }
+                reachedTileDataOrEOC = true
+                if psot == 0 {
+                    break
+                }
+                guard psot >= 14, offset + Int(psot) <= bytes.count else {
+                    errors.append("SOT Psot (\(psot)) at offset \(offset) overruns codestream (\(bytes.count) bytes)")
+                    break
+                }
+                offset += Int(psot)
+                continue
+            }
+            offset += 2 + segLen
+        }
+
+        if errors.isEmpty && !reachedTileDataOrEOC {
+            errors.append("Codestream ended before tile-part header or EOC")
+        }
+        return errors
+    }
+
+    /// Runs full structural, marker-ordering, segment-length, and capability validation.
+    public func validateInteroperability(codestream: Data) -> InteroperabilityResult {
+        let structureErrors = HTJ2KConformanceTestHarness().validateCodestreamStructure(codestream)
+        let orderingErrors = validateMarkerOrdering(codestream: codestream)
+        let segmentErrors = validateSegmentLengths(codestream: codestream)
+        let cap = validateCapabilitySignaling(codestream: codestream)
+        let allErrors = structureErrors + orderingErrors + segmentErrors + cap.errors
+        return InteroperabilityResult(
+            passed: allErrors.isEmpty,
+            isHTJ2K: cap.isHTJ2K,
+            isMixedMode: cap.isMixedMode,
+            errors: allErrors,
+            warnings: cap.warnings
+        )
+    }
+}
+
+/// Pixel-level error metrics (MSE, PSNR, MAE) for JPEG 2000 / HTJ2K fidelity verification.
+public struct J2KErrorMetrics: Sendable {
+    public init() {}
+
+    /// Mean Squared Error between two sample arrays, or `nil` if empty or length-mismatched.
+    public static func meanSquaredError(reference: [Int32], test: [Int32]) -> Double? {
+        guard !reference.isEmpty, reference.count == test.count else { return nil }
+        var sumSq: Double = 0
+        for i in 0..<reference.count {
+            let diff = Double(reference[i]) - Double(test[i])
+            sumSq += diff * diff
+        }
+        return sumSq / Double(reference.count)
+    }
+
+    /// Peak Signal-to-Noise Ratio (dB) between two sample arrays (`+infinity` when identical).
+    public static func peakSignalToNoiseRatio(
+        reference: [Int32],
+        test: [Int32],
+        bitDepth: Int = 8
+    ) -> Double? {
+        guard bitDepth >= 1, bitDepth <= 31,
+              let mse = meanSquaredError(reference: reference, test: test) else {
+            return nil
+        }
+        if mse == 0.0 { return .infinity }
+        let peak = Double((1 << bitDepth) - 1)
+        return 20.0 * log10(peak) - 10.0 * log10(mse)
+    }
+
+    /// Maximum Absolute Error between two sample arrays, or `nil` if empty or length-mismatched.
+    public static func maximumAbsoluteError(reference: [Int32], test: [Int32]) -> Int? {
+        guard !reference.isEmpty, reference.count == test.count else { return nil }
+        var maxErr: Int = 0
+        for i in 0..<reference.count {
+            let err = Int((Int64(reference[i]) - Int64(test[i])).magnitude)
+            if err > maxErr { maxErr = err }
+        }
+        return maxErr
+    }
+
+    /// Returns `true` when every sample pair differs by at most `maxError`.
+    public static func withinTolerance(reference: [Int32], test: [Int32], maxError: Int) -> Bool {
+        guard maxError >= 0, let mae = maximumAbsoluteError(reference: reference, test: test) else {
+            return false
+        }
+        return mae <= maxError
+    }
+
+    /// Mean Squared Error across all components of two `J2KImage` values.
+    public static func meanSquaredError(reference: J2KImage, test: J2KImage) -> Double? {
+        guard let (refSamples, tstSamples) = extractSamples(reference: reference, test: test) else {
+            return nil
+        }
+        return meanSquaredError(reference: refSamples, test: tstSamples)
+    }
+
+    /// Peak Signal-to-Noise Ratio across all components of two `J2KImage` values.
+    public static func peakSignalToNoiseRatio(
+        reference: J2KImage,
+        test: J2KImage,
+        bitDepth: Int? = nil
+    ) -> Double? {
+        guard let (refSamples, tstSamples) = extractSamples(reference: reference, test: test) else {
+            return nil
+        }
+        let depth = bitDepth ?? reference.components.first?.bitDepth ?? 8
+        return peakSignalToNoiseRatio(reference: refSamples, test: tstSamples, bitDepth: depth)
+    }
+
+    /// Maximum Absolute Error across all components of two `J2KImage` values.
+    public static func maximumAbsoluteError(reference: J2KImage, test: J2KImage) -> Int? {
+        guard let (refSamples, tstSamples) = extractSamples(reference: reference, test: test) else {
+            return nil
+        }
+        return maximumAbsoluteError(reference: refSamples, test: tstSamples)
+    }
+
+    private static func extractSamples(reference: J2KImage, test: J2KImage) -> ([Int32], [Int32])? {
+        guard reference.width == test.width,
+              reference.height == test.height,
+              !reference.components.isEmpty,
+              reference.components.count == test.components.count else {
+            return nil
+        }
+        var refOut: [Int32] = []
+        var tstOut: [Int32] = []
+        for (rc, tc) in zip(reference.components, test.components) {
+            guard rc.width == tc.width, rc.height == tc.height, rc.bitDepth == tc.bitDepth else {
+                return nil
+            }
+            guard let rs = componentSamples(rc), let ts = componentSamples(tc), rs.count == ts.count else {
+                return nil
+            }
+            refOut.append(contentsOf: rs)
+            tstOut.append(contentsOf: ts)
+        }
+        return (refOut, tstOut)
+    }
+
+    private static func componentSamples(_ comp: J2KComponent) -> [Int32]? {
+        let count = comp.width * comp.height
+        let bps = comp.bytesPerSample
+        guard comp.data.count >= count * bps else { return nil }
+        var out: [Int32] = []
+        out.reserveCapacity(count)
+        let base = comp.data.startIndex
+        if bps == 1 {
+            for i in 0..<count {
+                let b = comp.data[comp.data.index(base, offsetBy: i)]
+                out.append(comp.signed ? Int32(Int8(bitPattern: b)) : Int32(b))
+            }
+        } else {
+            for i in 0..<count {
+                let lo = UInt16(comp.data[comp.data.index(base, offsetBy: i * 2)])
+                let hi = UInt16(comp.data[comp.data.index(base, offsetBy: i * 2 + 1)]) << 8
+                let word = lo | hi
+                out.append(comp.signed ? Int32(Int16(bitPattern: word)) : Int32(word))
+            }
+        }
+        return out
+    }
+}
+
+/// Lightweight wall-clock benchmark timer for JPEG 2000 / HTJ2K operations.
+public struct J2KBenchmark: Sendable {
+    public struct Result: Sendable, Equatable {
+        public let name: String
+        public let iterations: Int
+        /// Average duration per iteration in seconds.
+        public let averageTime: Double
+        /// Minimum duration in seconds.
+        public let minTime: Double
+        /// Maximum duration in seconds.
+        public let maxTime: Double
+        /// Median duration in seconds.
+        public let medianTime: Double
+        /// Sample standard deviation in seconds.
+        public let standardDeviation: Double
+        /// Mean throughput in operations per second.
+        public let operationsPerSecond: Double
+    }
+
+    public let name: String
+
+    public init(name: String) {
+        self.name = name
+    }
+
+    public func measureThrowing(
+        iterations: Int,
+        warmupIterations: Int = 0,
+        _ block: () throws -> Void
+    ) rethrows -> Result {
+        let warmups = max(0, warmupIterations)
+        let runs = max(1, iterations)
+        for _ in 0..<warmups {
+            try block()
+        }
+        var samples: [Double] = []
+        samples.reserveCapacity(runs)
+        let clock = ContinuousClock()
+        for _ in 0..<runs {
+            let start = clock.now
+            try block()
+            let elapsed = start.duration(to: clock.now)
+            samples.append(Self.seconds(from: elapsed))
+        }
+        return Self.summarize(name: name, samples: samples)
+    }
+
+    public func measureAsyncThrowing(
+        iterations: Int,
+        warmupIterations: Int = 0,
+        _ block: () async throws -> Void
+    ) async rethrows -> Result {
+        let warmups = max(0, warmupIterations)
+        let runs = max(1, iterations)
+        for _ in 0..<warmups {
+            try await block()
+        }
+        var samples: [Double] = []
+        samples.reserveCapacity(runs)
+        let clock = ContinuousClock()
+        for _ in 0..<runs {
+            let start = clock.now
+            try await block()
+            let elapsed = start.duration(to: clock.now)
+            samples.append(Self.seconds(from: elapsed))
+        }
+        return Self.summarize(name: name, samples: samples)
+    }
+
+    private static func seconds(from duration: Duration) -> Double {
+        let (sec, atto) = duration.components
+        return Double(sec) + Double(atto) * 1e-18
+    }
+
+    private static func summarize(name: String, samples: [Double]) -> Result {
+        let sorted = samples.sorted()
+        let n = sorted.count
+        let sum = sorted.reduce(0.0, +)
+        let avg = sum / Double(max(1, n))
+        let minVal = sorted.first ?? 0.0
+        let maxVal = sorted.last ?? 0.0
+        let median: Double
+        if n == 0 {
+            median = 0.0
+        } else if n % 2 == 1 {
+            median = sorted[n / 2]
+        } else {
+            median = 0.5 * (sorted[n / 2 - 1] + sorted[n / 2])
+        }
+        let variance: Double
+        if n > 1 {
+            let sq = sorted.reduce(0.0) { $0 + ($1 - avg) * ($1 - avg) }
+            variance = sq / Double(n)
+        } else {
+            variance = 0.0
+        }
+        let stdDev = variance.squareRoot()
+        let ops = avg > 0 ? (1.0 / avg) : 0.0
+        return Result(
+            name: name,
+            iterations: n,
+            averageTime: avg,
+            minTime: minVal,
+            maxTime: maxVal,
+            medianTime: median,
+            standardDeviation: stdDev,
+            operationsPerSecond: ops
+        )
     }
 }

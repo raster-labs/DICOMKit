@@ -9,9 +9,13 @@ import ArgumentParser
 import DICOMCore
 import DICOMKit
 import DICOMDictionary
-import J2KCore
-import J2KCodec
-import J2KFileFormat
+import SwiftJ2K
+
+private extension J2KImage {
+    var tilesX: Int { tileGridWidth }
+    var tilesY: Int { tileGridHeight }
+    var aspectRatio: Double { height > 0 ? Double(width) / Double(height) : 0.0 }
+}
 
 @available(macOS 10.15, *)
 struct DICOMJ2K: ParsableCommand {
@@ -98,23 +102,72 @@ private func j2kCodestreams(from dicom: DICOMFile) throws -> [Data] {
     }
 }
 
-/// Encoder settings that keep the codestream family of `uid` (HTJ2K block coder for
-/// .201/.202/.203) and, for .202, the PS3.5 10.18.1 progression (RPCL) and enough
-/// decomposition levels for a base resolution of at most 64.
+/// Encodes a `J2KImage` to a raw JPEG 2000 / Part 2 / HTJ2K codestream via `SwiftJ2K`,
+/// preserving reversible/irreversible mode, `--quality`, Part 2 multi-component transform
+/// markers (`.92`/`.93`), HTJ2K block coding (`.201`/`.202`/`.203`), and PS3.5 10.18.1
+/// RPCL + TLM conformance for `.202`.
 @available(macOS 10.15, *)
-private func configureFamily(_ config: inout J2KEncodingConfiguration, uid: String,
-                             rows: Int, columns: Int) {
-    let ts = TransferSyntax.from(uid: uid)
-    if ts?.isHTJ2K == true {
-        config.useHTJ2K = true
-        config.htj2kBlockFormat = .conformant
+private func encodeJ2KImage(
+    _ image: J2KImage,
+    targetUID: String,
+    isLossless: Bool,
+    quality: Double = 0.9,
+    decompositionLevels: Int? = nil,
+    qualityLayers: Int = 1
+) throws -> Data {
+    let ts = TransferSyntax.from(uid: targetUID)
+    let isHTJ2K = ts?.isHTJ2K == true
+    let isPart2 = ts?.isJPEG2000Part2 == true
+    let isRPCL = (targetUID == TransferSyntax.htj2kRPCLLossless.uid)
+
+    let smallestDim = max(1, min(image.width, image.height))
+    let deepest = max(0, Int.bitWidth - 1 - smallestDim.leadingZeroBitCount)
+    let resolvedLevels: Int?
+    if let explicitLevels = decompositionLevels {
+        resolvedLevels = min(explicitLevels, deepest)
+    } else if isRPCL {
+        let needed = J2KDICOMBoundary.minimumDecompositionLevelsForRPCL(
+            rows: image.height,
+            columns: image.width
+        )
+        resolvedLevels = min(10, min(deepest, max(5, needed)))
+    } else {
+        resolvedLevels = nil
     }
-    if uid == TransferSyntax.htj2kRPCLLossless.uid {
-        config.progressionOrder = .rpcl
-        config.decompositionLevels = max(
-            config.decompositionLevels,
-            J2KDICOMBoundary.minimumDecompositionLevelsForRPCL(rows: rows, columns: columns))
+
+    let colourTransform: CodecOptions.ColourTransform
+    if isPart2 {
+        colourTransform = (image.components.count == 3) ? .automatic : .none
+    } else if image.components.count == 3 {
+        colourTransform = isLossless ? .rct : .ict
+    } else {
+        colourTransform = .none
     }
+
+    let codecOptions = try CodecOptions(
+        decompositionLevels: resolvedLevels,
+        blockCoding: isHTJ2K ? .htj2k : .part1,
+        wavelet: isLossless ? .reversible53 : .irreversible97,
+        colourTransform: colourTransform,
+        progressionOrder: isRPCL ? .rpcl : .lrcp,
+        quality: isLossless ? nil : quality,
+        qualityLayers: max(1, qualityLayers),
+        containerFormat: .codestream,
+        multiComponentTransform: isPart2 ? .part2 : .automatic
+    )
+    let encoderConfig = try EncoderConfiguration(
+        mode: isLossless ? .lossless : .lossy,
+        codecOptions: codecOptions
+    )
+    let contractImage = try image.toContractImage()
+    let encoder = try Encoder(configuration: encoderConfig)
+    let encoded = try runAsync {
+        try await encoder.encode(contractImage)
+    }
+    if isRPCL {
+        return J2KCodestreamInspector.conformingToHTJ2KRPCL(encoded.data)
+    }
+    return encoded.data
 }
 
 /// Warns when a .202 codestream misses a PS3.5 2026a 10.18.1 requirement (the encoder,
@@ -340,7 +393,7 @@ extension DICOMJ2K {
             abstract: "ISO/IEC 15444-4 conformance check of the embedded J2K codestream",
             discussion: """
                 Runs structural validation of the JPEG 2000 or HTJ2K codestream using
-                J2KSwift's built-in conformance tester. Reports marker ordering,
+                SwiftJ2K's codestream conformance checks. Reports marker ordering,
                 segment-length consistency, capability signalling (CAP marker for HTJ2K),
                 and interoperability issues.
 
@@ -457,26 +510,24 @@ extension DICOMJ2K {
                 the specified target transfer syntax. The DICOM dataset is preserved
                 bit-for-bit except for the pixel data element and transfer syntax UID.
 
-                Target transfer syntax values (the general .91/.203 UIDs carry either a
+                Target transfer syntax values (the general .91/.93/.203 UIDs carry either a
                 lossy or a lossless codestream per PS3.5 A.4.4; "-lossless-only" selects the
                 distinct reversible-only UID):
                   j2k-lossy                 JPEG 2000, lossy          (1.2.840.10008.1.2.4.91)
                   j2k-lossless              JPEG 2000, lossless       (1.2.840.10008.1.2.4.91)
                   j2k-lossless-only         JPEG 2000 Lossless Only   (1.2.840.10008.1.2.4.90)
+                  j2k-part2-lossy           JPEG 2000 Part 2, lossy   (1.2.840.10008.1.2.4.93)
+                  j2k-part2-lossless        JPEG 2000 Part 2, lossless(1.2.840.10008.1.2.4.93)
+                  j2k-part2-lossless-only   JPEG 2000 Part 2 Lossless Only (1.2.840.10008.1.2.4.92)
                   htj2k-lossy               HTJ2K, lossy              (1.2.840.10008.1.2.4.203)
                   htj2k-lossless            HTJ2K, lossless           (1.2.840.10008.1.2.4.203)
                   htj2k-lossless-only       HTJ2K Lossless Only       (1.2.840.10008.1.2.4.201)
                   htj2k-rpcl-lossless-only  HTJ2K Lossless Only, RPCL (1.2.840.10008.1.2.4.202)
 
-                Refused (exit 1) — .92 / .93 specify the JPEG 2000 Part 2 multiple component
-                transformation extensions (PS3.5 A.4.4), which the encoder does not write:
-                  j2k-part2-lossy           JPEG 2000 Part 2, lossy   (1.2.840.10008.1.2.4.93)
-                  j2k-part2-lossless        JPEG 2000 Part 2, lossless(1.2.840.10008.1.2.4.93)
-                  j2k-part2-lossless-only   JPEG 2000 Part 2 Lossless Only (1.2.840.10008.1.2.4.92)
-
                 A PS3.6 Table A-1 keyword selects its Table A-1 UID: JPEG2000Lossless now means
                 .90 and HTJ2KLossless .201 (a note is printed); the reversible encode into .91 /
-                .203 is JPEG2000Reversible / HTJ2KReversible (or j2k-lossless / htj2k-lossless).
+                .93 / .203 is JPEG2000Reversible / JPEG2000MCReversible / HTJ2KReversible (or
+                j2k-lossless / j2k-part2-lossless / htj2k-lossless).
 
                 Examples:
                   dicom-j2k transcode j2k.dcm --output htj2k.dcm --target htj2k-lossless
@@ -491,7 +542,7 @@ extension DICOMJ2K {
         @Option(name: .shortAndLong, help: "Output DICOM file path")
         var output: String
 
-        @Option(name: .shortAndLong, help: "Target transfer syntax (j2k-lossy, j2k-lossless, j2k-lossless-only, htj2k-lossy, htj2k-lossless, htj2k-lossless-only, htj2k-rpcl-lossless-only; the j2k-part2-* targets are refused, PS3.5 A.4.4)")
+        @Option(name: .shortAndLong, help: "Target transfer syntax (j2k-lossy, j2k-lossless, j2k-lossless-only, j2k-part2-lossy, j2k-part2-lossless, j2k-part2-lossless-only, htj2k-lossy, htj2k-lossless, htj2k-lossless-only, htj2k-rpcl-lossless-only)")
         var target: String
 
         @Option(name: .shortAndLong, help: "Encoding quality 0.0–1.0 (ignored for lossless targets)")
@@ -502,15 +553,13 @@ extension DICOMJ2K {
 
         mutating func validate() throws {
             // Validate against the shared catalog so the accepted names track the library.
-            // Any JPEG 2000 / HTJ2K target (lossy, lossless, or lossless-only) is allowed.
+            // Any JPEG 2000 / Part 2 / HTJ2K target (lossy, lossless, or lossless-only) is allowed.
             guard let enc = TransferSyntax.parseEncoding(target), enc.transferSyntax.isJPEG2000 else {
                 throw ValidationError(
                     "Invalid target '\(target)'. Valid values: j2k-lossy, j2k-lossless, "
-                    + "j2k-lossless-only, htj2k-lossy, htj2k-lossless, htj2k-lossless-only, "
-                    + "htj2k-rpcl-lossless-only")
+                    + "j2k-lossless-only, j2k-part2-lossy, j2k-part2-lossless, j2k-part2-lossless-only, "
+                    + "htj2k-lossy, htj2k-lossless, htj2k-lossless-only, htj2k-rpcl-lossless-only")
             }
-            // P-J2K-PART2: .92 / .93 are the Part 2 multi-component extensions; refused as the
-            // engine refuses them (exit 1, not a usage error).
             if let reason = Self.part2RefusalReason(enc.transferSyntax) {
                 throw TargetRefused(description: reason)
             }
@@ -532,9 +581,8 @@ extension DICOMJ2K {
             }
 
             // Resolve UID + encode intent from the shared catalog. The general UIDs
-            // (.91/.203) honour the selected lossy/lossless intent (e.g. `htj2k-lossless`
-            // encodes reversibly into .203); the lossless-only UIDs (.90/.201/.202) are
-            // always lossless. `parseEncoding` is validated non-nil in validate().
+            // (.91/.93/.203) honour the selected lossy/lossless intent; the lossless-only
+            // UIDs (.90/.92/.201/.202) are always lossless.
             let targetEncoding = TransferSyntax.parseEncoding(target)
                 ?? SelectableEncoding(transferSyntax: .jpeg2000Lossless, intent: .notApplicable)
             let targetUID = targetEncoding.transferSyntax.uid
@@ -546,22 +594,19 @@ extension DICOMJ2K {
                 print("Quality: \(isLossless ? "lossless" : String(format: "%.2f", quality))")
             }
 
-            // Decode all frames, re-encode, and rebuild DICOM
+            // Decode all frames, re-encode via SwiftJ2K, and rebuild DICOM
             let rows = Int(dicom.dataSet.uint16(for: .rows) ?? 0)
             let columns = Int(dicom.dataSet.uint16(for: .columns) ?? 0)
-            var encConfig = J2KEncodingConfiguration()
-            encConfig.lossless = isLossless
-            // --quality drives the irreversible encode (ignored when lossless).
-            if !isLossless { encConfig.quality = quality }
-            // HTJ2K block coder (ISO/IEC 15444-15, conformant wire format) for .201/.202/.203,
-            // and the PS3.5 10.18.1 RPCL settings for .202.
-            configureFamily(&encConfig, uid: targetUID, rows: rows, columns: columns)
 
-            let encoder = J2KEncoder(encodingConfiguration: encConfig)
             var newFragments = [Data]()
             for cs in try j2kCodestreams(from: dicom) {
                 let img = try decodeJ2K(cs)
-                let enc: Data = try runAsync { try await encoder.encode(img) }
+                let enc = try encodeJ2KImage(
+                    img,
+                    targetUID: targetUID,
+                    isLossless: isLossless,
+                    quality: quality
+                )
                 newFragments.append(enc)
             }
 
@@ -600,15 +645,15 @@ extension DICOMJ2K {
             }
         }
 
-        /// The refusal text for a JPEG 2000 Part 2 target (.92 / .93), `nil` for any other.
-        /// PS3.5 2026a A.4.4: these UIDs specify the Part 2 (Annex J) multiple component
-        /// transformation extensions; the encoder writes Part 1 codestreams only.
+        /// Returns a refusal message only if `J2KRoutePlanner` marks the Part 2 target unsupported
+        /// (`nil` under `SwiftJ2K`, which implements ISO/IEC 15444-2 Annex J MCT extensions).
         static func part2RefusalReason(_ syntax: TransferSyntax) -> String? {
             guard syntax.isJPEG2000Part2 else { return nil }
-            let engine = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: syntax.uid)
-                ?? "\(syntax.uid) encoding is not supported."
+            guard let engine = J2KRoutePlanner.unsupportedEncodeReason(transferSyntaxUID: syntax.uid) else {
+                return nil
+            }
             return "Target refused: \(syntax.uid) specifies the JPEG 2000 Part 2 multiple component "
-                + "transformation extensions (PS3.5 2026a A.4.4), which dicom-j2k does not write. " + engine
+                + "transformation extensions (PS3.5 2026a A.4.4). " + engine
         }
     }
 }
@@ -748,24 +793,19 @@ extension DICOMJ2K {
             }
 
             // Reversible re-encode: the pixel values, Rows and Columns do not change.
-            var encConfig = J2KEncodingConfiguration()
-            encConfig.lossless = true
-            if let l = levels {
-                encConfig.decompositionLevels = l
-                if verbose { print("Re-encoding with \(l) decomposition levels") }
-            }
-            if let l = layers {
-                encConfig.qualityLayers = l
-                if verbose { print("Re-encoding with \(l) quality layers") }
-            }
-            // Keep the codestream family of the unchanged transfer syntax (HTJ2K for .20x).
-            configureFamily(&encConfig, uid: sourceUID, rows: rows, columns: columns)
+            if let l = levels, verbose { print("Re-encoding with \(l) decomposition levels") }
+            if let l = layers, verbose { print("Re-encoding with \(l) quality layers") }
 
-            let encoder = J2KEncoder(encodingConfiguration: encConfig)
             var newFragments = [Data]()
             for cs in try j2kCodestreams(from: dicom) {
                 let img = try decodeJ2K(cs)
-                let encoded: Data = try runAsync { try await encoder.encode(img) }
+                let encoded = try encodeJ2KImage(
+                    img,
+                    targetUID: sourceUID,
+                    isLossless: true,
+                    decompositionLevels: levels,
+                    qualityLayers: layers ?? 1
+                )
                 newFragments.append(encoded)
             }
             warnIfNotRPCLConformant(newFragments.first, uid: sourceUID, rows: rows, columns: columns)
@@ -915,11 +955,11 @@ extension DICOMJ2K {
             )
 
             let sourceUID = dicom.transferSyntaxUID ?? ""
-            var encConfig = J2KEncodingConfiguration()
-            encConfig.lossless = true
-            configureFamily(&encConfig, uid: sourceUID, rows: roiH, columns: roiW)
-            let encoder = J2KEncoder(encodingConfiguration: encConfig)
-            let encoded: Data = try runAsync { try await encoder.encode(croppedImage) }
+            let encoded = try encodeJ2KImage(
+                croppedImage,
+                targetUID: sourceUID,
+                isLossless: true
+            )
             warnIfNotRPCLConformant(encoded, uid: sourceUID, rows: roiH, columns: roiW)
 
             var newDataSet = dicom.dataSet
@@ -959,7 +999,7 @@ extension DICOMJ2K {
     struct BenchmarkCommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "benchmark",
-            abstract: "Decode-speed benchmark across J2KSwift codec backends",
+            abstract: "Decode-speed benchmark across SwiftJ2K codec backends",
             discussion: """
                 Decodes the embedded JPEG 2000 / HTJ2K codestream repeatedly and
                 reports timing statistics: average, minimum, maximum, median, and
@@ -1213,7 +1253,7 @@ extension DICOMJ2K {
                 case "${prev}" in
                     info|validate|benchmark|compare) COMPREPLY=($(compgen -f -- "${cur}")); return 0;;
                     transcode|reduce|roi) COMPREPLY=($(compgen -f -- "${cur}")); return 0;;
-                    --target) COMPREPLY=($(compgen -W "j2k-lossy j2k-lossless j2k-lossless-only htj2k-lossy htj2k-lossless htj2k-lossless-only htj2k-rpcl-lossless-only" -- "${cur}")); return 0;;
+                    --target) COMPREPLY=($(compgen -W "j2k-lossy j2k-lossless j2k-lossless-only j2k-part2-lossy j2k-part2-lossless j2k-part2-lossless-only htj2k-lossy htj2k-lossless htj2k-lossless-only htj2k-rpcl-lossless-only" -- "${cur}")); return 0;;
                     completions) COMPREPLY=($(compgen -W "bash zsh fish" -- "${cur}")); return 0;;
                     *) COMPREPLY=($(compgen -W "${cmds} ${opts}" -- "${cur}")); return 0;;
                 esac

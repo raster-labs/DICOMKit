@@ -152,26 +152,10 @@ public enum J2KRoutePlanner {
 
     // MARK: - Part-2 capability
 
-    /// Whether the pinned J2KSwift can **decode** a genuine JPEG 2000 Part-2
-    /// codestream (multi-component transform / arbitrary wavelet) back to correct
-    /// pixels via the stateless `J2KDecoder().decode(_:)` path DICOMKit uses.
-    ///
-    /// **Currently `false` for J2KSwift v11.0.2.** The library emits Part-2 CAP/MCT
-    /// markers on encode but its decoder does not parse MCT/MCC/MCO/ADS markers and
-    /// never self-configures the wavelet kernel from the codestream. An empirical
-    /// probe (encode an RGB image with a non-identity array-based MCT, decode via
-    /// `decode(_:)`) produced a **max abs pixel error of 253/255** — the forward MCT
-    /// is applied on encode but never inverted on decode. A lossless Part-2 MCT
-    /// encode therefore corrupts pixels and would (correctly) trip
-    /// `J2KSwiftCodec.verifyEncodedRoundTrip`.
-    ///
-    /// Consequently, DICOMKit does **not** emit real Part-2 features: a `.92`/`.93`
-    /// request is encoded as a valid, decodable Part-1-compatible codestream carrying
-    /// the Part-2 UID (pixels are exact; the multi-component decorrelation is simply
-    /// not applied). Flip this flag to `true` — and wire `mctConfiguration` in
-    /// `planEncode` — only once a J2KSwift release lands a self-configuring Part-2
-    /// decode path and a bit-exact round-trip test proves it.
-    public static let part2MCTDecodeSupported = false
+    /// Whether the pinned JPEG 2000 engine (`SwiftJ2K` 12.1.0+) can **decode** a genuine
+    /// JPEG 2000 Part-2 codestream (multi-component transform / `CBD` / `MCT` / `MCC` / `MCO`)
+    /// back to exact pixels and encode conformant `.92` / `.93` Part-2 codestreams.
+    public static let part2MCTDecodeSupported = true
 
     /// A user-facing reason string when encoding to `transferSyntaxUID` is **not
     /// supported**, or `nil` when it is. Currently the only unsupported target is

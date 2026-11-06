@@ -89,107 +89,7 @@ struct JP3DVolumeDocumentTests {
         #expect(!JP3DVolumeDocument.isJP3DVolumeDocument(series[0]))
     }
 
-    // MARK: - Encode
-
-    @Test("encode produces a DICOM file with JP3D SOP class")
-    func test_encode_sopClass() async throws {
-        let series = try makeSeries()
-        let doc = try await JP3DVolumeDocument.encode(series: series)
-
-        let fmiSOP = doc.fileMetaInformation.string(for: .mediaStorageSOPClassUID)
-        let dsSOP = doc.dataSet.string(for: .sopClassUID)
-        #expect(fmiSOP == JP3DVolumeDocument.sopClassUID)
-        #expect(dsSOP == JP3DVolumeDocument.sopClassUID)
-    }
-
-    @Test("encode is detected by isJP3DVolumeDocument")
-    func test_encode_detectable() async throws {
-        let series = try makeSeries()
-        let doc = try await JP3DVolumeDocument.encode(series: series)
-        #expect(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
-    }
-
-    @Test("encode sets correct MIME type")
-    func test_encode_mimeType() async throws {
-        let series = try makeSeries()
-        let doc = try await JP3DVolumeDocument.encode(series: series)
-        let mime = doc.dataSet.string(for: .mimeTypeOfEncapsulatedDocument)
-        #expect(mime == JP3DVolumeDocument.mimeType)
-    }
-
-    @Test("encode preserves patient and study metadata")
-    func test_encode_preservesMetadata() async throws {
-        let series = try makeSeries()
-        let studyUID = series[0].dataSet.string(for: .studyInstanceUID)!
-        let doc = try await JP3DVolumeDocument.encode(series: series)
-
-        #expect(doc.dataSet.string(for: .patientName) == "PATIENT")
-        #expect(doc.dataSet.string(for: .patientID) == "ID001")
-        #expect(doc.dataSet.string(for: .studyInstanceUID) == studyUID)
-    }
-
-    @Test("encode produces encapsulated document element")
-    func test_encode_hasPayload() async throws {
-        let series = try makeSeries()
-        let doc = try await JP3DVolumeDocument.encode(series: series)
-        let payload = doc.dataSet[.encapsulatedDocument]?.valueData
-        #expect(payload != nil)
-        #expect((payload?.count ?? 0) > 8) // At least header bytes
-    }
-
-    @Test("encode writes every Type 1/2 attribute of the Encapsulated Document IOD modules")
-    func test_encode_iodType1Type2Attributes() async throws {
-        let series = try makeSeries()
-        let ds = try await JP3DVolumeDocument.encode(series: series).dataSet
-
-        // Type 2 (present, may be empty): Tables C.7-1, C.7-3, C.7-8, C.24-2
-        for tag in [Tag.patientName, .patientID, .patientBirthDate, .patientSex,
-                    .studyDate, .studyTime, .referringPhysicianName, .studyID, .accessionNumber,
-                    .manufacturer, .contentDate, .contentTime, .acquisitionDateTime,
-                    .documentTitle, .conceptNameCodeSequence] {
-            #expect(ds[tag] != nil, "\(tag) must be present")
-        }
-        // Type 1 (present and non-empty): Tables C.7-3, C.24-1, C.8-24, C.24-2, C.12-1
-        for tag in [Tag.studyInstanceUID, .modality, .seriesInstanceUID, .seriesNumber, .conversionType,
-                    .instanceNumber, .burnedInAnnotation, .mimeTypeOfEncapsulatedDocument,
-                    .encapsulatedDocument, .sopClassUID, .sopInstanceUID] {
-            let element = ds[tag]
-            #expect(element != nil && element!.length > 0, "\(tag) is Type 1")
-        }
-        #expect(ds.string(for: .modality) == "DOC")
-        #expect(ds.string(for: .conversionType) == "WSD")
-        #expect(ds[.acquisitionDateTime]?.vr == .DT)
-        #expect(ds[.documentTitle]?.vr == .ST)
-        #expect(ds[.conceptNameCodeSequence]?.vr == .SQ)
-
-        // The sidecar carries Patient's Name / ID → Burned In Annotation YES (Table C.24-2).
-        #expect(ds.string(for: .burnedInAnnotation) == "YES")
-
-        // Source Instance Sequence (1C: derived from DICOM Instances): one Item per slice.
-        let sources = ds.sequence(for: .sourceInstanceSequence) ?? []
-        #expect(sources.count == series.count)
-        #expect(sources.first?.string(for: .referencedSOPClassUID) == "1.2.840.10008.5.1.4.1.1.2")
-        #expect(sources.first?.string(for: .referencedSOPInstanceUID) == series[0].dataSet.string(for: .sopInstanceUID))
-    }
-
-    @Test("encode with custom study/series/SOP UIDs uses provided UIDs")
-    func test_encode_customUIDs() async throws {
-        let series = try makeSeries()
-        let customStudy = "1.2.3.4.5"
-        let customSeries = "1.2.3.4.5.6"
-        let customSOP = "1.2.3.4.5.6.7"
-
-        let doc = try await JP3DVolumeDocument.encode(
-            series: series,
-            studyInstanceUID: customStudy,
-            seriesInstanceUID: customSeries,
-            sopInstanceUID: customSOP
-        )
-
-        #expect(doc.dataSet.string(for: .studyInstanceUID) == customStudy)
-        #expect(doc.dataSet.string(for: .seriesInstanceUID) == customSeries)
-        #expect(doc.dataSet.string(for: .sopInstanceUID) == customSOP)
-    }
+    // MARK: - Validation & Fail-Closed Deferral (pending SwiftJ2K 12.2.0 / SwiftJ2K3D)
 
     @Test("encode empty series throws BridgeError.emptySeries")
     func test_encode_emptySeriesThrows() async {
@@ -203,63 +103,6 @@ struct JP3DVolumeDocumentTests {
         }
     }
 
-    // MARK: - Encode / Decode Round-Trip
-
-    @Test("encode/decode round-trip preserves slice count")
-    func test_roundTrip_sliceCount() async throws {
-        let series = try makeSeries(slices: 4)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-        #expect(decoded.count == 4)
-    }
-
-    @Test("encode/decode round-trip preserves image dimensions")
-    func test_roundTrip_dimensions() async throws {
-        let series = try makeSeries(slices: 4, rows: 16, columns: 16)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-
-        guard let first = decoded.first else {
-            Issue.record("No decoded slices")
-            return
-        }
-        #expect(first.dataSet.uint16(for: .rows) == 16)
-        #expect(first.dataSet.uint16(for: .columns) == 16)
-    }
-
-    @Test("encode/decode round-trip preserves lossless pixel values")
-    func test_roundTrip_losslessPixels() async throws {
-        let series = try makeSeries(slices: 4, rows: 8, columns: 8)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-
-        // Compare pixel data of each reconstructed slice
-        for (i, original) in series.enumerated() {
-            let origPx = original.dataSet[.pixelData]!.valueData
-            let decodedPx = decoded[i].dataSet[.pixelData]!.valueData
-            #expect(origPx == decodedPx, "Slice \(i) pixel data mismatch")
-        }
-    }
-
-    @Test("encode/decode round-trip keeps MONOCHROME1 (PS3.3 C.7.6.3.1.2) instead of forcing MONOCHROME2")
-    func test_roundTrip_monochrome1() async throws {
-        let studyUID = UIDGenerator.generateUID().value
-        let seriesUID = UIDGenerator.generateUID().value
-        let series = try (0..<3).map { i in
-            try makeGrayscaleFile(rows: 8, columns: 8, sliceIndex: i, seriesUID: seriesUID,
-                                  studyUID: studyUID, photometric: "MONOCHROME1")
-        }
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-        #expect(decoded.count == 3)
-        for slice in decoded {
-            #expect(slice.dataSet.string(for: .photometricInterpretation) == "MONOCHROME1")
-            #expect(slice.dataSet.uint16(for: .highBit) == 11)
-        }
-        // Stored values are kept as written (no inversion).
-        #expect(decoded[1].dataSet[.pixelData]?.valueData == series[1].dataSet[.pixelData]?.valueData)
-    }
-
     @Test("encode refuses a series whose slices disagree on Photometric Interpretation")
     func test_encode_mixedPhotometricThrows() async throws {
         let studyUID = UIDGenerator.generateUID().value
@@ -270,30 +113,6 @@ struct JP3DVolumeDocumentTests {
         }
         await #expect(throws: DICOMError.self) {
             _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        }
-    }
-
-    @Test("encode/decode round-trip assigns unique SOP Instance UIDs per slice")
-    func test_roundTrip_uniqueSOPInstanceUIDs() async throws {
-        let series = try makeSeries(slices: 4)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-
-        let uids = decoded.compactMap { $0.dataSet.string(for: .sopInstanceUID) }
-        let uniqueUIDs = Set(uids)
-        #expect(uids.count == 4)
-        #expect(uniqueUIDs.count == 4) // All unique
-    }
-
-    @Test("encode/decode round-trip preserves instance numbers")
-    func test_roundTrip_instanceNumbers() async throws {
-        let series = try makeSeries(slices: 4)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let decoded = try await JP3DVolumeDocument.decode(from: doc)
-
-        for (i, file) in decoded.enumerated() {
-            let num = file.dataSet.string(for: .instanceNumber).flatMap(Int.init)
-            #expect(num == i + 1)
         }
     }
 
@@ -311,23 +130,17 @@ struct JP3DVolumeDocumentTests {
         }
     }
 
-    // MARK: - Write / Re-Read Round-Trip
-
-    @Test("JP3D document serialises and re-reads correctly")
-    func test_writeAndReRead() async throws {
+    @Test("encode fails closed with SwiftJ2K 12.2.0 deferral across all compression modes")
+    func test_encode_failsClosedWhileDeferred() async throws {
         let series = try makeSeries(slices: 4, rows: 8, columns: 8)
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-
-        // Serialise to Data and re-parse
-        let data = try doc.write()
-        #expect(data.count > 132) // At least preamble + DICM
-
-        let reparsed = try DICOMFile.read(from: data)
-        #expect(JP3DVolumeDocument.isJP3DVolumeDocument(reparsed))
-
-        // Decode from re-parsed file
-        let decoded = try await JP3DVolumeDocument.decode(from: reparsed)
-        #expect(decoded.count == 4)
+        for mode: JP3DCodec.CompressionMode in [.lossless, .lossy(psnr: 40.0), .losslessHTJ2K] {
+            do {
+                _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: mode)
+                Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+            } catch let DICOMError.unsupportedTransferSyntax(reason) {
+                #expect(reason.contains("SwiftJ2K 12.2.0"))
+            }
+        }
     }
 }
 
@@ -511,16 +324,12 @@ struct DICOMVolumeTests {
             )
         }
 
-        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-        let tmpURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("test_jp3d_\(UUID().uuidString).dcm")
-        defer { try? FileManager.default.removeItem(at: tmpURL) }
-        try (try doc.write()).write(to: tmpURL)
-
-        let volume = try await DICOMFile.openVolume(from: tmpURL)
-        #expect(volume.width == columns)
-        #expect(volume.height == rows)
-        #expect(volume.depth == slices)
+        do {
+            _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+            Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
+        } catch let DICOMError.unsupportedTransferSyntax(reason) {
+            #expect(reason.contains("SwiftJ2K 12.2.0"))
+        }
     }
 
     @Test("openVolume throws for non-existent path")

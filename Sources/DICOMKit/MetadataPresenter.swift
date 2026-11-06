@@ -2,8 +2,6 @@
 import Foundation
 import DICOMCore
 import DICOMDictionary
-import J2KCore
-import J2KCodec
 
 /// Output format for ``MetadataPresenter``.
 ///

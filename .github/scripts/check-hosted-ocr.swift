@@ -6,7 +6,7 @@ import CoreText
 import Vision
 import Darwin
 
-@available(macOS 15.0, *)
+@available(macOS 26.0, *)
 @main
 struct HostedOCRCheck {
     static func report(_ error: NSError, prefix: String = "error", depth: Int = 0) {

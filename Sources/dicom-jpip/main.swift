@@ -7,21 +7,23 @@ import ArgumentParser
 import DICOMCore
 import DICOMKit
 import DICOMDictionary
-import JPIP
 
 @available(macOS 10.15, *)
 struct DICOMJpip: ParsableCommand {
+    static let deferredMessage =
+        "Error: dicom-jpip is deferred in this release pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP module qualification)."
+
     static let configuration = CommandConfiguration(
         commandName: "dicom-jpip",
-        abstract: "JPIP (JPEG 2000 Interactive Protocol) streaming for DICOM imaging",
+        abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] JPIP (JPEG 2000 Interactive Protocol) streaming for DICOM imaging",
         discussion: """
+            DEFERRED: `dicom-jpip` is deferred in this release pending `SwiftJ2K` 12.2.0
+            (`SwiftJ2KJPIP` module qualification). All operational subcommands currently
+            exit with status 1.
+
             Interact with JPIP servers to progressively stream JPEG 2000 DICOM images.
             JPIP allows retrieving only the image region, resolution level, and quality
             layers needed, minimising bandwidth for large medical imaging datasets.
-
-            NOTE: `fetch` currently exits with an error — JPIP retrieval is not
-            implemented in the pinned J2KSwift JPIP module (11.0.2). `uri`, `serve`
-            and `info` work. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.
 
             Transfer Syntaxes (PS3.6 Table A-1; PS3.5 A.6, A.7, A.11, A.12):
               JPIP Referenced                1.2.840.10008.1.2.4.94
@@ -57,6 +59,12 @@ struct DICOMJpip: ParsableCommand {
     )
 }
 
+@available(macOS 10.15, *)
+func failDeferredJPIP(_ subcommand: String) throws -> Never {
+    FileHandle.standardError.write(Data(("\(DICOMJpip.deferredMessage) (subcommand: \(subcommand))\n").utf8))
+    throw ExitCode.failure
+}
+
 // MARK: - fetch
 
 @available(macOS 10.15, *)
@@ -64,8 +72,10 @@ extension DICOMJpip {
     struct FetchCommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "fetch",
-            abstract: "Fetch a DICOM image from a JPIP server (currently unavailable — see F1)",
+            abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Fetch a DICOM image from a JPIP server",
             discussion: """
+                DEFERRED: JPIP retrieval is deferred pending `SwiftJ2K` 12.2.0 (`SwiftJ2KJPIP` qualification).
+
                 Connects to a JPIP server and retrieves a DICOM image progressively.
                 Use --layers to limit quality for faster previews, --region for ROI fetching,
                 and --level for low-resolution thumbnails.
@@ -122,36 +132,7 @@ extension DICOMJpip {
         }
 
         mutating func run() throws {
-            guard let url = URL(string: serverURL) else {
-                throw ExitCode.failure
-            }
-            let jpipURI = url.appendingPathComponent(image)
-
-            // JPIP retrieval is unavailable: every request path in the pinned upstream
-            // J2KSwift JPIP module (11.0.2) throws notImplemented, and the DICOMKit
-            // wrappers are marked @available(*, unavailable) to say so at compile time.
-            // Argument parsing and JPIP target-URI construction above still run, so the
-            // command remains useful for validating a reference — but it must not claim
-            // to have fetched anything. Tracked as F1 in RESEARCH_ADOPTION_PLAN.md.
-            if verbose {
-                print("Server: \(url.absoluteString)")
-                print("Image:  \(jpipURI.lastPathComponent)")
-                print("Target: \(jpipURI.absoluteString)")
-            }
-            fputs("""
-                Error: JPIP retrieval is not available in this build.
-
-                The JPIP target URI resolves to:
-                  \(jpipURI.absoluteString)
-
-                Fetching pixel data requires an implemented JPIP request path; the pinned
-                J2KSwift JPIP module (11.0.2) has none — every request entry point throws
-                notImplemented. Transfer-syntax detection and JPIP URI extraction work.
-
-                Tracked as finding F1 in RESEARCH_ADOPTION_PLAN.md.
-
-                """, stderr)
-            throw ExitCode.failure
+            try failDeferredJPIP("fetch")
         }
     }
 }
@@ -163,8 +144,10 @@ extension DICOMJpip {
     struct URICommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "uri",
-            abstract: "Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced DICOM file",
+            abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Print the Pixel Data Provider URL (0028,7FE0) of a JPIP-referenced DICOM file",
             discussion: """
+                DEFERRED: `dicom-jpip` is deferred pending `SwiftJ2K` 12.2.0 (`SwiftJ2KJPIP` qualification).
+
                 Reads a DICOM file that uses a JPIP Referenced Transfer Syntax and prints its
                 Pixel Data Provider URL (0028,7FE0), the JPIP request URL that stands in for the
                 absent Pixel Data (PS3.5 8.4.1, A.6).
@@ -188,32 +171,7 @@ extension DICOMJpip {
         }
 
         mutating func run() throws {
-            let fileURL = URL(fileURLWithPath: input)
-            let dicomFile = try DICOMFile.read(from: fileURL)
-            let tsUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
-
-            guard let syntax = JPIPSyntaxes.syntax(tsUID) else {
-                print("Error: Transfer syntax \(tsUID) is not a JPIP Referenced Transfer Syntax")
-                print("JPIP transfer syntaxes: " + JPIPSyntaxes.all.map(\.uid).joined(separator: ", "))
-                throw ExitCode.failure
-            }
-
-            let jpipURL = try JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID)
-
-            if json {
-                let result: [String: Any] = [
-                    "file": input,
-                    "transferSyntaxUID": tsUID,
-                    "isDeflated": syntax.deflated,
-                    "jpipURI": jpipURL.absoluteString
-                ]
-                let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted])
-                print(String(data: data, encoding: .utf8) ?? "")
-            } else {
-                print("File:                     \(input)")
-                print("Transfer Syntax:          \(tsUID) (\(syntax.name))")
-                print("Pixel Data Provider URL:  \(jpipURL.absoluteString)")
-            }
+            try failDeferredJPIP("uri")
         }
     }
 }
@@ -225,8 +183,10 @@ extension DICOMJpip {
     struct ServeCommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "serve",
-            abstract: "Start an embedded JPIP server for local DICOM files",
+            abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Start an embedded JPIP server for local DICOM files",
             discussion: """
+                DEFERRED: JPIP server hosting is deferred pending `SwiftJ2K` 12.2.0 (`SwiftJ2KJPIP` qualification).
+
                 Launches a JPIP server that serves DICOM files from a local directory.
                 Clients can then use dicom-jpip fetch or any JPIP-compatible viewer.
 
@@ -262,68 +222,7 @@ extension DICOMJpip {
         }
 
         mutating func run() throws {
-            let dirURL = URL(fileURLWithPath: directory, isDirectory: true)
-            // Capture mutable state before Task to avoid 'escaping closure captures mutating self'
-            let capturedPort = port
-            let capturedMaxClients = maxClients
-            let capturedClientBandwidth = clientBandwidth
-            let capturedDirectory = directory
-            let capturedVerbose = verbose
-
-            let serverTask = Task {
-                let config = JPIPServer.Configuration(
-                    maxClients: capturedMaxClients,
-                    maxQueueSize: 64,
-                    globalBandwidthLimit: nil,
-                    perClientBandwidthLimit: capturedClientBandwidth == 0 ? nil : capturedClientBandwidth,
-                    sessionTimeout: 300
-                )
-                let server = JPIPServer(port: capturedPort, configuration: config)
-
-                // Register all DICOM files in the directory
-                let enumerator = FileManager.default.enumerator(
-                    at: dirURL,
-                    includingPropertiesForKeys: nil
-                )
-                var registered = 0
-                while let fileURL = enumerator?.nextObject() as? URL {
-                    guard fileURL.pathExtension.lowercased() == "dcm" else { continue }
-                    let name = fileURL.deletingPathExtension().lastPathComponent
-                    do {
-                        try await server.registerImage(name: name, at: fileURL)
-                        registered += 1
-                        if capturedVerbose { print("Registered: \(name)") }
-                    } catch {
-                        if capturedVerbose { print("Warning: could not register \(name): \(error)") }
-                    }
-                }
-
-                print("JPIP Server starting on port \(capturedPort)")
-                print("Serving \(registered) DICOM file(s) from \(capturedDirectory)")
-                print("Press Ctrl+C to stop.")
-
-                try await server.start()
-
-                // Run until interrupted
-                while !Task.isCancelled {
-                    try await Task.sleep(nanoseconds: 5_000_000_000)
-                    if capturedVerbose {
-                        let stats = await server.getStatistics()
-                        print("Requests: \(stats.totalRequests)  Active: \(stats.activeClients)  Sent: \(formatBytes(stats.totalBytesSent))")
-                    }
-                }
-
-                try await server.stop()
-            }
-
-            // Block main thread, handling SIGINT
-            let sema = DispatchSemaphore(value: 0)
-            signal(SIGINT) { _ in
-                print("\nShutting down...")
-                Darwin.exit(0)
-            }
-            sema.wait()
-            _ = serverTask
+            try failDeferredJPIP("serve")
         }
     }
 }
@@ -335,8 +234,10 @@ extension DICOMJpip {
     struct InfoCommand: ParsableCommand {
         static let configuration = CommandConfiguration(
             commandName: "info",
-            abstract: "Display information about a JPIP server or DICOM file",
+            abstract: "[DEFERRED — pending SwiftJ2K 12.2.0] Display information about a JPIP server or DICOM file",
             discussion: """
+                DEFERRED: `dicom-jpip` is deferred pending `SwiftJ2K` 12.2.0 (`SwiftJ2KJPIP` qualification).
+
                 Shows JPIP transfer syntax information for a DICOM file, or queries
                 server statistics when given a server URL.
 
@@ -356,35 +257,6 @@ extension DICOMJpip {
         @Flag(name: .long, help: "Output as JSON")
         var json: Bool = false
 
-        mutating func run() throws {
-            if listSyntaxes {
-                printJPIPSyntaxes(asJSON: json)
-                return
-            }
-
-            guard let target = target else {
-                print("JPIP (JPEG 2000 Interactive Protocol) — DICOM PS3.5 8.4.1 and Annex A.6, A.7, A.11, A.12")
-                print("")
-                print("Transfer Syntaxes:")
-                printJPIPSyntaxes(asJSON: false)
-                print("")
-                print("Use 'dicom-jpip --help' for available subcommands.")
-                return
-            }
-
-            // If it looks like a URL, query the server
-            if target.hasPrefix("http://") || target.hasPrefix("https://") {
-                guard let serverURL = URL(string: target) else {
-                    print("Error: Invalid URL: \(target)")
-                    throw ExitCode.failure
-                }
-                try queryServer(serverURL: serverURL)
-            } else {
-                // Treat as a DICOM file
-                try inspectDICOMFile(path: target)
-            }
-        }
-
         /// The rows `--list-syntaxes` prints. PS3.6 Table A-1 UIDs and names are kept as
         /// literals so Scripts/diff_cli_web.py can diff them; JPIPSyntaxesTests pins them to
         /// JPIPSyntaxes.all.
@@ -401,92 +273,10 @@ extension DICOMJpip {
             ]
         }
 
-        private func printJPIPSyntaxes(asJSON: Bool) {
-            let syntaxes = Self.listedSyntaxes
-            if asJSON {
-                let data = try? JSONSerialization.data(withJSONObject: syntaxes, options: [.prettyPrinted])
-                print(String(data: data ?? Data(), encoding: .utf8) ?? "")
-            } else {
-                for s in syntaxes {
-                    print("  \(s["uid"] ?? "")  \(s["name"] ?? "")")
-                    print("    \(s["description"] ?? "")")
-                }
-            }
-        }
-
-        private func inspectDICOMFile(path: String) throws {
-            guard FileManager.default.fileExists(atPath: path) else {
-                print("Error: File not found: \(path)")
-                throw ExitCode.failure
-            }
-            let fileURL = URL(fileURLWithPath: path)
-            let dicomFile = try DICOMFile.read(from: fileURL)
-            let tsUID = dicomFile.transferSyntaxUID ?? TransferSyntax.explicitVRLittleEndian.uid
-            // JPIPSyntaxes covers all four Table A-1 JPIP syntaxes, including the HTJ2K pair.
-            let syntax = JPIPSyntaxes.syntax(tsUID)
-
-            if json {
-                var result: [String: Any] = [
-                    "file": path,
-                    "transferSyntaxUID": tsUID,
-                    "isJPIP": syntax != nil
-                ]
-                if syntax != nil {
-                    if let jpipURL = try? JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
-                        result["jpipURI"] = jpipURL.absoluteString
-                    }
-                }
-                let data = try JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted])
-                print(String(data: data, encoding: .utf8) ?? "")
-            } else {
-                print("File:                     \(path)")
-                print("Transfer Syntax:          \(tsUID)\(syntax.map { " (\($0.name))" } ?? "")")
-                print("Is JPIP:                  \(syntax != nil ? "Yes" : "No")")
-                if syntax != nil {
-                    if let jpipURL = try? JPIPSyntaxes.pixelDataProviderURL(from: dicomFile.dataSet, transferSyntaxUID: tsUID) {
-                        print("Pixel Data Provider URL:  \(jpipURL.absoluteString)")
-                        print("Server Host:              \(jpipURL.host ?? "unknown")")
-                        print("Server Port:              \(jpipURL.port.map(String.init) ?? "default")")
-                    }
-                }
-            }
-        }
-
-        private func queryServer(serverURL: URL) throws {
-            print("JPIP Server: \(serverURL.absoluteString)")
-            print("(Use 'dicom-jpip serve' to start a local JPIP server)")
+        mutating func run() throws {
+            try failDeferredJPIP("info")
         }
     }
-}
-
-// MARK: - Helpers
-
-private func formatBytes(_ bytes: Int) -> String {
-    if bytes < 1024 {
-        return "\(bytes) B"
-    } else if bytes < 1024 * 1024 {
-        return String(format: "%.1f KB", Double(bytes) / 1024.0)
-    } else if bytes < 1024 * 1024 * 1024 {
-        return String(format: "%.1f MB", Double(bytes) / (1024.0 * 1024.0))
-    } else {
-        return String(format: "%.1f GB", Double(bytes) / (1024.0 * 1024.0 * 1024.0))
-    }
-}
-
-/// Synchronously waits for an async Task to complete and returns its value.
-/// Used by ParsableCommand.run() which cannot be async.
-@available(macOS 10.15, *)
-private func waitForTask<T>(_ task: Task<T, Error>) throws -> T {
-    let sema = DispatchSemaphore(value: 0)
-    // The semaphore's signal->wait is a happens-before edge, so this manually
-    // synchronized capture is visible after sema.wait().
-    nonisolated(unsafe) var result: Result<T, Error>?
-    Task {
-        result = await task.result
-        sema.signal()
-    }
-    sema.wait()
-    return try result!.get()
 }
 
 DICOMJpip.main()
