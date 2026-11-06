@@ -1,8 +1,8 @@
 // CharLSCLICodec.swift
 // DICOMStudio
 //
-// Decodes JLSwift-produced JPEG-LS via DCMTK's `dcmdjpls` CLI, the CharLS-backed
-// peer for the DICOMStudio JPEG-LS bench. Decode-only — JLSwift is the reference
+// Decodes SwiftJLS-produced JPEG-LS via DCMTK's `dcmdjpls` CLI, the CharLS-backed
+// peer for the DICOMStudio JPEG-LS bench. Decode-only — SwiftJLS is the reference
 // encoder. Unlike the raw-codestream peers (djpeg/djxl/Kakadu/Grok), `dcmdjpls`
 // operates on DICOM files, so this adapter wraps the JLS codestream into a
 // minimal encapsulated DICOM, decompresses it, and reads the pixels back.
