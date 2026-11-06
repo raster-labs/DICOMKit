@@ -179,6 +179,7 @@ DICOMKit integrates **SwiftJ2K v12.1.0** (`from: "12.1.0"`, `raster-labs/SwiftJ2
 - ✅ **`SwiftJ2KDICOMTranscoder` & `HTJ2KCodec`** — Zero-pixel-allocation compressed-domain transcoding (`pixelAllocationCount == 0`) between lossless JPEG 2000 (`.90`/`.91`) and HTJ2K (`.201`/`.202`/`.203`).
 - ⏸️ **JP3D volumetric (`.96`/`.97`) & `dicom-3d` CLI — Deferred** — Marked deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification). Pure 3D slice-geometry, MPR, MIP/MinIP, Marching Cubes, and NIfTI/MetaImage library types remain available; `JP3DCodec`, `JP3DVolumeDocument.encode`/`decode`, and `dicom-3d` subcommands fail closed at runtime with an explicit deferral notice.
 - ⏸️ **JPIP streaming (`.94`/`.95`/`.204`/`.205`) & `dicom-jpip` CLI — Deferred** — Transfer syntaxes and PS3.5 target URI extraction remain available, while JPIP retrieval and `dicom-jpip` subcommands are deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2KJPIP` qualification) and fail closed at runtime.
+- ✅ **`RLECodec` (`SwiftRLE` v1.0.1+)** — Pure-Swift DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) encoding and decoding delegated to `raster-labs/SwiftRLE` with shared-storage zero-copy descriptors (`copyPolicy: .requireSharedStorage`), `Fidelity.exactSamples` verification, strict 64-byte header validation, and `DICOMAllocationBudget` managed frame ownership.
 - ✅ **Hardware acceleration** — `CodecBackend` enum routes across Metal (Apple GPU), Accelerate (CPU SIMD), or scalar CPU automatically with concrete backend provenance verification.
 - ✅ **`dicom-j2k` CLI tool** — 8 subcommands: `info`, `validate`, `transcode` (including Part 2 `.92`/`.93` targets), `reduce`, `roi`, `benchmark`, `compare`, `completions`.
 - ✅ **DICOMStudio** — Progressive decoding (`.quarter → .half → .complete`), ROI on pinch-zoom, JP3D MPR views, JPIP quality-layer slider.
@@ -1662,6 +1663,7 @@ material for other platforms does not establish support.
 |------------|---------|---------|
 | Swift Argument Parser | 1.8.2+ | CLI tools argument parsing |
 | SwiftJ2K | 12.1.0+ | 2D JPEG 2000 (Part 1 & Part 2 MCT) / HTJ2K (Part 15) codec stack |
+| SwiftRLE | 1.0.1+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
 | JLSwift | 0.10.1 (exact) | JPEG-LS codec |
 | JLISwift | 0.6.0 (exact) | Native-Swift JPEG codec + DICOM bridge |
 | JXLSwift | 1.4.0+ | JPEG XL codec |

@@ -1,5 +1,5 @@
 {
-  "originHash" : "2d51a8b92acccb2633fcd3166ef3f9eab5f52e69a563f405d1e0508bde9772fc",
+  "originHash" : "cf03a26f32629df4faf13f037267da4ae52d721902550b32e51ca2593404b025",
   "pins" : [
     {
       "identity" : "jliswift",
@@ -44,6 +44,15 @@
       "state" : {
         "revision" : "3059a3c87d471028f3524241ec4f881f97cac264",
         "version" : "12.1.0"
+      }
+    },
+    {
+      "identity" : "swiftrle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raster-labs/SwiftRLE.git",
+      "state" : {
+        "revision" : "4eaaf9139d2f7a836af142b4fdb32f3b9582e005",
+        "version" : "1.0.1"
       }
     }
   ],

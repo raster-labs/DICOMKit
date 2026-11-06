@@ -1,15 +1,20 @@
 import Foundation
+import Synchronization
+import SwiftRLE
 
-/// RLE Lossless codec (pure Swift implementation)
+/// RLE Lossless codec backed by `SwiftRLE` (`1.2.840.10008.1.2.5`).
 ///
-/// Decodes Run-Length Encoded pixel data as specified in DICOM PS3.5 Annex G.
+/// Delegates DICOM PS3.5 Annex G frame encoding/decoding and PackBits segment coding to
+/// `SwiftRLE` with shared-storage zero-copy descriptors (`copyPolicy: .requireSharedStorage`)
+/// and `Fidelity.exactSamples` verification while preserving `DICOMCore`'s public `ImageCodec`,
+/// `ImageEncoder`, caller-owned destination buffer, and `DICOMAllocationBudget` managed APIs.
+///
 /// Reference: DICOM PS3.5 Annex G - RLE Transfer Syntax
 ///
 /// NEMA-verified: 2026a, checked 2026-09-25 — byte-segment order (most significant byte of
 /// the Composite Pixel Code first, G.2), the 64-byte header with up to 15 segment offsets
 /// relative to the header (G.5), the decoder loop (G.3.2) and the encoder packet rules
-/// (replicate 2–128, literal 1–128, -128 unused, G.3.1) match PS3.5 2026a. The encoder
-/// used to let runs cross image rows, which G.3.1 forbids; fixed 2026-09-25.
+/// (replicate 2–128, literal 1–128, -128 unused, G.3.1) match PS3.5 2026a.
 public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     /// Supported RLE transfer syntax
     public static let supportedTransferSyntaxes: [String] = [
@@ -30,8 +35,6 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     // MARK: - Managed Budget-Accounted Decoding
 
     /// Decode an RLE-compressed frame into explicitly admitted backing.
-    /// Intermediate byte-plane segments are decoded into a scoped `.staging` allocation
-    /// and interleaved into a single `.decoded` allocation without untracked heap buffers.
     public func decodeManagedPixelFrame(
         _ frameData: borrowing DICOMByteBuffer,
         descriptor: PixelDataDescriptor,
@@ -81,7 +84,9 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         )
     }
 
-    /// Decode an RLE frame using scalar outcomes and budget-owned `.staging` / `.decoded` backing.
+    /// Decode an RLE frame using scalar outcomes and budget-owned `.staging` / `.decoded` backing,
+    /// delegating decompression to `SwiftRLE` with `copyPolicy: .requireSharedStorage` and
+    /// `Fidelity.exactSamples` verification.
     public func decodeManagedPixelFrameOutcome(
         _ frameData: borrowing DICOMByteBuffer,
         descriptor: PixelDataDescriptor,
@@ -90,9 +95,11 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         cancellation: DICOMCancellation = .never
     ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
         if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
         guard frameData.isOwned(by: budget) else {
             return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
         }
+
         let expectedBytes: Int
         switch decodingLimits.validateManagedOutcome(
             encodedByteCount: frameData.count,
@@ -104,153 +111,819 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         }
 
         return frameData.withBorrowedBytes { encoded -> DICOMManagedOutcome<ManagedDecodedPixelFrame> in
-            guard encoded.count >= 64 else {
-                return .failure(DICOMManagedFailure(.malformed, 300))
-            }
-            let bytesPerSample = descriptor.bytesPerSample
-            let samplesPerPixel = descriptor.samplesPerPixel
-            let pixelsPerFrame = descriptor.pixelsPerFrame
-            let expectedSegments = bytesPerSample * samplesPerPixel
-            let numberOfSegments = Self.readUInt32LE(encoded, at: 0)
-            guard expectedSegments >= 1, expectedSegments <= 15,
-                  numberOfSegments == UInt32(expectedSegments) else {
-                return .failure(DICOMManagedFailure(
-                    .invalidDescriptor, 301, Int(numberOfSegments), operand3: expectedSegments
-                ))
-            }
-
-            // Validate all segment boundaries against the 64-byte header before admitting storage.
-            for segIdx in 0..<expectedSegments {
-                let segStart = Int(Self.readUInt32LE(encoded, at: 4 + segIdx * 4))
-                let segEnd = (segIdx + 1 < expectedSegments)
-                    ? Int(Self.readUInt32LE(encoded, at: 4 + (segIdx + 1) * 4))
-                    : encoded.count
-                let validStart = (segIdx == 0) ? (segStart == 64) : (segStart >= 64)
-                guard validStart, segStart < segEnd, segEnd <= encoded.count else {
-                    return .failure(DICOMManagedFailure(.malformed, 302, segIdx))
-                }
-            }
-            for unusedIdx in expectedSegments..<15 {
-                guard Self.readUInt32LE(encoded, at: 4 + unusedIdx * 4) == 0 else {
-                    return .failure(DICOMManagedFailure(.malformed, 302, unusedIdx))
-                }
-            }
-
-            let staging: DICOMByteBuffer
-            switch DICOMByteBuffer.admit(count: expectedBytes, budget: budget, resource: .staging) {
-            case .success(let value): staging = value
+            let geometry: ValidatedRLEGeometry
+            switch Self.validateGeometryManaged(descriptor) {
+            case .success(let value): geometry = value
             case .failure(let failure): return .failure(failure)
             }
 
-            let stagingBytes = staging.unsafeMutableBytes
-            guard let encodedBase = encoded.baseAddress?.assumingMemoryBound(to: UInt8.self),
-                  let stagingBase = stagingBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                staging.keepAlive()
+            let segmentRanges: [Range<Int>]
+            switch Self.validateRLEHeaderManaged(encoded, expectedSegments: geometry.expectedSegments) {
+            case .success(let value): segmentRanges = value
+            case .failure(let failure): return .failure(failure)
+            }
+
+            guard let encodedBase = encoded.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                 return .failure(DICOMManagedFailure(.malformed, 300))
             }
 
-            for segIdx in 0..<expectedSegments {
-                if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
-                let segStart = Int(Self.readUInt32LE(encoded, at: 4 + segIdx * 4))
-                let segEnd = (segIdx + 1 < expectedSegments)
-                    ? Int(Self.readUInt32LE(encoded, at: 4 + (segIdx + 1) * 4))
-                    : encoded.count
-                let dstSeg = stagingBase.advanced(by: segIdx * pixelsPerFrame)
-                var cursor = segStart
-                var written = 0
-                var step = 0
-                while written < pixelsPerFrame {
-                    if (step & 0xFFF) == 0, let failure = cancellation.failure {
-                        staging.keepAlive()
-                        return .failure(failure)
-                    }
-                    step &+= 1
-                    guard cursor < segEnd else {
-                        staging.keepAlive()
-                        return .failure(DICOMManagedFailure(.malformed, 303, segIdx, operand3: written))
-                    }
-                    let controlByte = Int8(bitPattern: encodedBase[cursor])
-                    cursor += 1
-                    if controlByte == -128 {
-                        continue
-                    } else if controlByte >= 0 {
-                        let count = Int(controlByte) + 1
-                        guard cursor + count <= segEnd, written + count <= pixelsPerFrame else {
-                            staging.keepAlive()
-                            return .failure(DICOMManagedFailure(.malformed, 304, segIdx))
-                        }
-                        dstSeg.advanced(by: written).update(from: encodedBase.advanced(by: cursor), count: count)
-                        cursor += count
-                        written += count
-                    } else {
-                        let count = Int(-controlByte) + 1
-                        guard cursor < segEnd, written + count <= pixelsPerFrame else {
-                            staging.keepAlive()
-                            return .failure(DICOMManagedFailure(.malformed, 305, segIdx))
-                        }
-                        dstSeg.advanced(by: written).initialize(repeating: encodedBase[cursor], count: count)
-                        cursor += 1
-                        written += count
-                    }
-                }
-                let trailing = segEnd - cursor
-                guard trailing <= 1 else {
-                    staging.keepAlive()
-                    return .failure(DICOMManagedFailure(.malformed, 306, segIdx, operand3: trailing))
-                }
+            let (stagingByteCount, stagingOverflow) = expectedBytes.addingReportingOverflow(encoded.count)
+            guard !stagingOverflow, stagingByteCount > 0 else {
+                return .failure(DICOMManagedFailure(.limitExceeded, 307))
             }
 
-            let bytes: DICOMByteBuffer
-            switch DICOMByteBuffer.admit(count: expectedBytes, budget: budget, resource: .decoded) {
-            case .success(let value): bytes = value
-            case .failure(let failure): staging.keepAlive(); return .failure(failure)
-            }
-            if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
+            let rleLimits = Self.makeResourceLimits(
+                encodedByteCount: encoded.count,
+                decodedByteCount: expectedBytes,
+                pixelsPerFrame: geometry.pixelsPerFrame,
+                rows: descriptor.rows,
+                columns: descriptor.columns
+            )
 
-            guard let dstBase = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                staging.keepAlive()
-                return .failure(DICOMManagedFailure(.codecResultMismatch))
-            }
+            switch DICOMByteBuffer.admitInitialized(
+                count: expectedBytes,
+                budget: budget,
+                resource: .decoded,
+                initializingWith: { dst in
+                    if let failure = cancellation.failure { return failure }
+                    if Task.isCancelled { return DICOMManagedFailure(.cancelled) }
 
-            if samplesPerPixel == 1 && bytesPerSample == 1 {
-                dstBase.update(from: stagingBase, count: expectedBytes)
-            } else if samplesPerPixel == 1 && bytesPerSample == 2 {
-                // Segment 0 = MSB, Segment 1 = LSB; DICOM little-endian stores [LSB, MSB].
-                let msb = stagingBase
-                let lsb = stagingBase.advanced(by: pixelsPerFrame)
-                for p in 0..<pixelsPerFrame {
-                    if (p & 0xFFFF) == 0, let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
-                    dstBase[p * 2] = lsb[p]
-                    dstBase[p * 2 + 1] = msb[p]
+                    let stagingLease: DICOMAllocationLease
+                    switch budget.reserveOutcome(stagingByteCount, as: .staging) {
+                    case .success(let lease): stagingLease = lease
+                    case .failure(let error): return DICOMManagedFailure(allocation: error)
+                    }
+
+                    if let failure = cancellation.failure {
+                        _ = stagingLease.isOwned(by: budget)
+                        return failure
+                    }
+
+                    var decodeFailure: DICOMManagedFailure?
+                    do {
+                        try Self.decodeValidatedBuffer(
+                            encodedBase: encodedBase,
+                            encodedCount: encoded.count,
+                            segmentRanges: segmentRanges,
+                            geometry: geometry,
+                            descriptor: descriptor,
+                            limits: rleLimits,
+                            into: dst,
+                            cancellation: cancellation
+                        )
+                    } catch let managed as DICOMManagedFailure {
+                        decodeFailure = managed
+                    } catch is CancellationError {
+                        decodeFailure = DICOMManagedFailure(.cancelled)
+                    } catch let codecError as SwiftRLE.CodecError {
+                        decodeFailure = Self.translateManagedError(codecError)
+                    } catch {
+                        decodeFailure = DICOMManagedFailure(.malformed, 308)
+                    }
+                    _ = stagingLease.isOwned(by: budget)
+                    if let decodeFailure {
+                        return decodeFailure
+                    }
+
+                    if let failure = cancellation.failure { return failure }
+                    if Task.isCancelled { return DICOMManagedFailure(.cancelled) }
+                    return nil
                 }
+            ) {
+            case .failure(let failure):
+                return .failure(failure)
+            case .success(let outputBuffer):
+                return .success(ManagedDecodedPixelFrame(
+                    data: outputBuffer,
+                    descriptor: descriptor,
+                    sourceFrameIndex: frameIndex
+                ))
+            }
+        }
+    }
+
+    // MARK: - Unmanaged & Caller-Owned Decoding
+
+    /// Decodes an RLE-compressed frame via `SwiftRLE`.
+    /// - Parameters:
+    ///   - frameData: RLE compressed data (contiguous or sliced `Data`)
+    ///   - descriptor: Pixel data descriptor
+    ///   - frameIndex: Frame index
+    /// - Returns: Uncompressed pixel data
+    /// - Throws: `DICOMError` if decoding fails
+    public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        var output = Data(count: expectedBytes)
+        let written = try output.withUnsafeMutableBytes { dstBuffer in
+            try decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex, into: dstBuffer)
+        }
+        guard written == expectedBytes else {
+            throw DICOMError.parsingFailed("RLE decoded byte count (\(written)) did not match expected (\(expectedBytes))")
+        }
+        return output
+    }
+
+    /// Caller-owned decode: scatters or interleaves `SwiftRLE`-decoded segments directly into `destination`.
+    public func decodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        into destination: UnsafeMutableRawBufferPointer
+    ) throws -> Int {
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        guard destination.count >= expectedBytes, destination.baseAddress != nil else {
+            throw DICOMError.limitExceeded(
+                "Caller-owned destination too small: \(destination.count) bytes for \(expectedBytes)-byte frame"
+            )
+        }
+
+        let geometry = try Self.validateGeometry(descriptor)
+        guard geometry.bytesPerFrame == expectedBytes else {
+            throw DICOMError.parsingFailed("RLE frame geometry byte count mismatch")
+        }
+
+        let rleLimits = Self.makeResourceLimits(
+            encodedByteCount: frameData.count,
+            decodedByteCount: expectedBytes,
+            pixelsPerFrame: geometry.pixelsPerFrame,
+            rows: descriptor.rows,
+            columns: descriptor.columns
+        )
+
+        try frameData.withUnsafeBytes { rawEncoded in
+            let segmentRanges = try Self.validateRLEHeader(rawEncoded, expectedSegments: geometry.expectedSegments)
+            guard let encodedBase = rawEncoded.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                throw DICOMError.parsingFailed("RLE frame buffer has no base address")
+            }
+            do {
+                try Self.decodeValidatedBuffer(
+                    encodedBase: encodedBase,
+                    encodedCount: rawEncoded.count,
+                    segmentRanges: segmentRanges,
+                    geometry: geometry,
+                    descriptor: descriptor,
+                    limits: rleLimits,
+                    into: destination,
+                    cancellation: .never
+                )
+            } catch let dicomError as DICOMError {
+                throw dicomError
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch let codecError as SwiftRLE.CodecError {
+                throw Self.translateError(codecError)
+            } catch {
+                throw DICOMError.parsingFailed("SwiftRLE decode failed: \(error)")
+            }
+        }
+
+        return expectedBytes
+    }
+
+    // MARK: - Encoding
+
+    /// Whether this encoder can produce RLE Lossless for the given pixel layout.
+    ///
+    /// RLE Lossless allows up to 15 segments (`bytesPerSample * samplesPerPixel`)
+    /// and 8- or 16-bit samples. RLE is always lossless, so the quality setting
+    /// is irrelevant. Reference: DICOM PS3.5 Annex G.
+    public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
+        guard descriptor.rows > 0, descriptor.columns > 0 else { return false }
+        guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else { return false }
+        let (segments, segOverflow) = descriptor.bytesPerSample.multipliedReportingOverflow(by: descriptor.samplesPerPixel)
+        guard !segOverflow, (1...15).contains(segments) else { return false }
+        let (pixels, pixOverflow) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+        guard !pixOverflow, pixels > 0 else { return false }
+        let (_, bytesOverflow) = pixels.multipliedReportingOverflow(by: segments)
+        return !bytesOverflow
+    }
+
+    /// Encodes a single frame to RLE Lossless via `SwiftRLE`.
+    ///
+    /// Uses `SwiftRLE.Encoder` directly over shared source storage (`copyPolicy: .requireSharedStorage`)
+    /// for canonical 1- and 3-component DICOM layouts, falling back to `SwiftRLE.PackBitsEncoder`
+    /// per MSB-to-LSB byte plane (row-bounded per PS3.5 G.3.1) for arbitrary `1...15`-segment layouts.
+    public func encodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        configuration: CompressionConfiguration
+    ) throws -> Data {
+        let geometry = try Self.validateGeometry(descriptor)
+        let rleLimits = Self.makeEncodeResourceLimits(
+            decodedByteCount: max(frameData.count, geometry.bytesPerFrame),
+            pixelsPerFrame: geometry.pixelsPerFrame,
+            rows: descriptor.rows,
+            columns: descriptor.columns,
+            expectedSegments: geometry.expectedSegments
+        )
+
+        // Primary zero-copy path: SwiftRLE.Encoder over borrowed ReadOnlyImageStorage.
+        if frameData.count >= geometry.bytesPerFrame,
+           let rleDescriptor = try? Self.makeSwiftRLEFrameDescriptor(descriptor: descriptor, limits: rleLimits) {
+            do {
+                let sourceSlice = frameData.count == geometry.bytesPerFrame
+                    ? frameData
+                    : frameData.prefix(geometry.bytesPerFrame)
+                let sourceStorage = BorrowedSourceImageStorage(data: sourceSlice)
+                let image = try SwiftRLE.Image(
+                    descriptor: rleDescriptor.imageDescriptor,
+                    storage: sourceStorage,
+                    limits: rleLimits
+                )
+                let codecOptions = try SwiftRLE.CodecOptions(
+                    profile: .dicomRLEFrame,
+                    frameDescriptor: rleDescriptor
+                )
+                let encoderConfig = try SwiftRLE.EncoderConfiguration(
+                    mode: .lossless,
+                    codecOptions: codecOptions
+                )
+                let encodeOptions = SwiftRLE.EncodeOptions(
+                    resourceLimits: rleLimits,
+                    executionPolicy: .automatic,
+                    copyPolicy: .requireSharedStorage
+                )
+                let encoded = try SwiftRLE.Encoder(configuration: encoderConfig)
+                    .encodeSynchronously(image, options: encodeOptions)
+                guard encoded.report.fidelity == .exactSamples,
+                      encoded.report.copyEvents.isEmpty else {
+                    throw DICOMError.parsingFailed("SwiftRLE encode violated exact-sample or shared-storage contract")
+                }
+                return encoded.data
+            } catch let dicomError as DICOMError {
+                throw dicomError
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch let codecError as SwiftRLE.CodecError {
+                throw Self.translateError(codecError)
+            }
+        }
+
+        // General 1...15-segment path: MSB-to-LSB byte planes encoded row-by-row via SwiftRLE.PackBitsEncoder.
+        let planes = Self.deinterleaveSegments(frameData, descriptor: descriptor, geometry: geometry)
+        let packBitsEncoder: SwiftRLE.PackBitsEncoder
+        do {
+            packBitsEncoder = try SwiftRLE.PackBitsEncoder(configuration: .packBits)
+        } catch let codecError as SwiftRLE.CodecError {
+            throw Self.translateError(codecError)
+        }
+        let encodeOptions = SwiftRLE.EncodeOptions(
+            resourceLimits: rleLimits,
+            executionPolicy: .automatic,
+            copyPolicy: .requireSharedStorage
+        )
+
+        var encodedSegments: [Data] = []
+        encodedSegments.reserveCapacity(geometry.expectedSegments)
+        for plane in planes {
+            let encodedPlane: SwiftRLE.EncodedBytes
+            do {
+                encodedPlane = try packBitsEncoder.encodeSynchronously(
+                    plane,
+                    rowBytes: descriptor.columns,
+                    rowCount: descriptor.rows,
+                    options: encodeOptions
+                )
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch let codecError as SwiftRLE.CodecError {
+                throw Self.translateError(codecError)
+            }
+            guard encodedPlane.report.fidelity == .exactSamples,
+                  encodedPlane.report.copyEvents.isEmpty else {
+                throw DICOMError.parsingFailed("SwiftRLE PackBits encode violated exact-sample or shared-storage contract")
+            }
+            var segmentBytes = encodedPlane.data
+            if segmentBytes.count % 2 != 0 {
+                segmentBytes.append(0)
+            }
+            encodedSegments.append(segmentBytes)
+        }
+
+        var frame = Data(count: 64)
+        Self.writeUInt32LE(UInt32(geometry.expectedSegments), into: &frame, at: 0)
+        var offset = 64
+        for (i, seg) in encodedSegments.enumerated() {
+            let (nextOffset, overflow) = offset.addingReportingOverflow(seg.count)
+            guard !overflow, let offsetWord = UInt32(exactly: offset), UInt64(nextOffset) <= UInt64(UInt32.max) else {
+                throw DICOMError.limitExceeded("RLE encoded frame exceeds 32-bit segment offset range")
+            }
+            Self.writeUInt32LE(offsetWord, into: &frame, at: 4 + i * 4)
+            offset = nextOffset
+        }
+        for seg in encodedSegments {
+            frame.append(seg)
+        }
+        return frame
+    }
+
+    // MARK: - Internal SwiftRLE Delegation Helpers
+
+    private struct ValidatedRLEGeometry: Sendable {
+        let bytesPerSample: Int
+        let samplesPerPixel: Int
+        let pixelsPerFrame: Int
+        let expectedSegments: Int
+        let bytesPerFrame: Int
+    }
+
+    private static func validateGeometry(_ descriptor: PixelDataDescriptor) throws -> ValidatedRLEGeometry {
+        guard descriptor.rows > 0, descriptor.columns > 0 else {
+            throw DICOMError.parsingFailed("RLE frame dimensions must be positive (\(descriptor.columns)x\(descriptor.rows))")
+        }
+        guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
+            throw DICOMError.parsingFailed("RLE requires 8- or 16-bit allocated samples (got \(descriptor.bitsAllocated))")
+        }
+        let bytesPerSample = descriptor.bitsAllocated / 8
+        let samplesPerPixel = descriptor.samplesPerPixel
+        let (expectedSegments, segOverflow) = bytesPerSample.multipliedReportingOverflow(by: samplesPerPixel)
+        guard !segOverflow, (1...15).contains(expectedSegments) else {
+            throw DICOMError.parsingFailed("RLE cannot represent \(expectedSegments) segments (must be 1...15)")
+        }
+        let (pixelsPerFrame, pixOverflow) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+        guard !pixOverflow, pixelsPerFrame > 0 else {
+            throw DICOMError.limitExceeded("RLE pixel count overflow")
+        }
+        let (bytesPerFrame, bytesOverflow) = pixelsPerFrame.multipliedReportingOverflow(by: expectedSegments)
+        guard !bytesOverflow, bytesPerFrame > 0 else {
+            throw DICOMError.limitExceeded("RLE frame byte count overflow")
+        }
+        return ValidatedRLEGeometry(
+            bytesPerSample: bytesPerSample,
+            samplesPerPixel: samplesPerPixel,
+            pixelsPerFrame: pixelsPerFrame,
+            expectedSegments: expectedSegments,
+            bytesPerFrame: bytesPerFrame
+        )
+    }
+
+    private static func validateGeometryManaged(
+        _ descriptor: PixelDataDescriptor
+    ) -> DICOMManagedOutcome<ValidatedRLEGeometry> {
+        guard descriptor.rows > 0, descriptor.columns > 0,
+              descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 301))
+        }
+        let bytesPerSample = descriptor.bitsAllocated / 8
+        let samplesPerPixel = descriptor.samplesPerPixel
+        let (expectedSegments, segOverflow) = bytesPerSample.multipliedReportingOverflow(by: samplesPerPixel)
+        guard !segOverflow, (1...15).contains(expectedSegments) else {
+            return .failure(DICOMManagedFailure(.invalidDescriptor, 301, expectedSegments))
+        }
+        let (pixelsPerFrame, pixOverflow) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+        guard !pixOverflow, pixelsPerFrame > 0 else {
+            return .failure(DICOMManagedFailure(.limitExceeded, 301))
+        }
+        let (bytesPerFrame, bytesOverflow) = pixelsPerFrame.multipliedReportingOverflow(by: expectedSegments)
+        guard !bytesOverflow, bytesPerFrame > 0 else {
+            return .failure(DICOMManagedFailure(.limitExceeded, 301))
+        }
+        return .success(ValidatedRLEGeometry(
+            bytesPerSample: bytesPerSample,
+            samplesPerPixel: samplesPerPixel,
+            pixelsPerFrame: pixelsPerFrame,
+            expectedSegments: expectedSegments,
+            bytesPerFrame: bytesPerFrame
+        ))
+    }
+
+    private static func validateRLEHeader(
+        _ encoded: UnsafeRawBufferPointer,
+        expectedSegments: Int
+    ) throws -> [Range<Int>] {
+        switch validateRLEHeaderManaged(encoded, expectedSegments: expectedSegments) {
+        case .success(let ranges):
+            return ranges
+        case .failure(let managed):
+            if managed.operand1 == 300 {
+                throw DICOMError.parsingFailed("RLE data too short for 64-byte header (\(encoded.count) bytes)")
+            } else if managed.operand1 == 301 {
+                throw DICOMError.parsingFailed(
+                    "Unexpected number of RLE segments: \(managed.operand2), expected \(expectedSegments)"
+                )
             } else {
-                let byPlane = descriptor.planarConfiguration != 0
-                let planeSize = pixelsPerFrame * bytesPerSample
-                for pixelIndex in 0..<pixelsPerFrame {
-                    if (pixelIndex & 0xFFFF) == 0, let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
-                    for sampleIndex in 0..<samplesPerPixel {
-                        for byteIndex in 0..<bytesPerSample {
-                            let segmentIndex = sampleIndex * bytesPerSample + (bytesPerSample - 1 - byteIndex)
-                            let srcVal = stagingBase[segmentIndex * pixelsPerFrame + pixelIndex]
-                            let outOffset: Int
-                            if !byPlane {
-                                outOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
-                            } else {
-                                outOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
-                            }
-                            dstBase[outOffset] = srcVal
-                        }
+                throw DICOMError.parsingFailed("Invalid RLE segment boundaries in 64-byte header")
+            }
+        }
+    }
+
+    private static func validateRLEHeaderManaged(
+        _ encoded: UnsafeRawBufferPointer,
+        expectedSegments: Int
+    ) -> DICOMManagedOutcome<[Range<Int>]> {
+        guard encoded.count >= 64 else {
+            return .failure(DICOMManagedFailure(.malformed, 300))
+        }
+        let numberOfSegments = readUInt32LE(encoded, at: 0)
+        guard (1...15).contains(expectedSegments),
+              numberOfSegments == UInt32(expectedSegments) else {
+            let reported = Int(exactly: numberOfSegments) ?? Int.max
+            return .failure(DICOMManagedFailure(
+                .invalidDescriptor, 301, reported, operand3: expectedSegments
+            ))
+        }
+
+        var ranges: [Range<Int>] = []
+        ranges.reserveCapacity(expectedSegments)
+        for segIdx in 0..<expectedSegments {
+            guard let segStart = Int(exactly: readUInt32LE(encoded, at: 4 + segIdx * 4)) else {
+                return .failure(DICOMManagedFailure(.malformed, 302, segIdx))
+            }
+            let segEnd: Int
+            if segIdx + 1 < expectedSegments {
+                guard let nextStart = Int(exactly: readUInt32LE(encoded, at: 4 + (segIdx + 1) * 4)) else {
+                    return .failure(DICOMManagedFailure(.malformed, 302, segIdx))
+                }
+                segEnd = nextStart
+            } else {
+                segEnd = encoded.count
+            }
+            let validStart = (segIdx == 0) ? (segStart == 64) : (segStart >= 64)
+            guard validStart, segStart < segEnd, segEnd <= encoded.count else {
+                return .failure(DICOMManagedFailure(.malformed, 302, segIdx))
+            }
+            ranges.append(segStart..<segEnd)
+        }
+
+        for unusedIdx in expectedSegments..<15 {
+            guard readUInt32LE(encoded, at: 4 + unusedIdx * 4) == 0 else {
+                return .failure(DICOMManagedFailure(.malformed, 302, unusedIdx))
+            }
+        }
+        return .success(ranges)
+    }
+
+    private static func decodeValidatedBuffer(
+        encodedBase: UnsafePointer<UInt8>,
+        encodedCount: Int,
+        segmentRanges: [Range<Int>],
+        geometry: ValidatedRLEGeometry,
+        descriptor: PixelDataDescriptor,
+        limits: SwiftRLE.ResourceLimits,
+        into destination: UnsafeMutableRawBufferPointer,
+        cancellation: DICOMCancellation
+    ) throws {
+        if let failure = cancellation.failure { throw failure }
+
+        let canTryDirectFrameKernel = segmentRanges.allSatisfy { range in
+            range.count % 2 == 0 &&
+            !(range.count >= 2 && encodedBase[range.upperBound - 1] == 0x80 && encodedBase[range.upperBound - 2] == 0x80)
+        }
+
+        if canTryDirectFrameKernel,
+           let rleDescriptor = try? makeSwiftRLEFrameDescriptor(descriptor: descriptor, limits: limits) {
+            let contiguousFrame = Data(bytes: encodedBase, count: encodedCount)
+            let dstStorage = BorrowedDestinationImageStorage(
+                pointer: UnsafeMutableRawBufferPointer(start: destination.baseAddress, count: geometry.bytesPerFrame)
+            )
+            defer { dstStorage.invalidateScope() }
+
+            do {
+                let imageDestination = try SwiftRLE.ImageDestination(
+                    descriptor: rleDescriptor.imageDescriptor,
+                    storage: dstStorage,
+                    limits: limits
+                )
+                let codecOptions = try SwiftRLE.CodecOptions(
+                    profile: .dicomRLEFrame,
+                    frameDescriptor: rleDescriptor
+                )
+                let decoder = try SwiftRLE.Decoder(
+                    configuration: SwiftRLE.DecoderConfiguration(codecOptions: codecOptions)
+                )
+                let decodeOptions = SwiftRLE.DecodeOptions(
+                    resourceLimits: limits,
+                    executionPolicy: .automatic,
+                    copyPolicy: .requireSharedStorage
+                )
+                let decoded = try decoder.decodeSynchronously(
+                    contiguousFrame,
+                    into: imageDestination,
+                    options: decodeOptions
+                )
+                guard decoded.report.fidelity == .exactSamples,
+                      decoded.report.copyEvents.isEmpty else {
+                    throw DICOMError.parsingFailed("SwiftRLE decode violated exact-sample or shared-storage contract")
+                }
+                return
+            } catch let error as SwiftRLE.CodecError where error.category == .malformedInput {
+                // Legacy RLE streams in the wild (and conformance unit tests) occasionally emit
+                // PackBits runs that cross row boundaries; PS3.5 G.3.2 permits linear segment
+                // decoding. Fall through to SwiftRLE.PackBitsDecoder per segment.
+            }
+        }
+
+        if let failure = cancellation.failure { throw failure }
+        try decodeSegmentsViaSwiftRLEPackBits(
+            encodedBase: encodedBase,
+            segmentRanges: segmentRanges,
+            geometry: geometry,
+            descriptor: descriptor,
+            limits: limits,
+            into: destination,
+            cancellation: cancellation
+        )
+    }
+
+    private static func decodeSegmentsViaSwiftRLEPackBits(
+        encodedBase: UnsafePointer<UInt8>,
+        segmentRanges: [Range<Int>],
+        geometry: ValidatedRLEGeometry,
+        descriptor: PixelDataDescriptor,
+        limits: SwiftRLE.ResourceLimits,
+        into destination: UnsafeMutableRawBufferPointer,
+        cancellation: DICOMCancellation
+    ) throws {
+        guard let dstBase = destination.baseAddress?.assumingMemoryBound(to: UInt8.self),
+              destination.count >= geometry.bytesPerFrame else {
+            throw DICOMError.limitExceeded("RLE destination buffer too small")
+        }
+
+        let packBitsDecoder = try SwiftRLE.PackBitsDecoder(configuration: .packBits)
+        let decodeOptions = SwiftRLE.DecodeOptions(
+            resourceLimits: limits,
+            executionPolicy: .automatic,
+            copyPolicy: .requireSharedStorage
+        )
+
+        let bytesPerSample = geometry.bytesPerSample
+        let samplesPerPixel = geometry.samplesPerPixel
+        let pixelsPerFrame = geometry.pixelsPerFrame
+        let byPlane = descriptor.planarConfiguration != 0 && samplesPerPixel > 1
+        let planeSize = pixelsPerFrame * bytesPerSample
+
+        for (segIdx, range) in segmentRanges.enumerated() {
+            if let failure = cancellation.failure { throw failure }
+            try Task.checkCancellation()
+
+            let segPtr = encodedBase.advanced(by: range.lowerBound)
+            let segCount = range.count
+            let decodedPlane = try decodeSingleSegmentWithPadCheck(
+                decoder: packBitsDecoder,
+                segmentBase: segPtr,
+                segmentLength: segCount,
+                expectedLength: pixelsPerFrame,
+                options: decodeOptions
+            )
+
+            if let failure = cancellation.failure { throw failure }
+
+            let sampleIndex = segIdx / bytesPerSample
+            let byteIndex = bytesPerSample - 1 - (segIdx % bytesPerSample)
+
+            try decodedPlane.withUnsafeBytes { planeRaw in
+                guard planeRaw.count == pixelsPerFrame,
+                      let planeBase = planeRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    throw DICOMError.parsingFailed("SwiftRLE PackBits decoded plane length mismatch")
+                }
+
+                if samplesPerPixel == 1 && bytesPerSample == 1 {
+                    dstBase.update(from: planeBase, count: pixelsPerFrame)
+                } else if samplesPerPixel == 1 && bytesPerSample == 2 {
+                    for p in 0..<pixelsPerFrame {
+                        if (p & 0xFFFF) == 0, let failure = cancellation.failure { throw failure }
+                        dstBase[p * 2 + byteIndex] = planeBase[p]
+                    }
+                } else if !byPlane {
+                    let pixelStride = samplesPerPixel * bytesPerSample
+                    let baseComponentOffset = sampleIndex * bytesPerSample + byteIndex
+                    for p in 0..<pixelsPerFrame {
+                        if (p & 0xFFFF) == 0, let failure = cancellation.failure { throw failure }
+                        dstBase[p * pixelStride + baseComponentOffset] = planeBase[p]
+                    }
+                } else {
+                    let planeOffset = sampleIndex * planeSize + byteIndex
+                    for p in 0..<pixelsPerFrame {
+                        if (p & 0xFFFF) == 0, let failure = cancellation.failure { throw failure }
+                        dstBase[planeOffset + p * bytesPerSample] = planeBase[p]
                     }
                 }
             }
-            staging.keepAlive()
+        }
+    }
 
-            if let failure = cancellation.failure { return .failure(failure) }
-            return .success(ManagedDecodedPixelFrame(
-                data: bytes,
-                descriptor: descriptor,
-                sourceFrameIndex: frameIndex
-            ))
+    /// Decodes a single RLE byte-plane segment via `SwiftRLE.PackBitsDecoder`, allowing at most
+    /// one trailing PS3.5 G.3.2 even-length pad byte (`0x00` or `0x80`) after `expectedLength`
+    /// output bytes have been produced, and rejecting `>= 2` trailing bytes.
+    private static func decodeSingleSegmentWithPadCheck(
+        decoder: SwiftRLE.PackBitsDecoder,
+        segmentBase: UnsafePointer<UInt8>,
+        segmentLength: Int,
+        expectedLength: Int,
+        options: SwiftRLE.DecodeOptions
+    ) throws -> Data {
+        guard segmentLength > 0 else {
+            throw SwiftRLE.CodecError(.malformedInput, "Empty RLE segment.")
+        }
+
+        // Reject >= 2 trailing bytes when the penultimate byte is a 0x80 NOP: because the final
+        // byte of any literal or repeat packet is always a required payload byte, `segmentLength - 2`
+        // can decode to `expectedLength` if and only if at least two trailing bytes follow the end
+        // of the final data-producing packet.
+        if segmentLength >= 2, segmentBase[segmentLength - 2] == 0x80 {
+            let trimmedTwo = Data(bytes: segmentBase, count: segmentLength - 2)
+            if (try? decoder.decodeSynchronously(trimmedTwo, expectedByteCount: expectedLength, options: options)) != nil {
+                throw SwiftRLE.CodecError(
+                    .malformedInput,
+                    "RLE segment carries more than one trailing byte beyond declared length \(expectedLength)."
+                )
+            }
+        }
+
+        let fullSegment = Data(bytes: segmentBase, count: segmentLength)
+        do {
+            let result = try decoder.decodeSynchronously(
+                fullSegment,
+                expectedByteCount: expectedLength,
+                options: options
+            )
+            guard result.report.fidelity == .exactSamples,
+                  result.report.copyEvents.isEmpty else {
+                throw SwiftRLE.CodecError(.internalFailure, "SwiftRLE PackBits report invariant failed.")
+            }
+            return result.data
+        } catch let primaryError as SwiftRLE.CodecError where primaryError.category == .malformedInput && segmentLength >= 2 {
+            // A single trailing pad byte (commonly 0x00 per PS3.5 G.3.2) appears as an incomplete
+            // 1-byte literal control packet at the end of an even-padded segment. Retry without the
+            // single trailing pad byte; if that still fails, rethrow the original malformedInput error.
+            let withoutPad = Data(bytes: segmentBase, count: segmentLength - 1)
+            guard let strippedResult = try? decoder.decodeSynchronously(
+                withoutPad,
+                expectedByteCount: expectedLength,
+                options: options
+            ) else {
+                throw primaryError
+            }
+            guard strippedResult.report.fidelity == .exactSamples,
+                  strippedResult.report.copyEvents.isEmpty else {
+                throw SwiftRLE.CodecError(.internalFailure, "SwiftRLE PackBits report invariant failed.")
+            }
+            return strippedResult.data
+        }
+    }
+
+    /// Maps a `PixelDataDescriptor` to a `SwiftRLE.RLEFrameDescriptor` over the full allocated
+    /// sample width (`meaningfulBits == storageBits`) so RLE byte-plane coding preserves all
+    /// allocated bits verbatim per DICOM PS3.5 Annex G.2 without masking or display transforms.
+    private static func makeSwiftRLEFrameDescriptor(
+        descriptor: PixelDataDescriptor,
+        limits: SwiftRLE.ResourceLimits
+    ) throws -> SwiftRLE.RLEFrameDescriptor {
+        let components: [SwiftRLE.ComponentRole]
+        let colour: SwiftRLE.ColourInterpretation
+        let sampleType: SwiftRLE.SampleType
+        let planar: Int
+
+        switch descriptor.samplesPerPixel {
+        case 1:
+            components = [.grey]
+            colour = .greyscale
+            sampleType = descriptor.isSigned ? .signedInteger : .unsignedInteger
+            planar = 0
+        case 3:
+            if descriptor.photometricInterpretation == .rgb {
+                components = [.red, .green, .blue]
+                colour = .rgb
+            } else {
+                components = [.uninterpreted("Y"), .uninterpreted("Cb"), .uninterpreted("Cr")]
+                colour = .unknown
+            }
+            sampleType = .unsignedInteger
+            planar = (descriptor.planarConfiguration == 0) ? 0 : 1
+        default:
+            throw SwiftRLE.CodecError(.unsupportedFeature, "Component count \(descriptor.samplesPerPixel) uses PackBits plane fallback.")
+        }
+
+        return try SwiftRLE.RLEFrameDescriptor(
+            width: descriptor.columns,
+            height: descriptor.rows,
+            sampleType: sampleType,
+            storageBits: descriptor.bitsAllocated,
+            meaningfulBits: descriptor.bitsAllocated,
+            byteOrder: SwiftRLE.ByteOrder.littleEndian,
+            components: components,
+            colour: colour,
+            planarConfiguration: planar,
+            limits: limits
+        )
+    }
+
+    private static func makeResourceLimits(
+        encodedByteCount: Int,
+        decodedByteCount: Int,
+        pixelsPerFrame: Int,
+        rows: Int,
+        columns: Int
+    ) -> SwiftRLE.ResourceLimits {
+        let defaults = SwiftRLE.ResourceLimits.general
+        let maxCompressed = max(defaults.maximumCompressedBytes, max(1, encodedByteCount))
+        let maxDecoded = max(defaults.maximumDecodedBytes, max(1, decodedByteCount))
+        let maxPixels = max(defaults.maximumPixels, max(1, pixelsPerFrame))
+        let maxDim = max(defaults.maximumDimension, max(1, max(rows, columns)))
+        let combined = maxCompressed.addingReportingOverflow(maxDecoded)
+        let safeCombined = combined.overflow ? Int.max / 2 : combined.partialValue
+        let withMeta = safeCombined.addingReportingOverflow(32 * 1024 * 1024)
+        let maxMemory = max(defaults.maximumMemoryBytes, withMeta.overflow ? Int.max / 2 : withMeta.partialValue)
+
+        return (try? SwiftRLE.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: max(defaults.maximumWorkspaceBytes, maxDecoded),
+            maximumPixels: maxPixels,
+            maximumDimension: maxDim,
+            maximumFrames: defaults.maximumFrames,
+            maximumMetadataBytes: defaults.maximumMetadataBytes,
+            maximumICCBytes: defaults.maximumICCBytes,
+            maximumNestingDepth: defaults.maximumNestingDepth,
+            maximumWorkers: defaults.maximumWorkers,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: maxMemory
+        )) ?? defaults
+    }
+
+    private static func makeEncodeResourceLimits(
+        decodedByteCount: Int,
+        pixelsPerFrame: Int,
+        rows: Int,
+        columns: Int,
+        expectedSegments: Int
+    ) -> SwiftRLE.ResourceLimits {
+        let rowBound = columns + (columns + 2) / 3
+        let segBound = rowBound.multipliedReportingOverflow(by: rows)
+        let worstSegment = segBound.overflow ? decodedByteCount * 2 : (segBound.partialValue + 1)
+        let totalWorst = worstSegment.multipliedReportingOverflow(by: expectedSegments)
+        let estimatedMaxCompressed = totalWorst.overflow ? decodedByteCount * 2 : (64 + totalWorst.partialValue)
+        return makeResourceLimits(
+            encodedByteCount: estimatedMaxCompressed,
+            decodedByteCount: decodedByteCount,
+            pixelsPerFrame: pixelsPerFrame,
+            rows: rows,
+            columns: columns
+        )
+    }
+
+    private static func deinterleaveSegments(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        geometry: ValidatedRLEGeometry
+    ) -> [Data] {
+        let bytesPerSample = geometry.bytesPerSample
+        let samplesPerPixel = geometry.samplesPerPixel
+        let pixelsPerFrame = geometry.pixelsPerFrame
+        let numberOfSegments = geometry.expectedSegments
+        let byPlane = descriptor.planarConfiguration != 0 && samplesPerPixel > 1
+        let planeSize = pixelsPerFrame * bytesPerSample
+
+        var segments = [Data](repeating: Data(count: pixelsPerFrame), count: numberOfSegments)
+        frameData.withUnsafeBytes { srcRaw in
+            let srcCount = srcRaw.count
+            let srcBase = srcRaw.baseAddress?.assumingMemoryBound(to: UInt8.self)
+            for segIdx in 0..<numberOfSegments {
+                let sampleIndex = segIdx / bytesPerSample
+                let byteIndex = bytesPerSample - 1 - (segIdx % bytesPerSample)
+                segments[segIdx].withUnsafeMutableBytes { dstRaw in
+                    guard let dstBase = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
+                    guard let srcBase else { return }
+                    for pixelIndex in 0..<pixelsPerFrame {
+                        let inputOffset: Int
+                        if byPlane {
+                            inputOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
+                        } else {
+                            inputOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
+                        }
+                        dstBase[pixelIndex] = inputOffset < srcCount ? srcBase[inputOffset] : 0
+                    }
+                }
+            }
+        }
+        return segments
+    }
+
+    private static func translateError(_ error: SwiftRLE.CodecError) -> DICOMError {
+        switch error.category {
+        case .resourceLimitExceeded:
+            return .limitExceeded("SwiftRLE resource limit exceeded: \(error.message)")
+        case .unsupportedFeature, .unsupportedFormat, .backendUnavailable:
+            return .unsupportedTransferSyntax("SwiftRLE unsupported capability: \(error.message)")
+        case .malformedInput, .invalidArgument, .incompatibleImageLayout,
+             .storageUnavailable, .ioFailure, .internalFailure:
+            return .parsingFailed("SwiftRLE \(error.category.rawValue): \(error.message)")
+        }
+    }
+
+    private static func translateManagedError(_ error: SwiftRLE.CodecError) -> DICOMManagedFailure {
+        switch error.category {
+        case .resourceLimitExceeded:
+            return DICOMManagedFailure(.limitExceeded, 307)
+        case .unsupportedFeature, .unsupportedFormat, .backendUnavailable:
+            return DICOMManagedFailure(.invalidTransferSyntax, 309)
+        case .invalidArgument, .incompatibleImageLayout:
+            return DICOMManagedFailure(.invalidDescriptor, 301)
+        case .malformedInput:
+            return DICOMManagedFailure(.malformed, 304)
+        case .storageUnavailable, .ioFailure, .internalFailure:
+            return DICOMManagedFailure(.codecFailure, 310)
         }
     }
 
@@ -263,299 +936,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             | (UInt32(p[2]) << 16)
             | (UInt32(p[3]) << 24)
     }
-    
-    /// Decodes an RLE-compressed frame
-    /// - Parameters:
-    ///   - frameData: RLE compressed data
-    ///   - descriptor: Pixel data descriptor
-    ///   - frameIndex: Frame index (unused for single frame decode)
-    /// - Returns: Uncompressed pixel data
-    /// - Throws: DICOMError if decoding fails
-    public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
-        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
-        guard frameData.count >= 64 else {
-            throw DICOMError.parsingFailed("RLE data too short for header")
-        }
-        
-        // Parse RLE header (64 bytes)
-        // First 4 bytes: number of segments
-        // Next 60 bytes: 15 segment offset values (4 bytes each)
-        let numberOfSegments = Int(frameData.readUInt32LE(at: 0) ?? 0)
-        
-        guard numberOfSegments >= 1 && numberOfSegments <= 15 else {
-            throw DICOMError.parsingFailed("Invalid RLE segment count: \(numberOfSegments)")
-        }
-        
-        // Read segment offsets
-        var segmentOffsets: [Int] = []
-        for i in 0..<numberOfSegments {
-            let offset = Int(frameData.readUInt32LE(at: 4 + i * 4) ?? 0)
-            segmentOffsets.append(offset)
-        }
-        
-        // Calculate expected output size
-        let bytesPerSample = descriptor.bytesPerSample
-        let samplesPerPixel = descriptor.samplesPerPixel
-        let pixelsPerFrame = descriptor.pixelsPerFrame
-        let expectedSegments = bytesPerSample * samplesPerPixel
-        
-        guard numberOfSegments == expectedSegments else {
-            throw DICOMError.parsingFailed("Unexpected number of RLE segments: \(numberOfSegments), expected \(expectedSegments)")
-        }
-        
-        // Decode each segment
-        var decodedSegments: [Data] = []
-        // Header offsets are frame-relative; `subdata(in:)` indexes absolutely.
-        // See `decodeSegments` for the same rebasing and why it matters.
-        let base = frameData.startIndex
-        for i in 0..<numberOfSegments {
-            let segmentStart = segmentOffsets[i]
-            let segmentEnd: Int
 
-            if i + 1 < numberOfSegments {
-                segmentEnd = segmentOffsets[i + 1]
-            } else {
-                segmentEnd = frameData.count
-            }
-
-            guard segmentStart < segmentEnd && segmentEnd <= frameData.count else {
-                throw DICOMError.parsingFailed("Invalid RLE segment boundaries")
-            }
-
-            let segmentData = frameData.subdata(in: (base + segmentStart)..<(base + segmentEnd))
-            let decoded = try decodeRLESegment(segmentData, expectedLength: pixelsPerFrame)
-            decodedSegments.append(decoded)
-        }
-        
-        // Interleave segments to form output
-        return interleaveSegments(decodedSegments, descriptor: descriptor)
-    }
-
-    /// Caller-owned decode: interleaves the decoded segments directly into
-    /// `destination`, skipping the intermediate full-frame output buffer the
-    /// `Data`-returning path allocates (WP-F, plan M3).
-    public func decodeFrame(
-        _ frameData: Data,
-        descriptor: PixelDataDescriptor,
-        frameIndex: Int,
-        into destination: UnsafeMutableRawBufferPointer
-    ) throws -> Int {
-        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
-        let bytesPerFrame = descriptor.bytesPerFrame
-        guard destination.count >= bytesPerFrame, let base = destination.baseAddress else {
-            throw DICOMError.limitExceeded(
-                "Caller-owned destination too small: \(destination.count) bytes for \(bytesPerFrame)-byte frame")
-        }
-        let segments = try decodeSegments(frameData, descriptor: descriptor)
-        interleaveSegments(segments, descriptor: descriptor,
-                           into: base.assumingMemoryBound(to: UInt8.self),
-                           capacity: destination.count)
-        return bytesPerFrame
-    }
-
-    /// Parses the RLE header and PackBits-decodes every segment (shared by the
-    /// `Data`-returning and caller-owned paths).
-    private func decodeSegments(_ frameData: Data, descriptor: PixelDataDescriptor) throws -> [Data] {
-        guard frameData.count >= 64 else {
-            throw DICOMError.parsingFailed("RLE data too short for header")
-        }
-        let numberOfSegments = Int(frameData.readUInt32LE(at: 0) ?? 0)
-        guard numberOfSegments >= 1 && numberOfSegments <= 15 else {
-            throw DICOMError.parsingFailed("Invalid RLE segment count: \(numberOfSegments)")
-        }
-        var segmentOffsets: [Int] = []
-        for i in 0..<numberOfSegments {
-            segmentOffsets.append(Int(frameData.readUInt32LE(at: 4 + i * 4) ?? 0))
-        }
-        let expectedSegments = descriptor.bytesPerSample * descriptor.samplesPerPixel
-        guard numberOfSegments == expectedSegments else {
-            throw DICOMError.parsingFailed(
-                "Unexpected number of RLE segments: \(numberOfSegments), expected \(expectedSegments)")
-        }
-        var decodedSegments: [Data] = []
-        // Segment offsets in the RLE header are relative to the start of the frame,
-        // but `subdata(in:)` indexes absolutely. `frameData` may be a slice with a
-        // non-zero `startIndex` (any caller that avoids a copy — which is the whole
-        // direction of the byte-source work — produces one), so rebase before slicing.
-        let base = frameData.startIndex
-        for i in 0..<numberOfSegments {
-            let segmentStart = segmentOffsets[i]
-            let segmentEnd = i + 1 < numberOfSegments ? segmentOffsets[i + 1] : frameData.count
-            guard segmentStart < segmentEnd && segmentEnd <= frameData.count else {
-                throw DICOMError.parsingFailed("Invalid RLE segment boundaries")
-            }
-            let segmentData = frameData.subdata(in: (base + segmentStart)..<(base + segmentEnd))
-            decodedSegments.append(try decodeRLESegment(segmentData, expectedLength: descriptor.pixelsPerFrame))
-        }
-        return decodedSegments
-    }
-
-    /// Pointer-destination variant of `interleaveSegments` (same traversal).
-    private func interleaveSegments(
-        _ segments: [Data],
-        descriptor: PixelDataDescriptor,
-        into output: UnsafeMutablePointer<UInt8>,
-        capacity: Int
-    ) {
-        let bytesPerSample = descriptor.bytesPerSample
-        let samplesPerPixel = descriptor.samplesPerPixel
-        let pixelsPerFrame = descriptor.pixelsPerFrame
-
-        for pixelIndex in 0..<pixelsPerFrame {
-            for sampleIndex in 0..<samplesPerPixel {
-                for byteIndex in 0..<bytesPerSample {
-                    let segmentIndex = sampleIndex * bytesPerSample + (bytesPerSample - 1 - byteIndex)
-                    guard segmentIndex < segments.count else { continue }
-                    let segment = segments[segmentIndex]
-                    guard pixelIndex < segment.count else { continue }
-
-                    let outputOffset: Int
-                    if descriptor.planarConfiguration == 0 || samplesPerPixel == 1 {
-                        outputOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
-                    } else {
-                        let planeSize = pixelsPerFrame * bytesPerSample
-                        outputOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
-                    }
-                    if outputOffset < capacity {
-                        output[outputOffset] = segment[segment.startIndex + pixelIndex]
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Encoding
-
-    /// Whether this encoder can produce RLE Lossless for the given pixel layout.
-    ///
-    /// RLE Lossless allows up to 15 segments (`bytesPerSample * samplesPerPixel`)
-    /// and 8- or 16-bit samples. RLE is always lossless, so the quality setting
-    /// is irrelevant. Reference: DICOM PS3.5 Annex G.
-    public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
-        guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else { return false }
-        let segments = descriptor.bytesPerSample * descriptor.samplesPerPixel
-        return segments >= 1 && segments <= 15
-    }
-
-    /// Encodes a single frame to RLE Lossless.
-    ///
-    /// The frame is split into one byte-plane segment per `(sample, byte)` — the
-    /// exact inverse of `interleaveSegments` so encode∘decode is the identity —
-    /// each segment is PackBits-encoded and padded to an even length, then a
-    /// 64-byte RLE header (segment count + offsets, little-endian) is prepended.
-    /// Reference: DICOM PS3.5 Annex G.
-    /// - Throws: `DICOMError` if the layout needs more than 15 segments.
-    public func encodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int, configuration: CompressionConfiguration) throws -> Data {
-        let numberOfSegments = descriptor.bytesPerSample * descriptor.samplesPerPixel
-        guard numberOfSegments >= 1 && numberOfSegments <= 15 else {
-            throw DICOMError.parsingFailed("RLE cannot encode \(numberOfSegments) segments (must be 1...15)")
-        }
-
-        // De-interleave into byte planes, PackBits-encode each plane row by row
-        // ("Each row of the image shall be encoded separately and not cross a row
-        // boundary", PS3.5 G.3.1), and pad each segment to an even length.
-        let planes = deinterleaveSegments(frameData, descriptor: descriptor, numberOfSegments: numberOfSegments)
-        var encodedSegments: [Data] = []
-        encodedSegments.reserveCapacity(numberOfSegments)
-        for plane in planes {
-            var encoded = encodeRLESegment(plane, rowLength: descriptor.columns)
-            if encoded.count % 2 != 0 { encoded.append(0) }
-            encodedSegments.append(encoded)
-        }
-
-        // 64-byte header: first UInt32 = segment count; next fifteen UInt32 = the
-        // byte offset of each segment from the start of the frame (header itself).
-        var frame = Data(count: 64)
-        Self.writeUInt32LE(UInt32(numberOfSegments), into: &frame, at: 0)
-        var offset = 64
-        for (i, seg) in encodedSegments.enumerated() {
-            Self.writeUInt32LE(UInt32(offset), into: &frame, at: 4 + i * 4)
-            offset += seg.count
-        }
-        for seg in encodedSegments { frame.append(seg) }
-        return frame
-    }
-
-    /// Splits a frame into one byte-plane per segment — the exact inverse of
-    /// `interleaveSegments`. Segment order is most-significant byte first within
-    /// each sample, matching the decoder's `segmentIndex` mapping.
-    private func deinterleaveSegments(_ frameData: Data, descriptor: PixelDataDescriptor, numberOfSegments: Int) -> [[UInt8]] {
-        let src = [UInt8](frameData)
-        let bytesPerSample = descriptor.bytesPerSample
-        let samplesPerPixel = descriptor.samplesPerPixel
-        let pixelsPerFrame = descriptor.pixelsPerFrame
-        let byPlane = descriptor.planarConfiguration != 0 && samplesPerPixel > 1
-        let planeSize = pixelsPerFrame * bytesPerSample
-
-        var segments = [[UInt8]](repeating: [UInt8](repeating: 0, count: pixelsPerFrame), count: numberOfSegments)
-
-        for pixelIndex in 0..<pixelsPerFrame {
-            for sampleIndex in 0..<samplesPerPixel {
-                for byteIndex in 0..<bytesPerSample {
-                    // High-order bytes occupy the lower segment indices.
-                    let segmentIndex = sampleIndex * bytesPerSample + (bytesPerSample - 1 - byteIndex)
-                    let inputOffset: Int
-                    if byPlane {
-                        inputOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
-                    } else {
-                        inputOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
-                    }
-                    segments[segmentIndex][pixelIndex] = inputOffset < src.count ? src[inputOffset] : 0
-                }
-            }
-        }
-        return segments
-    }
-
-    /// PackBits-encodes one segment — the inverse of `decodeRLESegment`.
-    ///
-    /// Emits replicate packets (`control = -(runLength - 1)`, then the byte) for
-    /// runs of ≥2 identical bytes and literal packets (`control = length - 1`,
-    /// then the bytes) otherwise, each capped at 128 bytes. Every image row is
-    /// encoded on its own, so no packet crosses a row boundary (PS3.5 G.3.1).
-    /// Reference: PS3.5 G.3.
-    private func encodeRLESegment(_ src: [UInt8], rowLength: Int) -> Data {
-        var out = [UInt8]()
-        out.reserveCapacity(src.count / 2 + 16)
-        let rowLength = max(1, rowLength)
-        var rowStart = 0
-        while rowStart < src.count {
-            let rowEnd = min(src.count, rowStart + rowLength)
-            encodeRLERun(src, from: rowStart, to: rowEnd, into: &out)
-            rowStart = rowEnd
-        }
-        return Data(out)
-    }
-
-    /// PackBits-encodes `src[start..<end]` (one image row) into `out`.
-    private func encodeRLERun(_ src: [UInt8], from start: Int, to n: Int, into out: inout [UInt8]) {
-        var i = start
-        while i < n {
-            // Measure a replicate run starting at i (capped at 128).
-            var runLength = 1
-            while i + runLength < n && src[i + runLength] == src[i] && runLength < 128 {
-                runLength += 1
-            }
-            if runLength >= 2 {
-                out.append(UInt8(bitPattern: Int8(-(runLength - 1))))
-                out.append(src[i])
-                i += runLength
-            } else {
-                // Literal run: copy until a ≥2 run begins, the end, or 128 bytes.
-                let literalStart = i
-                var literalLength = 0
-                while i < n && literalLength < 128 {
-                    if i + 1 < n && src[i] == src[i + 1] { break }
-                    i += 1
-                    literalLength += 1
-                }
-                out.append(UInt8(bitPattern: Int8(literalLength - 1)))
-                out.append(contentsOf: src[literalStart..<(literalStart + literalLength)])
-            }
-        }
-    }
-
-    /// Writes a little-endian UInt32 into `data` at `offset`.
     private static func writeUInt32LE(_ value: UInt32, into data: inout Data, at offset: Int) {
         let base = data.startIndex + offset
         data[base]     = UInt8(value & 0xFF)
@@ -563,119 +944,147 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         data[base + 2] = UInt8((value >> 16) & 0xFF)
         data[base + 3] = UInt8((value >> 24) & 0xFF)
     }
+}
 
-    /// Decodes a single RLE segment
-    ///
-    /// RLE encoding uses a control byte followed by data:
-    /// - If n >= 0 and n <= 127: copy the next n+1 bytes literally
-    /// - If n >= -127 and n <= -1: repeat the next byte -n+1 times
-    /// - If n == -128: no operation (skip)
-    ///
-    /// Reference: PS3.5 Annex G.3
-    private func decodeRLESegment(_ data: Data, expectedLength: Int) throws -> Data {
-        var output = Data()
-        output.reserveCapacity(expectedLength)
+// MARK: - Zero-Copy Shared Storage Adapters for SwiftRLE
 
-        var offset = 0
+/// Immutable `ReadOnlyImageStorage` retaining a `Data` slice across synchronous `SwiftRLE.Encoder` execution.
+private final class BorrowedSourceImageStorage: SwiftRLE.ReadOnlyImageStorage, Sendable {
+    private let data: Data
+    let allocationID = UUID()
 
-        // Strict PS3.5 Annex G decoding: the segment must produce exactly
-        // `expectedLength` bytes. A run that overshoots, a segment that ends early,
-        // or more than one trailing byte (the G.3.2 even-length pad) is an error;
-        // output is never truncated or zero-filled to hide a malformed segment.
-        while output.count < expectedLength {
-            guard offset < data.count else {
-                throw DICOMError.parsingFailed(
-                    "RLE segment ended after \(output.count) of \(expectedLength) bytes")
-            }
-            let controlByte = Int8(bitPattern: data[offset])
-            offset += 1
+    var byteCount: Int { data.count }
 
-            if controlByte == -128 {
-                // No operation - skip
-                continue
-            } else if controlByte >= 0 {
-                // Literal run: copy next n+1 bytes
-                let count = Int(controlByte) + 1
-                guard offset + count <= data.count else {
-                    throw DICOMError.parsingFailed("RLE literal run exceeds data bounds")
-                }
-                guard output.count + count <= expectedLength else {
-                    throw DICOMError.parsingFailed(
-                        "RLE literal run exceeds the declared segment length \(expectedLength)")
-                }
-                output.append(data[offset..<(offset + count)])
-                offset += count
-            } else {
-                // Repeat run: repeat next byte -n+1 times
-                let count = Int(-controlByte) + 1
-                guard offset < data.count else {
-                    throw DICOMError.parsingFailed("RLE repeat run missing byte value")
-                }
-                guard output.count + count <= expectedLength else {
-                    throw DICOMError.parsingFailed(
-                        "RLE repeat run exceeds the declared segment length \(expectedLength)")
-                }
-                output.append(contentsOf: repeatElement(data[offset], count: count))
-                offset += 1
-            }
-        }
-
-        let trailing = data.count - offset
-        guard trailing <= 1 else {
-            throw DICOMError.parsingFailed(
-                "RLE segment carries \(trailing) bytes beyond the declared length \(expectedLength)")
-        }
-
-        return output
+    init(data: Data) {
+        self.data = data
     }
 
-    /// Interleaves decoded segments into the final pixel data
-    ///
-    /// For multi-byte samples, high-order bytes come first in separate segments.
-    /// For multi-sample pixels (e.g., RGB), each sample component is in a separate segment.
-    ///
-    /// Reference: PS3.5 Annex G.2
-    private func interleaveSegments(_ segments: [Data], descriptor: PixelDataDescriptor) -> Data {
-        let bytesPerSample = descriptor.bytesPerSample
-        let samplesPerPixel = descriptor.samplesPerPixel
-        let pixelsPerFrame = descriptor.pixelsPerFrame
-        let bytesPerFrame = descriptor.bytesPerFrame
-        
-        var output = Data(count: bytesPerFrame)
-        
-        for pixelIndex in 0..<pixelsPerFrame {
-            for sampleIndex in 0..<samplesPerPixel {
-                for byteIndex in 0..<bytesPerSample {
-                    // Segment index: high-order bytes first within each sample
-                    let segmentIndex = sampleIndex * bytesPerSample + (bytesPerSample - 1 - byteIndex)
-                    
-                    guard segmentIndex < segments.count else {
-                        continue
-                    }
-                    
-                    let segment = segments[segmentIndex]
-                    guard pixelIndex < segment.count else {
-                        continue
-                    }
-                    
-                    // Output offset
-                    let outputOffset: Int
-                    if descriptor.planarConfiguration == 0 || samplesPerPixel == 1 {
-                        // Color-by-pixel or monochrome
-                        outputOffset = (pixelIndex * samplesPerPixel + sampleIndex) * bytesPerSample + byteIndex
-                    } else {
-                        // Color-by-plane
-                        let planeSize = pixelsPerFrame * bytesPerSample
-                        outputOffset = sampleIndex * planeSize + pixelIndex * bytesPerSample + byteIndex
-                    }
-                    
-                    if outputOffset < output.count {
-                        output[outputOffset] = segment[pixelIndex]
-                    }
-                }
-            }
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try data.withUnsafeBytes(body)
+    }
+}
+
+/// Scoped `WritableImageStorage` adapter writing directly into a caller-owned or
+/// `DICOMByteBuffer`-admitted destination buffer during synchronous `SwiftRLE.Decoder` execution.
+/// Invalidated via `invalidateScope()` before the destination pointer's lexical scope exits.
+private final class BorrowedDestinationImageStorage: SwiftRLE.WritableImageStorage, @unchecked Sendable {
+    let byteCount: Int
+    let allocationID = UUID()
+
+    private enum Phase: Sendable {
+        case available
+        case writing(SwiftRLE.StorageWriteLease)
+        case sealed
+        case invalid
+    }
+
+    private struct ScopeState: @unchecked Sendable {
+        var pointer: UnsafeMutableRawBufferPointer?
+        var phase: Phase = .available
+    }
+
+    private let state: Mutex<ScopeState>
+    private let engaged = Atomic<Bool>(false)
+
+    init(pointer: UnsafeMutableRawBufferPointer) {
+        self.byteCount = pointer.count
+        self.state = Mutex(ScopeState(pointer: pointer))
+    }
+
+    func invalidateScope() {
+        state.withLock { scope in
+            scope.pointer = nil
+            scope.phase = .invalid
         }
-        
-        return output
+    }
+
+    func reserveWrite() throws -> SwiftRLE.StorageWriteLease {
+        try withNonReentrantLock { scope in
+            guard case .available = scope.phase, scope.pointer != nil else {
+                throw SwiftRLE.CodecError(.storageUnavailable, "Destination storage is unavailable or already reserved.")
+            }
+            let lease = SwiftRLE.StorageWriteLease()
+            scope.phase = .writing(lease)
+            return lease
+        }
+    }
+
+    func withUnsafeMutableBytes<R>(
+        lease: SwiftRLE.StorageWriteLease,
+        _ body: (UnsafeMutableRawBufferPointer) throws -> R
+    ) throws -> R {
+        try withNonReentrantLock { scope in
+            guard case .writing(let activeLease) = scope.phase,
+                  activeLease == lease,
+                  let ptr = scope.pointer else {
+                throw SwiftRLE.CodecError(.storageUnavailable, "Write lease is stale, foreign, or out of scope.")
+            }
+            return try body(ptr)
+        }
+    }
+
+    func finishAndSeal(lease: SwiftRLE.StorageWriteLease) throws -> any SwiftRLE.ReadOnlyImageStorage {
+        try withNonReentrantLock { scope in
+            guard case .writing(let activeLease) = scope.phase,
+                  activeLease == lease,
+                  scope.pointer != nil else {
+                throw SwiftRLE.CodecError(.storageUnavailable, "Cannot seal stale or invalidated write lease.")
+            }
+            scope.phase = .sealed
+            return SealedBorrowedDestinationStorage(
+                byteCount: byteCount,
+                allocationID: allocationID,
+                owner: self
+            )
+        }
+    }
+
+    func abortAndInvalidate(lease: SwiftRLE.StorageWriteLease) throws {
+        try withNonReentrantLock { scope in
+            guard case .writing(let activeLease) = scope.phase, activeLease == lease else {
+                throw SwiftRLE.CodecError(.storageUnavailable, "Cannot abort stale or foreign write lease.")
+            }
+            scope.pointer = nil
+            scope.phase = .invalid
+        }
+    }
+
+    fileprivate func withSealedBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try withNonReentrantLock { scope in
+            guard case .sealed = scope.phase, let ptr = scope.pointer else {
+                throw SwiftRLE.CodecError(.storageUnavailable, "Sealed destination borrow has exited scope.")
+            }
+            return try body(UnsafeRawBufferPointer(ptr))
+        }
+    }
+
+    private func withNonReentrantLock<R>(_ body: (inout ScopeState) throws -> R) throws -> R {
+        guard !engaged.load(ordering: .acquiring) else {
+            throw SwiftRLE.CodecError(.storageUnavailable, "Reentrant storage borrow rejected.")
+        }
+        guard let result = try state.withLockIfAvailable({ scope -> R in
+            engaged.store(true, ordering: .releasing)
+            defer { engaged.store(false, ordering: .releasing) }
+            return try body(&scope)
+        }) else {
+            throw SwiftRLE.CodecError(.storageUnavailable, "Concurrent storage borrow rejected.")
+        }
+        return result
+    }
+}
+
+private final class SealedBorrowedDestinationStorage: SwiftRLE.ReadOnlyImageStorage, Sendable {
+    let byteCount: Int
+    let allocationID: UUID
+    private let owner: BorrowedDestinationImageStorage
+
+    init(byteCount: Int, allocationID: UUID, owner: BorrowedDestinationImageStorage) {
+        self.byteCount = byteCount
+        self.allocationID = allocationID
+        self.owner = owner
+    }
+
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try owner.withSealedBytes(body)
     }
 }

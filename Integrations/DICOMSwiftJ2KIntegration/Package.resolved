@@ -45,6 +45,15 @@
         "revision" : "3059a3c87d471028f3524241ec4f881f97cac264",
         "version" : "12.1.0"
       }
+    },
+    {
+      "identity" : "swiftrle",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raster-labs/SwiftRLE.git",
+      "state" : {
+        "revision" : "4eaaf9139d2f7a836af142b4fdb32f3b9582e005",
+        "version" : "1.0.1"
+      }
     }
   ],
   "version" : 3
