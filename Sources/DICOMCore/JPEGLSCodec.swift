@@ -1,12 +1,12 @@
 import Foundation
-import JPEGLS
+import SwiftJLS
 
-/// JPEG-LS codec backed by the JLSwift `JPEGLS` package.
+/// JPEG-LS codec backed by the `SwiftJLS` package.
 ///
-/// Bridges DICOM pixel data (PS3.5 §A.4.3, JPEG-LS Image Compression) to JLSwift's pure-Swift JPEG-LS
-/// implementation (ITU-T T.87 / ISO/IEC 14495-1) for both lossless and
-/// near-lossless encode/decode. The previous in-tree JPEG-LS implementation
-/// (markers, bit I/O, context modelling) was retired in favour of JLSwift.
+/// Bridges DICOM pixel data (PS3.5 §A.4.3, JPEG-LS Image Compression) to `SwiftJLS`'s pure-Swift
+/// JPEG-LS implementation (ITU-T T.87 / ISO/IEC 14495-1) for both lossless and near-lossless
+/// encode/decode, caller-destination shared storage (`copyPolicy: .requireSharedStorage`),
+/// explicit `Fidelity` verification, and `DICOMAllocationBudget` managed monochrome/component decoding.
 ///
 /// Transfer syntaxes:
 ///   • 1.2.840.10008.1.2.4.80  JPEG-LS Lossless
@@ -21,6 +21,18 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         case lossless
         /// Enforce the JPEG-LS Near-Lossless profile.
         case nearLossless
+    }
+
+    /// JPEG-LS scan interleave mode (`ILV` parameter in SOS, ITU-T T.87 C.2.3).
+    public enum InterleaveMode: Sendable, Equatable {
+        /// `.none` (`ILV = 0`) for monochrome, `.sample` (`ILV = 2`) for multi-component.
+        case automatic
+        /// Non-interleaved (`ILV = 0`, one scan per component).
+        case none
+        /// Line-interleaved (`ILV = 1`, multi-component single scan).
+        case line
+        /// Sample-interleaved (`ILV = 2`, multi-component single scan).
+        case sample
     }
 
     /// Controls precision recovery for descriptor-bearing inspection and decoding.
@@ -54,26 +66,18 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// Supported JPEG-LS transfer syntaxes for decoding
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpegLSLossless.uid,      // 1.2.840.10008.1.2.4.80
-        TransferSyntax.jpegLSNearLossless.uid    // 1.2.840.10008.1.2.4.81
+        TransferSyntax.jpegLSNearLossless.uid   // 1.2.840.10008.1.2.4.81
     ]
 
     /// Supported JPEG-LS transfer syntaxes for encoding
     public static let supportedEncodingTransferSyntaxes: [String] = [
         TransferSyntax.jpegLSLossless.uid,      // 1.2.840.10008.1.2.4.80
-        TransferSyntax.jpegLSNearLossless.uid    // 1.2.840.10008.1.2.4.81
+        TransferSyntax.jpegLSNearLossless.uid   // 1.2.840.10008.1.2.4.81
     ]
 
-    /// The transfer syntax this decoder instance serves, when known.
-    ///
-    /// The registry wires one instance per syntax. Under JPEG-LS Lossless
-    /// (1.2.840.10008.1.2.4.80) a scan whose NEAR parameter is non-zero is a
-    /// near-lossless scan and is refused: decoding it would return samples that
-    /// differ from the encoder's input under a syntax that promises exactness.
-    /// `nil` (the default) accepts both lossless and near-lossless scans.
     // Normalize caller-owned String configuration before any qualified operation.
     private enum SyntaxRestriction: Equatable, Sendable { case any, lossless, nearLossless, unsupported }
     private let syntaxRestriction: SyntaxRestriction
-
     private let decodingLimits: PixelDecodeLimits
     private let precisionPolicy: PrecisionPolicy
 
@@ -109,22 +113,6 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     // MARK: - Decoding
 
     /// Decodes a JPEG-LS compressed frame strictly against `descriptor`.
-    ///
-    /// The decoded frame header must match the descriptor exactly: width and
-    /// height equal Columns and Rows, the component count equals Samples per
-    /// Pixel and the sample precision P equals Bits Stored; every component must be a full-size plane.
-    /// This strict API policy implements the attribute-consistency requirement of
-    /// PS3.5 2026a 8.2.3. Use `decodePixelFrame` with an explicit precision policy
-    /// for bounded recovery under the receiver guidance imported from 8.2.1.
-    /// Any mismatch throws. Previously a mis-sized frame was silently
-    /// zero-filled or truncated to the descriptor's byte count and an
-    /// over-precise frame was silently clamped.
-    /// - Parameters:
-    ///   - frameData: JPEG-LS compressed data
-    ///   - descriptor: Pixel data descriptor
-    ///   - frameIndex: Zero-based source frame index, validated against the descriptor
-    /// - Returns: Uncompressed pixel data laid out per `descriptor`
-    /// - Throws: `DICOMError` if decoding fails or the frame does not match `descriptor`
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
         // A Data-only caller cannot observe a corrected descriptor or diagnostics.
         try decodedPixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
@@ -133,11 +121,6 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// Decodes using the selected precision policy, returning the actual sample descriptor.
     /// Original source attributes remain unchanged. Recovery never masks or clamps samples.
-    /// - Parameters:
-    ///   - frameData: One complete JPEG-LS codestream.
-    ///   - descriptor: Original source attributes, retained unchanged by the caller.
-    ///   - frameIndex: Zero-based source frame index.
-    /// - Returns: Samples with their actual descriptor and recovery diagnostics.
     public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
                                  frameIndex: Int) throws -> DecodedPixelFrame {
         try decodedPixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
@@ -146,42 +129,293 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// Inspects the complete frame envelope and headers without decoding sample data.
     /// Uses the same policy, syntax, descriptor and allocation checks as `decodePixelFrame`.
-    /// Entropy validity and sample ranges are checked only when decoding succeeds.
-    /// - Parameters:
-    ///   - frameData: One complete JPEG-LS codestream.
-    ///   - descriptor: Original source attributes, retained unchanged by the caller.
-    ///   - frameIndex: Zero-based source frame index.
-    /// - Returns: Header-derived descriptor, frame identity and recovery diagnostics.
     public func inspectFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
                              frameIndex: Int) throws -> FrameInfo {
         try preparedFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
                           precisionPolicy: precisionPolicy).info
     }
 
-    private func preparedFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
-                               frameIndex: Int, precisionPolicy: PrecisionPolicy) throws -> (info: FrameInfo, data: Data) {
+    private struct ParsedJPEGLSSummary: Sendable {
+        let width: Int
+        let height: Int
+        let componentCount: Int
+        let bitsPerSample: Int
+        let hasUniformSampling: Bool
+        let hasNearLosslessScan: Bool
+        let hasPointTransform: Bool
+        let hasMappingSelector: Bool
+        let hasMappingTables: Bool
+        let hasColorTransform: Bool
+
+        var recoveryFeaturesAllowed: Bool {
+            !hasNearLosslessScan && !hasPointTransform && !hasMappingSelector
+                && !hasMappingTables && !hasColorTransform
+        }
+    }
+
+    private static func parseJPEGLSMarkerSummary(_ data: Data) throws -> ParsedJPEGLSSummary {
+        try data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> ParsedJPEGLSSummary in
+            func malformed(_ message: String = "Invalid or truncated JPEG-LS header") -> DICOMError {
+                .parsingFailed(message)
+            }
+            func word(_ offset: Int) -> Int {
+                (Int(bytes[offset]) << 8) | Int(bytes[offset + 1])
+            }
+
+            guard bytes.count >= 4, bytes[0] == 0xFF else {
+                throw malformed()
+            }
+            var cursor = 1
+            while cursor < bytes.count && bytes[cursor] == 0xFF {
+                cursor += 1
+            }
+            guard cursor < bytes.count, bytes[cursor] == 0xD8 else {
+                throw malformed()
+            }
+            cursor += 1
+
+            var frameBits: Int?
+            var frameWidth: Int?
+            var frameHeight: Int?
+            var frameComponents: Int?
+            var uniformSampling = true
+            var extendedDimensions: (width: Int, height: Int)?
+            var presetMaxValues: [Int] = []
+            var scanCount = 0
+            var hasNearLosslessScan = false
+            var hasPointTransform = false
+            var hasMappingSelector = false
+            var hasMappingTables = false
+            var hasColorTransform = false
+
+            while cursor < bytes.count {
+                guard bytes[cursor] == 0xFF else { throw malformed() }
+                while cursor < bytes.count && bytes[cursor] == 0xFF {
+                    cursor += 1
+                }
+                guard cursor < bytes.count else { throw malformed() }
+                let marker = bytes[cursor]
+                cursor += 1
+
+                if marker == 0xD9 {
+                    guard let bits = frameBits,
+                          let width = frameWidth,
+                          let height = frameHeight,
+                          let componentCount = frameComponents,
+                          width > 0, height > 0,
+                          scanCount > 0 else {
+                        throw malformed()
+                    }
+                    let maxAllowed = (1 << bits) - 1
+                    for maxVal in presetMaxValues where maxVal > maxAllowed {
+                        throw DICOMError.parsingFailed("JPEG-LS MAXVAL exceeds the encoded precision")
+                    }
+                    guard uniformSampling else {
+                        throw DICOMError.parsingFailed(
+                            "Decoded JPEG-LS component has sub-sampled factors; sub-sampled components are not supported"
+                        )
+                    }
+                    return ParsedJPEGLSSummary(
+                        width: width,
+                        height: height,
+                        componentCount: componentCount,
+                        bitsPerSample: bits,
+                        hasUniformSampling: uniformSampling,
+                        hasNearLosslessScan: hasNearLosslessScan,
+                        hasPointTransform: hasPointTransform,
+                        hasMappingSelector: hasMappingSelector,
+                        hasMappingTables: hasMappingTables,
+                        hasColorTransform: hasColorTransform
+                    )
+                }
+
+                guard bytes.count - cursor >= 2 else { throw malformed() }
+                let length = word(cursor)
+                guard length >= 2, length <= bytes.count - cursor else { throw malformed() }
+                let payload = cursor + 2
+                let end = cursor + length
+
+                switch marker {
+                case 0xF7:
+                    guard frameBits == nil, length >= 8 else { throw malformed() }
+                    let bits = Int(bytes[payload])
+                    let codedHeight = word(payload + 1)
+                    let codedWidth = word(payload + 3)
+                    let count = Int(bytes[payload + 5])
+                    guard (2...16).contains(bits), (1...4).contains(count), length == 8 + 3 * count else {
+                        throw malformed()
+                    }
+                    let resolvedHeight = codedHeight == 0 ? (extendedDimensions?.height ?? 0) : codedHeight
+                    let resolvedWidth = codedWidth == 0 ? (extendedDimensions?.width ?? 0) : codedWidth
+                    if let ext = extendedDimensions {
+                        guard ext.width == resolvedWidth, ext.height == resolvedHeight else {
+                            throw malformed()
+                        }
+                    }
+                    var firstSampling: UInt8?
+                    var seenIDs = Set<UInt8>()
+                    for i in 0..<count {
+                        let at = payload + 6 + 3 * i
+                        let cid = bytes[at]
+                        let hv = bytes[at + 1]
+                        let tq = bytes[at + 2]
+                        guard (1...4).contains(hv >> 4), (1...4).contains(hv & 0x0F), tq == 0,
+                              seenIDs.insert(cid).inserted else {
+                            throw malformed()
+                        }
+                        if let first = firstSampling {
+                            if hv != first { uniformSampling = false }
+                        } else {
+                            firstSampling = hv
+                        }
+                    }
+                    frameBits = bits
+                    frameWidth = resolvedWidth
+                    frameHeight = resolvedHeight
+                    frameComponents = count
+
+                case 0xF8:
+                    guard length >= 3 else { throw malformed() }
+                    let id = bytes[payload]
+                    if id == 1 {
+                        guard length == 13 else { throw malformed() }
+                        let maxVal = word(payload + 1)
+                        presetMaxValues.append(maxVal)
+                        if let bits = frameBits, maxVal > (1 << bits) - 1 {
+                            throw DICOMError.parsingFailed("JPEG-LS MAXVAL exceeds the encoded precision")
+                        }
+                    } else if id == 2 || id == 3 {
+                        hasMappingTables = true
+                    } else if id == 4 {
+                        guard length >= 8, scanCount == 0, extendedDimensions == nil else { throw malformed() }
+                        let size = Int(bytes[payload + 1])
+                        guard (2...4).contains(size), length == 4 + 2 * size else { throw malformed() }
+                        func readDim(_ start: Int) throws -> Int {
+                            var value: UInt32 = 0
+                            for off in 0..<size {
+                                value = (value << 8) | UInt32(bytes[start + off])
+                            }
+                            guard let exact = Int(exactly: value) else {
+                                throw DICOMError.limitExceeded("JPEG-LS extended dimensions exceed addressable range")
+                            }
+                            return exact
+                        }
+                        let height = try readDim(payload + 2)
+                        let width = try readDim(payload + 2 + size)
+                        extendedDimensions = (width: width, height: height)
+                        if let existingW = frameWidth, let existingH = frameHeight {
+                            guard (existingW == 0 || existingW == width),
+                                  (existingH == 0 || existingH == height) else {
+                                throw malformed()
+                            }
+                            frameWidth = width
+                            frameHeight = height
+                        }
+                    }
+
+                case 0xE8:
+                    if length == 7,
+                       bytes[payload] == 109, bytes[payload + 1] == 114,
+                       bytes[payload + 2] == 102, bytes[payload + 3] == 120 {
+                        if bytes[payload + 4] != 0 {
+                            hasColorTransform = true
+                        }
+                    }
+
+                case 0xDA:
+                    guard frameBits != nil, length >= 6 else { throw malformed() }
+                    let ns = Int(bytes[payload])
+                    guard (1...4).contains(ns), length == 6 + 2 * ns else { throw malformed() }
+                    for i in 0..<ns {
+                        let tmi = bytes[payload + 2 + 2 * i]
+                        if tmi != 0 { hasMappingSelector = true }
+                    }
+                    let near = Int(bytes[payload + 1 + 2 * ns])
+                    if near > 0 { hasNearLosslessScan = true }
+                    let ahal = bytes[payload + 3 + 2 * ns]
+                    if ahal != 0 { hasPointTransform = true }
+                    scanCount += 1
+
+                    var scanCursor = end
+                    while scanCursor + 1 < bytes.count {
+                        if bytes[scanCursor] == 0xFF {
+                            let next = bytes[scanCursor + 1]
+                            if next < 0x80 {
+                                scanCursor += 2
+                                continue
+                            }
+                            var markerPos = scanCursor
+                            while markerPos < bytes.count && bytes[markerPos] == 0xFF {
+                                markerPos += 1
+                            }
+                            guard markerPos < bytes.count else { throw malformed() }
+                            let scanMarker = bytes[markerPos]
+                            if (0xD0...0xD7).contains(scanMarker) {
+                                scanCursor = markerPos + 1
+                                continue
+                            }
+                            break
+                        }
+                        scanCursor += 1
+                    }
+                    cursor = scanCursor
+                    continue
+
+                default:
+                    break
+                }
+
+                cursor = end
+            }
+
+            throw malformed()
+        }
+    }
+
+    private func makeSwiftJLSResourceLimits(extraDecodedMinimum: Int = 0) throws -> SwiftJLS.ResourceLimits {
+        let maxEncoded = max(1, decodingLimits.maximumEncodedBytes)
+        let maxPixels = max(1, decodingLimits.maximumPixels)
+        let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes, extraDecodedMinimum))
+        let defaultWorkspace = 512 * 1024 * 1024
+        let (sum1, over1) = maxEncoded.addingReportingOverflow(maxDecoded)
+        let maxWorkspace = over1 ? Int.max : max(defaultWorkspace, sum1)
+        return try SwiftJLS.ResourceLimits(
+            maximumCompressedBytes: maxEncoded,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: maxWorkspace,
+            maximumPixels: maxPixels,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private func preparedFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        precisionPolicy: PrecisionPolicy
+    ) throws -> (info: FrameInfo, data: Data, summary: ParsedJPEGLSSummary, inspected: SwiftJLS.ImageInfo) {
         // Reject oversized slices before rebasing can allocate a copy.
         _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let data = frameData.startIndex == 0 ? frameData : Data(frameData)
         _ = try JPEGFrameEnvelope.parse(data, jpegLS: true)
-        let parsed = try JPEGLSParser(data: data).parse()
-        // JLSwift applies LSE type 4 to the returned effective frame header.
-        let header = parsed.frameHeader
-        // Match the decoder's header-only MAXVAL guard (ITU-T T.87 C.2.4.1.1).
-        let parameters = try parsed.presetParameters ?? JPEGLSPresetParameters.defaultParameters(
-            bitsPerSample: header.bitsPerSample, near: parsed.scanHeaders.first?.near ?? 0)
-        guard parameters.maxValue <= (1 << header.bitsPerSample) - 1 else {
-            throw DICOMError.parsingFailed("JPEG-LS MAXVAL exceeds the encoded precision")
-        }
-        let info = try frameInfo(encodedByteCount: frameData.count, descriptor: descriptor, frameIndex: frameIndex,
-            precisionPolicy: precisionPolicy, width: header.width, height: header.height,
-            componentCount: header.componentCount, precision: header.bitsPerSample,
-            hasNearLosslessScan: parsed.scanHeaders.contains { $0.near > 0 },
-            recoveryFeaturesAllowed: parsed.scanHeaders.allSatisfy {
-                $0.near == 0 && $0.pointTransform == 0 && $0.components.allSatisfy { $0.mappingTableID == 0 }
-            } && parsed.mappingTables.isEmpty && parsed.colorTransformation == .none)
+        let summary = try Self.parseJPEGLSMarkerSummary(data)
+
+        let info = try frameInfo(
+            encodedByteCount: frameData.count,
+            descriptor: descriptor,
+            frameIndex: frameIndex,
+            precisionPolicy: precisionPolicy,
+            width: summary.width,
+            height: summary.height,
+            componentCount: summary.componentCount,
+            precision: summary.bitsPerSample,
+            hasNearLosslessScan: summary.hasNearLosslessScan,
+            recoveryFeaturesAllowed: summary.recoveryFeaturesAllowed
+        )
+
         let actualDescriptor = info.descriptor
-        // Match the maintained decoder's Int-plane budget during header inspection,
+        // Preserve the intermediate sample-plane budget check during header inspection,
         // before allocating samples. Descriptor validation above bounds dimensions.
         let (pixels, pixelOverflow) = actualDescriptor.rows.multipliedReportingOverflow(by: actualDescriptor.columns)
         let (samples, sampleOverflow) = pixels.multipliedReportingOverflow(by: actualDescriptor.samplesPerPixel)
@@ -190,7 +424,36 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
               planeBytes > 0, planeBytes <= decodingLimits.maximumDecodedBytes else {
             throw DICOMError.limitExceeded("JPEG-LS intermediate sample planes exceed decoded byte budget")
         }
-        return (info, data)
+
+        let wideComponentBytes = samples * MemoryLayout<UInt16>.stride
+        let inspected: SwiftJLS.ImageInfo
+        do {
+            let limits = try makeSwiftJLSResourceLimits(extraDecodedMinimum: wideComponentBytes)
+            let codecOptions = try SwiftJLS.CodecOptions(
+                restartIntervalLines: 0,
+                mappingOutputPrecision: summary.hasMappingSelector ? actualDescriptor.bitsStored : nil
+            )
+            let decoder = try SwiftJLS.Decoder(configuration: .init(codecOptions: codecOptions))
+            inspected = try decoder.inspect(
+                data,
+                options: .init(
+                    resourceLimits: limits,
+                    copyPolicy: .requireSharedStorage,
+                    metadataPolicy: .discardAncillary
+                )
+            )
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJLS.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("JPEG-LS inspection exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("JPEG-LS inspection failed: \(error.message)")
+        } catch {
+            throw DICOMError.parsingFailed("JPEG-LS inspection failed: \(error)")
+        }
+
+        return (info, data, summary, inspected)
     }
 
     private func frameInfo(encodedByteCount: Int, descriptor: PixelDataDescriptor,
@@ -270,17 +533,21 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                          diagnostic: diagnostic, expectedByteCount: expectedBytes))
     }
 
+    private func makeQualifiedMonochromeLimits(maximumDecodedBytes: Int) -> QualifiedMonochromeDecoder.Limits {
+        let workspaceCeiling = max(1 << 20, QualifiedMonochromeDecoder.workspaceByteCount)
+        return QualifiedMonochromeDecoder.Limits(
+            maximumEncodedBytes: max(1, decodingLimits.maximumEncodedBytes),
+            maximumPixels: max(1, decodingLimits.maximumPixels),
+            maximumDecodedBytes: max(1, maximumDecodedBytes),
+            maximumDimension: 1_000_000,
+            maximumWorkspaceBytes: workspaceCeiling,
+            maximumMemoryBytes: Int.max,
+            deadlineSeconds: 30.0
+        )
+    }
+
     /// Decode a monochrome 16-bit-container frame into explicitly admitted backing.
-    /// Pixel/workspace capacities are charged before allocation. Runtime/control
-    /// allocation qualification is separate; this API makes no aggregate heap claim.
-    /// Other profiles must use their existing APIs; there is no uncharged fallback.
-    /// - Parameters:
-    ///   - frameData: Immutable encoded frame allocated using `budget`.
-    ///   - descriptor: Source pixel interpretation to validate against the codestream.
-    ///   - frameIndex: Zero-based source frame index.
-    ///   - budget: The exact ledger instance owning `frameData`.
-    ///   - cancellation: Borrowed synchronous cancellation observer.
-    /// - Returns: Actual decoded descriptor, interpretation diagnostics and managed storage.
+    /// Pixel/workspace capacities are charged before allocation.
     public func decodeManagedPixelFrame(_ frameData: borrowing DICOMByteBuffer, descriptor: PixelDataDescriptor,
         frameIndex: Int, budget: borrowing DICOMAllocationBudget, cancellation: DICOMCancellation = .never)
         throws(DICOMManagedFailure) -> ManagedDecodedPixelFrame {
@@ -298,16 +565,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             budget: budget, execution: execution, cancellation: cancellation).get()
     }
 
-    /// Decode the admitted monochrome profile using scalar outcomes throughout the canonical path.
-    /// This backing-only entry requires caller-owned execution storage; use the execution overload
-    /// to validate an explicitly admitted worker. No throwing compatibility adapter is called.
-    /// - Parameters:
-    ///   - frameData: Immutable encoded owner retained by the same budget.
-    ///   - descriptor: Source interpretation validated against the codestream.
-    ///   - frameIndex: Zero-based source frame identity.
-    ///   - budget: Ledger for input, workspace, decoded payload and control storage.
-    ///   - cancellation: Caller-owned synchronous cancellation observer.
-    /// - Returns: Complete managed output or a fixed scalar failure after temporary cleanup.
+    /// Decode the admitted monochrome or 3-component profile using scalar outcomes throughout the canonical path.
     public func decodeManagedPixelFrameOutcome(_ frameData: borrowing DICOMByteBuffer,
         descriptor: PixelDataDescriptor, frameIndex: Int, budget: borrowing DICOMAllocationBudget,
         cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
@@ -324,19 +582,21 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             case .failure(let failure): return .failure(failure)
             }
             if descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 16 {
-                let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                    maximumPixels: decodingLimits.maximumPixels, maximumDecodedBytes: decodingLimits.maximumDecodedBytes))
+                let decoder = QualifiedMonochromeDecoder(
+                    profile: .jlswift0101,
+                    limits: makeQualifiedMonochromeLimits(maximumDecodedBytes: decodingLimits.maximumDecodedBytes)
+                )
                 let workspace: DICOMByteBuffer
-                switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
+                switch DICOMByteBuffer.admit(count: QualifiedMonochromeDecoder.workspaceByteCount,
                                              budget: budget, resource: .staging) {
                 case .success(let value): workspace = value
                 case .failure(let failure): return .failure(failure)
                 }
-                let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
-                let inspectResult = decoder.inspectMonochromeQualified(
+                let codecCancellation = QualifiedCancellation(check: cancellation.check, context: cancellation.context)
+                let inspectResult = decoder.inspect(
                     encoded, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
                 )
-                let header: JPEGLSDecoder.MonochromeInfo
+                let header: QualifiedMonochromeDecoder.MonochromeInfo
                 switch inspectResult {
                 case .success(let value): header = value
                 case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
@@ -346,7 +606,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
                     componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
                     recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
-                        && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == .none) {
+                        && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == 0) {
                 case .success(let value): info = value
                 case .failure(let failure): workspace.keepAlive(); return .failure(failure)
                 }
@@ -357,11 +617,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 }
                 let samples = bytes.unsafeMutableBytes.bindMemory(to: UInt16.self)
                 samples.initialize(repeating: 0)
-                let decodeResult = decoder.decodeMonochromeQualified(
+                let decodeResult = decoder.decode(
                     encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
                 )
                 workspace.keepAlive()
-                let decoded: JPEGLSDecoder.MonochromeInfo
+                let decoded: QualifiedMonochromeDecoder.MonochromeInfo
                 switch decodeResult {
                 case .success(let value): decoded = value
                 case .failure(let failure): return .failure(Self.managedFailure(failure))
@@ -378,20 +638,23 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
             if descriptor.samplesPerPixel == 1 && descriptor.bitsAllocated == 8 {
                 let wideByteCount = descriptor.rows * descriptor.columns * 2
-                let decoder = JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                    maximumPixels: decodingLimits.maximumPixels,
-                    maximumDecodedBytes: max(decodingLimits.maximumDecodedBytes, wideByteCount)))
+                let decoder = QualifiedMonochromeDecoder(
+                    profile: .jlswift0101,
+                    limits: makeQualifiedMonochromeLimits(
+                        maximumDecodedBytes: max(decodingLimits.maximumDecodedBytes, wideByteCount)
+                    )
+                )
                 let workspace: DICOMByteBuffer
-                switch DICOMByteBuffer.admit(count: JPEGLSDecoder.monochromeWorkspaceByteCount,
+                switch DICOMByteBuffer.admit(count: QualifiedMonochromeDecoder.workspaceByteCount,
                                              budget: budget, resource: .staging) {
                 case .success(let value): workspace = value
                 case .failure(let failure): return .failure(failure)
                 }
-                let codecCancellation = JPEGLSCancellation(check: cancellation.check, context: cancellation.context)
-                let inspectResult = decoder.inspectMonochromeQualified(
+                let codecCancellation = QualifiedCancellation(check: cancellation.check, context: cancellation.context)
+                let inspectResult = decoder.inspect(
                     encoded, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
                 )
-                let header: JPEGLSDecoder.MonochromeInfo
+                let header: QualifiedMonochromeDecoder.MonochromeInfo
                 switch inspectResult {
                 case .success(let value): header = value
                 case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
@@ -411,11 +674,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 }
                 let samples = wideStaging.unsafeMutableBytes.bindMemory(to: UInt16.self)
                 samples.initialize(repeating: 0)
-                let decodeResult = decoder.decodeMonochromeQualified(
+                let decodeResult = decoder.decode(
                     encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
                 )
                 workspace.keepAlive()
-                let decoded: JPEGLSDecoder.MonochromeInfo
+                let decoded: QualifiedMonochromeDecoder.MonochromeInfo
                 switch decodeResult {
                 case .success(let value): decoded = value
                 case .failure(let failure): wideStaging.keepAlive(); return .failure(Self.managedFailure(failure))
@@ -467,7 +730,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             }
 
             let info: FrameInfo
-            let image: MultiComponentImageData
+            let decodedPayload: Data
             do {
                 let staging: DICOMByteBuffer
                 switch DICOMByteBuffer.admit(count: stagingBytes, budget: budget, resource: .staging) {
@@ -477,26 +740,9 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 if let failure = cancellation.failure { staging.keepAlive(); return .failure(failure) }
 
                 let data = Data(encoded)
-                let headerWidth: Int
-                let headerHeight: Int
-                let headerComponentCount: Int
-                let headerBitsPerSample: Int
-                let hasNearLosslessScan: Bool
+                let summary: ParsedJPEGLSSummary
                 do {
-                    let parsed = try JPEGLSParser(data: data).parse()
-                    let parameters = try parsed.presetParameters ?? JPEGLSPresetParameters.defaultParameters(
-                        bitsPerSample: parsed.frameHeader.bitsPerSample,
-                        near: parsed.scanHeaders.first?.near ?? 0
-                    )
-                    guard parameters.maxValue <= (1 << parsed.frameHeader.bitsPerSample) - 1 else {
-                        staging.keepAlive()
-                        return .failure(DICOMManagedFailure(.malformed, 105))
-                    }
-                    headerWidth = parsed.frameHeader.width
-                    headerHeight = parsed.frameHeader.height
-                    headerComponentCount = parsed.frameHeader.componentCount
-                    headerBitsPerSample = parsed.frameHeader.bitsPerSample
-                    hasNearLosslessScan = parsed.scanHeaders.contains { $0.near > 0 }
+                    summary = try Self.parseJPEGLSMarkerSummary(data)
                 } catch {
                     staging.keepAlive()
                     return .failure(DICOMManagedFailure(.malformed, 106, domain: 0x0100))
@@ -504,27 +750,63 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
                 switch managedFrameInfoOutcome(
                     encodedByteCount: encoded.count, descriptor: descriptor, frameIndex: frameIndex,
-                    precisionPolicy: precisionPolicy, width: headerWidth, height: headerHeight,
-                    componentCount: headerComponentCount, precision: headerBitsPerSample,
-                    hasNearLosslessScan: hasNearLosslessScan,
+                    precisionPolicy: precisionPolicy, width: summary.width, height: summary.height,
+                    componentCount: summary.componentCount, precision: summary.bitsPerSample,
+                    hasNearLosslessScan: summary.hasNearLosslessScan,
                     recoveryFeaturesAllowed: false
                 ) {
                 case .success(let value): info = value
                 case .failure(let failure): staging.keepAlive(); return .failure(failure)
                 }
 
+                let targetDescriptor = info.descriptor
+                let wideComponentBytes = preSamples * MemoryLayout<UInt16>.stride
+                let limits: SwiftJLS.ResourceLimits
+                let decoder: SwiftJLS.Decoder
+                let inspected: SwiftJLS.ImageInfo
                 do {
-                    image = try JPEGLSDecoder(limits: .init(
-                        maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                        maximumPixels: decodingLimits.maximumPixels,
-                        maximumDecodedBytes: decodingLimits.maximumDecodedBytes
-                    )).decode(data)
-                    try Self.validate(image, against: info.descriptor)
+                    limits = try makeSwiftJLSResourceLimits(extraDecodedMinimum: wideComponentBytes)
+                    let codecOptions = try SwiftJLS.CodecOptions(
+                        restartIntervalLines: 0,
+                        mappingOutputPrecision: summary.hasMappingSelector ? targetDescriptor.bitsStored : nil
+                    )
+                    decoder = try SwiftJLS.Decoder(configuration: .init(codecOptions: codecOptions))
+                    inspected = try decoder.inspect(
+                        data,
+                        options: .init(
+                            resourceLimits: limits,
+                            copyPolicy: .requireSharedStorage,
+                            metadataPolicy: .discardAncillary
+                        )
+                    )
                 } catch {
                     staging.keepAlive()
-                    return .failure(DICOMManagedFailure(.codecFailure, 107, domain: 0x0100))
+                    return .failure(DICOMManagedFailure(.malformed, 106, domain: 0x0100))
+                }
+
+                let losslessExpected = (syntaxRestriction == .lossless) || !summary.hasNearLosslessScan
+                let expectedByteCount = info.expectedByteCount
+                let decodeOutcome = CompressionSuiteSyncBridge.runManaged(
+                    deadlineSeconds: 30.0,
+                    joinGraceSeconds: 1.0,
+                    domain: 0x0100,
+                    cancellation: cancellation
+                ) {
+                    try await Self.decodeToDICOMBytes(
+                        data: data,
+                        decoder: decoder,
+                        inspected: inspected,
+                        descriptor: targetDescriptor,
+                        expectedByteCount: expectedByteCount,
+                        limits: limits,
+                        requireExactFidelity: losslessExpected
+                    )
                 }
                 staging.keepAlive()
+                switch decodeOutcome {
+                case .success(let payload): decodedPayload = payload
+                case .failure(let failure): return .failure(failure)
+                }
             }
 
             let bytes: DICOMByteBuffer
@@ -533,32 +815,16 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             case .failure(let failure): return .failure(failure)
             }
             if let failure = cancellation.failure { return .failure(failure) }
-            guard let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+            guard decodedPayload.count == info.expectedByteCount,
+                  let dst = bytes.unsafeMutableBytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
                 return .failure(DICOMManagedFailure(.codecResultMismatch))
             }
-            let width = info.descriptor.columns
-            let height = info.descriptor.rows
-            let bps = bytesPerSample(info.descriptor)
-            let planar = info.descriptor.planarConfiguration == 1
-            for c in 0..<3 {
-                let compPixels = image.components[c].pixels
-                for y in 0..<height {
-                    if let failure = cancellation.failure { return .failure(failure) }
-                    let row = compPixels[y]
-                    for x in 0..<width {
-                        let value = row[x]
-                        let byteIdx = pixelIndex(
-                            component: c, x: x, y: y, width: width, height: height, samples: 3, planar: planar
-                        ) * bps
-                        if bps == 1 {
-                            dst[byteIdx] = UInt8(clamping: value)
-                        } else {
-                            dst[byteIdx] = UInt8(value & 0xFF)
-                            dst[byteIdx + 1] = UInt8((value >> 8) & 0xFF)
-                        }
-                    }
+            decodedPayload.withUnsafeBytes { src in
+                if let srcBase = src.baseAddress?.assumingMemoryBound(to: UInt8.self) {
+                    dst.update(from: srcBase, count: info.expectedByteCount)
                 }
             }
+            bytes.keepAlive()
             if let failure = cancellation.failure { return .failure(failure) }
             return .success(ManagedDecodedPixelFrame(
                 data: bytes, descriptor: info.descriptor,
@@ -568,14 +834,6 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     }
 
     /// Decode on the original admitted worker with scalar identity/refusal status.
-    /// - Parameters:
-    ///   - frameData: Encoded backing retained by the operation ledger.
-    ///   - descriptor: Source interpretation to validate.
-    ///   - frameIndex: Source frame identity.
-    ///   - budget: Shared admission ledger.
-    ///   - execution: Whole-stack reservation retained until the synchronous worker returns.
-    ///   - cancellation: Borrowed synchronous cancellation observer.
-    /// - Returns: Managed output or scalar failure, without Swift throwing machinery.
     @available(*, noasync, message: "Qualified decoding must remain on its admitted synchronous worker")
     public func decodeManagedPixelFrameOutcome(_ frameData: borrowing DICOMByteBuffer,
         descriptor: PixelDataDescriptor, frameIndex: Int, budget: borrowing DICOMAllocationBudget,
@@ -589,7 +847,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                                                budget: budget, cancellation: cancellation)
     }
 
-    private static func managedFailure(_ error: JPEGLSManagedFailure) -> DICOMManagedFailure {
+    private static func managedFailure(_ error: QualifiedFailure) -> DICOMManagedFailure {
         if error.code == .cancelled { return DICOMManagedFailure(.cancelled) }
         // Domain 0x0100 is JPEGLS; preserve both numerical dependency operands.
         return DICOMManagedFailure(.codecFailure, Int(error.code.rawValue), error.operand0,
@@ -598,59 +856,222 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     private func decodedPixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor,
                                    frameIndex: Int, precisionPolicy: PrecisionPolicy) throws -> DecodedPixelFrame {
-        let (info, data) = try preparedFrame(frameData, descriptor: descriptor, frameIndex: frameIndex,
-                                             precisionPolicy: precisionPolicy)
-        let image: MultiComponentImageData
+        let (info, data, summary, inspected) = try preparedFrame(
+            frameData, descriptor: descriptor, frameIndex: frameIndex, precisionPolicy: precisionPolicy
+        )
+        let targetDescriptor = info.descriptor
+        let wideComponentBytes = targetDescriptor.rows * targetDescriptor.columns
+            * targetDescriptor.samplesPerPixel * MemoryLayout<UInt16>.stride
+        let limits = try makeSwiftJLSResourceLimits(extraDecodedMinimum: wideComponentBytes)
+        let codecOptions = try SwiftJLS.CodecOptions(
+            restartIntervalLines: 0,
+            mappingOutputPrecision: summary.hasMappingSelector ? targetDescriptor.bitsStored : nil
+        )
+        let decoder = try SwiftJLS.Decoder(configuration: .init(codecOptions: codecOptions))
+        let losslessExpected = (syntaxRestriction == .lossless) || !summary.hasNearLosslessScan
+        let expectedByteCount = info.expectedByteCount
+
+        let bytes: Data
         do {
-            image = try JPEGLSDecoder(limits: .init(maximumEncodedBytes: decodingLimits.maximumEncodedBytes,
-                maximumPixels: decodingLimits.maximumPixels,
-                maximumDecodedBytes: decodingLimits.maximumDecodedBytes)).decode(data)
+            bytes = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJLS"
+            ) {
+                try await Self.decodeToDICOMBytes(
+                    data: data,
+                    decoder: decoder,
+                    inspected: inspected,
+                    descriptor: targetDescriptor,
+                    expectedByteCount: expectedByteCount,
+                    limits: limits,
+                    requireExactFidelity: losslessExpected
+                )
+            }
+        } catch let error as CancellationError {
+            throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJLS.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("JPEG-LS decode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error.message)")
         } catch {
             throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
         }
 
-        try Self.validate(image, against: info.descriptor)
-        let bytes = serialize(image, descriptor: info.descriptor)
-        guard bytes.count == info.expectedByteCount else { throw DICOMError.parsingFailed("JPEG-LS output length mismatch") }
-        return DecodedPixelFrame(data: bytes, descriptor: info.descriptor, sourceFrameIndex: info.sourceFrameIndex,
-                                 diagnostics: info.diagnostics)
+        guard bytes.count == info.expectedByteCount else {
+            throw DICOMError.parsingFailed("JPEG-LS output length mismatch")
+        }
+        return DecodedPixelFrame(
+            data: bytes, descriptor: info.descriptor,
+            sourceFrameIndex: info.sourceFrameIndex, diagnostics: info.diagnostics
+        )
     }
 
-    /// Verifies that the decoded image is exactly the frame `descriptor` declares.
-    static func validate(_ image: MultiComponentImageData, against descriptor: PixelDataDescriptor) throws {
-        let header = image.frameHeader
-        guard header.width == descriptor.columns, header.height == descriptor.rows else {
-            throw DICOMError.parsingFailed(
-                "Decoded JPEG-LS dimensions (\(header.width)x\(header.height)) do not match expected "
-                    + "(\(descriptor.columns)x\(descriptor.rows))"
-            )
+    private static func decodeToDICOMBytes(
+        data: Data,
+        decoder: SwiftJLS.Decoder,
+        inspected: SwiftJLS.ImageInfo,
+        descriptor: PixelDataDescriptor,
+        expectedByteCount: Int,
+        limits: SwiftJLS.ResourceLimits,
+        requireExactFidelity: Bool
+    ) async throws -> Data {
+        let dstDescriptor = try makeDecodeDestinationDescriptor(
+            from: descriptor,
+            inspected: inspected,
+            limits: limits
+        )
+        let destination = try SwiftJLS.ImageDestination.allocate(
+            descriptor: dstDescriptor,
+            limits: limits
+        )
+        let decodeOptions = SwiftJLS.DecodeOptions(
+            resourceLimits: limits,
+            copyPolicy: .requireSharedStorage,
+            metadataPolicy: .discardAncillary
+        )
+        let decoded = try await decoder.decode(data, into: destination, options: decodeOptions)
+        guard decoded.report.copyEvents.isEmpty else {
+            throw DICOMError.parsingFailed("JPEG-LS decode violated requireSharedStorage copy policy")
         }
-        guard header.componentCount == descriptor.samplesPerPixel,
-              image.components.count == descriptor.samplesPerPixel else {
-            throw DICOMError.parsingFailed(
-                "Decoded JPEG-LS component count \(image.components.count) (frame header "
-                    + "\(header.componentCount)) does not match samples per pixel \(descriptor.samplesPerPixel)"
-            )
-        }
-        guard header.bitsPerSample == descriptor.bitsStored, header.bitsPerSample <= descriptor.bitsAllocated else {
-            throw DICOMError.parsingFailed(
-                "Decoded JPEG-LS precision \(header.bitsPerSample) bits does not match Bits Stored "
-                    + "\(descriptor.bitsStored) (Bits Allocated \(descriptor.bitsAllocated))"
-            )
-        }
-        for component in image.components {
-            guard component.pixels.count == descriptor.rows,
-                  component.pixels.allSatisfy({ $0.count == descriptor.columns }) else {
+        if requireExactFidelity {
+            guard decoded.report.fidelity == .exactSamples else {
                 throw DICOMError.parsingFailed(
-                    "Decoded JPEG-LS component \(component.id) is not a full \(descriptor.columns)x\(descriptor.rows) "
-                        + "plane; sub-sampled components are not supported"
+                    "JPEG-LS lossless decode reported non-exact fidelity: \(decoded.report.fidelity)"
                 )
             }
-            let maximum = (1 << header.bitsPerSample) - 1
-            guard component.pixels.allSatisfy({ $0.allSatisfy({ $0 >= 0 && $0 <= maximum }) }) else {
-                throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
-            }
         }
+
+        let storageBits = dstDescriptor.storageBits
+        let meaningfulBits = dstDescriptor.meaningfulBits
+        let maxSample = UInt16((1 << meaningfulBits) - 1)
+
+        return try decoded.image.storage.withUnsafeBytes { raw in
+            guard raw.count >= expectedByteCount else {
+                throw DICOMError.parsingFailed("JPEG-LS decoded storage shorter than expected")
+            }
+            if meaningfulBits < storageBits {
+                if storageBits == 8 {
+                    let max8 = UInt8(truncatingIfNeeded: maxSample)
+                    for i in 0..<expectedByteCount {
+                        if raw[i] > max8 {
+                            throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                        }
+                    }
+                } else {
+                    let sampleCount = expectedByteCount / 2
+                    for i in 0..<sampleCount {
+                        let word = UInt16(raw[i * 2]) | (UInt16(raw[i * 2 + 1]) << 8)
+                        if word > maxSample {
+                            throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                        }
+                    }
+                }
+            }
+            guard let base = raw.baseAddress else {
+                return Data()
+            }
+            return Data(bytes: base, count: expectedByteCount)
+        }
+    }
+
+    private static func makeDecodeDestinationDescriptor(
+        from d: PixelDataDescriptor,
+        inspected: SwiftJLS.ImageInfo,
+        limits: SwiftJLS.ResourceLimits
+    ) throws -> SwiftJLS.ImageDescriptor {
+        let width = d.columns
+        let height = d.rows
+        let storageBits = d.bitsAllocated <= 8 ? 8 : 16
+        let bps = storageBits / 8
+        let meaningfulBits = d.bitsStored
+        guard (2...16).contains(meaningfulBits), meaningfulBits <= storageBits else {
+            throw DICOMError.parsingFailed(
+                "Decoded JPEG-LS precision \(meaningfulBits) bits is invalid for Bits Allocated \(storageBits)"
+            )
+        }
+
+        let components = inspected.descriptor.components
+        let colour = inspected.descriptor.colour
+        guard components.count == d.samplesPerPixel else {
+            throw DICOMError.parsingFailed(
+                "Decoded JPEG-LS component count \(components.count) does not match samples per pixel \(d.samplesPerPixel)"
+            )
+        }
+
+        let planes: [SwiftJLS.PlaneDescriptor]
+        switch d.samplesPerPixel {
+        case 1:
+            let rowBytes = width * bps
+            planes = [
+                try SwiftJLS.PlaneDescriptor(
+                    width: width,
+                    height: height,
+                    components: [0],
+                    offset: 0,
+                    sampleStride: bps,
+                    pixelStride: bps,
+                    rowBytes: rowBytes,
+                    byteCount: rowBytes * height
+                )
+            ]
+        case 3:
+            if d.planarConfiguration == 1 {
+                let rowBytes = width * bps
+                let planeBytes = rowBytes * height
+                planes = [
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [0],
+                        offset: 0, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes
+                    ),
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [1],
+                        offset: planeBytes, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes * 2
+                    ),
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [2],
+                        offset: planeBytes * 2, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes * 3
+                    )
+                ]
+            } else {
+                let pixelStride = 3 * bps
+                let rowBytes = width * pixelStride
+                planes = [
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width,
+                        height: height,
+                        components: [0, 1, 2],
+                        offset: 0,
+                        sampleStride: bps,
+                        pixelStride: pixelStride,
+                        rowBytes: rowBytes,
+                        byteCount: rowBytes * height
+                    )
+                ]
+            }
+        default:
+            throw DICOMError.parsingFailed("Unsupported JPEG-LS samplesPerPixel \(d.samplesPerPixel)")
+        }
+
+        return try SwiftJLS.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: meaningfulBits,
+            byteOrder: .littleEndian,
+            components: components,
+            colour: colour,
+            alpha: .absent,
+            planes: planes,
+            limits: limits
+        )
     }
 
     // MARK: - Encoding
@@ -666,29 +1087,263 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         return true
     }
 
-    /// Encodes a single frame to JPEG-LS format
-    /// - Parameters:
-    ///   - frameData: Uncompressed frame data laid out per `descriptor`
-    ///   - descriptor: Pixel data descriptor
-    ///   - frameIndex: Zero-based frame index
-    ///   - configuration: Compression configuration
-    /// - Returns: JPEG-LS compressed frame data
-    /// - Throws: `DICOMError` if encoding fails
-    public func encodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int, configuration: CompressionConfiguration) throws -> Data {
-        let near = nearParameter(for: configuration, descriptor: descriptor)
-        // JLSwift expects sample values in [0, 2^bitsPerSample - 1]; track the
-        // stored precision (Bits Stored) rather than the allocated container.
-        let bitsPerSample = max(2, descriptor.bitsStored)
-        let interleave: JPEGLSInterleaveMode = descriptor.samplesPerPixel > 1 ? .sample : .none
+    /// Encodes a single frame to JPEG-LS format.
+    public func encodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        configuration: CompressionConfiguration
+    ) throws -> Data {
+        try encodeFrame(
+            frameData,
+            descriptor: descriptor,
+            frameIndex: frameIndex,
+            configuration: configuration,
+            interleaveMode: .automatic
+        )
+    }
+
+    /// Encodes a single frame to JPEG-LS format with explicit scan interleave selection (`ILV`).
+    public func encodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        configuration: CompressionConfiguration,
+        interleaveMode: InterleaveMode
+    ) throws -> Data {
+        let bitsPerSample = max(2, min(16, descriptor.bitsStored))
+        let near = nearParameter(for: configuration, descriptor: descriptor, bitsPerSample: bitsPerSample)
+        let swiftInterleave: SwiftJLS.CodecOptions.InterleaveMode
+        switch interleaveMode {
+        case .automatic:
+            swiftInterleave = descriptor.samplesPerPixel > 1 ? .sample : .none
+        case .none:
+            swiftInterleave = .none
+        case .line:
+            swiftInterleave = .line
+        case .sample:
+            swiftInterleave = .sample
+        }
 
         do {
-            let image = try buildImage(from: frameData, descriptor: descriptor, bitsPerSample: bitsPerSample)
-            let config = try JPEGLSEncoder.Configuration(near: near, interleaveMode: interleave)
-            return try JPEGLSEncoder().encode(image, configuration: config)
+            let limits = try makeEncodeResourceLimits(descriptor: descriptor)
+            let image = try Self.buildEncodeImage(
+                from: frameData,
+                descriptor: descriptor,
+                bitsPerSample: bitsPerSample,
+                limits: limits
+            )
+            let mode: SwiftJLS.CompressionMode = near == 0
+                ? .lossless
+                : .nearLossless(maximumAbsoluteError: near)
+            let codecOptions = try SwiftJLS.CodecOptions(
+                restartIntervalLines: 0,
+                interleaveMode: swiftInterleave,
+                colourTransform: .none
+            )
+            let encoderConfig = try SwiftJLS.EncoderConfiguration(mode: mode, codecOptions: codecOptions)
+            let encoder = try SwiftJLS.Encoder(configuration: encoderConfig)
+            let encodeOptions = SwiftJLS.EncodeOptions(
+                resourceLimits: limits,
+                copyPolicy: .requireSharedStorage,
+                metadataPolicy: .discardAncillary
+            )
+            let encoded = try CompressionSuiteSyncBridge.run(
+                deadlineSeconds: 30.0,
+                joinGraceSeconds: 1.0,
+                codecName: "SwiftJLS"
+            ) {
+                try await encoder.encode(image, options: encodeOptions)
+            }
+            guard encoded.report.copyEvents.isEmpty else {
+                throw DICOMError.parsingFailed("JPEG-LS encode violated requireSharedStorage copy policy")
+            }
+            if near == 0 {
+                guard encoded.report.fidelity == .exactSamples else {
+                    throw DICOMError.parsingFailed(
+                        "JPEG-LS lossless encode reported non-exact fidelity: \(encoded.report.fidelity)"
+                    )
+                }
+            }
+            return encoded.data
+        } catch let error as CancellationError {
+            throw error
         } catch let error as DICOMError {
             throw error
+        } catch let error as SwiftJLS.CodecError {
+            if error.category == .resourceLimitExceeded {
+                throw DICOMError.limitExceeded("JPEG-LS encode exceeded resource limits: \(error.message)")
+            }
+            throw DICOMError.parsingFailed("JPEG-LS encode failed: \(error.message)")
         } catch {
             throw DICOMError.parsingFailed("JPEG-LS encode failed: \(error)")
+        }
+    }
+
+    private func makeEncodeResourceLimits(descriptor: PixelDataDescriptor) throws -> SwiftJLS.ResourceLimits {
+        let (pixels, pOver) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+        let (samples, sOver) = pixels.multipliedReportingOverflow(by: max(1, descriptor.samplesPerPixel))
+        let (decodedBytes, bOver) = samples.multipliedReportingOverflow(by: bytesPerSample(descriptor))
+        guard !pOver, !sOver, !bOver, pixels > 0, decodedBytes > 0 else {
+            throw DICOMError.parsingFailed("JPEG-LS encode: invalid frame dimensions")
+        }
+        let maxPixels = max(64_000_000, pixels)
+        let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
+        let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
+        let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 4096)
+        return try SwiftJLS.ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: Int.max / 4,
+            maximumPixels: maxPixels,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func buildEncodeImage(
+        from frameData: Data,
+        descriptor: PixelDataDescriptor,
+        bitsPerSample: Int,
+        limits: SwiftJLS.ResourceLimits
+    ) throws -> SwiftJLS.Image {
+        let width = descriptor.columns
+        let height = descriptor.rows
+        let samples = descriptor.samplesPerPixel
+        let storageBits = descriptor.bitsAllocated <= 8 ? 8 : 16
+        let bps = storageBits / 8
+        guard width > 0, height > 0, (2...16).contains(bitsPerSample), bitsPerSample <= storageBits else {
+            throw DICOMError.parsingFailed("JPEG-LS encode: invalid frame geometry or precision")
+        }
+
+        let components: [SwiftJLS.ComponentRole]
+        let colour: SwiftJLS.ColourInterpretation
+        let planes: [SwiftJLS.PlaneDescriptor]
+        switch samples {
+        case 1:
+            components = [.grey]
+            colour = .greyscale
+            let rowBytes = width * bps
+            planes = [
+                try SwiftJLS.PlaneDescriptor(
+                    width: width,
+                    height: height,
+                    components: [0],
+                    offset: 0,
+                    sampleStride: bps,
+                    pixelStride: bps,
+                    rowBytes: rowBytes,
+                    byteCount: rowBytes * height
+                )
+            ]
+        case 3:
+            // Use durable uninterpreted component IDs (1, 2, 3) with `.unknown` colour so
+            // SwiftJLS emits pure ISO/IEC 14495-1 `SOI + SOF55 + SOS + ... + EOI` without a
+            // SPIFF APP8 wrapper (whose directory-end embeds an inner `FF D8` rejected by DICOM
+            // single-frame JPEG-LS encapsulation rules and DCMTK/CharLS).
+            components = [
+                .uninterpreted("JPEG-LS:1"),
+                .uninterpreted("JPEG-LS:2"),
+                .uninterpreted("JPEG-LS:3")
+            ]
+            colour = .unknown
+            if descriptor.planarConfiguration == 1 {
+                let rowBytes = width * bps
+                let planeBytes = rowBytes * height
+                planes = [
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [0],
+                        offset: 0, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes
+                    ),
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [1],
+                        offset: planeBytes, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes * 2
+                    ),
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width, height: height, components: [2],
+                        offset: planeBytes * 2, sampleStride: bps, pixelStride: bps,
+                        rowBytes: rowBytes, byteCount: planeBytes * 3
+                    )
+                ]
+            } else {
+                let pixelStride = 3 * bps
+                let rowBytes = width * pixelStride
+                planes = [
+                    try SwiftJLS.PlaneDescriptor(
+                        width: width,
+                        height: height,
+                        components: [0, 1, 2],
+                        offset: 0,
+                        sampleStride: bps,
+                        pixelStride: pixelStride,
+                        rowBytes: rowBytes,
+                        byteCount: rowBytes * height
+                    )
+                ]
+            }
+        default:
+            throw DICOMError.parsingFailed("JPEG-LS encode: unsupported samplesPerPixel \(samples)")
+        }
+
+        let swiftDescriptor = try SwiftJLS.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: bitsPerSample,
+            byteOrder: .littleEndian,
+            components: components,
+            colour: colour,
+            alpha: .absent,
+            planes: planes,
+            limits: limits
+        )
+
+        let destination = try SwiftJLS.ImageDestination.allocate(
+            descriptor: swiftDescriptor,
+            limits: limits
+        )
+        let requiredBytes = swiftDescriptor.requiredByteCount
+        let needsSignedSubwordMask = descriptor.isSigned && bitsPerSample < storageBits
+
+        return try destination.write { dstRaw in
+            guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return
+            }
+            let copyCount = min(frameData.count, requiredBytes)
+            frameData.withUnsafeBytes { srcRaw in
+                if let src = srcRaw.baseAddress?.assumingMemoryBound(to: UInt8.self), copyCount > 0 {
+                    dst.update(from: src, count: copyCount)
+                }
+            }
+            if needsSignedSubwordMask {
+                let totalCells = requiredBytes / bps
+                let storedMask = UInt16((1 << bitsPerSample) - 1)
+                let signBit = UInt16(1 << (bitsPerSample - 1))
+                let containerMask: UInt16 = storageBits == 8 ? 0x00FF : 0xFFFF
+                let upperMask = containerMask ^ storedMask
+                for i in 0..<totalCells {
+                    if bps == 1 {
+                        let word = UInt16(dst[i])
+                        let upper = word & upperMask
+                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
+                            throw DICOMError.parsingFailed("Signed 8-bit sample exceeds \(bitsPerSample)-bit precision")
+                        }
+                        dst[i] = UInt8(truncatingIfNeeded: word & storedMask)
+                    } else {
+                        let word = UInt16(dst[i * 2]) | (UInt16(dst[i * 2 + 1]) << 8)
+                        let upper = word & upperMask
+                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
+                            throw DICOMError.parsingFailed("Signed 16-bit sample exceeds \(bitsPerSample)-bit precision")
+                        }
+                        let masked = word & storedMask
+                        dst[i * 2] = UInt8(masked & 0xFF)
+                        dst[i * 2 + 1] = UInt8((masked >> 8) & 0xFF)
+                    }
+                }
+            }
         }
     }
 
@@ -696,122 +1351,24 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// Derives the JPEG-LS NEAR value from a DICOM compression configuration.
     /// Lossless (or lossless-preferring) configurations map to NEAR = 0.
-    ///
-    /// JLSwift's encoder caps NEAR at 255 regardless of sample precision
-    /// (`JPEGLSEncoder.Configuration` rejects NEAR > 255), so the derived value
-    /// is clamped to that range — otherwise a 16-bit source at, e.g., "high"
-    /// quality would yield NEAR ≈ 655 and the encode would throw.
-    private func nearParameter(for configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Int {
+    private func nearParameter(
+        for configuration: CompressionConfiguration,
+        descriptor: PixelDataDescriptor,
+        bitsPerSample: Int
+    ) -> Int {
         if configuration.preferLossless || configuration.quality.isLossless {
             return 0
         }
         let maxVal = descriptor.bitsAllocated == 8 ? 255 : (1 << descriptor.bitsStored) - 1
         let scaled = Int(Double(maxVal) * (1.0 - configuration.quality.value) * 0.1)
-        return min(Self.maxNear, max(0, scaled))
+        let precisionNearCap = min(Self.maxNear, max(1, ((1 << bitsPerSample) - 1) / 2))
+        return min(precisionNearCap, max(0, scaled))
     }
 
-    /// Largest NEAR value JLSwift's `JPEGLSEncoder.Configuration` accepts.
+    /// Largest NEAR value JPEG-LS permits in an 8-bit SOS field (ITU-T T.87 C.2.3).
     private static let maxNear = 255
 
-    // MARK: - Pixel (de)serialization
-
-    /// Bytes per stored sample, derived from Bits Allocated (8 → 1, otherwise 2).
     private func bytesPerSample(_ descriptor: PixelDataDescriptor) -> Int {
         descriptor.bitsAllocated <= 8 ? 1 : 2
-    }
-
-    /// Linear pixel index for component `c` at (`x`, `y`), honouring Samples per
-    /// Pixel and Planar Configuration (0 = sample-interleaved, 1 = planar).
-    private func pixelIndex(component c: Int, x: Int, y: Int, width: Int, height: Int, samples: Int, planar: Bool) -> Int {
-        if samples == 1 {
-            return y * width + x
-        } else if planar {
-            return c * width * height + y * width + x
-        } else {
-            return (y * width + x) * samples + c
-        }
-    }
-
-    /// Serializes JLSwift's row-major `[[Int]]` components into DICOM pixel bytes
-    /// matching `descriptor` (Bits Allocated, Samples per Pixel, Planar
-    /// Configuration). 16-bit samples are written little-endian per DICOM.
-    /// Callers must `validate` first: every plane is exactly `columns` x `rows`.
-    private func serialize(_ image: MultiComponentImageData, descriptor: PixelDataDescriptor) -> Data {
-        let width = descriptor.columns
-        let height = descriptor.rows
-        let samples = descriptor.samplesPerPixel
-        let bps = bytesPerSample(descriptor)
-        let planar = descriptor.planarConfiguration == 1
-        var output = Data(count: width * height * samples * bps)
-
-        output.withUnsafeMutableBytes { raw in
-            guard let base = raw.baseAddress else { return }
-            let buffer = base.assumingMemoryBound(to: UInt8.self)
-            for c in 0..<samples {
-                let pixels = image.components[c].pixels
-                for y in 0..<height {
-                    let row = pixels[y]
-                    for x in 0..<width {
-                        let value = row[x]
-                        let byteIndex = pixelIndex(component: c, x: x, y: y, width: width, height: height, samples: samples, planar: planar) * bps
-                        if bps == 1 {
-                            buffer[byteIndex] = UInt8(clamping: value)
-                        } else {
-                            buffer[byteIndex] = UInt8(value & 0xFF)
-                            buffer[byteIndex + 1] = UInt8((value >> 8) & 0xFF)
-                        }
-                    }
-                }
-            }
-        }
-        return output
-    }
-
-    /// Builds a JLSwift `MultiComponentImageData` from DICOM pixel bytes.
-    private func buildImage(from frameData: Data, descriptor: PixelDataDescriptor, bitsPerSample: Int) throws -> MultiComponentImageData {
-        let width = descriptor.columns
-        let height = descriptor.rows
-        let samples = descriptor.samplesPerPixel
-        let bps = bytesPerSample(descriptor)
-        let planar = descriptor.planarConfiguration == 1
-        let start = frameData.startIndex
-
-        func sample(component c: Int, _ x: Int, _ y: Int) -> Int {
-            let byteIndex = pixelIndex(component: c, x: x, y: y, width: width, height: height, samples: samples, planar: planar) * bps
-            if bps == 1 {
-                guard byteIndex < frameData.count else { return 0 }
-                return Int(frameData[start + byteIndex])
-            } else {
-                guard byteIndex + 1 < frameData.count else { return 0 }
-                return Int(frameData[start + byteIndex]) | (Int(frameData[start + byteIndex + 1]) << 8)
-            }
-        }
-
-        func plane(component c: Int) -> [[Int]] {
-            var rows = [[Int]]()
-            rows.reserveCapacity(height)
-            for y in 0..<height {
-                var row = [Int](repeating: 0, count: width)
-                for x in 0..<width {
-                    row[x] = sample(component: c, x, y)
-                }
-                rows.append(row)
-            }
-            return rows
-        }
-
-        switch samples {
-        case 1:
-            return try MultiComponentImageData.grayscale(pixels: plane(component: 0), bitsPerSample: bitsPerSample)
-        case 3:
-            return try MultiComponentImageData.rgb(
-                redPixels: plane(component: 0),
-                greenPixels: plane(component: 1),
-                bluePixels: plane(component: 2),
-                bitsPerSample: bitsPerSample
-            )
-        default:
-            throw DICOMError.parsingFailed("JPEG-LS encode: unsupported samplesPerPixel \(samples)")
-        }
     }
 }

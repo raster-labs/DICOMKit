@@ -235,12 +235,11 @@ let package = Package(
         .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.1.0"),
         // SwiftRLE — pure-Swift DICOM RLE Lossless (PS3.5 Annex G) and PackBits codec.
         .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.1"),
-        // JLSwift — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
-        // Provides the `JPEGLS` product, which backs DICOMCore.JPEGLSCodec.
-        .package(url: "https://github.com/raster-labs/JLSwift.git", exact: "0.10.1"),
+        // SwiftJLS — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
+        .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.0"),
         // JLISwift — native-Swift JPEG codec (baseline/extended/progressive/
         // lossless SOF0–3, 8/12/16-bit, Accelerate-backed; jpegli-parity target).
-        // Distinct from JLSwift (JPEG-LS). Products: `JLISwift` (core codec) and
+        // Distinct from SwiftJLS (JPEG-LS). Products: `JLISwift` (core codec) and
         // `JLIDICOM` (DICOM bridge helpers). No external deps → URL-consumable.
         .package(url: "https://github.com/raster-labs/JLISwift.git", exact: "0.6.0"),
         // JXLSwift — pure-Swift JPEG XL (ISO/IEC 18181) codec. URL-consumable as
@@ -258,8 +257,8 @@ let package = Package(
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
                 // RLE Lossless — SwiftRLE backs DICOMCore's RLECodec (PS3.5 Annex G).
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
-                // JPEG-LS — JLSwift backs DICOMCore's JPEGLSCodec.
-                .product(name: "JPEGLS", package: "JLSwift"),
+                // JPEG-LS — SwiftJLS backs DICOMCore's JPEGLSCodec.
+                .product(name: "SwiftJLS", package: "SwiftJLS"),
                 // JPEG — DICOMCore owns its DICOM bridge; only the core codec is required.
                 .product(name: "JLISwift", package: "JLISwift"),
                 // JPEG XL — JXLSwift pure-Swift JPEG XL codec.
@@ -343,7 +342,8 @@ let package = Package(
                 "DICOMCore",
                 "DICOMKit",
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
-                .product(name: "SwiftRLE", package: "SwiftRLE")
+                .product(name: "SwiftRLE", package: "SwiftRLE"),
+                .product(name: "SwiftJLS", package: "SwiftJLS")
             ]
         ),
         .testTarget(

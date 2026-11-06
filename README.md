@@ -1664,7 +1664,7 @@ material for other platforms does not establish support.
 | Swift Argument Parser | 1.8.2+ | CLI tools argument parsing |
 | SwiftJ2K | 12.1.0+ | 2D JPEG 2000 (Part 1 & Part 2 MCT) / HTJ2K (Part 15) codec stack |
 | SwiftRLE | 1.0.1+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
-| JLSwift | 0.10.1 (exact) | JPEG-LS codec |
+| SwiftJLS | 2.0.0+ | JPEG-LS Lossless & Near-Lossless (`1.2.840.10008.1.2.4.80` / `.81`) codec |
 | JLISwift | 0.6.0 (exact) | Native-Swift JPEG codec + DICOM bridge |
 | JXLSwift | 1.4.0+ | JPEG XL codec |
 

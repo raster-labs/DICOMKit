@@ -11,16 +11,16 @@ import DICOMKit
 ///
 /// Anchors the four JPEG Swift libraries integrated into DICOMCore:
 ///   • JLISwift → JPEG (baseline / extended / lossless / SV1)
-///   • J2KSwift → JPEG 2000 / HTJ2K
-///   • JLSwift  → JPEG-LS        ← was registered but UNREACHABLE from the codec map
+///   • SwiftJ2K → JPEG 2000 / HTJ2K
+///   • SwiftJLS → JPEG-LS        ← was registered but UNREACHABLE from the codec map
 ///   • JXLSwift → JPEG XL
 @Suite("dicom-compress codec map ↔ DICOMCore encoder parity")
 struct CompressionCodecMapTests {
 
-    /// JPEG-LS (the JLSwift library) must be selectable through the codec map. Both
+    /// JPEG-LS (the SwiftJLS library) must be selectable through the codec map. Both
     /// UIDs — lossless `.80` and near-lossless `.81` — must resolve to the right
     /// transfer syntax and have a registered encoder.
-    @Test("Codec map exposes JPEG-LS (JLSwift) for both lossless and near-lossless")
+    @Test("Codec map exposes JPEG-LS (SwiftJLS) for both lossless and near-lossless")
     func codecMapExposesJPEGLS() {
         #expect(CompressionManager.transferSyntax(for: "jpeg-ls-lossless")?.uid
                 == TransferSyntax.jpegLSLossless.uid)

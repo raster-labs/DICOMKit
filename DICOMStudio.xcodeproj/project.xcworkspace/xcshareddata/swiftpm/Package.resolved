@@ -1,5 +1,5 @@
 {
-  "originHash" : "cf03a26f32629df4faf13f037267da4ae52d721902550b32e51ca2593404b025",
+  "originHash" : "d0294c33036a7b9f1606779e7d3f109537b9fc38d81c130f8d76789d0dbaa4e9",
   "pins" : [
     {
       "identity" : "jliswift",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "b6df774a3c3ecdf4b98971f31543fdd18074ace2",
         "version" : "0.6.0"
-      }
-    },
-    {
-      "identity" : "jlswift",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/raster-labs/JLSwift.git",
-      "state" : {
-        "revision" : "d17545284a23e93f3d884a18f1046c4e305daa35",
-        "version" : "0.10.1"
       }
     },
     {
@@ -44,6 +35,15 @@
       "state" : {
         "revision" : "3059a3c87d471028f3524241ec4f881f97cac264",
         "version" : "12.1.0"
+      }
+    },
+    {
+      "identity" : "swiftjls",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/raster-labs/SwiftJLS.git",
+      "state" : {
+        "revision" : "48b65b291cd17d23d23f182db0bb48fb396c8319",
+        "version" : "2.0.0"
       }
     },
     {
