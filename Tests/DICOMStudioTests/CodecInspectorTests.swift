@@ -39,7 +39,16 @@ struct CodecInspectorHelpersTests {
         for ts in TransferSyntax.allKnown where !ts.isRetired {
             #expect(!CodecInspectorHelpers.codecDisplayName(for: ts.uid).hasPrefix("Unknown"), "\(ts.uid) \(ts.displayName)")
         }
-        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegXL.uid) == "JPEG XL")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegXL.uid) == "SwiftJXL (JPEG XL)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegXLLossless.uid) == "SwiftJXL (JPEG XL)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegXLRecompression.uid) == "SwiftJXL (JPEG XL)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegBaseline.uid) == "SwiftJLI (JPEG)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegLosslessSV1.uid) == "SwiftJLI (JPEG)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpegLSLossless.uid) == "SwiftJLS (JPEG-LS)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.rleLossless.uid) == "SwiftRLE (RLE Lossless)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpeg2000Lossless.uid) == "SwiftJ2K (JPEG 2000)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.jpeg2000Part2Lossless.uid) == "SwiftJ2K (JPEG 2000 Part 2)")
+        #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.htj2kLossless.uid) == "SwiftJ2K (HTJ2K)")
         #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.encapsulatedUncompressedExplicitVRLittleEndian.uid) == "Uncompressed")
         #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.deflatedExplicitVRLittleEndian.uid) == "Uncompressed")
         #expect(CodecInspectorHelpers.codecDisplayName(for: TransferSyntax.deflatedImageFrameCompression.uid).hasPrefix("Deflate"))
@@ -138,6 +147,41 @@ struct ImageDecodingServiceTests {
         let file = try DICOMFile.read(from: data)
         let status = ImageDecodingService().inspectorStatus(for: file)
         switch status { case .noImage, .decoding, .decoded, .uncompressed, .unsupportedCodec: break }
+    }
+
+    @Test("effectiveDecodeBackend reports per-codec hardware provenance without stamping Metal onto non-J2K codecs")
+    func testEffectiveDecodeBackendProvenance() {
+        let smallDesc = PixelDataDescriptor(
+            rows: 32, columns: 32, numberOfFrames: 1,
+            bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, photometricInterpretation: .monochrome2
+        )
+        let largeDesc = PixelDataDescriptor(
+            rows: 1024, columns: 1024, numberOfFrames: 1,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, photometricInterpretation: .monochrome2
+        )
+
+        // Uncompressed & RLE Lossless never execute on Metal or Accelerate DWT paths.
+        #expect(ImageDecodingService.effectiveDecodeBackend(
+            for: TransferSyntax.explicitVRLittleEndian.uid, descriptor: largeDesc) == .scalar)
+        #expect(ImageDecodingService.effectiveDecodeBackend(
+            for: TransferSyntax.rleLossless.uid, descriptor: largeDesc) == .scalar)
+
+        // SwiftJLI, SwiftJLS, and SwiftJXL never claim Metal GPU execution.
+        for uid in [
+            TransferSyntax.jpegBaseline.uid,
+            TransferSyntax.jpegLSLossless.uid,
+            TransferSyntax.jpegXLLossless.uid
+        ] {
+            let backend = ImageDecodingService.effectiveDecodeBackend(for: uid, descriptor: largeDesc)
+            #expect(backend != .metal, "Non-J2K syntax \(uid) must not report .metal backend")
+        }
+
+        // Small J2K frames stay on CPU per J2KRoutePlanner; large J2K frames follow J2KRoutePlanner.
+        let smallJ2K = ImageDecodingService.effectiveDecodeBackend(
+            for: TransferSyntax.htj2kLossless.uid, descriptor: smallDesc)
+        #expect(smallJ2K != .metal)
     }
 
     private func minimalDICOM() throws -> Data {

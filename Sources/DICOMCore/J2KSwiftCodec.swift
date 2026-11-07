@@ -386,6 +386,46 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         )
     }
 
+    public func decodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        into destination: UnsafeMutableRawBufferPointer
+    ) throws -> Int {
+        guard !frameData.isEmpty else {
+            throw DICOMError.parsingFailed("Empty JPEG 2000 data")
+        }
+        let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
+        guard destination.count >= expectedBytes, destination.baseAddress != nil else {
+            throw DICOMError.limitExceeded(
+                "Caller-owned destination too small: \(destination.count) bytes for \(expectedBytes)-byte frame"
+            )
+        }
+        guard syntaxRestriction != .unsupported else {
+            throw DICOMError.unsupportedTransferSyntax("Unsupported JPEG 2000 decoding transfer syntax")
+        }
+        if let reason = Self.irreversibleWaveletRefusal(frameData: frameData, transferSyntaxUID: decodingTransferSyntaxUID) {
+            throw DICOMError.parsingFailed(reason)
+        }
+        if decodingTransferSyntaxUID == nil, syntaxRestriction.isLosslessOnly,
+           J2KCodestreamInspector.usesIrreversibleWavelet(in: frameData) {
+            throw DICOMError.parsingFailed(
+                "JPEG 2000 codestream selects the irreversible 9/7 wavelet under a lossless-only transfer syntax; refusing to decode inexact samples"
+            )
+        }
+        if let reason = J2KRoutePlanner.unsupportedDecodeReason(frameData: frameData) {
+            throw DICOMError.unsupportedTransferSyntax(reason)
+        }
+
+        let delegate = makeBackingDecoder()
+        return try delegate.decodeFrame(
+            frameData,
+            descriptor: Self.normalizedDecodeDescriptor(descriptor),
+            frameIndex: frameIndex,
+            into: destination
+        )
+    }
+
     public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> DecodedPixelFrame {
         let decoded = try decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
         return DecodedPixelFrame(
@@ -454,6 +494,7 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         cancellation: DICOMCancellation = .never
     ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
         if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
         guard frameData.isOwned(by: budget) else {
             return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
         }

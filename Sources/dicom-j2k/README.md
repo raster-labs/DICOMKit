@@ -100,8 +100,7 @@ dicom-j2k completions zsh > ~/.zsh/completions/_dicom-j2k
 - `--json` keys: `TransferSyntaxUID` and `NumberOfFrames` (PS3.6 Table 6-1 keywords) and
   `frameNumber` (from 1) were added; `transferSyntaxUID`, `totalFrames` and the 0-based `frame`
   are **deprecated** and keep their old values.
-- HTJ2K Lossy (`.203`) is partially validated; some entropy-coder edge cases may return
-  errors. Use lossless (`.201`) for archival.
+- Powered by `SwiftJ2K 12.1.0`: full support for JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Multi-component (`.92`/`.93`), and HTJ2K (`.201`/`.202`/`.203`), including lossless compressed-domain Part 1 ↔ HTJ2K transcoding via `SwiftJ2KDICOMTranscoder`. Use lossless (`.90` / `.201`) for archival.
 
 ## Tests
 

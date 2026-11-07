@@ -182,7 +182,7 @@ public struct JP3DVolumeComparisonView: View {
                 icon: "waveform.path"
             )
             columnHeaderCell(
-                title: "J2KSwift COMPRESSED",
+                title: "SwiftJ2K COMPRESSED",
                 subtitle: compressedSubtitle,
                 color: compressedHeaderColor,
                 icon: "waveform.path.ecg"
@@ -218,7 +218,7 @@ public struct JP3DVolumeComparisonView: View {
     private var compressedSubtitle: String {
         switch vm.compressionState {
         case .idle:
-            return vm.hasVolume ? "Tap Compress to run J2KSwift encode → decode" : ""
+            return vm.hasVolume ? "Tap Compress to run SwiftJ2K encode → decode" : ""
         case .compressing(let done, let total):
             return "Encoding frame \(done) of \(total)…"
         case .complete(_, _, let ratio, _, let enc):

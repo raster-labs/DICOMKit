@@ -7,7 +7,6 @@ import DICOMDictionary
 
 #if canImport(CoreGraphics)
 import CoreGraphics
-import ImageIO
 #endif
 
 #if canImport(UniformTypeIdentifiers)

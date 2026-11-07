@@ -1,6 +1,7 @@
 import XCTest
 @testable import DICOMStudio
 @testable import DICOMCore
+@testable import DICOMKit
 
 /// The J2K Test Bench must not present JPEG 2000 Part 2 as a working target.
 ///
@@ -138,5 +139,122 @@ final class J2KTestBenchPart2Tests: XCTestCase {
         if let codestream = result.data {
             XCTAssertTrue(J2KCodestreamInspector.containsPart2MultiComponentTransform(in: codestream))
         }
+    }
+
+    /// Pre-release naming audit: UI/chart/export display names use the current `Swift*`
+    /// package names while `rawValue`, `matchKey`, and `Codable` JSON serialization preserve
+    /// backwards compatibility with persisted `j2k-bench-history.json` entries.
+    func test_benchCodecDisplayNameAndBackwardsCompatibleCodable() throws {
+        XCTAssertEqual(J2KBenchCodec.j2kSwift.displayName, "SwiftJ2K")
+        XCTAssertEqual(J2KBenchCodec.jliSwift.displayName, "SwiftJLI")
+        XCTAssertEqual(J2KBenchCodec.jlSwift.displayName, "SwiftJLS")
+        XCTAssertEqual(J2KBenchCodec.jxlSwift.displayName, "SwiftJXL")
+        XCTAssertEqual(J2KBenchCodec.kakadu.displayName, "Kakadu")
+
+        let decoder = JSONDecoder()
+        let encoder = JSONEncoder()
+        let pairs: [(legacy: String, modern: String, expected: J2KBenchCodec)] = [
+            ("J2KSwift", "SwiftJ2K", .j2kSwift),
+            ("JLISwift", "SwiftJLI", .jliSwift),
+            ("JLSwift", "SwiftJLS", .jlSwift),
+            ("JXLSwift", "SwiftJXL", .jxlSwift),
+        ]
+        for pair in pairs {
+            let fromLegacy = try decoder.decode(J2KBenchCodec.self, from: Data("\"\(pair.legacy)\"".utf8))
+            let fromModern = try decoder.decode(J2KBenchCodec.self, from: Data("\"\(pair.modern)\"".utf8))
+            XCTAssertEqual(fromLegacy, pair.expected)
+            XCTAssertEqual(fromModern, pair.expected)
+
+            let reencoded = try String(data: encoder.encode(pair.expected), encoding: .utf8)
+            XCTAssertEqual(reencoded, "\"\(pair.legacy)\"")
+        }
+    }
+
+    /// Signed 16-bit CT pixel data (e.g. -1 HU vs 0 HU -> 0xFFFF vs 0x0000) must sign-extend
+    /// two's-complement samples in `computePSNR` rather than treating 0xFFFF as +65535.
+    func test_computePSNR_signExtendsSigned16BitSamples() {
+        let signedDescriptor = PixelDataDescriptor(
+            rows: 2, columns: 2, numberOfFrames: 1,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: true, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        // Four pixels: original = [0, 0, 0, 0], decoded = [-1, 0, 0, 0] (MSE = 0.25).
+        let original = Data([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+        let decoded  = Data([0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+
+        let psnr = J2KTestBenchService.computePSNR(
+            decoded: decoded, original: original, descriptor: signedDescriptor
+        )
+        XCTAssertNotNil(psnr)
+        if let psnr {
+            // maxValue = 4095, MSE = 0.25 => PSNR ~= 78.26 dB (unsigned bug gave ~6.0 dB!).
+            XCTAssertGreaterThan(psnr, 70.0)
+        }
+    }
+
+    /// CLI <-> Workshop shared-API parity: `dicom-compress` rejects unknown `--backend`
+    /// with exit code 64, and `dicom-convert` parses encapsulated inputs with `strictEncapsulation: true`.
+    @MainActor
+    func test_workshopSharedAPI_compressBackendValidationAndConvertStrictEncapsulation() async throws {
+        let vm = CLIWorkshopViewModel()
+        vm.selectTool(id: "dicom-compress")
+        vm.updateParameterValue(parameterID: "operation", value: "compress")
+        vm.updateParameterValue(parameterID: "input", value: "/tmp/nonexistent_in.dcm")
+        vm.updateParameterValue(parameterID: "output", value: "/tmp/nonexistent_out.dcm")
+        vm.updateParameterValue(parameterID: "codec", value: "htj2k-lossless")
+        vm.updateParameterValue(parameterID: "backend", value: "bogus-gpu")
+        await vm.executeCommand()
+
+        XCTAssertEqual(vm.consoleStatus, .error)
+        XCTAssertEqual(vm.commandHistory.first?.exitCode, 64)
+        XCTAssertTrue(vm.consoleOutput.contains("Unknown backend 'bogus-gpu'"))
+
+        // Build a malformed encapsulated DICOM (truncated item header inside undefined-length PixelData)
+        // that lenient parsing tolerates as empty fragments but `strictEncapsulation: true` rejects.
+        let tmpDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("workshop_strict_\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+        var validDS = DataSet()
+        validDS.setUInt16(4, for: .rows)
+        validDS.setUInt16(4, for: .columns)
+        validDS.setUInt16(8, for: .bitsAllocated)
+        validDS.setUInt16(8, for: .bitsStored)
+        validDS.setUInt16(7, for: .highBit)
+        validDS.setUInt16(0, for: .pixelRepresentation)
+        validDS.setUInt16(1, for: .samplesPerPixel)
+        validDS.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        validDS[.pixelData] = DataElement.data(tag: .pixelData, vr: .OB, data: Data(repeating: 42, count: 16))
+        var rawBytes = try DICOMFile.create(
+            dataSet: validDS,
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.7",
+            sopInstanceUID: "1.2.3.4.5.6.7",
+            transferSyntaxUID: TransferSyntax.rleLossless.uid
+        ).write()
+        // Corrupt the trailing PixelData element into an unclosed encapsulated sequence with a truncated item tag.
+        if let range = rawBytes.range(of: Data([0xE0, 0x7F, 0x10, 0x00])) {
+            rawBytes.replaceSubrange(range.lowerBound..<rawBytes.endIndex, with: Data([
+                0xE0, 0x7F, 0x10, 0x00, // (7FE0,0010)
+                0x4F, 0x42, 0x00, 0x00, // VR = OB, reserved = 0
+                0xFF, 0xFF, 0xFF, 0xFF, // Undefined length
+                0xFE, 0xFF, 0x00        // Truncated item tag!
+            ]))
+        }
+        let badIn = tmpDir.appendingPathComponent("malformed.dcm")
+        let badOut = tmpDir.appendingPathComponent("out.dcm")
+        try rawBytes.write(to: badIn)
+
+        let vmConvert = CLIWorkshopViewModel()
+        vmConvert.selectTool(id: "dicom-convert")
+        vmConvert.updateParameterValue(parameterID: "inputPath", value: badIn.path)
+        vmConvert.updateParameterValue(parameterID: "output", value: badOut.path)
+        vmConvert.updateParameterValue(parameterID: "transfer-syntax", value: "ExplicitVRLittleEndian")
+        await vmConvert.executeCommand()
+
+        XCTAssertEqual(vmConvert.consoleStatus, .error)
+        XCTAssertNotEqual(vmConvert.commandHistory.first?.exitCode, 0)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: badOut.path))
     }
 }

@@ -127,7 +127,7 @@ Quality settings only apply to irreversible (lossy) encodes; they are ignored fo
 - DICOM files are detected by `.dcm`, `.dicom`, `.dic` extensions or by the `DICM` magic prefix
 - Batch mode preserves directory structure in the output
 - The tool writes DICOM Part 10 files (preamble, DICM prefix, File Meta Information)
-- JPEG 2000 compression now uses the J2KSwift v3.2.0 adapter as the Phase 1 implementation, with verified round-trip and benchmark coverage
+- Compression and decompression route through the pure-Swift `raster-labs` compression suite (`SwiftJ2K 12.1.0`, `SwiftJLI 2.0.2`, `SwiftJLS 2.0.0`, `SwiftJXL 2.0.0`, `SwiftRLE 1.0.1`) with verified round-trip and benchmark coverage
 - Platform codec support may vary; not all codecs are available on all systems
 
 ## Version

@@ -53,7 +53,7 @@ public struct J2KTestingView: View {
                 roundTripTab.tabItem { Label(Tab.roundTrip.rawValue, systemImage: Tab.roundTrip.icon) }.tag(Tab.roundTrip)
                 compareTab.tabItem   { Label(Tab.compare.rawValue,   systemImage: Tab.compare.icon)   }.tag(Tab.compare)
             }
-            .navigationTitle("J2KSwift Testing — \(selectedTab.rawValue)")
+            .navigationTitle("SwiftJ2K Testing — \(selectedTab.rawValue)")
             #if os(macOS)
             .frame(minWidth: 600, minHeight: 440)
             #endif
@@ -398,8 +398,8 @@ public struct J2KTestingView: View {
                         statRow("Total",   value: formatMs(r.encodeMs + r.decodeMs), accent: true)
                     }
                     #if canImport(CoreGraphics)
-                    let encImg = viewModel.j2kTesting.encodedImages[entry.uid]
-                    let decImg = viewModel.j2kTesting.decodedImages[entry.uid]
+                    let encImg = viewModel.j2kTesting.encodedImages[entry.id]
+                    let decImg = viewModel.j2kTesting.decodedImages[entry.id]
                     if encImg != nil || decImg != nil {
                         Divider()
                         HStack(spacing: 12) {
@@ -426,7 +426,7 @@ public struct J2KTestingView: View {
     private var compareTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Encodes frame 0 with J2KSwift, then compares its decode with installed external CLI peers.")
+                Text("Encodes frame 0 with SwiftJ2K, then compares its decode with installed external CLI peers.")
                     .font(.caption).foregroundStyle(.secondary)
 
                 HStack(spacing: 10) {
@@ -457,7 +457,7 @@ public struct J2KTestingView: View {
                         }
                     }
                     .labelsHidden()
-                    .help("Which J2KSwift encode API produces the reference bitstream for the comparison. Other codecs decode whatever this produces; only J2KSwift's encode time is reported.")
+                    .help("Which SwiftJ2K encode API produces the reference bitstream for the comparison. Other codecs decode whatever this produces; only SwiftJ2K's encode time is reported.")
                     #if os(macOS)
                     .frame(maxWidth: 150)
                     #endif
@@ -470,7 +470,7 @@ public struct J2KTestingView: View {
                         }
                     }
                     .labelsHidden()
-                    .help("Which J2KSwift decode API the J2KSwift row exercises. The viewer's production decode path is unaffected.")
+                    .help("Which SwiftJ2K decode API the SwiftJ2K row exercises. The viewer's production decode path is unaffected.")
                     #if os(macOS)
                     .frame(maxWidth: 180)
                     #endif
@@ -489,7 +489,7 @@ public struct J2KTestingView: View {
                     }
                 }
 
-                Text("Each mode pins the J2KSwift row to the named decode API; the value reported in the J2K Dec column is the median of 7 timed runs after 2 untimed warmups (steady-state) or a single cold decode (when warm-up is off).")
+                Text("Each mode pins the SwiftJ2K row to the named decode API; the value reported in the J2K Dec column is the median of 7 timed runs after 2 untimed warmups (steady-state) or a single cold decode (when warm-up is off).")
                     .font(.system(size: StudioTypography.captionSize - 1))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -520,7 +520,7 @@ public struct J2KTestingView: View {
                 Text("Codec").frame(minWidth: 180, alignment: .leading)
                 Text("Encode").frame(minWidth: 80, alignment: .trailing)
                 Text("Decode").frame(minWidth: 80, alignment: .trailing)
-                Text("vs J2KSwift").frame(minWidth: 90, alignment: .trailing)
+                Text("vs SwiftJ2K").frame(minWidth: 90, alignment: .trailing)
                 Spacer()
             }
             .font(.system(size: StudioTypography.captionSize - 1, weight: .semibold))
@@ -594,7 +594,7 @@ public struct J2KTestingView: View {
                     .font(.system(size: StudioTypography.captionSize, design: .monospaced))
                     .frame(minWidth: 80, alignment: .trailing)
                 HStack(spacing: 4) {
-                    if entry.codecName.hasPrefix("J2KSwift") {
+                    if entry.codecName.hasPrefix("SwiftJ2K") || entry.codecName.hasPrefix("J2KSwift") {
                         Text("reference").font(.system(size: StudioTypography.captionSize - 1)).foregroundStyle(.secondary)
                     } else if let psnr = r.psnrDb {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
@@ -681,7 +681,7 @@ public struct J2KTestingView: View {
     private var debugWarning: some View {
         HStack(spacing: 6) {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-            Text("Debug build — J2KSwift runs unoptimized. Use Release for accurate benchmarks.")
+            Text("Debug build — SwiftJ2K runs unoptimized. Use Release for accurate benchmarks.")
                 .font(.system(size: StudioTypography.captionSize - 1))
                 .foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)

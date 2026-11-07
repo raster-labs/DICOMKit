@@ -2002,8 +2002,8 @@ public final class ImageViewerViewModel {
         }
 
         // JPIP retrieval is unavailable: DICOMJPIPClient's fetch methods are marked
-        // @available(*, unavailable) because every request path in the pinned upstream
-        // J2KSwift JPIP module (11.0.2) throws notImplemented. The two-phase
+        // @available(*, unavailable) because JPIP retrieval is deferred pending
+        // SwiftJ2K 12.2.0 (`SwiftJ2KJPIP` qualification). The two-phase
         // preview-then-refine flow (and its applyJPIPImage calls) is recoverable from git
         // history at de67c39 and should be restored when upstream lands. Surfacing the
         // real reason beats a spinner that never resolves.
@@ -2101,6 +2101,7 @@ public final class ImageViewerViewModel {
                 self.currentImage = image
                 if level.isFinal {
                     self.progressiveDecodeState = .complete(totalDecodeMs: decodeMs)
+                    self.renderCurrentFrame()
                 } else {
                     self.progressiveDecodeState = .decoding(level: level)
                 }

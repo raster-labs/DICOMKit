@@ -1124,6 +1124,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         cancellation: DICOMCancellation = .never
     ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
         if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
         guard frameData.isOwned(by: budget) else {
             return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
         }

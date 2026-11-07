@@ -3433,6 +3433,14 @@ private func executeDicomCompressCompress() async {
         addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
         return
     }
+    let validBackends = ["auto", "metal", "accelerate", "scalar"]
+    guard validBackends.contains(backendRaw.lowercased()) else {
+        let msg = "Error: Unknown backend '\(backendRaw)'. Valid options: \(validBackends.joined(separator: ", "))\n"
+        appendConsoleOutput(msg)
+        consoleStatus = .error; service.setConsoleStatus(.error)
+        addToHistory(toolName: "dicom-compress", command: commandPreview, exitCode: 64, output: msg)
+        return
+    }
 
     let inputScopedURL = securityScopedURLs["input"]
     let outputScopedURL = securityScopedURLs["output"]
@@ -3834,14 +3842,18 @@ private func executeDicomStudy() async {
             guard FileManager.default.fileExists(atPath: pathURL.path) else {
                 return ("Error: Directory not found: \(pathURL.path)\n", 1)
             }
-            let studies = StudyScanner.scanStudies(at: pathURL.path)
-            if studies.isEmpty { return ("Error: No DICOM files found in the specified directory\n", 1) }
+            let scanResult = StudyScanner.scan(at: pathURL.path)
+            let studies = scanResult.studies
+            let skipWarnings = format == "json" ? "" : scanResult.skipped
+                .map { "warning: skipped \($0.path): \($0.reason)\n" }
+                .joined()
+            if studies.isEmpty { return (skipWarnings + "Error: No DICOM files found in the specified directory\n", 1) }
             // Render via the shared DICOMKit engine — same code the CLI uses.
             do {
                 let out = try StudyReport.renderSummary(studies: studies, format: format, verbose: verbose)
-                return (out, 0)
+                return (skipWarnings + out, 0)
             } catch {
-                return ("Error: Invalid format: \(format). Use 'table', 'json', or 'csv'\n", 1)
+                return (skipWarnings + "Error: Invalid format: \(format). Use 'table', 'json', or 'csv'\n", 1)
             }
         }.value
 
@@ -3883,7 +3895,11 @@ private func executeDicomStudy() async {
             }
             var out = ""
             if verbose { out += "Checking study completeness: \(pathURL.path)\n" }
-            let studies = StudyScanner.scanStudies(at: pathURL.path)
+            let scanResult = StudyScanner.scan(at: pathURL.path)
+            for skip in scanResult.skipped {
+                out += "warning: skipped \(skip.path): \(skip.reason)\n"
+            }
+            let studies = scanResult.studies
             guard let study = studies.first else {
                 return (out + "Error: No DICOM files found in the specified directory\n", 1)
             }
@@ -3936,17 +3952,21 @@ private func executeDicomStudy() async {
             guard FileManager.default.fileExists(atPath: pathURL.path) else {
                 return ("Error: Directory not found: \(pathURL.path)\n", 1)
             }
-            let studies = StudyScanner.scanStudies(at: pathURL.path)
+            let scanResult = StudyScanner.scan(at: pathURL.path)
+            let skipWarnings = format == "json" ? "" : scanResult.skipped
+                .map { "warning: skipped \($0.path): \($0.reason)\n" }
+                .joined()
+            let studies = scanResult.studies
             guard let study = studies.first else {
-                return ("Error: No DICOM files found in the specified directory\n", 1)
+                return (skipWarnings + "Error: No DICOM files found in the specified directory\n", 1)
             }
             // Compute + render via the shared DICOMKit engine — same code as the CLI.
             let stats = StudyReport.computeStatistics(for: study, detailed: detailed)
             do {
                 let out = try StudyReport.renderStats(stats, detailed: detailed, format: format)
-                return (out, 0)
+                return (skipWarnings + out, 0)
             } catch {
-                return ("Error: Failed to encode JSON\n", 1)
+                return (skipWarnings + "Error: Failed to encode JSON\n", 1)
             }
         }.value
 
@@ -3988,17 +4008,22 @@ private func executeDicomStudy() async {
             guard FileManager.default.fileExists(atPath: url2.path) else {
                 return ("Error: Directory not found: \(url2.path)\n", 1)
             }
-            let studies1 = StudyScanner.scanStudies(at: url1.path)
-            let studies2 = StudyScanner.scanStudies(at: url2.path)
-            guard let s1 = studies1.first else { return ("Error: No DICOM files found in the specified directory\n", 1) }
-            guard let s2 = studies2.first else { return ("Error: No DICOM files found in the specified directory\n", 1) }
+            let scan1 = StudyScanner.scan(at: url1.path)
+            let scan2 = StudyScanner.scan(at: url2.path)
+            let skipWarnings = format == "json" ? "" : (scan1.skipped + scan2.skipped)
+                .map { "warning: skipped \($0.path): \($0.reason)\n" }
+                .joined()
+            let studies1 = scan1.studies
+            let studies2 = scan2.studies
+            guard let s1 = studies1.first else { return (skipWarnings + "Error: No DICOM files found in the specified directory\n", 1) }
+            guard let s2 = studies2.first else { return (skipWarnings + "Error: No DICOM files found in the specified directory\n", 1) }
             // Compare + render via the shared DICOMKit engine — same code as the CLI.
             let cmp = StudyReport.compareStudies(s1, s2)
             do {
                 let out = try StudyReport.renderComparison(cmp, format: format, verbose: verbose)
-                return (out, 0)
+                return (skipWarnings + out, 0)
             } catch {
-                return ("Error: Failed to encode JSON\n", 1)
+                return (skipWarnings + "Error: Failed to encode JSON\n", 1)
             }
         }.value
 
@@ -5636,17 +5661,23 @@ case "dicom-study":
         stripPrivate: Bool, validateOutput: Bool, force: Bool
     ) throws {
         let fileData = try Data(contentsOf: inputURL)
-        let dicomFile = try DICOMFile.read(from: fileData, force: force)
 
         switch format {
         case "png", "jpeg", "tiff":
+            let dicomFile = try DICOMFile.read(from: fileData, force: force)
             try exportDicomImage(
                 dicomFile: dicomFile, outputURL: outputURL, format: format,
                 quality: quality, windowCenter: windowCenter, windowWidth: windowWidth,
                 applyWindow: applyWindow, frameIndex: frameIndex, frameNumber: frameNumber
             )
         default:
-            // DICOM transfer syntax conversion
+            // DICOM transfer syntax conversion — check fragment headers/delimiters strictly,
+            // matching `dicom-convert` CLI (`DICOMConvert.swift`).
+            let dicomFile = try DICOMFile.read(
+                from: fileData,
+                force: force,
+                options: ParsingOptions(strictEncapsulation: true)
+            )
             guard !transferSyntax.isEmpty else {
                 throw ConvertError.missingTransferSyntax
             }
@@ -5669,10 +5700,14 @@ case "dicom-study":
                 isLossless: outcome.isLossless))
         }
 
-        // Validate if requested — mirror the CLI: re-read, silent on success.
+        // Validate if requested — mirror the CLI: re-read with strictEncapsulation, silent on success.
         if validateOutput && format == "dicom" {
             let validationData = try Data(contentsOf: outputURL)
-            _ = try DICOMFile.read(from: validationData, force: false)
+            _ = try DICOMFile.read(
+                from: validationData,
+                force: false,
+                options: ParsingOptions(strictEncapsulation: true)
+            )
         }
     }
 
@@ -7267,11 +7302,10 @@ case "dicom-study":
                 let result = try await client.retrieveSeries(studyUID: studyUID, seriesUID: seriesUID)
                 for (index, instanceData) in result.instances.enumerated() {
                     let sopUID = wadoExtractSOPInstanceUID(instanceData) ?? "instance_\(index + 1)"
-                    if let savedPath = try? writeReceivedDICOMFile(
+                    let savedPath = try writeReceivedDICOMFile(
                         data: instanceData, sopInstanceUID: sopUID,
-                        studyUID: studyUID, seriesUID: seriesUID, outputDir: outputDir, hierarchical: hierarchical) {
-                        lastRetrievedFiles.append(savedPath)
-                    }
+                        studyUID: studyUID, seriesUID: seriesUID, outputDir: outputDir, hierarchical: hierarchical)
+                    lastRetrievedFiles.append(savedPath)
                     if verbose { appendConsoleOutput(fmt.instanceSaved(index: index + 1, bytes: instanceData.count) + "\n") }
                 }
                 if verbose { appendConsoleOutput(fmt.instancesCount(result.instances.count) + "\n") }
@@ -7286,11 +7320,10 @@ case "dicom-study":
                 let result = try await client.retrieveStudy(studyUID: studyUID)
                 for (index, instanceData) in result.instances.enumerated() {
                     let sopUID = wadoExtractSOPInstanceUID(instanceData) ?? "instance_\(index + 1)"
-                    if let savedPath = try? writeReceivedDICOMFile(
+                    let savedPath = try writeReceivedDICOMFile(
                         data: instanceData, sopInstanceUID: sopUID,
-                        studyUID: studyUID, outputDir: outputDir, hierarchical: hierarchical) {
-                        lastRetrievedFiles.append(savedPath)
-                    }
+                        studyUID: studyUID, outputDir: outputDir, hierarchical: hierarchical)
+                    lastRetrievedFiles.append(savedPath)
                     if verbose { appendConsoleOutput(fmt.instanceSaved(index: index + 1, bytes: instanceData.count) + "\n") }
                 }
                 if verbose { appendConsoleOutput(fmt.instancesCount(result.instances.count) + "\n") }

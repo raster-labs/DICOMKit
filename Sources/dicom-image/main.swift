@@ -7,7 +7,6 @@ import DICOMDictionary
 
 #if canImport(CoreGraphics)
 import CoreGraphics
-import ImageIO
 #endif
 
 // The image→Secondary-Capture conversion engine now lives in the DICOMKit library

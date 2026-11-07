@@ -83,7 +83,7 @@ struct DICOMViewer: ParsableCommand {
     @Flag(name: .long, help: "Verbose output for debugging")
     var verbose: Bool = false
 
-    // MARK: - J2KSwift / Phase 7 options
+    // MARK: - SwiftJ2K / Progressive & ROI options
 
     @Option(name: .long,
             help: "Resolution reduce factor n: decode at 1/2^n spatial resolution (0 = full).")
@@ -98,7 +98,7 @@ struct DICOMViewer: ParsableCommand {
     var volume: Bool = false
 
     @Option(name: .long,
-            help: "Fetch and display image from a JPIP server URL (currently unavailable: upstream JPIP retrieval is unimplemented — see RESEARCH_ADOPTION_PLAN.md F1).")
+            help: "Fetch and display image from a JPIP server URL (currently unavailable: JPIP retrieval is deferred pending SwiftJ2K 12.2.0).")
     var jpip: String?
 
     mutating func validate() throws {
@@ -489,18 +489,15 @@ struct DICOMViewer: ParsableCommand {
         }
 
         // JPIP retrieval is unavailable — DICOMJPIPClient's fetch methods are marked
-        // @available(*, unavailable) because every request path in the pinned upstream
-        // J2KSwift JPIP module (11.0.2) throws notImplemented. The rendering pipeline
-        // that consumed the fetched image is recoverable from git history at de67c39
-        // and should be restored when upstream lands. F1 in RESEARCH_ADOPTION_PLAN.md.
+        // @available(*, unavailable) because JPIP retrieval is deferred pending
+        // SwiftJ2K 12.2.0 (`SwiftJ2KJPIP` qualification).
         fputs("""
             Error: JPIP rendering is not available in this build.
 
             Target: \(jpipURL.absoluteString)
 
-            Retrieving pixel data over JPIP requires an implemented request path; the
-            pinned J2KSwift JPIP module (11.0.2) has none. Render a local DICOM file
-            instead, or use dicom-wado / dicom-retrieve for remote sources.
+            JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).
+            Render a local DICOM file instead, or use dicom-wado / dicom-retrieve for remote sources.
 
             """, stderr)
         throw ExitCode.failure

@@ -54,15 +54,15 @@ public enum CodecInspectorHelpers: Sendable {
         let ts = TransferSyntax.from(uid: transferSyntaxUID)
         guard let ts else { return "Unknown (\(transferSyntaxUID))" }
 
-        if ts.isHTJ2K         { return "HTJ2K (High-Throughput JPEG 2000)" }
-        if ts.isJPEG2000Part2 { return "J2KSwift (JPEG 2000 Part 2)" }
-        if ts.isJPEG2000      { return "J2KSwift (JPEG 2000)" }
-        if ts.isJPEGLS        { return "JPEG-LS" }
-        if ts.isJPEG          { return "JPEG (ImageIO)" }
-        if ts.isRLE           { return "RLE (Run-Length Encoding)" }
+        if ts.isHTJ2K         { return "SwiftJ2K (HTJ2K)" }
+        if ts.isJPEG2000Part2 { return "SwiftJ2K (JPEG 2000 Part 2)" }
+        if ts.isJPEG2000      { return "SwiftJ2K (JPEG 2000)" }
+        if ts.isJPEGLS        { return "SwiftJLS (JPEG-LS)" }
+        if ts.isJPEG          { return "SwiftJLI (JPEG)" }
+        if ts.isRLE           { return "SwiftRLE (RLE Lossless)" }
         if ts.isJP3D          { return "JP3D (Volumetric JPEG 2000)" }
         if ts.isJPIP          { return "JPIP (streaming)" }
-        if ts.isJPEGXL        { return "JPEG XL" }
+        if ts.isJPEGXL        { return "SwiftJXL (JPEG XL)" }
         if ts.isVideo         { return "Video (\(ts.shortName))" }
         if ts.uid == TransferSyntax.deflatedImageFrameCompression.uid {
             return "Deflate (per-frame, PS3.5 A.4.13)"

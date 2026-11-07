@@ -352,11 +352,20 @@ public enum J2KTestBenchService {
         } else {
             let sampleCount = decoded.count / 2
             guard sampleCount > 0 else { return nil }
-            for i in 0..<sampleCount {
-                let d = Int(decoded[dBase + 2 * i]) | (Int(decoded[dBase + 2 * i + 1]) << 8)
-                let o = Int(original[oBase + 2 * i]) | (Int(original[oBase + 2 * i + 1]) << 8)
-                let diff = Double(d - o)
-                mse += diff * diff
+            if descriptor.isSigned {
+                for i in 0..<sampleCount {
+                    let dRaw = UInt16(decoded[dBase + 2 * i]) | (UInt16(decoded[dBase + 2 * i + 1]) << 8)
+                    let oRaw = UInt16(original[oBase + 2 * i]) | (UInt16(original[oBase + 2 * i + 1]) << 8)
+                    let diff = Double(Int(Int16(bitPattern: dRaw)) - Int(Int16(bitPattern: oRaw)))
+                    mse += diff * diff
+                }
+            } else {
+                for i in 0..<sampleCount {
+                    let d = Int(decoded[dBase + 2 * i]) | (Int(decoded[dBase + 2 * i + 1]) << 8)
+                    let o = Int(original[oBase + 2 * i]) | (Int(original[oBase + 2 * i + 1]) << 8)
+                    let diff = Double(d - o)
+                    mse += diff * diff
+                }
             }
             mse /= Double(sampleCount)
         }

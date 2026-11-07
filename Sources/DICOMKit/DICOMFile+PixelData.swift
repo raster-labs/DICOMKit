@@ -32,7 +32,7 @@ extension DICOMFile {
     /// Returns a descriptor whose Photometric Interpretation matches the *decoded*
     /// bytes for JPEG Baseline/Extended sources.
     ///
-    /// JLIDecoder converts YCbCr→RGB internally when decoding SOF0/SOF1 lossy JPEG
+    /// `SwiftJLI` converts YCbCr→RGB internally when decoding SOF0/SOF1 lossy JPEG
     /// (PS3.5 Table 8.2.1-1 permits YBR_FULL_422 or RGB going in), so a source tagged
     /// YBR_FULL_422 yields RGB samples. Left uncorrected, `PixelDataRenderer` would
     /// apply a second YBR→RGB conversion — turning black backgrounds green and

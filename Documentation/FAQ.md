@@ -10,21 +10,23 @@ DICOMKit is a pure Swift DICOM toolkit for Apple platforms (iOS, macOS, visionOS
 
 ### Which platforms does DICOMKit support?
 
-- **iOS** 17.0 and later
-- **macOS** 14.0 and later
-- **visionOS** 1.0 and later
+- **iOS** 26.0 and later
+- **macOS** 26.0 and later
+- **visionOS** 26.0 and later
+- **tvOS** 26.0 and later
+- **watchOS** 26.0 and later
 
 ### What Swift version is required?
 
-DICOMKit requires **Swift 6.2** or later and uses strict concurrency checking.
+DICOMKit requires **Swift 6.4** (`swift-tools-version: 6.4`) or later and uses strict concurrency checking.
 
 ### Is DICOMKit production-ready?
 
 Yes, DICOMKit v1.0+ is designed for production use. It includes comprehensive test coverage, performance optimizations, and follows DICOM standard compliance.
 
-### Does DICOMKit require any external dependencies?
+### Does DICOMKit require any external C/C++ dependencies?
 
-No, DICOMKit is a pure Swift implementation with no external dependencies. It uses only Apple frameworks (Foundation, CoreGraphics, Accelerate).
+No C/C++ codec libraries are required at runtime. DICOMKit uses five first-party pure-Swift `raster-labs` codec packages (`SwiftJ2K 12.1.0`, `SwiftJLS 2.0.0`, `SwiftJLI 2.0.2`, `SwiftJXL 2.0.0`, and `SwiftRLE 1.0.1`) alongside `swift-argument-parser` (for CLI executables) and Apple system frameworks (Foundation, CoreGraphics, Accelerate, Metal, Network).
 
 ---
 
@@ -61,15 +63,14 @@ try data.write(to: outputURL)
 
 ### What transfer syntaxes are supported?
 
-DICOMKit supports:
-- Implicit VR Little Endian
-- Explicit VR Little Endian
-- Explicit VR Big Endian (Retired)
-- Deflated Explicit VR Little Endian
-- JPEG Baseline
-- JPEG Lossless
-- JPEG 2000 (Lossless and Lossy)
-- RLE Lossless
+DICOMKit supports all standard uncompressed and compressed DICOM transfer syntaxes:
+- Implicit VR Little Endian, Explicit VR Little Endian, Explicit VR Big Endian (Retired), and Deflated Explicit VR Little Endian
+- RLE Lossless (`SwiftRLE`)
+- JPEG Baseline, JPEG Extended, JPEG Lossless, and JPEG Lossless SV1 (`SwiftJLI`)
+- JPEG-LS Lossless and JPEG-LS Near-Lossless (`SwiftJLS`)
+- JPEG 2000 Part 1 & Part 2 (Lossless and Lossy) and HTJ2K Lossless, RPCL Lossless, and Lossy (`SwiftJ2K`)
+- JPEG XL Lossless, JPEG XL JPEG Recompression, and JPEG XL Lossy/General (`SwiftJXL`)
+- *(JP3D volumetric encoding and JPIP interactive streaming are deferred pending `SwiftJ2K 12.2.0`.)*
 
 ### Can I read DICOM files without the DICM prefix?
 

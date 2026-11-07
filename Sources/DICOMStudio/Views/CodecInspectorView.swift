@@ -176,7 +176,7 @@ public struct CodecInspectorView: View {
     vm.status = .decoded(CodecInspectorEntry(
         transferSyntaxUID: "1.2.840.10008.1.2.4.90",
         transferSyntaxDescription: "JPEG 2000 Image Compression (Lossless Only)",
-        codecName: "J2KSwift (JPEG 2000)",
+        codecName: "SwiftJ2K (JPEG 2000)",
         backend: .accelerate,
         decodeTimeMs: 12.3,
         frameCount: 1

@@ -94,6 +94,44 @@ public enum J2KBenchCodec: String, CaseIterable, Identifiable, Codable, Sendable
 
     public var id: String { rawValue }
 
+    /// Current release-suite display name for UI labels, charts, and exports while
+    /// preserving `rawValue` for backwards-compatible persisted `j2k-bench-history.json`
+    /// and `J2KTestCell.matchKey` keys.
+    public var displayName: String {
+        switch self {
+        case .j2kSwift: return "SwiftJ2K"
+        case .jliSwift: return "SwiftJLI"
+        case .jlSwift:  return "SwiftJLS"
+        case .jxlSwift: return "SwiftJXL"
+        case .kakadu, .grok, .djpeg, .charls, .djxl: return rawValue
+        }
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let raw = try container.decode(String.self)
+        if let legacy = J2KBenchCodec(rawValue: raw) {
+            self = legacy
+            return
+        }
+        switch raw {
+        case "SwiftJ2K": self = .j2kSwift
+        case "SwiftJLI": self = .jliSwift
+        case "SwiftJLS": self = .jlSwift
+        case "SwiftJXL": self = .jxlSwift
+        default:
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unknown J2KBenchCodec value '\(raw)'"
+            )
+        }
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
+
     /// The compression family this codec belongs to.
     public var format: J2KBenchFormat {
         switch self {
