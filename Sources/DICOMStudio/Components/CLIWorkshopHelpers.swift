@@ -4381,8 +4381,8 @@ case "dicom-compress":
     // catalog + the registered CodecRegistry encoders). This guarantees the app
     // picker always lists exactly the transfer syntaxes the shared compression
     // engine — and the `dicom-compress` CLI — can actually produce, covering all
-    // four JPEG Swift libraries (JLISwift, J2KSwift, JLSwift/JPEG-LS, JXLSwift)
-    // plus RLE and the uncompressed targets. Never hand-maintain this list again.
+    // five Swift codec libraries (SwiftJLI, SwiftJ2K, SwiftJLS, SwiftJXL, SwiftRLE)
+    // plus the uncompressed targets. Never hand-maintain this list again.
     //
     // ONE entry per producible transfer syntax — the canonical name only. The CLI
     // aliases (jxl/jpeg-xl-lossless, j2k, jls, …) all still resolve via

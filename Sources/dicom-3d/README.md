@@ -41,12 +41,12 @@
 - **MetaImage** format (.mhd + .raw) — ITK/VTK compatible
 - Preserves spatial information and metadata
 
-### JP3D Volumetric Encoding (J2KSwift v3.2.0)
-- **encode-volume** — encode a slice series as a single JP3D DICOM document
-- **decode-volume** — decode a JP3D document back to individual DICOM slices
+### JP3D Volumetric Encoding (Deferred Pending SwiftJ2K 12.2.0)
+- **encode-volume** — encode a slice series as a single JP3D DICOM document *(deferred pending `SwiftJ2K 12.2.0` `SwiftJ2K3D` qualification)*
+- **decode-volume** — decode a JP3D document back to individual DICOM slices *(deferred pending `SwiftJ2K 12.2.0` `SwiftJ2K3D` qualification)*
 - **inspect** — display JP3D sidecar metadata without decoding the codestream
-- Compression modes: lossless, lossless-htj2k (~5× faster decode), lossy, lossy-htj2k
-- Uses ISO/IEC 15444-10 (JP3D) via J2KSwift 3.2.0; experimental private SOP only
+- Compression modes: lossless, lossless-htj2k, lossy, lossy-htj2k
+- ISO/IEC 15444-10 (JP3D) volumetric encode/decode and `dicom-3d` processing subcommands currently fail closed with an explicit `SwiftJ2K 12.2.0` deferral diagnostic.
 
 ## Installation
 
@@ -363,7 +363,7 @@ Used only for oblique planes (axial/sagittal/coronal are voxel-aligned, not resa
 
 ### Platform Requirements
 
-- **macOS 14+** or **iOS 17+** for PNG export (CoreGraphics)
+- **macOS 26.0+** or **iOS 26.0+** (Swift 6.4+) for PNG export (CoreGraphics)
 - Linux builds support export formats but not PNG rendering
 
 ## Dependencies
@@ -411,9 +411,8 @@ Common errors and solutions:
 ## Version History
 
 ### 1.5.0 (Current)
-- `encode-volume`: JP3D volumetric encoding via J2KSwift v3.2.0
-- `decode-volume`: JP3D document decode back to DICOM slices
-- `inspect`: near-instant JP3D sidecar metadata display (no pixel decode)
+- `dicom-3d` subcommands deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` volumetric qualification)
+- `inspect`: JP3D sidecar metadata schema retained for compatibility
 - Compression modes: lossless, lossless-htj2k, lossy, lossy-htj2k
 
 ### 1.4.0

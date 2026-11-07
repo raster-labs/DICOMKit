@@ -160,9 +160,9 @@ public struct CodecBackendPreference: Sendable {
     /// as opposed to ``effective``, which only reports the best *available*
     /// hardware.
     ///
-    /// DICOMKit's encoder (`J2KSwiftCodec.encodeFrame`) dispatches to the Metal GPU
-    /// for a JPEG 2000 / HTJ2K encode of **any** intent (lossy or lossless — the
-    /// reversible GPU path is bit-exact since J2KSwift v11.0.1) when Metal is
+    /// DICOMKit's encoder (`SwiftJ2KDICOMCodec` / `J2KSwiftCodec.encodeFrame`) dispatches
+    /// to the Metal GPU for a JPEG 2000 / HTJ2K encode of **any** intent (lossy or
+    /// lossless — the reversible GPU path in `SwiftJ2K` is bit-exact) when Metal is
     /// available AND the backend is either forced `.metal` **or** `auto` (Phase 5:
     /// `auto` now picks the GPU on Apple Silicon). `accelerate` / `scalar`, and every
     /// non-J2K codec, run on the CPU. The GPU dispatch policy is owned by

@@ -118,11 +118,14 @@ extension DICOMFile {
 
         let rawPixelData: Data
         if let element = ds[.pixelData] {
-            let compressed = element.valueData
-            if let codec = CodecRegistry.shared.codec(for: tsUID) {
-                rawPixelData = try codec.decode(compressed, descriptor: descriptor)
+            if element.isEncapsulated {
+                rawPixelData = try file.tryPixelData().data
             } else {
-                rawPixelData = compressed
+                rawPixelData = DataSet.nativePixelBytesLittleEndian(
+                    element.valueData,
+                    byteOrder: element.byteOrder,
+                    bitsAllocated: descriptor.bitsAllocated
+                )
             }
         } else {
             rawPixelData = Data()
@@ -217,16 +220,18 @@ extension DICOMFile {
 
         for file in sorted {
             guard let element = file.dataSet[.pixelData] else { continue }
-            let raw = element.valueData
-            if let codec = CodecRegistry.shared.codec(for: tsUID) {
-                // Each slice is described by its own Image Pixel Module; the
-                // reference slice's values are not assumed for the others.
-                let descriptor = sourceDescriptor(
-                    from: file.dataSet, rows: rows, columns: cols, numberOfFrames: 1)
-                let decoded = try codec.decode(raw, descriptor: descriptor)
+            if element.isEncapsulated {
+                let decoded = try file.tryPixelData().data
                 allPixels.append(decoded)
             } else {
-                allPixels.append(raw)
+                let descriptor = sourceDescriptor(
+                    from: file.dataSet, rows: rows, columns: cols, numberOfFrames: 1)
+                let native = DataSet.nativePixelBytesLittleEndian(
+                    element.valueData,
+                    byteOrder: element.byteOrder,
+                    bitsAllocated: descriptor.bitsAllocated
+                )
+                allPixels.append(native)
             }
         }
 

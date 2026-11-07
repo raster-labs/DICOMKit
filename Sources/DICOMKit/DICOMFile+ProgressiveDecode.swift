@@ -5,8 +5,8 @@ import DICOMCore
 /// Progressive frame decoding (WP-H, plan M5)
 ///
 /// For JPEG 2000-family transfer syntaxes (including HTJ2K), emits coarse
-/// reduced-resolution previews first — via J2KSwift's true partial-resolution
-/// decode — then the exact full-fidelity frame. For every other syntax the
+/// reduced-resolution previews first — via `SwiftJ2K`'s true partial-resolution
+/// decode (`ProgressiveResolutionDecodableCodec`) — then the exact full-fidelity frame. For every other syntax the
 /// stream degrades gracefully to a single final update.
 ///
 /// Contract (research-adoption instructions §12):

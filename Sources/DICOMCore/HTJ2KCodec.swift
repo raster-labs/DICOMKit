@@ -95,6 +95,15 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCod
         try backing.decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
     }
 
+    public func decodeFrame(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        frameIndex: Int,
+        into destination: UnsafeMutableRawBufferPointer
+    ) throws -> Int {
+        try backing.decodeFrame(frameData, descriptor: descriptor, frameIndex: frameIndex, into: destination)
+    }
+
     public func decodePixelFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> DecodedPixelFrame {
         try backing.decodePixelFrame(frameData, descriptor: descriptor, frameIndex: frameIndex)
     }

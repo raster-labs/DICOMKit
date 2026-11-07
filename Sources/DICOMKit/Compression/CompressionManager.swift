@@ -564,7 +564,7 @@ public struct CompressionManager: Sendable {
             throw CompressionError.unsupportedPixelDataConfiguration(reason)
         }
 
-        // J2KSwift applies the Part 1 colour transform (SGcod MCT = 1) to every 3-component
+        // `SwiftJ2K` applies the Part 1 colour transform (SGcod MCT = 1) to every 3-component
         // image, which PS3.5 2026a 8.2.4 / 8.2.14 permit only under YBR_RCT / YBR_ICT: YBR_FULL
         // samples are converted to RGB first (lossy targets only — the conversion rounds) and
         // labelled from the codestream below (D-CORE-3, shared with TransferSyntaxConverter).
@@ -808,7 +808,7 @@ public struct CompressionManager: Sendable {
         }
 
         // JPEG Baseline/Extended (SOF0/SOF1) decode always yields RGB samples —
-        // JLIDecoder converts YCbCr → RGB internally regardless of the source's
+        // `SwiftJLI` converts YCbCr → RGB internally regardless of the source's
         // declared Photometric Interpretation (PS3.5 Table 8.2.1-1 permits either
         // YBR_FULL_422 or RGB going in). Correct the tag so it matches the bytes
         // actually decoded; SOF3 lossless (.57/.70) is untouched here since it
@@ -830,8 +830,10 @@ public struct CompressionManager: Sendable {
         return resolvedDecoder.providerID
     }
 
-    /// Recompression path — decode then re-encode. Operates only on
-    /// the PixelData element in-place.
+    /// Recompression path — uses lossless compressed-domain transcoding when eligible
+    /// (`SwiftJ2KDICOMTranscoder` for lossless J2K Part 1 ↔ HTJ2K, and `JXLCodec`
+    /// byte-exact JPEG reconstruction for `.111` → `.50`/`.51`), otherwise decodes to
+    /// native pixels then re-encodes. Operates only on the PixelData element in-place.
     @discardableResult
     static func transcodeEncapsulatedInPlace(
         dataSet: inout DataSet,
@@ -843,6 +845,127 @@ public struct CompressionManager: Sendable {
         jpegEngine: JPEGCodecEngine = .jli,
         codecRegistry: CodecRegistry = .shared
     ) throws -> (decodeProviderID: CodecProviderID, encodeProviderID: CodecProviderID) {
+        let encodeLossless: Bool
+        switch targetSyntax.losslessCapability {
+        case .both:          encodeLossless = (intent == .lossless)
+        case .losslessOnly:  encodeLossless = true
+        case .lossyOnly:     encodeLossless = false
+        }
+
+        // Fast path A: lossless J2K Part 1 ↔ HTJ2K compressed-domain transcode.
+        if encodeLossless,
+           quality == nil,
+           TransferSyntaxConverter.canUseFastPathTranscode(from: sourceSyntax, to: targetSyntax),
+           let pixelDataElement = dataSet[.pixelData],
+           let fragments = pixelDataElement.encapsulatedFragments {
+            let descriptor = try buildPixelDataDescriptor(from: dataSet)
+            if let resolved = codecRegistry.resolveJ2KTranscoder(
+                from: sourceSyntax.uid,
+                to: targetSyntax.uid,
+                descriptor: descriptor
+            ) {
+                let encapsulated = EncapsulatedPixelData(
+                    offsetTable: pixelDataElement.encapsulatedOffsetTable ?? [],
+                    fragments: fragments,
+                    descriptor: descriptor
+                )
+                let frameIndex = try encapsulated.resolveFrameIndex(
+                    extendedOffsetTableData: dataSet[.extendedOffsetTable]?.valueData,
+                    extendedOffsetTableLengthsData: dataSet[.extendedOffsetTableLengths]?.valueData
+                )
+                var sourceCodestreams: [Data] = []
+                sourceCodestreams.reserveCapacity(descriptor.numberOfFrames)
+                var allReversible = true
+                for frame in 0..<descriptor.numberOfFrames {
+                    try Task.checkCancellation()
+                    let cs = try encapsulated.conversionCodestream(at: frame, using: frameIndex)
+                    if sourceSyntax.losslessCapability != .losslessOnly,
+                       J2KCodestreamInspector.usesIrreversibleWavelet(in: cs) {
+                        allReversible = false
+                        break
+                    }
+                    sourceCodestreams.append(cs)
+                }
+                if allReversible {
+                    var transcodedFrames: [Data] = []
+                    transcodedFrames.reserveCapacity(sourceCodestreams.count)
+                    for (idx, cs) in sourceCodestreams.enumerated() {
+                        try Task.checkCancellation()
+                        let out = try resolved.transcoder.transcodeCodestream(
+                            cs,
+                            from: sourceSyntax.uid,
+                            to: targetSyntax.uid,
+                            descriptor: descriptor,
+                            frameIndex: idx
+                        )
+                        guard !out.isEmpty else {
+                            throw CompressionError.conversionFailed("Compressed-domain J2K transcoder returned an empty codestream")
+                        }
+                        transcodedFrames.append(out)
+                    }
+                    let offsetTable = try buildCheckedBasicOffsetTable(for: transcodedFrames)
+                    dataSet[.pixelData] = DataElement(
+                        tag: .pixelData,
+                        vr: .OB,
+                        length: 0xFFFFFFFF,
+                        valueData: Data(),
+                        encapsulatedFragments: transcodedFrames,
+                        encapsulatedOffsetTable: offsetTable
+                    )
+                    dataSet[.extendedOffsetTable] = nil
+                    dataSet[.extendedOffsetTableLengths] = nil
+                    return (decodeProviderID: resolved.providerID, encodeProviderID: resolved.providerID)
+                }
+            }
+        }
+
+        // Fast path B: JPEG XL JPEG Recompression (.111) → JPEG Baseline/Extended (.50/.51)
+        // byte-identical JPEG bitstream reconstruction without a second DCT pass.
+        if quality == nil,
+           jpegEngine == .jli,
+           TransferSyntaxConverter.isJXLRecompressionReverse(from: sourceSyntax, to: targetSyntax),
+           let pixelDataElement = dataSet[.pixelData],
+           let fragments = pixelDataElement.encapsulatedFragments {
+            let descriptor = try buildPixelDataDescriptor(from: dataSet)
+            let encapsulated = EncapsulatedPixelData(
+                offsetTable: pixelDataElement.encapsulatedOffsetTable ?? [],
+                fragments: fragments,
+                descriptor: descriptor
+            )
+            let frameIndex = try encapsulated.resolveFrameIndex(
+                extendedOffsetTableData: dataSet[.extendedOffsetTable]?.valueData,
+                extendedOffsetTableLengthsData: dataSet[.extendedOffsetTableLengths]?.valueData
+            )
+            var reconstructedFrames: [Data] = []
+            reconstructedFrames.reserveCapacity(descriptor.numberOfFrames)
+            var allAllowed = true
+            for frame in 0..<descriptor.numberOfFrames {
+                try Task.checkCancellation()
+                let jxlFragment = try encapsulated.conversionCodestream(at: frame, using: frameIndex)
+                let jpegBytes = try JXLCodec.reconstructJPEGFragment(jxlFragment)
+                guard let sof = TransferSyntaxConverter.jpegStartOfFrameMarker(in: jpegBytes),
+                      TransferSyntaxConverter.jpegFrame(sof, isAllowedIn: targetSyntax) else {
+                    allAllowed = false
+                    break
+                }
+                reconstructedFrames.append(jpegBytes)
+            }
+            if allAllowed {
+                let offsetTable = try buildCheckedBasicOffsetTable(for: reconstructedFrames)
+                dataSet[.pixelData] = DataElement(
+                    tag: .pixelData,
+                    vr: .OB,
+                    length: 0xFFFFFFFF,
+                    valueData: Data(),
+                    encapsulatedFragments: reconstructedFrames,
+                    encapsulatedOffsetTable: offsetTable
+                )
+                dataSet[.extendedOffsetTable] = nil
+                dataSet[.extendedOffsetTableLengths] = nil
+                return (decodeProviderID: .defaultRegistry, encodeProviderID: .defaultRegistry)
+            }
+        }
+
         // Step 1: decode to uncompressed bytes (honouring the decode backend).
         let decodeProviderID = try decodePixelDataInPlace(
             dataSet: &dataSet,

@@ -249,6 +249,48 @@ struct ImageDecodingServiceProgressiveTests {
         #endif
     }
 
+    @Test("decodeProgressively J2K 64x64 file streams real quarter, half, and full wavelet levels")
+    func testJ2KStreamsQuarterHalfFull() async throws {
+        #if canImport(CoreGraphics)
+        var ds = DataSet()
+        ds.setUInt16(64, for: .rows)
+        ds.setUInt16(64, for: .columns)
+        ds.setUInt16(8, for: .bitsAllocated)
+        ds.setUInt16(8, for: .bitsStored)
+        ds.setUInt16(7, for: .highBit)
+        ds.setUInt16(0, for: .pixelRepresentation)
+        ds.setUInt16(1, for: .samplesPerPixel)
+        ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        var raw = Data(capacity: 64 * 64)
+        for y in 0..<64 {
+            for x in 0..<64 {
+                raw.append(UInt8((x * 4 + y * 2) & 0xFF))
+            }
+        }
+        ds[.pixelData] = DataElement.data(tag: .pixelData, vr: .OB, data: raw)
+        let uncompressed = try DICOMFile.create(
+            dataSet: ds,
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.7",
+            sopInstanceUID: "1.2.3.4.5.64",
+            transferSyntaxUID: TransferSyntax.explicitVRLittleEndian.uid
+        ).write()
+        let j2kData = try CompressionManager().compressData(
+            uncompressed, codec: "htj2k-lossless", quality: nil
+        )
+        let j2kFile = try DICOMFile.read(from: j2kData)
+
+        var stages: [(ProgressiveDecodeLevel, Int, Int)] = []
+        for await (level, image, _) in ImageDecodingService().decodeProgressively(file: j2kFile) {
+            stages.append((level, image.width, image.height))
+        }
+
+        #expect(stages.map(\.0) == [.quarter, .half, .full])
+        #expect(stages[0].1 == 16 && stages[0].2 == 16)
+        #expect(stages[1].1 == 32 && stages[1].2 == 32)
+        #expect(stages[2].1 == 64 && stages[2].2 == 64)
+        #endif
+    }
+
     // MARK: - Helpers
 
     private func makeMinimalUncompressedDICOM() throws -> Data {

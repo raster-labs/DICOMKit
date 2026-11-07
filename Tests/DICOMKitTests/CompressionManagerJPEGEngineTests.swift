@@ -263,4 +263,64 @@ final class CompressionManagerJPEGEngineTests: XCTestCase {
                           "recompression encode phase ignored the engine parameter")
     }
     #endif
+
+    // MARK: - Compressed-domain fast paths in CompressionManager
+
+    /// Lossless J2K Part 1 (.90 / reversible .91) <-> HTJ2K (.201 / .202 / reversible .203) in
+    /// `CompressionManager.compressData` uses `SwiftJ2KDICOMTranscoder` in the compressed domain
+    /// and preserves exact pixels.
+    func testLosslessJ2KToHTJ2KUsesCompressedDomainFastPathAndPreservesPixels() throws {
+        let input = try makeUncompressed16BitFile()
+        let mgr = CompressionManager()
+        let expectedPixels = try DICOMFile.read(from: input).tryPixelData().data
+
+        let j2kData = try mgr.compressData(input, codec: "j2k-lossless-only", quality: nil)
+        let htj2kData = try mgr.compressData(j2kData, codec: "htj2k-lossless-only", quality: nil)
+        let htj2kRPCLData = try mgr.compressData(htj2kData, codec: "htj2k-rpcl", quality: nil)
+        let backToJ2K = try mgr.compressData(htj2kRPCLData, codec: "j2k-lossless-only", quality: nil)
+
+        let htj2kFile = try DICOMFile.read(from: htj2kData)
+        XCTAssertEqual(htj2kFile.transferSyntaxUID, TransferSyntax.htj2kLossless.uid)
+        XCTAssertEqual(try htj2kFile.tryPixelData().data, expectedPixels)
+
+        let rpclFile = try DICOMFile.read(from: htj2kRPCLData)
+        XCTAssertEqual(rpclFile.transferSyntaxUID, TransferSyntax.htj2kRPCLLossless.uid)
+        XCTAssertEqual(try rpclFile.tryPixelData().data, expectedPixels)
+
+        let roundTripFile = try DICOMFile.read(from: backToJ2K)
+        XCTAssertEqual(roundTripFile.transferSyntaxUID, TransferSyntax.jpeg2000Lossless.uid)
+        XCTAssertEqual(try roundTripFile.tryPixelData().data, expectedPixels)
+
+        // General UIDs (.91 reversible -> .203 reversible) also preserve exact pixels.
+        let j2kGeneral = try mgr.compressData(input, codec: "j2k-lossless", quality: nil)
+        let htj2kGeneral = try mgr.compressData(j2kGeneral, codec: "htj2k-lossless", quality: nil)
+        let generalFile = try DICOMFile.read(from: htj2kGeneral)
+        XCTAssertEqual(generalFile.transferSyntaxUID, TransferSyntax.htj2kLossy.uid)
+        XCTAssertEqual(try generalFile.tryPixelData().data, expectedPixels)
+    }
+
+    /// Reconstructing JPEG Baseline (.50) from a JPEG XL Recompression (.111) dataset via
+    /// `CompressionManager.compressData(..., codec: "jpeg", quality: nil)` recovers the exact
+    /// original JPEG bitstream byte-for-byte without re-quantizing pixels.
+    func testJPEGXLRecompressionReverseReconstructsExactJPEGFragment() throws {
+        let input = try makeUncompressed8BitFile()
+        let mgr = CompressionManager()
+
+        let baselineData = try mgr.compressData(input, codec: "jpeg", quality: .high, jpegEngine: .jli)
+        let originalJPEGFrag = try fragments(of: baselineData)[0]
+
+        let baselineFile = try DICOMFile.read(from: baselineData)
+        let jxlRecompData = try DICOMConverter.convertToDICOM(
+            dicomFile: baselineFile,
+            to: .jpegXLRecompression,
+            stripPrivate: false
+        ).data
+
+        let reconstructedData = try mgr.compressData(
+            jxlRecompData, codec: "jpeg", quality: nil, jpegEngine: .jli
+        )
+        let reconstructedJPEGFrag = try fragments(of: reconstructedData)[0]
+        XCTAssertEqual(reconstructedJPEGFrag, originalJPEGFrag,
+                       "Expected byte-for-byte JPEG reconstruction from .111 via JXLCodec.reconstructJPEGFragment")
+    }
 }

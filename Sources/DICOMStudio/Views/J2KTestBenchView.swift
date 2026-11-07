@@ -261,7 +261,7 @@ public struct J2KTestBenchView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                     .disabled(viewModel.isRunning)
-                    Text("\(viewModel.plan.format.referenceCodec.rawValue) is the reference encoder; same-family codecs decode its output.")
+                    Text("\(viewModel.plan.format.referenceCodec.displayName) is the reference encoder; same-family codecs decode its output.")
                         .font(.caption2).foregroundStyle(.tertiary)
                 }
                 Divider()
@@ -329,7 +329,7 @@ public struct J2KTestBenchView: View {
                       : (enabled ? "checkmark.square.fill" : "square"))
                     .foregroundStyle(!installed ? .secondary
                                      : (enabled ? Color.accentColor : .secondary))
-                Text(codec.rawValue).font(.caption)
+                Text(codec.displayName).font(.caption)
                 if codec.encodes {
                     Text("reference").font(.caption2).foregroundStyle(.tertiary)
                 } else if !installed {
@@ -425,7 +425,7 @@ public struct J2KTestBenchView: View {
                 }
             }
             #if DEBUG
-            Label("Debug build — J2KSwift runs unoptimized; timings are not representative. Build Release for real numbers.",
+            Label("Debug build — SwiftJ2K runs unoptimized; timings are not representative. Build Release for real numbers.",
                   systemImage: "exclamationmark.triangle.fill")
                 .font(.caption).foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
@@ -519,7 +519,7 @@ public struct J2KTestBenchView: View {
                 Image(systemName: "trophy.fill").foregroundStyle(.yellow)
                 Text("Speed Winner").font(.subheadline.weight(.bold))
                 if let winner = viewModel.overallSpeedWinner {
-                    Text("· \(winner.rawValue)")
+                    Text("· \(winner.displayName)")
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(.yellow)
                 }
@@ -542,7 +542,7 @@ public struct J2KTestBenchView: View {
     private func standingRow(rank: Int, standing: J2KTestBenchViewModel.SpeedStanding) -> some View {
         HStack(spacing: 10) {
             Text(medal(rank)).font(.callout).frame(width: 26)
-            Text(standing.codec.rawValue)
+            Text(standing.codec.displayName)
                 .font(.callout.weight(rank == 0 ? .semibold : .regular))
                 .frame(width: 92, alignment: .leading)
             GeometryReader { geo in
@@ -629,12 +629,12 @@ public struct J2KTestBenchView: View {
                                                syntaxUID: group.syntaxUID,
                                                syntaxName: group.syntaxName, codec: nil))
                 ForEach(group.cells) { cell in
-                    thumbnail(title: cell.codec.rawValue,
+                    thumbnail(title: cell.codec.displayName,
                               subtitle: decodeSubtitle(cell),
                               image: viewModel.images(for: cell)?.preview,
                               isWinner: cell.codec == winner,
                               target: LightboxItem(
-                                title: "\(group.fixtureName) · \(group.syntaxName) · \(cell.codec.rawValue)",
+                                title: "\(group.fixtureName) · \(group.syntaxName) · \(cell.codec.displayName)",
                                 fixtureName: group.fixtureName,
                                 syntaxUID: group.syntaxUID,
                                 syntaxName: group.syntaxName, codec: cell.codec))
@@ -706,7 +706,7 @@ public struct J2KTestBenchView: View {
             HStack(spacing: 4) {
                 Image(systemName: cell.codec.systemImage)
                     .font(.caption2).foregroundStyle(.secondary)
-                Text(cell.codec.rawValue).font(.caption).lineLimit(1)
+                Text(cell.codec.displayName).font(.caption).lineLimit(1)
             }
             .frame(width: 92, alignment: .leading)
             Text(msText(cell.decodeMs))
@@ -894,8 +894,8 @@ public struct J2KTestBenchView: View {
         Chart(viewModel.speedStandings.filter { $0.medianDecodeMs != nil }) { standing in
             BarMark(
                 x: .value("Median decode (ms)", standing.medianDecodeMs ?? 0),
-                y: .value("Codec", standing.codec.rawValue))
-            .foregroundStyle(by: .value("Codec", standing.codec.rawValue))
+                y: .value("Codec", standing.codec.displayName))
+            .foregroundStyle(by: .value("Codec", standing.codec.displayName))
             .annotation(position: .trailing) {
                 Text(String(format: "%.2f ms", standing.medianDecodeMs ?? 0))
                     .font(.caption2).foregroundStyle(.secondary)
@@ -920,7 +920,7 @@ public struct J2KTestBenchView: View {
     private var relativeChart: some View {
         Chart(viewModel.relativeDecodeSpeeds) { item in
             BarMark(
-                x: .value("× J2KSwift", item.ratio),
+                x: .value("× \(viewModel.plan.format.referenceCodec.displayName)", item.ratio),
                 y: .value("Codec", item.codec))
             .foregroundStyle(by: .value("Codec", item.codec))
             .annotation(position: .trailing) {
@@ -952,7 +952,7 @@ public struct J2KTestBenchView: View {
         case .scaling:
             return "Decode time against image size — shows how each codec scales as frames grow."
         case .relative:
-            return "Each codec's median decode time ÷ J2KSwift's. 1.0× is parity; higher is slower."
+            return "Each codec's median decode time ÷ \(viewModel.plan.format.referenceCodec.displayName)'s. 1.0× is parity; higher is slower."
         case .compression:
             return "Median compression ratio (raw ÷ codestream) per transfer syntax — higher packs smaller."
         }

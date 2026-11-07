@@ -534,8 +534,12 @@ public enum DICOMImageExporter {
             return image
         }
         // Colour and palette frames take no window (D243: the window-taking render
-        // ignores it for them; the plain render is the same raster).
-        guard let image = try file.tryRenderFrame(frameIndex) else {
+        // ignores it for them; render directly from the supplied PixelData so reduced-
+        // resolution progressive previews keep their dimensions and full-resolution
+        // exports do not decode the file a second time).
+        let lut = file.dataSet.paletteColorLUT()
+        guard let image = PixelDataRenderer(pixelData: pixelData, paletteColorLUT: lut)
+            .renderFrame(frameIndex) else {
             throw ExportError.renderFailed
         }
         return image

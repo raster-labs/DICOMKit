@@ -564,7 +564,7 @@ public struct TransferSyntaxConverter: Sendable {
 
     /// Whether the source and target form a J2K ↔ HTJ2K pair eligible for
     /// coefficient-level transcoding (no pixel decode/re-encode needed).
-    static func canUseFastPathTranscode(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
+    package static func canUseFastPathTranscode(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
         let j2kPart1UIDs: Set<String> = [
             TransferSyntax.jpeg2000Lossless.uid,
             TransferSyntax.jpeg2000.uid
@@ -729,7 +729,7 @@ public struct TransferSyntaxConverter: Sendable {
     /// into JPEG XL (…4.111): JPEG Baseline (…4.50, process 1) and JPEG Extended
     /// (…4.51, processes 2 & 4).
     ///
-    /// JXLSwift's `encodeLosslessJPEG` bridges any 8-bit Huffman DCT JPEG — baseline
+    /// `SwiftJXL.Transcoder` bridges any 8-bit Huffman DCT JPEG — baseline
     /// (SOF0), extended-sequential (SOF1) and progressive (SOF2). Progressive has no
     /// active DICOM UID, so it is only met inside …4.50 / …4.51 fragments, which this
     /// covers. 12-bit Extended is rejected before any fragment is touched, because
@@ -753,14 +753,14 @@ public struct TransferSyntaxConverter: Sendable {
     /// reconstructing the byte-identical original JPEG bitstream into JPEG Baseline
     /// (…4.50) or JPEG Extended (…4.51). The rebuilt JPEG's frame type is checked
     /// against the chosen UID in the JXL recompression path.
-    static func isJXLRecompressionReverse(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
+    package static func isJXLRecompressionReverse(from source: TransferSyntax, to target: TransferSyntax) -> Bool {
         source.uid == TransferSyntax.jpegXLRecompression.uid
             && jxlRecompressibleJPEGSyntaxUIDs.contains(target.uid)
     }
 
     /// The Start-Of-Frame marker (`0xC0`…`0xCF`, excluding DHT `C4`, JPG `C8` and DAC
     /// `CC`) of a JPEG bitstream, or `nil` when none is found before the first scan.
-    static func jpegStartOfFrameMarker(in jpeg: Data) -> UInt8? {
+    package static func jpegStartOfFrameMarker(in jpeg: Data) -> UInt8? {
         let b = Data(jpeg)  // rebase to 0-based indices
         guard b.count >= 4, b[0] == 0xFF, b[1] == 0xD8 else { return nil }
         var i = 2
@@ -785,7 +785,7 @@ public struct TransferSyntaxConverter: Sendable {
     /// JPEG Extended (…4.51) also admits SOF0 (baseline is a subset of the extended
     /// process), SOF1, and SOF2 — progressive has no active DICOM UID, and …4.51 is the
     /// DCT syntax such files are found under, so the original bytes are restored as-is.
-    static func jpegFrame(_ sof: UInt8, isAllowedIn target: TransferSyntax) -> Bool {
+    package static func jpegFrame(_ sof: UInt8, isAllowedIn target: TransferSyntax) -> Bool {
         switch target.uid {
         case TransferSyntax.jpegBaseline.uid: return sof == 0xC0
         case TransferSyntax.jpegExtended.uid: return sof == 0xC0 || sof == 0xC1 || sof == 0xC2
@@ -1048,7 +1048,7 @@ public struct TransferSyntaxConverter: Sendable {
                 in: outputElements, when: ["YBR_RCT", "YBR_ICT"], with: "RGB")
         }
 
-        // The JPEG (ImageIO) decoder converts YCbCr to RGB, so a decoded JPEG Baseline /
+        // The JPEG (`SwiftJLI`) decoder converts YCbCr to RGB, so a decoded JPEG Baseline /
         // Extended colour image must be relabelled. YBR_FULL_422 in particular is only
         // valid for encapsulated JPEG and must never label native pixel data
         // (PS3.3 C.7.6.3.1.2).
@@ -1286,7 +1286,7 @@ public struct TransferSyntaxConverter: Sendable {
     }
     
     /// Native YBR_FULL samples → RGB for a JPEG 2000 / HTJ2K encode (PS3.5 2026a 8.2.4, Table
-    /// 8.2.4-1: SGcod MCT = 1, which J2KSwift always writes for 3 components, is permitted only
+    /// 8.2.4-1: SGcod MCT = 1, which `SwiftJ2K` always writes for 3 components, is permitted only
     /// under YBR_RCT / YBR_ICT; YBR_FULL needs MCT 0). The conversion (PS3.3 2026a C.7.6.3.1.2)
     /// rounds, so it is refused for a reversible encode, whose pixels must be preserved bit for
     /// bit: the caller must convert to RGB first, or pick a lossy target.

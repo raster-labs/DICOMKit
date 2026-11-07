@@ -73,14 +73,14 @@ public enum CompressionQuality: Sendable, Hashable, Codable {
                 (0.60, 28.0), (0.75, 35.0), (0.90, 42.0), (0.98, 48.0)
             ]
             let q = max(0.0, min(1.0, value))
-            if q <= points.first!.q { return points.first!.psnr }
-            if q >= points.last!.q { return points.last!.psnr }
+            if q <= points[0].q { return points[0].psnr }
+            if q >= points[3].q { return points[3].psnr }
             for i in 1..<points.count where q <= points[i].q {
                 let lo = points[i - 1], hi = points[i]
                 let t = (q - lo.q) / (hi.q - lo.q)
                 return lo.psnr + t * (hi.psnr - lo.psnr)
             }
-            return points.last!.psnr
+            return points[3].psnr
         }
     }
 }
@@ -384,13 +384,13 @@ public struct CodecProviderID: RawRepresentable, Sendable, Hashable, CustomStrin
         self.rawValue = rawValue
     }
 
-    /// Predecessor J2KSwift-backed JPEG 2000 / HTJ2K provider.
+    /// Compatibility `J2KSwiftCodec` / `HTJ2KCodec` JPEG 2000 / HTJ2K provider (backed by `SwiftJ2K`, pixel-domain transcode only).
     public static let j2kSwift = CodecProviderID(rawValue: "j2kswift")
 
-    /// Successor SwiftJ2K-backed JPEG 2000 / HTJ2K provider (for the OS 26 integration package).
+    /// Default `SwiftJ2K`-backed JPEG 2000 / HTJ2K provider (including compressed-domain Part 1 <-> HTJ2K transcoding).
     public static let swiftJ2K = CodecProviderID(rawValue: "swiftj2k")
 
-    /// Non-J2K codecs registered in `CodecRegistry` (JPEG, JPEG-LS, RLE, JXL, JP3D, or ImageIO).
+    /// Non-J2K codecs registered in `CodecRegistry` (`SwiftJLI`, `SwiftJLS`, `SwiftRLE`, `SwiftJXL`, `JP3D`, or explicit ImageIO).
     public static let defaultRegistry = CodecProviderID(rawValue: "default-registry")
 
     public var description: String { rawValue }
@@ -532,7 +532,7 @@ public struct J2KCodecProvider: Sendable {
         return canEncodeProfileClosure(transferSyntaxUID, configuration, descriptor)
     }
 
-    /// The default predecessor-backed J2KSwift / HTJ2K provider.
+    /// Compatibility `J2KSwiftCodec` / `HTJ2KCodec` provider (backed by `SwiftJ2K`, without compressed-domain transcoding).
     public static let j2kSwift: J2KCodecProvider = {
         let htj2kSet = Set(HTJ2KCodec.supportedTransferSyntaxes)
         let htj2kEncodeSet = Set(HTJ2KCodec.supportedEncodingTransferSyntaxes)
@@ -554,8 +554,8 @@ public struct J2KCodecProvider: Sendable {
                 guard J2KSwiftCodec.supportedEncodingTransferSyntaxes.contains(uid) else { return nil }
                 return J2KSwiftCodec(encodingTransferSyntaxUID: uid)
             },
-            // J2KSwift 11.0.3 can emit changed samples on coefficient conversion.
-            // Its default lossless route uses verified pixel decode and encode.
+            // Compatibility provider omits compressed-domain transcoding (`CodecRegistry.shared`
+            // defaults to `.swiftJ2K`, which supplies `SwiftJ2KDICOMTranscoder`).
             compressedDomainTranscoder: nil
         )
     }()

@@ -431,6 +431,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         cancellation: DICOMCancellation = .never
     ) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
         if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
         guard frameData.isOwned(by: budget) else {
             return .failure(DICOMManagedFailure(allocation: .budgetMismatch))
         }

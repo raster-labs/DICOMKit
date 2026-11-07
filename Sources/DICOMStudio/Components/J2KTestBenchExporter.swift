@@ -17,7 +17,7 @@ public enum J2KTestBenchExporter {
             let fields: [String] = [
                 field(cell.fixtureName),
                 field(cell.syntaxName),
-                field(cell.codec.rawValue),
+                field(cell.codec.displayName),
                 number(cell.encodeMs),
                 number(cell.decodeMs),
                 cell.encodedBytes.map(String.init) ?? "",
@@ -47,7 +47,7 @@ public enum J2KTestBenchExporter {
             let columns = [
                 cell.fixtureName,
                 cell.syntaxName,
-                cell.codec.rawValue,
+                cell.codec.displayName,
                 msText(cell.encodeMs),
                 msText(cell.decodeMs),
                 cell.compressionRatio.map { String(format: "%.2f×", $0) } ?? "—",

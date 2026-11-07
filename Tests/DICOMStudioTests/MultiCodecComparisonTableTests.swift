@@ -48,8 +48,7 @@ struct MultiCodecComparisonTableTests {
                 let d = loaded.desc
                 // Require an uncompressed (raw == expected size), unsigned,
                 // 8/16-bit, 1- or 3-component frame of a sensible size so all
-                // four codecs (incl. JXLSwift, which is unsigned-only) apply and
-                // the run stays quick.
+                // four codec families apply and the run stays quick.
                 let pixels = d.rows * d.columns
                 guard loaded.frame.count == d.bytesPerFrame,
                       !d.isSigned,
@@ -112,7 +111,7 @@ struct MultiCodecComparisonTableTests {
                         let decMs = scored.decodeMs.map { String(format: "%.1f", $0) } ?? "—"
                         let isRef = codec.encodes ? "▸ " : "  "
                         print(col(fmt.rawValue, 11)
-                              + col(isRef + codec.rawValue, 13)
+                              + col(isRef + codec.displayName, 13)
                               + col(String(product.codestream.count), 11, right: true)
                               + col(String(format: "%.2f×", ratio), 9, right: true)
                               + col(encMs, 10, right: true)

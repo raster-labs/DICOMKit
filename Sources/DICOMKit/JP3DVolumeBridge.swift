@@ -105,30 +105,14 @@ public enum JP3DVolumeBridge: Sendable {
             }
 
             let pixelBytes: Data
-            if let fragments = pixelElement.encapsulatedFragments, !fragments.isEmpty {
-                // Compressed pixel data — decode first frame
-                let transferSyntaxUID = file.fileMetaInformation.string(for: .transferSyntaxUID)
-                    ?? TransferSyntax.explicitVRLittleEndian.uid
-                let registry = CodecRegistry.shared
-                if let codec = registry.codec(for: transferSyntaxUID) {
-                    let descriptor = PixelDataDescriptor(
-                        rows: Int(rows),
-                        columns: Int(cols),
-                        numberOfFrames: 1,
-                        bitsAllocated: Int(bitsAllocated),
-                        bitsStored: Int(bitsStored),
-                        highBit: Int(ref.uint16(for: .highBit) ?? (bitsStored - 1)),
-                        isSigned: isSigned,
-                        samplesPerPixel: Int(samplesPerPixel),
-                        photometricInterpretation: photometricInterpretation(from: ref)
-                    )
-                    pixelBytes = try codec.decodeFrame(fragments[0], descriptor: descriptor, frameIndex: 0)
-                } else {
-                    // Concatenate fragments as raw data
-                    pixelBytes = fragments.reduce(Data()) { $0 + $1 }
-                }
+            if pixelElement.isEncapsulated {
+                pixelBytes = try file.tryPixelData().data
             } else {
-                pixelBytes = pixelElement.valueData
+                pixelBytes = DataSet.nativePixelBytesLittleEndian(
+                    pixelElement.valueData,
+                    byteOrder: pixelElement.byteOrder,
+                    bitsAllocated: Int(bitsAllocated)
+                )
             }
 
             // Take exactly the expected number of bytes

@@ -594,20 +594,48 @@ extension DICOMJ2K {
                 print("Quality: \(isLossless ? "lossless" : String(format: "%.2f", quality))")
             }
 
-            // Decode all frames, re-encode via SwiftJ2K, and rebuild DICOM
+            // Use compressed-domain SwiftJ2KDICOMTranscoder for eligible lossless
+            // Part 1 ↔ HTJ2K pairs; otherwise decode and re-encode via SwiftJ2K.
             let rows = Int(dicom.dataSet.uint16(for: .rows) ?? 0)
             let columns = Int(dicom.dataSet.uint16(for: .columns) ?? 0)
+            let descriptor = dicom.pixelDataDescriptor()
+            let resolvedTranscoder: (transcoder: any J2KCompressedDomainTranscoder, providerID: CodecProviderID)? = {
+                guard isLossless,
+                      let srcUID,
+                      let srcTS = TransferSyntax.from(uid: srcUID),
+                      TransferSyntaxConverter.canUseFastPathTranscode(from: srcTS, to: targetEncoding.transferSyntax) else {
+                    return nil
+                }
+                return CodecRegistry.shared.resolveJ2KTranscoder(
+                    from: srcUID,
+                    to: targetUID,
+                    descriptor: descriptor
+                )
+            }()
 
             var newFragments = [Data]()
-            for cs in try j2kCodestreams(from: dicom) {
-                let img = try decodeJ2K(cs)
-                let enc = try encodeJ2KImage(
-                    img,
-                    targetUID: targetUID,
-                    isLossless: isLossless,
-                    quality: quality
-                )
-                newFragments.append(enc)
+            for (frameIdx, cs) in try j2kCodestreams(from: dicom).enumerated() {
+                if let resolved = resolvedTranscoder,
+                   let srcUID,
+                   !J2KCodestreamInspector.usesIrreversibleWavelet(in: cs) {
+                    let transcoded = try resolved.transcoder.transcodeCodestream(
+                        cs,
+                        from: srcUID,
+                        to: targetUID,
+                        descriptor: descriptor,
+                        frameIndex: frameIdx
+                    )
+                    newFragments.append(transcoded)
+                } else {
+                    let img = try decodeJ2K(cs)
+                    let enc = try encodeJ2KImage(
+                        img,
+                        targetUID: targetUID,
+                        isLossless: isLossless,
+                        quality: quality
+                    )
+                    newFragments.append(enc)
+                }
             }
 
             guard !newFragments.isEmpty else {

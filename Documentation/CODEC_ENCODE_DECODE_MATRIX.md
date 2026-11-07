@@ -1,240 +1,112 @@
 # DICOMKit Codec Encode/Decode Matrix
 
-Per–transfer-syntax **decode** and **encode** coverage for the four Swift codec
-libraries integrated into DICOMKit Core: **J2KSwift**, **JLSwift**, **JLISwift**,
-and **JXLSwift**.
+Per–transfer-syntax **decode**, **encode**, and **compressed-domain transcode** coverage for the five pure-Swift `raster-labs` codec libraries integrated into `DICOMCore`:
+**SwiftJ2K** (`12.1.0`), **SwiftJLS** (`2.0.0`), **SwiftJLI** (`2.0.2`), **SwiftJXL** (`2.0.0`), and **SwiftRLE** (`1.0.1`).
 
-Verified against the live registry wiring in
-[`Sources/DICOMCore/ImageCodec.swift`](../Sources/DICOMCore/ImageCodec.swift)
-(the `CodecRegistry` initializer), not just documentation.
+Verified against the live registry wiring in [`Sources/DICOMCore/ImageCodec.swift`](../Sources/DICOMCore/ImageCodec.swift) (`CodecRegistry.shared`) and [`Sources/DICOMCore/SwiftJ2KProviderRegistry.swift`](../Sources/DICOMCore/SwiftJ2KProviderRegistry.swift).
 
 **Legend**
-- ✅ `<Codec>` — wired into `CodecRegistry` and user-facing; the name is the
-  **final owning codec** after any registration overrides.
-- `— (decode-only)` — the codec decodes this syntax but registers no encoder.
-- `— (unsupported)` — no codec backs this syntax (the transfer syntax may still
-  be *named/parsed*, but pixel data cannot be (de)coded).
+- ✅ `<Codec>` — wired into `CodecRegistry.shared` and active for standard decode, caller-owned buffer decode (`decodeFrame(_:descriptor:frameIndex:into:)`), managed `DICOMAllocationBudget` decode (`decodeManagedPixelFrameOutcome`), and/or encode.
+- 🔄 `<Transcoder>` — compressed-domain bitstream transcode without intermediate pixel re-encoding (`TransferSyntaxConverter`, `CompressionManager`, and `dicom-j2k`).
+- ⏸️ *(Deferred)* — intentionally unregistered pending `SwiftJ2K 12.2.0`; fails closed with explicit deferral diagnostics.
 
 All UIDs are under the `1.2.840.10008.1.2.4.*` prefix unless noted.
 
 ---
 
-## 1. J2KSwift — `J2KSwiftCodec` + `HTJ2KCodec`
+## 1. SwiftJ2K (`12.1.0`) — `SwiftJ2KDICOMCodec` (`J2KSwiftCodec` / `HTJ2KCodec`)
 
-JPEG 2000 (Part 1 & Part 2) and High-Throughput JPEG 2000 (Part 15).
-Pure Swift + a small custom NEON C layer for HT block coding.
+JPEG 2000 (Part 1 & Part 2) and High-Throughput JPEG 2000 (Part 15), backed by `J2KCodecProvider.swiftJ2K` (default in `CodecRegistry.shared` with `.strict` fallback policy). Hardware backends: `.metal` (Apple GPU), `.accelerate` (Apple SIMD), and `.scalar` (portable pure Swift).
 
-| UID | Transfer Syntax | Decode | Encode |
-|---|---|---|---|
-| `.90` | JPEG 2000 Lossless | ✅ J2KSwiftCodec | ✅ J2KSwiftCodec |
-| `.91` | JPEG 2000 (lossy) | ✅ J2KSwiftCodec | ✅ J2KSwiftCodec |
-| `.92` | JPEG 2000 Part 2 Lossless | ✅ J2KSwiftCodec | ✅ J2KSwiftCodec |
-| `.93` | JPEG 2000 Part 2 (lossy) | ✅ J2KSwiftCodec | ✅ J2KSwiftCodec |
-| `.201` | HTJ2K Lossless | ✅ HTJ2KCodec | ✅ HTJ2KCodec |
-| `.202` | HTJ2K RPCL Lossless | ✅ HTJ2KCodec | ✅ HTJ2KCodec |
-| `.203` | HTJ2K (lossy) | ✅ HTJ2KCodec | ✅ HTJ2KCodec |
+| UID | Transfer Syntax | Decode | Encode | Compressed-Domain Transcode |
+|---|---|---|---|---|
+| `.90` | JPEG 2000 Lossless | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | 🔄 `SwiftJ2KDICOMTranscoder` (`↔ .201/.202`) |
+| `.91` | JPEG 2000 (lossy / reversible) | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | 🔄 `SwiftJ2KDICOMTranscoder` (reversible 5/3 only) |
+| `.92` | JPEG 2000 Part 2 Lossless | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | — (pixel path) |
+| `.93` | JPEG 2000 Part 2 (lossy) | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | — (pixel path) |
+| `.201` | HTJ2K Lossless | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | 🔄 `SwiftJ2KDICOMTranscoder` (`↔ .90/.91/.202`) |
+| `.202` | HTJ2K RPCL Lossless | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | 🔄 `SwiftJ2KDICOMTranscoder` (`↔ .90/.91/.201`) |
+| `.203` | HTJ2K (lossy / reversible) | ✅ `SwiftJ2KDICOMCodec` | ✅ `SwiftJ2KDICOMCodec` | 🔄 `SwiftJ2KDICOMTranscoder` (reversible 5/3 only) |
 
 **Notes**
-- **HTJ2K override:** `J2KSwiftCodec` registers all seven UIDs first; `HTJ2KCodec`
-  then **overwrites** `.201/.202/.203` in *both* the decode and encode registries.
-  Final owner of the three HTJ2K UIDs is `HTJ2KCodec` (wraps J2KSwift with
-  `htj2kBlockFormat: .conformant` for OpenJPH/PACS interop; `progressionOrder: .rpcl`).
-- **`canEncode` gate (all seven):** `bitsAllocated ∈ {8,16}`, `samplesPerPixel ∈ {1,3}`.
-- **Round-trip check:** lossless encodes run a bit-exact `verifyEncodedRoundTrip`;
-  lossy encodes (`.91/.93/.203`) are permitted to differ — `encode ✅` does **not**
-  imply round-trip fidelity for those three.
-- **Part-2 caveat (`.92/.93`):** routed through the identical Part-1 pipeline; the
-  adapter adds **no** explicit multi-component-transform (MCT) configuration.
+- **Public compatibility wrappers:** Direct instantiations of `J2KSwiftCodec` and `HTJ2KCodec` delegate to the same `SwiftJ2KDICOMCodec` implementation, including zero-intermediate-copy caller-owned buffer decode and `DICOMAllocationBudget` accounting.
+- **Lossless codestream enforcement:** Decoding `.90`, `.92`, `.201`, or `.202` inspects the codestream wavelet marker and rejects irreversible 9/7 codestreams; `.202` additionally enforces RPCL progression order.
+- **Progressive wavelet resolution decode:** `DICOMFile.pixelDataProgressive` and `DICOMStudio` `ImageDecodingService.decodeProgressively` decode reduced DWT levels directly via `SwiftJ2K`.
 
 ---
 
-## 2. JLSwift — `JPEGLSCodec`
+## 2. SwiftJLS (`2.0.0`) — `JPEGLSCodec`
 
-JPEG-LS (ISO 14495-1 / ITU-T T.87). Pure Swift.
-A single shared `JPEGLSCodec()` instance serves both UIDs (decode + encode).
+JPEG-LS (ISO/IEC 14495-1 / ITU-T T.87). Per-UID decoders (`JPEGLSCodec(decodingTransferSyntaxUID:)`) and a shared encoder (`JPEGLSCodec()`).
 
 | UID | Transfer Syntax | Decode | Encode |
 |---|---|---|---|
-| `.80` | JPEG-LS Lossless | ✅ JPEGLSCodec | ✅ JPEGLSCodec |
-| `.81` | JPEG-LS Near-Lossless | ✅ JPEGLSCodec | ✅ JPEGLSCodec |
+| `.80` | JPEG-LS Lossless (`NEAR = 0`) | ✅ `JPEGLSCodec` | ✅ `JPEGLSCodec` |
+| `.81` | JPEG-LS Near-Lossless (`NEAR >= 0`) | ✅ `JPEGLSCodec` | ✅ `JPEGLSCodec` |
 
 **Notes**
-- **NEAR is config-driven, not UID-driven.** Lossless ⇒ `NEAR = 0`;
-  near-lossless ⇒ `NEAR = max(0, maxVal·(1−quality)·0.1)`. Because one
-  UID-agnostic instance is registered, requesting `.81` with a *lossless* config
-  still yields `NEAR = 0` (bit-exact) — TS↔quality consistency is not enforced.
-- `canEncode`: `bitsAllocated ∈ {8,16}`, `samplesPerPixel ∈ {1,3}`. No signed-sample guard.
+- **Negotiated lossless guard:** The `.80` decoder strictly rejects JPEG-LS scans carrying `NEAR > 0`.
+- **Signed & unsigned 8/16-bit greyscale and RGB** supported with bounded `DICOMAllocationBudget` tracking.
 
 ---
 
-## 3. JLISwift — `JLICodec`
+## 3. SwiftJLI (`2.0.2`) — `JLICodec`
 
-Native-Swift legacy JPEG (ITU-T T.81: baseline / extended / lossless),
-Accelerate-backed. One shared **mode-agnostic decoder** (the SOF marker auto-selects
-baseline/extended/progressive/lossless); a **per-UID encoder** constructed via
-`JLICodec(encodingTransferSyntaxUID:)`.
+Pure-Swift ITU-T T.81 JPEG (Baseline SOF0, Extended SOF1, Lossless SOF3), Accelerate-backed. Per-UID decoders (`JLICodec(decodingTransferSyntaxUID:)`) and per-UID encoders (`JLICodec(encodingTransferSyntaxUID:)`).
 
 | UID | Transfer Syntax | JPEG process | Decode | Encode |
 |---|---|---|---|---|
-| `.50` | JPEG Baseline (Process 1) | SOF0 DCT, 8-bit, lossy | ✅ JLICodec | ✅ JLICodec |
-| `.51` | JPEG Extended (Process 2 & 4) | SOF1 DCT, ≤12-bit, lossy | ✅ JLICodec | ✅ JLICodec |
-| `.57` | JPEG Lossless (Process 14) | SOF3 predictive, lossless | ✅ JLICodec | ✅ JLICodec |
-| `.70` | JPEG Lossless SV1 (Process 14, SV1) | SOF3 predictive (predictor 1), lossless | ✅ JLICodec | ✅ JLICodec |
+| `.50` | JPEG Baseline (Process 1) | SOF0 DCT, 8-bit, lossy | ✅ `JLICodec` | ✅ `JLICodec` |
+| `.51` | JPEG Extended (Process 2 & 4) | SOF1 DCT, 8/12-bit, lossy | ✅ `JLICodec` | ✅ `JLICodec` |
+| `.57` | JPEG Lossless (Process 14) | SOF3 predictive, lossless | ✅ `JLICodec` | ✅ `JLICodec` |
+| `.70` | JPEG Lossless SV1 (Process 14, SV1) | SOF3 predictive (predictor 1), lossless | ✅ `JLICodec` | ✅ `JLICodec` |
 
 **Notes**
-- **Signed samples:** **rejected** on the lossy DCT path (`.50/.51` — level shift
-  undefined for signed); **accepted / byte-exact** on the lossless path (`.57/.70`).
-- **Mode is driven by the transfer syntax, not the quality flag.** Lossless syntaxes
-  are always bit-exact (point transform 0); lossy syntaxes map
-  `CompressionConfiguration.quality` (0.0–1.0) to a JPEG quality factor (1–100).
-- A bare `JLICodec()` defaults to `.70` (Lossless SV1), so it round-trips bit-exactly —
-  the contract the multi-codec bench relies on.
-- `NativeJPEGCodec` (Apple ImageIO) is **no longer registered**; `JLICodec`
-  superseded it for all four JPEG UIDs.
+- **Signed samples:** Preserved bit-exactly on lossless `.57`/`.70`; rejected on lossy DCT `.50`/`.51`.
+- **Apple ImageIO isolation:** `NativeJPEGCodec` is **not** registered in `CodecRegistry.shared` and is never used implicitly; it is only reachable if a caller explicitly requests `jpegEngine: .native` for `.50` Baseline encoding.
 
 ---
 
-## 4. JXLSwift — `JXLCodec`
+## 4. SwiftJXL (`2.0.0`) — `JXLCodec`
 
-JPEG XL (ISO/IEC 18181, Modular + VarDCT). Pure Swift.
-A single shared `JXLCodec()` instance is **registered and user-facing**.
-Encode is **lossless-only** because the VarDCT lossy encoder is only partially
-implemented.
+JPEG XL (ISO/IEC 18181, Supplement 232: Modular lossless, VarDCT lossy, and `jbrd` lossless JPEG bitstream recompression/reconstruction). Per-UID decoders (`JXLCodec(decodingTransferSyntaxUID:)`) and per-UID pixel encoders (`JXLCodec(encodingTransferSyntaxUID:)`).
+
+| UID | Transfer Syntax | Pixel Decode | Pixel Encode | Bitstream Transcode |
+|---|---|---|---|---|
+| `.110` | JPEG XL Lossless | ✅ `JXLCodec` | ✅ `JXLCodec` (Modular) | — |
+| `.111` | JPEG XL JPEG Recompression | ✅ `JXLCodec` | — _(JPEG bitstream wrapper)_ | 🔄 `JXLCodec.recompressJPEGFragment` / `reconstructJPEGFragment` (`JPEG .50/.51 ↔ .111`) |
+| `.112` | JPEG XL (general / lossy) | ✅ `JXLCodec` | ✅ `JXLCodec` (VarDCT / Modular fallback) | — |
+
+**Notes**
+- **`.111` JPEG Recompression:** Wraps an existing `.50`/`.51` JPEG fragment in a JPEG XL `jbrd` container and reconstructs the original JPEG fragment **byte-for-byte** via `TransferSyntaxConverter` and `CompressionManager` without re-quantizing pixels. Viewing or transcoding `.111` to any pixel syntax decodes through `JXLCodec` in `CodecRegistry.shared`.
+- **Signed 16-bit CT support:** `JXLCodec` level-shifts signed 16-bit two's-complement samples (`word ^ 0x8000`) on pixel encode/decode and rejects signed 8-bit samples cleanly.
+
+---
+
+## 5. SwiftRLE (`1.0.1`) — `RLECodec`
+
+DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`). Single shared `RLECodec()` instance for decode and encode.
 
 | UID | Transfer Syntax | Decode | Encode |
 |---|---|---|---|
-| `.110` | JPEG XL Lossless | ✅ JXLCodec | ✅ JXLCodec |
-| `.112` | JPEG XL (general) | ✅ JXLCodec | — (decode-only) |
-| `.111` | JPEG XL JPEG Recompression | — | — (unsupported) |
-
-**Notes**
-- `.112` decodes **both** VarDCT (lossy) and Modular (lossless) bitstreams;
-  encoding deliberately targets only `.110`.
-- `.111` is a defined / parseable transfer syntax with **no codec** — faithful
-  handling requires bit-exact reconstruction of the *original* JPEG bitstream,
-  which is not a generic pixel (de)code operation.
-- `canEncode` (`.110`): `bitsAllocated ∈ {8,16}`, `samplesPerPixel ∈ {1,3}`,
-  **unsigned only** (signed frames rejected, not silently mis-encoded).
-
-### Why `.111` (JPEG XL Recompression) isn't a pixel codec
-
-JPEG XL Recompression is **not** "decode the JPEG to pixels, then re-encode the
-pixels as JXL." That would be lossy again (the original quantization is already
-baked in) and would discard the exact original JPEG — the one thing `.111` exists
-to preserve. It is instead a **coefficient-level bitstream transcode** that never
-leaves the frequency domain:
-
-1. **Parse** the source JPEG's entropy-coded (Huffman) DCT coefficients — *without*
-   running the inverse DCT. No pixels are ever produced.
-2. **Re-pack** those exact quantized coefficients into a JXL VarDCT frame using
-   JXL's stronger entropy coder (ANS instead of Huffman) — same coefficients,
-   ~20% fewer bytes.
-3. **Store a `jbrd` box** (JPEG Bitstream Reconstruction Data: markers, Huffman
-   tables, padding, component ordering, APPn/COM segments) so the **byte-for-byte
-   identical** original JPEG can be reassembled on retrieval.
-
-So `.111` is lossless *with respect to the original JPEG file*, not just its pixels.
-In JXLSwift this is `JXLEncoder().encodeLosslessJPEG(jpegBytes)` — note the input is
-**JPEG bytes, not an `ImageFrame`/pixels**.
-
-**Is the `jbrd` machinery implemented in JXLSwift?** Yes. The `jbrd`
-(JPEG Bitstream Reconstruction Data) box has a full model, reader, writer, a
-forward extractor (`JBRDBox.extract(fromJPEG:)`), a reverse reconstructor
-(`JXLToJPEGAdapter.reconstruct`), and a Brotli codec for the marker payloads —
-all exercised by ~20 byte-identical end-to-end tests and cross-checked with
-`djxl --jpeg`. JXLSwift's Phase J is functionally complete in both directions.
-(The inline "scaffold / stub" comments in `JBRDBox.swift` / `JXLEncoder.swift`
-are stale; the package's `STATUS-AND-ROADMAP.md §5` is authoritative.)
-
-**So why is `.111` still left unsupported in the DICOMKit registry?** Three reasons:
-
-1. **It doesn't fit the `ImageCodec` contract.** Every registered codec is
-   pixel-in / pixel-out (`encodeFrame(pixelData) -> Data`,
-   `decodeFrame(_) -> pixelData`). Recompression is `JPEG bytes ⇄ JXL bytes` and
-   needs the **original JPEG bitstream** as input, which `encodeFrame(pixels)`
-   cannot supply. There is no meaningful "encode `.111` from pixels": if all you
-   have is pixels, the original JPEG is already gone and you'd emit `.110`/`.112`
-   instead. `.111` belongs in a **transfer-syntax converter** that recompresses the
-   encapsulated JPEG fragments of a `.50/.51/.57/.70` object — not in a per-frame
-   pixel codec.
-2. **The bridge is package-internal — DICOMKit can't reach the reverse path.**
-   The entire `jbrd` surface (`JBRDBox`, `JBRDBoxReader`/`Writer`, `JBRDExtractor`,
-   `JXLToJPEGAdapter.reconstruct`, `JXLDecoder.decodeJPEGBridgeData`) is
-   `package`-scoped — visible only inside the JXLSwift package (its own `JXLTool`
-   CLI). The **only** `public` JPEG-bridge entry point is the forward encoder
-   `JXLEncoder.encodeLosslessJPEG(jpegBytes)`. There is **no public
-   reverse-reconstruct API**, so DICOMKit could *produce* a `.111` JXL but could not
-   losslessly recover the original JPEG from it — which defeats the purpose of `.111`.
-3. **Bit-depth and size limits exclude the medical JPEG range.** The transcode
-   rejects 16-bit quantization tables (`JBRDError.invalidQuantPrecision`, mirroring
-   libjxl) — so **12-bit Extended and 16-bit JPEGs can't be bridged**, which are
-   exactly the depths medical JPEG uses. The forward path is also capped at
-   **≤ 2048 px/side**. (Within those limits it *does* handle baseline, progressive,
-   and extended-sequential at 8-bit — it is not "baseline-only.")
-
-Nuance: merely **displaying** a `.111` image wouldn't need any of this — the
-embedded JXL can be decoded straight to pixels (the same VarDCT path `.112` uses).
-The `jbrd` / coefficient-bridge machinery is required only for the two operations
-that define `.111`: **producing** it from an existing JPEG, and **losslessly
-reconstructing** the exact original JPEG back out.
+| `1.2.840.10008.1.2.5` | RLE Lossless | ✅ `RLECodec` | ✅ `RLECodec` |
 
 ---
 
-## Combined at-a-glance
+## 6. Deferred Pending `SwiftJ2K 12.2.0` (Not Registered)
 
-| Library | Codec(s) | UIDs | Decode | Encode |
-|---|---|---|---|---|
-| J2KSwift | `J2KSwiftCodec`, `HTJ2KCodec` | `.90 .91 .92 .93 .201 .202 .203` | all 7 | all 7 |
-| JLSwift | `JPEGLSCodec` | `.80 .81` | both | both |
-| JLISwift | `JLICodec` | `.50 .51 .57 .70` | all 4 | all 4 |
-| JXLSwift | `JXLCodec` | `.110 .112` (`.111` unsupported) | `.110 .112` | `.110` only |
-
-**Also registered (not from these four libraries):**
-
-| Codec | Transfer Syntax UID(s) | Decode | Encode |
-|---|---|---|---|
-| `RLECodec` | `1.2.840.10008.1.2.5` — RLE Lossless | ✅ | ✅ |
-| `JP3DCodec` | `1.2.826.0.1.3680043.10.511.1` — JP3D Lossless *(private)* | ✅ | ✅ |
-| `JP3DCodec` | `1.2.826.0.1.3680043.10.511.2` — JP3D Lossy *(private)* | ✅ | ✅ |
+| Surface | UID(s) | Status |
+|---|---|---|
+| `JP3DCodec` / `JP3DVolumeDocument` / `dicom-3d` | `1.2.826.0.1.3680043.10.511.1`, `…511.2` *(experimental private)* | ⏸️ Deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification) |
+| `DICOMJPIPClient` / `dicom-jpip` / `dicom-viewer --jpip` | `1.2.840.10008.1.2.4.94`, `…4.95` | ⏸️ Deferred pending `SwiftJ2K 12.2.0` (`SwiftJPIP` qualification) |
 
 ---
 
-## Encoder instance model (how the registry constructs encoders)
-
-| Codec | Encoder construction |
-|---|---|
-| `J2KSwiftCodec` | **per-UID** — `J2KSwiftCodec(encodingTransferSyntaxUID:)` |
-| `HTJ2KCodec` | **per-UID** — `HTJ2KCodec(targetTransferSyntaxUID:)` (overwrites J2KSwiftCodec for `.201/.202/.203`) |
-| `JLICodec` | **per-UID** — `JLICodec(encodingTransferSyntaxUID:)` (decode uses one shared mode-agnostic instance) |
-| `JPEGLSCodec` | **single shared instance** for `.80` + `.81` (lossless vs near-lossless chosen by config) |
-| `JXLCodec` | **single shared instance** (only produces `.110`) |
-| `JP3DCodec` | **per-UID** — `JP3DCodec(compressionMode:)` (`.lossless` / `.lossy()`) |
-| `RLECodec` | **single shared instance** |
-
----
-
-## Codecs present in the tree but NOT registered
-
-These exist under `Sources/DICOMCore/` but are **not** wired into `CodecRegistry`,
-so they are not user-facing for any transfer syntax:
+## Codecs present in `Sources/DICOMCore/` but NOT registered in `CodecRegistry.shared`
 
 | Codec | Role |
 |---|---|
-| `NativeJPEGCodec` | Apple ImageIO JPEG — superseded by `JLICodec`; kept for its own unit tests only |
-| `NativeJPEG2000Codec` | Apple ImageIO JPEG 2000 — superseded by `J2KSwiftCodec`/`HTJ2KCodec` |
-| `OpenJPEGCodec` | OpenJPEG J2K — **bench-only** (DICOMStudio `J2KTestBenchService`) |
-| `DjpegCLICodec` | libjpeg `djpeg` CLI wrapper — bench-only |
-| `DjxlCLICodec` | libjxl `djxl` CLI wrapper — bench-only |
-| `GrokCLICodec` | Grok HTJ2K CLI wrapper — bench-only |
-| `KakaduCLICodec` | Kakadu CLI wrapper — bench-only |
-
-The external reference tools (OpenJPEG, OpenJPH, Grok, Kakadu, CharLS,
-libjpeg-turbo, mozjpeg, jpegli, libjxl) are **test-time validation oracles only** —
-none of the four libraries carry a runtime C/C++ codec dependency.
-
----
-
-*Generated from a source-level audit of `ImageCodec.swift`, `J2KSwiftCodec.swift`,
-`HTJ2KCodec.swift`, `JPEGLSCodec.swift`, `JLICodec.swift`, `JXLCodec.swift`, and
-`TransferSyntax.swift`. If you change codec registration, re-verify against
-`CodecRegistry` in `ImageCodec.swift`.*
+| `NativeJPEGCodec` | Apple ImageIO JPEG — opt-in only via explicit `jpegEngine: .native` for `.50` Baseline |
+| `NativeJPEG2000Codec` | Deprecated Apple ImageIO JPEG 2000 — never registered or implicitly invoked |
+| `JP3DCodec` | Experimental JP3D volumetric codec — deferred pending `SwiftJ2K 12.2.0` |
+| `OpenJPEGCodec`, `DjpegCLICodec`, `DjxlCLICodec`, `GrokCLICodec`, `KakaduCLICodec` | External CLI benchmark wrappers used only by `DICOMStudio` `J2KTestBenchService` when external binaries are installed |

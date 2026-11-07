@@ -289,7 +289,7 @@ public final class J2KTestBenchViewModel {
                 guard cell.outcome.isPass, let ms = cell.decodeMs,
                       cell.fixturePixelCount > 0 else { return nil }
                 return ScalingPoint(
-                    codec: cell.codec.rawValue,
+                    codec: cell.codec.displayName,
                     fixtureName: cell.fixtureName,
                     megapixels: Double(cell.fixturePixelCount) / 1_000_000,
                     decodeMs: ms)
@@ -297,19 +297,19 @@ public final class J2KTestBenchViewModel {
             .sorted { $0.megapixels < $1.megapixels }
     }
 
-    /// Each codec's median decode time relative to J2KSwift's (1.0 = parity).
+    /// Each codec's median decode time relative to the format's reference codec (1.0 = parity).
     public var relativeDecodeSpeeds: [RelativeSpeed] {
         var medians: [J2KBenchCodec: Double] = [:]
         for standing in speedStandings {
             if let median = standing.medianDecodeMs { medians[standing.codec] = median }
         }
-        // Anchor to the displayed run's reference codec (J2KSwift for JPEG 2000,
-        // JLISwift/JLSwift/JXLSwift for the other formats).
+        // Anchor to the displayed run's reference codec (SwiftJ2K for JPEG 2000,
+        // SwiftJLI/SwiftJLS/SwiftJXL for the other formats).
         let referenceCodec = displayedCells.first?.codec.format.referenceCodec ?? .j2kSwift
         guard let reference = medians[referenceCodec], reference > 0 else { return [] }
         return J2KBenchCodec.allCases.compactMap { codec in
             guard let median = medians[codec] else { return nil }
-            return RelativeSpeed(codec: codec.rawValue, ratio: median / reference)
+            return RelativeSpeed(codec: codec.displayName, ratio: median / reference)
         }
     }
 
@@ -528,7 +528,7 @@ public final class J2KTestBenchViewModel {
                                 fixturePath: fixture.path)
                             for codec in codecs {
                                 if Task.isCancelled { break }
-                                self.runningLabel = "\(fixture.name) · \(syntax.shortName) · \(codec.rawValue)"
+                                self.runningLabel = "\(fixture.name) · \(syntax.shortName) · \(codec.displayName)"
                                 let outcome = await Task.detached { () -> CellOutcome in
                                     let scored = J2KTestBenchService.decodeAndScore(
                                         codestream: product.codestream,

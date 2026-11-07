@@ -318,4 +318,72 @@ struct VolumeSpacingTests {
                              isSigned: true, pixelData: Data([0xFF]))
         #expect(v8.voxel(x: 0, y: 0, z: 0) == -1)
     }
+
+    @Test("openVolume and JP3DVolumeBridge.makeVolume decode encapsulated (RLE and J2K) slice series and multi-frame volumes")
+    func encapsulatedSeriesAndMultiframeVolumesDecode() async throws {
+        let rawSlices = try (0..<3).map { k in
+            try makeSlice(
+                index: k,
+                position: (0, 0, 2.0 * Double(k)),
+                orientation: nil,
+                sliceThickness: "2.0",
+                firstPixel: UInt16(500 + k * 100)
+            )
+        }
+        let mgr = CompressionManager()
+        let j2kSlices = try rawSlices.map { slice -> DICOMFile in
+            let compressed = try mgr.compressData(try slice.write(), codec: "htj2k-lossless", quality: nil)
+            return try DICOMFile.read(from: compressed)
+        }
+
+        // 1. JP3DVolumeBridge.makeVolume on encapsulated HTJ2K slice series
+        let bridged = try JP3DVolumeBridge.makeVolume(from: j2kSlices)
+        #expect(bridged.depth == 3)
+        #expect(bridged.width == 2 && bridged.height == 2)
+
+        // 2. DICOMFile.openVolume on encapsulated HTJ2K slice series directory
+        let dir = try writeSeries(j2kSlices)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let seriesVolume = try await DICOMFile.openVolume(from: dir)
+        #expect(seriesVolume.depth == 3)
+        #expect(seriesVolume.voxel(x: 0, y: 0, z: 0) == 500)
+        #expect(seriesVolume.voxel(x: 0, y: 0, z: 1) == 600)
+        #expect(seriesVolume.voxel(x: 0, y: 0, z: 2) == 700)
+
+        // 3. DICOMFile.openVolume on encapsulated RLE multi-frame object
+        var mfDS = DataSet()
+        mfDS.setUInt16(2, for: .rows)
+        mfDS.setUInt16(2, for: .columns)
+        mfDS.setUInt16(16, for: .bitsAllocated)
+        mfDS.setUInt16(12, for: .bitsStored)
+        mfDS.setUInt16(11, for: .highBit)
+        mfDS.setUInt16(0, for: .pixelRepresentation)
+        mfDS.setUInt16(1, for: .samplesPerPixel)
+        mfDS.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        mfDS.setString("2", for: .numberOfFrames, vr: .IS)
+        mfDS.setString("1.2.3.4.5.99", for: .sopInstanceUID, vr: .UI)
+        mfDS.setString(Self.ctSOPClass, for: .sopClassUID, vr: .UI)
+        mfDS.setString("1.5", for: .spacingBetweenSlices, vr: .DS)
+        var mfPixels = Data()
+        for sample: UInt16 in [111, 222, 333, 444, 555, 666, 777, 888] {
+            var le = sample.littleEndian
+            mfPixels.append(Data(bytes: &le, count: 2))
+        }
+        mfDS[.pixelData] = DataElement.data(tag: .pixelData, vr: .OW, data: mfPixels)
+        let uncompressedMF = try DICOMFile.create(
+            dataSet: mfDS,
+            sopClassUID: Self.ctSOPClass,
+            sopInstanceUID: "1.2.3.4.5.99",
+            transferSyntaxUID: TransferSyntax.explicitVRLittleEndian.uid
+        ).write()
+        let rleMF = try mgr.compressData(uncompressedMF, codec: "rle", quality: nil)
+        let mfURL = FileManager.default.temporaryDirectory.appendingPathComponent("mf_rle_\(UUID().uuidString).dcm")
+        defer { try? FileManager.default.removeItem(at: mfURL) }
+        try rleMF.write(to: mfURL)
+
+        let mfVolume = try await DICOMFile.openVolume(from: mfURL)
+        #expect(mfVolume.depth == 2)
+        #expect(mfVolume.voxel(x: 0, y: 0, z: 0) == 111)
+        #expect(mfVolume.voxel(x: 0, y: 0, z: 1) == 555)
+    }
 }

@@ -948,10 +948,10 @@ public struct ImageViewerView: View {
     @ViewBuilder
     private var imageContent: some View {
         #if canImport(CoreGraphics)
-        // Use the Canvas-based ProgressiveImageView for J2K/HTJ2K files that are
-        // actively being decoded progressively (Phase 8).
-        if viewModel.progressiveDecodeState != .unavailable &&
-           viewModel.progressiveDecodeState != .idle,
+        // Use the Canvas-based ProgressiveImageView only while coarse J2K/HTJ2K
+        // previews are actively streaming; once `.complete` arrives, hand off to
+        // MetalImageView so GPU W/L, annotations, and multi-frame scrubbing work.
+        if case .decoding = viewModel.progressiveDecodeState,
            viewModel.progressiveImage != nil || viewModel.currentImage != nil {
             ProgressiveImageView(viewModel: viewModel)
                 .background(toolSpaceReader)

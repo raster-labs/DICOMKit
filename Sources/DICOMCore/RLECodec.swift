@@ -230,6 +230,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         frameIndex: Int,
         into destination: UnsafeMutableRawBufferPointer
     ) throws -> Int {
+        try Task.checkCancellation()
         let expectedBytes = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         guard destination.count >= expectedBytes, destination.baseAddress != nil else {
             throw DICOMError.limitExceeded(
@@ -309,6 +310,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         frameIndex: Int,
         configuration: CompressionConfiguration
     ) throws -> Data {
+        try Task.checkCancellation()
         let geometry = try Self.validateGeometry(descriptor)
         let rleLimits = Self.makeEncodeResourceLimits(
             decodedByteCount: max(frameData.count, geometry.bytesPerFrame),

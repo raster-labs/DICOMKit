@@ -475,6 +475,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         descriptor: PixelDataDescriptor, frameIndex: Int, budget: borrowing DICOMAllocationBudget,
         cancellation: DICOMCancellation = .never) -> DICOMManagedOutcome<ManagedDecodedPixelFrame> {
         if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
         guard frameData.isOwned(by: budget) else { return .failure(DICOMManagedFailure(allocation: .budgetMismatch)) }
         switch decodingLimits.validateManagedOutcome(encodedByteCount: frameData.count,
             descriptor: descriptor, frameIndex: frameIndex) {
