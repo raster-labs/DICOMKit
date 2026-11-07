@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-07
+
 ### Added
 
 - Integrate `SwiftJXL` `2.0.0` (`from: "2.0.0"`, `raster-labs/SwiftJXL`) into `DICOMCore`, replacing legacy `JXLSwift` (`1.4.0`), and migrate `JXLCodec` across all three DICOM JPEG XL transfer syntaxes—Lossless `.110` (Modular with `Fidelity.exactSamples`), JPEG Recompression `.111` (`Transcoder` reversible `jbrd` bitstream transcoding with `Fidelity.originalBitstream` and pixel decode via `JLICodec`), and general/lossy `.112` (VarDCT with automatic Modular fallback beyond VarDCT size bounds)—preserving `copyPolicy: .requireSharedStorage`, signed-16-bit two's-complement CT level shifting, `XYB` -> `RGB` photometric relabelling on decode (PS3.3 C.7.6.3.1.2 / D12), zero-copy pre-admission ISOBMFF/`SizeHeader` validation, and `DICOMAllocationBudget` managed frame decoding.
@@ -22,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mark `dicom-3d`, `dicom-jpip`, `JP3DCodec`, `JP3DVolumeDocument.encode`/`decode`, and `DICOMJPIPClient` retrieval as **deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` and `SwiftJ2KJPIP` qualification)**. Only the qualified 2D `SwiftJ2K` library product is linked; deferred 3D/JP3D and JPIP runtime entry points and CLI subcommands fail closed with explicit deferral diagnostics while preserving `--help`, PS3.6 Table A-1 UID metadata, and pure 3D geometry/rendering APIs.
 - JPEG 2000 and HTJ2K conversions can use an immutable, application-selected codec provider for a complete operation. Frame reads and conversions validate Basic and Extended Offset Tables, reject malformed fragment boundaries, and rebuild offsets when frame sizes change. Continuous video bitstreams retain their separate encapsulation rules.
 - Conversion to unsigned 8-bit samples requires explicit permission to change precision in a lossy operation.
+
+### Fixed
+
+- Wire compressed-domain transcoding fast paths in `CompressionManager.transcodeEncapsulatedInPlace` and `dicom-j2k transcode` for lossless JPEG 2000 Part 1 <-> HTJ2K (`SwiftJ2KDICOMTranscoder`) and JPEG XL Recompression `.111` -> `.50`/`.51` (`JXLCodec.reconstructJPEGFragment`), forward caller-owned destination buffers directly in `J2KSwiftCodec` and `HTJ2KCodec`, and decode encapsulated frames cleanly in `DICOMFile.openVolume` and `JP3DVolumeBridge.makeVolume`.
+- Report accurate per-codec hardware backend provenance (`effectiveDecodeBackend`), updated `SwiftJ2K` / `SwiftJLI` / `SwiftJLS` / `SwiftRLE` / `SwiftJXL` inspector & test-bench display names (preserving backwards-compatible `Codable` history), signed 16-bit `computePSNR`, and true wavelet `pixelDataProgressive` streaming in `DICOMStudio`.
+- Enforce uniform entry-point `Task` cancellation checks across all five codec adapters without `DICOMAllocationBudget` staging leaks, and align `DICOMStudio` CLI Workshop handlers (`dicom-compress`, `dicom-convert`, `dicom-study`, `dicom-wado`) with their CLI executable counterparts.
 
 ## [2.10.0] - 2026-11-04
 

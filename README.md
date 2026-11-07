@@ -5,6 +5,19 @@ RLE, and JPEG XL) are available through explicit allocation ownership. See
 [the allocation contract](Documentation/BoundedInput/AllocationContract.md) for retained
 capacities, synchronous worker reservations, cancellation and runtime qualification.
 
+### v3.0.0 Apple OS 26.0+ / Swift 6.4+ pure-Swift compression suite
+
+`DICOMKit` v3.0.0 raises platform deployment minima to Apple OS 26.0+ (`macOS 26.0+`,
+`iOS 26.0+`, `tvOS 26.0+`, `visionOS 26.0+`) on Swift 6.4 and migrates all 17 active
+encapsulated DICOM transfer syntaxes onto the unified `raster-labs` pure-Swift compression
+suite (`SwiftJ2K 12.1.0`, `SwiftRLE 1.0.1`, `SwiftJLS 2.0.0`, `SwiftJLI 2.0.2`, and
+`SwiftJXL 2.0.0`) with shared `CompressionCore` buffer contracts, compressed-domain
+transcoding fast paths (lossless JPEG 2000 Part 1 <-> HTJ2K and JPEG <-> `.111` JPEG XL
+Recompression), progressive wavelet resolution decode, per-codec backend provenance, and
+`DICOMAllocationBudget` managed frame decoding. Volumetric JP3D (`.105`/`.106`, `dicom-3d`)
+and JPIP streaming (`.94`/`.95`, `dicom-jpip`) remain explicitly deferred pending
+`SwiftJ2K 12.2.0`.
+
 ### v2.10.0 strict bounded hospital transfer syntaxes and managed codec decoding
 
 `BoundedTransferSyntax` (`0...16`) and `BoundedParsingOptions` now cover all 17 maintained
@@ -1683,11 +1696,11 @@ import PackageDescription
 let package = Package(
     name: "MyDICOMApp",
     platforms: [
-        .iOS(.v18),
-        .macOS(.v15)
+        .iOS(.v26),
+        .macOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/raster-labs/DICOMKit.git", from: "2.4.0")
+        .package(url: "https://github.com/raster-labs/DICOMKit.git", from: "3.0.0")
     ],
     targets: [
         .target(
@@ -1702,8 +1715,8 @@ let package = Package(
 
 Or add it through Xcode:
 1. File → Add Package Dependencies
-2. Enter: `https://github.com/Raster-Lab/DICOMKit`
-3. Select version 1.8.0 or later
+2. Enter: `https://github.com/raster-labs/DICOMKit`
+3. Select version 3.0.0 or later
 
 #### Available Products
 

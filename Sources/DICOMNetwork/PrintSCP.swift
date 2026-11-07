@@ -62,7 +62,7 @@ final class PrintSCPListenerStartup: @unchecked Sendable {
     ) async throws {
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                queue.async {
+                queue.async { [self] in
                     if let result = self.result {
                         continuation.resume(with: result)
                         return
