@@ -141,7 +141,7 @@ cat > "${CONTENTS}/Info.plist" << PLIST
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.medical</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2024-2026 DICOMKit. All rights reserved.</string>
+    <string>Copyright © 2026 Raster Images Private Limited. All rights reserved.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>
@@ -273,7 +273,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, monospace; padding: 20px;
 </style></head>
 <body>
 <h2>MIT License</h2>
-<p>Copyright (c) 2024-2026 DICOMKit Contributors</p>
+<p>Copyright (c) 2026 Raster Images Private Limited</p>
 <p>Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights

@@ -131,7 +131,7 @@ cat > "${CONTENTS}/Info.plist" << PLIST
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.medical</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Copyright © 2024-2026 DICOMKit. All rights reserved.</string>
+    <string>Copyright © 2026 Raster Images Private Limited. All rights reserved.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>

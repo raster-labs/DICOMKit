@@ -5502,7 +5502,7 @@ DICOMKit is released under the **MIT License**. See [LICENSE](LICENSE) for detai
 ```
 MIT License
 
-Copyright (c) 2024-2026 Raster Lab
+Copyright (c) 2026 Raster Images Private Limited
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

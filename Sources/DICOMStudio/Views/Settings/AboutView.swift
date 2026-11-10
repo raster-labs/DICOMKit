@@ -59,7 +59,7 @@ struct AboutView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Text("© 2026 Raster Lab. All rights reserved.")
+            Text("© 2026 Raster Images Private Limited. All rights reserved.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }
