@@ -5,8 +5,8 @@
 # Usage: ./package-dicom-studio-pkg.sh [--version VERSION] [--sign IDENTITY] [--notarize]
 #
 # Prerequisites:
-#   - Xcode 16.0+ with command line tools
-#   - Swift 6.0+
+#   - Xcode 26.0+ with command line tools
+#   - Swift 6.4+
 #   - (Optional) Apple Developer ID Installer certificate for signing
 #   - (Optional) Notarization credentials in keychain
 
@@ -20,7 +20,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Default values
-VERSION="1.0.16"
+VERSION="3.0.0"
 SIGN_IDENTITY=""
 NOTARIZE=false
 BUILD_DIR=".build/release"
@@ -57,9 +57,9 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Examples:"
             echo "  $0"
-            echo "  $0 --version 2.0.0"
-            echo "  $0 --version 2.0.0 --sign \"Developer ID Installer: Your Name (TEAM_ID)\""
-            echo "  $0 --version 2.0.0 --sign \"Developer ID Installer: Your Name\" --notarize"
+            echo "  $0 --version 3.0.0"
+            echo "  $0 --version 3.0.0 --sign \"Developer ID Installer: Your Name (TEAM_ID)\""
+            echo "  $0 --version 3.0.0 --sign \"Developer ID Installer: Your Name\" --notarize"
             exit 0
             ;;
         *)
@@ -131,7 +131,7 @@ cat > "${CONTENTS}/Info.plist" << PLIST
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
+    <string>26.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticTermination</key>
@@ -220,7 +220,7 @@ cat > "${STAGING_DIR}/distribution.xml" << DIST
     <license file="license.html" mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
 
-    <os-version min="14.0" />
+    <os-version min="26.0" />
 
     <choices-outline>
         <line choice="default">
@@ -260,7 +260,7 @@ h1 { color: #0066cc; } h2 { color: #555; } .feature { margin: 8px 0; } .check { 
 <div class="feature"><span class="check">✓</span> Anonymization, validation, and structured reports</div>
 <div class="feature"><span class="check">✓</span> Volume visualization (MPR, 3D rendering)</div>
 <div class="feature"><span class="check">✓</span> Measurement and annotation tools</div>
-<p><strong>System Requirements:</strong> macOS 14.0 (Sonoma) or later</p>
+<p><strong>System Requirements:</strong> macOS 26.0 (Tahoe) or later</p>
 </body>
 </html>
 WELCOME
