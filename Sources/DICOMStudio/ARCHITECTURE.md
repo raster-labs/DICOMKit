@@ -2,7 +2,7 @@
 
 ## Overview
 
-DICOM Studio is a macOS SwiftUI application showcasing DICOMKit. It follows **MVVM** (Model–View–ViewModel) with a service layer, using Swift 6.2 strict concurrency and the `@Observable` macro.
+DICOM Studio is a macOS/iOS SwiftUI application showcasing DICOMKit (v3.0.0, targeting macOS 26.0+ and iOS 26.0+). It follows **MVVM** (Model–View–ViewModel) with a service layer, using Swift 6.4 strict concurrency and the `@Observable` macro.
 
 ## Directory Structure
 

@@ -2,13 +2,13 @@
 class Dicomkit < Formula
   desc "Pure Swift DICOM toolkit with 35 command-line utilities"
   homepage "https://github.com/Raster-Lab/DICOMKit"
-  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v1.0.0.tar.gz"
+  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.0.0.tar.gz"
   sha256 "" # Will be filled in upon first release
   license "MIT"
   head "https://github.com/Raster-Lab/DICOMKit.git", branch: "main"
 
-  depends_on xcode: ["15.0", :build]
-  depends_on macos: :sonoma
+  depends_on xcode: ["26.0", :build]
+  depends_on macos: :tahoe
 
   def install
     # Build all CLI tools using Swift Package Manager

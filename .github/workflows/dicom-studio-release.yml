@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag (e.g. studio-v1.0.16)'
+        description: 'Version tag (e.g. studio-v3.0.0)'
         required: true
         type: string
 
@@ -189,7 +189,7 @@ jobs:
         \`\`\`
 
         ### System Requirements
-        - macOS 14.0 (Sonoma) or later
+        - macOS 26.0 (Tahoe) or later
         - Apple Silicon or Intel processor
 
         ### Features

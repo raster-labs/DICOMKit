@@ -1,6 +1,6 @@
 # Homebrew Cask for DICOM Studio macOS Application
 cask "dicomstudio" do
-  version "1.0.16"
+  version "3.0.0"
   sha256 :no_check # Replace with actual SHA-256 after first release build
 
   url "https://github.com/Raster-Lab/DICOMKit/releases/download/v#{version}/DICOMStudio-#{version}.dmg"
@@ -8,7 +8,7 @@ cask "dicomstudio" do
   desc "Professional macOS DICOM medical imaging workstation built with DICOMKit"
   homepage "https://github.com/Raster-Lab/DICOMKit"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: ">= :tahoe"
 
   app "DICOMStudio.app"
 

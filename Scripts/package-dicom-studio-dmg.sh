@@ -5,8 +5,8 @@
 # Usage: ./package-dicom-studio-dmg.sh [--version VERSION] [--sign IDENTITY] [--notarize]
 #
 # Prerequisites:
-#   - Xcode 16.0+ with command line tools
-#   - Swift 6.0+
+#   - Xcode 26.0+ with command line tools
+#   - Swift 6.4+
 #   - (Optional) Apple Developer ID for signing and notarization
 
 set -euo pipefail
@@ -19,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Default values
-VERSION="1.0.16"
+VERSION="3.0.0"
 SIGN_IDENTITY=""
 NOTARIZE=false
 BUILD_DIR=".build/release"
@@ -56,9 +56,9 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Examples:"
             echo "  $0"
-            echo "  $0 --version 2.0.0"
-            echo "  $0 --version 2.0.0 --sign \"Developer ID Application: Your Name (TEAM_ID)\""
-            echo "  $0 --version 2.0.0 --sign \"Developer ID Application: Your Name\" --notarize"
+            echo "  $0 --version 3.0.0"
+            echo "  $0 --version 3.0.0 --sign \"Developer ID Application: Your Name (TEAM_ID)\""
+            echo "  $0 --version 3.0.0 --sign \"Developer ID Application: Your Name\" --notarize"
             exit 0
             ;;
         *)
@@ -130,7 +130,7 @@ cat > "${CONTENTS}/Info.plist" << PLIST
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>LSMinimumSystemVersion</key>
-    <string>14.0</string>
+    <string>26.0</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSSupportsAutomaticTermination</key>
@@ -209,7 +209,7 @@ DICOM Studio v${VERSION}
 Drag DICOMStudio.app to the Applications folder to install.
 
 System Requirements:
-  - macOS 14.0 (Sonoma) or later
+  - macOS 26.0 (Tahoe) or later
   - Apple Silicon or Intel processor
 
 Features:

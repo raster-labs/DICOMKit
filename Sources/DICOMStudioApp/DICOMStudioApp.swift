@@ -74,7 +74,7 @@ struct DICOMStudioApp: App {
 @main
 struct DICOMStudioAppLauncher {
     static func main() {
-        print("DICOM Studio requires macOS 14.0 or later with SwiftUI support.")
+        print("DICOM Studio requires macOS 26.0 or later with SwiftUI support.")
     }
 }
 #endif

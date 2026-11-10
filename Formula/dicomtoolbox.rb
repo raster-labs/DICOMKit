@@ -1,6 +1,6 @@
 # Homebrew Cask for DICOMToolbox GUI Application
 cask "dicomtoolbox" do
-  version "1.0.16"
+  version "3.0.0"
   sha256 "" # Will be filled in upon first release
 
   url "https://github.com/Raster-Lab/DICOMKit/releases/download/v#{version}/DICOMToolbox-#{version}.dmg"
@@ -8,7 +8,7 @@ cask "dicomtoolbox" do
   desc "Native macOS GUI for DICOMKit command-line tools"
   homepage "https://github.com/Raster-Lab/DICOMKit"
 
-  depends_on macos: ">= :sonoma"
+  depends_on macos: ">= :tahoe"
 
   app "DICOMToolbox.app"
 

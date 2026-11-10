@@ -292,7 +292,7 @@ public enum WelcomeViewHelpers: Sendable {
 
     /// Current application version string.
     public static func appVersion() -> String {
-        "DICOM Studio v2.0.0"
+        "DICOM Studio v\(StudioBuildInfo.appVersion)"
     }
 
     /// Trims the list to at most `maxRecentTools`, keeping the most recent entries.
