@@ -880,11 +880,51 @@ struct ManagedCodecTests {
             bitsPerSample: 16
         )
 
-        // 1. Managed decode recovers exact signed 16-bit CT samples with zero retained staging.
+        // 1. Managed decode recovers exact signed 16-bit CT samples (including DICOM PS3.5
+        //    even-length 0x00 fragment padding) with zero retained staging.
+        var variants: [Data] = [legacyStream]
+        if legacyStream.count % 2 == 1 {
+            var padded = legacyStream
+            padded.append(0x00)
+            variants.append(padded)
+        } else {
+            for seed in 1...32 {
+                var altPixels = Data(capacity: width * height * 2)
+                for i in 0..<(width * height) {
+                    let signedCT = Int16(truncatingIfNeeded: -1024 + ((i * (331 + seed * 19) + seed * 53) % 3900))
+                    let word = UInt16(bitPattern: signedCT)
+                    altPixels.append(UInt8(word & 0xFF))
+                    altPixels.append(UInt8((word >> 8) & 0xFF))
+                }
+                let altRaw = try await JPEGLSCodecStrictDecodingTests.makeLegacyUnclampedCodestream(
+                    pixels: altPixels,
+                    width: width,
+                    height: height,
+                    bitsPerSample: 16
+                )
+                if altRaw.count % 2 == 1 {
+                    var padded = altRaw
+                    padded.append(0x00)
+                    let padBudget = try DICOMAllocationBudget()
+                    let padBase = padBudget.receipt.currentTotal
+                    do {
+                        let padBuf = try owned(padded, budget: padBudget)
+                        let padFrame = try JPEGLSCodec(decodingSyntax: .lossless)
+                            .decodeManagedPixelFrame(padBuf, descriptor: desc, frameIndex: 0, budget: padBudget)
+                        #expect(padBudget.receipt.current.staging == 0)
+                        #expect(padFrame.data.withUnsafeBytes { Data($0) } == altPixels)
+                        destroy(padFrame)
+                        destroy(padBuf)
+                    }
+                    #expect(padBudget.receipt.currentTotal == padBase)
+                    break
+                }
+            }
+        }
         let budget = try DICOMAllocationBudget()
         let baseline = budget.receipt.currentTotal
-        do {
-            let encodedBuf = try owned(legacyStream, budget: budget)
+        for streamVariant in variants {
+            let encodedBuf = try owned(streamVariant, budget: budget)
             let frame = try JPEGLSCodec(decodingSyntax: .lossless)
                 .decodeManagedPixelFrame(encodedBuf, descriptor: desc, frameIndex: 0, budget: budget)
             #expect(budget.receipt.current.staging == 0)

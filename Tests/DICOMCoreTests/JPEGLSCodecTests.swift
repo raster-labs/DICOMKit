@@ -729,6 +729,83 @@ struct JPEGLSCodecStrictDecodingTests {
         }
     }
 
+    @Test("Legacy 16-bit unclamped-MAXVAL DICOM fragments with odd codestream + 0x00 even-padding recover bit-exactly")
+    func legacyUnclampedMaxValRecoveryBothParitiesAndDICOMPadding() async throws {
+        let width = 32
+        let height = 32
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+
+        var foundOddRaw: (pixels: Data, raw: Data)?
+        var foundEvenRaw: (pixels: Data, raw: Data)?
+        for seed in 0..<32 where foundOddRaw == nil || foundEvenRaw == nil {
+            var pixels = Data(capacity: width * height * 2)
+            for i in 0..<(width * height) {
+                let v = Int16(truncatingIfNeeded: -1024 + ((i * (313 + seed * 17) + seed * 97) % 4500))
+                let word = UInt16(bitPattern: v)
+                pixels.append(UInt8(word & 0xFF))
+                pixels.append(UInt8((word >> 8) & 0xFF))
+            }
+            let raw = try await Self.makeLegacyUnclampedCodestream(
+                pixels: pixels,
+                width: width,
+                height: height,
+                bitsPerSample: 16
+            )
+            if raw.count % 2 == 1, foundOddRaw == nil {
+                foundOddRaw = (pixels, raw)
+            } else if raw.count % 2 == 0, foundEvenRaw == nil {
+                foundEvenRaw = (pixels, raw)
+            }
+        }
+
+        let oddCase = try #require(foundOddRaw, "Expected at least one odd-length legacy 16-bit codestream")
+        let evenCase = try #require(foundEvenRaw, "Expected at least one even-length legacy 16-bit codestream")
+
+        // DICOM PS3.5 Section 8.2 pads odd-length encapsulated fragments with a single 0x00 byte.
+        var dicomPaddedOdd = oddCase.raw
+        dicomPaddedOdd.append(0x00)
+        #expect(dicomPaddedOdd.count % 2 == 0)
+        #expect(Array(dicomPaddedOdd.suffix(3)) == [0xFF, 0xD9, 0x00])
+
+        let codec = JPEGLSCodec(decodingSyntax: .lossless)
+        #expect(try codec.decodeFrame(oddCase.raw, descriptor: desc, frameIndex: 0) == oddCase.pixels)
+        #expect(try codec.decodeFrame(dicomPaddedOdd, descriptor: desc, frameIndex: 0) == oddCase.pixels)
+        #expect(try codec.decodeFrame(evenCase.raw, descriptor: desc, frameIndex: 0) == evenCase.pixels)
+
+        // Managed path must also recover the DICOM 0x00-padded fragment with zero retained staging.
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let inBuf = try DICOMByteBuffer(count: dicomPaddedOdd.count, budget: budget, resource: .encoded)
+            dicomPaddedOdd.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
+            let managed = try codec.decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
+            #expect(managed.data.withUnsafeBytes { Data($0) } == oddCase.pixels)
+            #expect(budget.receipt.current.staging == 0)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+
+        // Illegal 0x00 pad on an already even-length codestream (making odd total) and double 0x00 pad must still fail.
+        var illegalEvenPlusZero = evenCase.raw
+        illegalEvenPlusZero.append(0x00)
+        #expect(throws: DICOMError.self) {
+            _ = try codec.decodeFrame(illegalEvenPlusZero, descriptor: desc, frameIndex: 0)
+        }
+        var illegalDoubleZero = evenCase.raw
+        illegalDoubleZero.append(contentsOf: [0x00, 0x00])
+        #expect(throws: DICOMError.self) {
+            _ = try codec.decodeFrame(illegalDoubleZero, descriptor: desc, frameIndex: 0)
+        }
+    }
+
     @Test("Legacy 16-bit 3-component unclamped-MAXVAL JPEG-LS stream without LSE recovers bit-exactly")
     func legacyUnclampedMaxValRecoveryRGB16() async throws {
         let width = 16
