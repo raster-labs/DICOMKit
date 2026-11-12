@@ -60,7 +60,7 @@ extension CodecRegistry {
     }
 
     /// Compatibility alias returning a `CodecRegistry` bound to the `.j2kSwift` provider identifier.
-    /// After the OS 26 `SwiftJ2K 12.1.0` cutover, `J2KSwiftCodec` itself delegates to `SwiftJ2KDICOMCodec`.
+    /// After the OS 26 `SwiftJ2K 12.2.0` cutover, `J2KSwiftCodec` itself delegates to `SwiftJ2KDICOMCodec`.
     public static var j2kSwiftRollback: CodecRegistry {
         CodecRegistry(j2kProvider: .j2kSwift, j2kFallbackPolicy: .strict)
     }

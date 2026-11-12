@@ -173,9 +173,14 @@ public final class J2KTestBenchViewModel {
         !isRunning && !corpus.isEmpty && !plan.syntaxes.isEmpty && !activeCodecs.isEmpty
     }
 
-    /// "SwiftJ2K 12.1.0" — the codec version under test, shown in the header.
+    /// "SwiftJ2K 12.2.0" — the JPEG 2000 codec version under test, shown in the header.
     public var j2kSwiftVersionLabel: String {
         "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion)"
+    }
+
+    /// Versioned label for the currently selected format's pure-Swift reference codec.
+    public var activeReferenceVersionLabel: String {
+        plan.format.referenceCodec.versionedDisplayName
     }
 
     // MARK: - Displayed run

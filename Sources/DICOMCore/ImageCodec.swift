@@ -656,8 +656,13 @@ public struct CodecRegistry: Sendable {
             encoderRegistry[uid] = jpegLSCodec
         }
 
-        // JP3D volumetric codec is deferred pending SwiftJ2K 12.2.0 (SwiftJ2K3D qualification).
-        // Do not register experimental JP3D transfer syntaxes in the active registry.
+        // JP3D volumetric codec (SwiftJ2K3D Contract API-13 — experimental private UIDs).
+        let jp3dLosslessCodec = JP3DCodec(compressionMode: .lossless)
+        let jp3dLossyCodec = JP3DCodec(compressionMode: .lossy())
+        decoderRegistry[TransferSyntax.jp3dLossless.uid] = jp3dLosslessCodec
+        decoderRegistry[TransferSyntax.jp3dLossy.uid] = jp3dLossyCodec
+        encoderRegistry[TransferSyntax.jp3dLossless.uid] = jp3dLosslessCodec
+        encoderRegistry[TransferSyntax.jp3dLossy.uid] = jp3dLossyCodec
 
         // JPEG XL codec (SwiftJXL pure-Swift — lossless + lossy encode, lossless + lossy + jbrd decode).
         for uid in JXLCodec.supportedTransferSyntaxes {

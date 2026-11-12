@@ -107,7 +107,7 @@ dicom-anon ct.dcm --output anon.dcm --no-clean-pixel-data
 3. Header cleaning uses the current PS3.15 Table E.1-1 rules and selected option
    columns, plus private-attribute and VR handling; see `ConfidentialityProfile.swift`.
 4. Automatic OCR requires Apple Vision. Unsupported OCR requests fail rather than silently skipping recognition.
-5. `SwiftJLI` `2.0.2+` guards Accelerate imports behind `#if canImport(Accelerate)` for Linux portability; automatic pixel OCR still requires Apple Vision at runtime on Apple platforms. Validation for this integration was performed on macOS with Swift 6.4/Xcode 27 and Ubuntu Linux.
+5. `SwiftJLI` `2.0.3+` guards Accelerate imports behind `#if canImport(Accelerate)` for Linux portability; automatic pixel OCR still requires Apple Vision at runtime on Apple platforms. Validation for this integration was performed on macOS with Swift 6.4/Xcode 27 and Ubuntu Linux.
 
 ## See Also
 

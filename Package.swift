@@ -230,24 +230,26 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.8.2"),
         // Phase 1 scope: exclude aws-sdk-swift because it is unrelated to JPEG 2000 verification.
         // .package(url: "https://github.com/awslabs/aws-sdk-swift.git", from: "1.6.0"),
-        // SwiftJ2K — pure-Swift JPEG 2000 Part 1, Part 2 MCT, and Part 15 HTJ2K codec.
-        // Volumetric JP3D (`SwiftJ2K3D`) and JPIP (`SwiftJ2KJPIP`) remain deferred pending 12.2.0.
-        .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.1.0"),
+        // SwiftJ2K — pure-Swift JPEG 2000 Part 1, Part 2 MCT, Part 15 HTJ2K,
+        // Volumetric JP3D (`SwiftJ2K3D`), and Interactive JPIP (`SwiftJ2KJPIP`) codec suite.
+        .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.2.0"),
         // SwiftRLE — pure-Swift DICOM RLE Lossless (PS3.5 Annex G) and PackBits codec.
-        .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.1"),
+        .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.2"),
         // SwiftJLS — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
-        .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.0"),
+        .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.1"),
         // SwiftJLI — pure-Swift JPEG (ITU-T T.81 SOF0/SOF1/SOF2/SOF3) codec.
-        .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.0.2"),
+        .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.0.3"),
         // SwiftJXL — pure-Swift JPEG XL (ISO/IEC 18181) codec with Modular lossless,
         // VarDCT lossy, and reversible JPEG bitstream recompression (`jbrd`).
-        .package(url: "https://github.com/raster-labs/SwiftJXL.git", from: "2.0.0")
+        .package(url: "https://github.com/raster-labs/SwiftJXL.git", from: "2.0.1")
     ],
     targets: [
         .target(
             name: "DICOMCore",
             dependencies: [
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                // Volumetric JP3D — SwiftJ2K3D backs DICOMCore's JP3DCodec (API-13).
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
                 // RLE Lossless — SwiftRLE backs DICOMCore's RLECodec (PS3.5 Annex G).
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
                 // JPEG-LS — SwiftJLS backs DICOMCore's JPEGLSCodec.
@@ -279,7 +281,9 @@ let package = Package(
             dependencies: [
                 "DICOMCore",
                 "DICOMDictionary",
-                .product(name: "SwiftJ2K", package: "SwiftJ2K")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K")
             ],
             exclude: ["AI/SIMPLIFIED_README.md"]
         ),
@@ -335,6 +339,7 @@ let package = Package(
                 "DICOMCore",
                 "DICOMKit",
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
                 .product(name: "SwiftRLE", package: "SwiftRLE"),
                 .product(name: "SwiftJLS", package: "SwiftJLS"),
                 .product(name: "SwiftJLI", package: "SwiftJLI"),
@@ -375,18 +380,28 @@ let package = Package(
             ],
             path: "Tests/dicom-wadoTests"
         ),
-        // dicom-jpip: JPIP Referenced Transfer Syntaxes pinned to PS3.6 / PS3.5 2026a.
+        // dicom-jpip: JPIP Referenced Transfer Syntaxes pinned to PS3.6 / PS3.5 2026a + loopback streaming tests.
         .testTarget(
             name: "dicom-jpipTests",
-            dependencies: ["dicom-jpip", "DICOMKit", "DICOMCore"],
+            dependencies: [
+                "dicom-jpip",
+                "DICOMKit",
+                "DICOMCore",
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             path: "Tests/dicom-jpipTests"
         ),
         // dicom-3d: volume geometry, plane names and derived MPR series pinned to PS3.3 /
         // PS3.16 2026a (DICOMCLI_STANDARD_IMPLEMENTATION.md).
         .testTarget(
             name: "dicom-3dTests",
-            dependencies: ["dicom-3d", "DICOMKit", "DICOMCore",
-                           .product(name: "ArgumentParser", package: "swift-argument-parser")],
+            dependencies: [
+                "dicom-3d", "DICOMKit", "DICOMCore",
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
             path: "Tests/dicom-3dTests"
         ),
         // dicom-viewer: VOI LUT function, MONOCHROME1, overlay planes and frame numbering
@@ -569,7 +584,14 @@ let package = Package(
             name: "DICOMKitTests",
             // DICOMDictionary: the presentation-state builders' VRs are asserted
             // against the standard dictionary rather than a hand-copied table.
-            dependencies: ["DICOMKit", "DICOMCore", "DICOMDictionary"],
+            dependencies: [
+                "DICOMKit",
+                "DICOMCore",
+                "DICOMDictionary",
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K")
+            ],
             exclude: [
                 // RealWorldValue: the parser suite is in the sources allowlist below
                 // (DICOM_TAG_AUDIT_FINDINGS.md); the remaining files are listed here
@@ -1334,6 +1356,7 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-3d",
@@ -1345,6 +1368,8 @@ let package = Package(
                 "DICOMKit",
                 "DICOMCore",
                 "DICOMDictionary",
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/dicom-jpip"

@@ -13,6 +13,9 @@ import SwiftJLS
 ///   • 1.2.840.10008.1.2.4.81  JPEG-LS Near-Lossless
 /// NEMA-verified: 2026a, checked 2026-09-25 — the two JPEG-LS UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` (8 or 16 allocated, 2–16 stored, 1 or 3 samples) matches PS3.5 2026a Table 8.2.3-1. The header citation said §A.4.5 (MPEG2); corrected to §A.4.3. The codec implements ITU-T T.87, outside DICOM.
 public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
+    public static let engineName = "SwiftJLS"
+    public static let engineVersion = "2.0.1"
+
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
         /// Admit both existing lossless and near-lossless profiles.

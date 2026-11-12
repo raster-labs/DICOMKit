@@ -107,6 +107,26 @@ public enum J2KBenchCodec: String, CaseIterable, Identifiable, Codable, Sendable
         }
     }
 
+    /// Pinned engine version for pure-Swift reference codecs (`nil` for external CLI peers).
+    public var engineVersion: String? {
+        switch self {
+        case .j2kSwift: return SwiftJ2KDICOMCodec.engineVersion
+        case .jliSwift: return JLICodec.engineVersion
+        case .jlSwift:  return JPEGLSCodec.engineVersion
+        case .jxlSwift: return JXLCodec.engineVersion
+        case .kakadu, .grok, .djpeg, .charls, .djxl: return nil
+        }
+    }
+
+    /// Display name including the pinned pure-Swift codec version when available
+    /// (e.g. `"SwiftJ2K 12.2.0"`, `"SwiftJLI 2.0.3"`, `"SwiftJLS 2.0.1"`, `"SwiftJXL 2.0.1"`).
+    public var versionedDisplayName: String {
+        if let version = engineVersion {
+            return "\(displayName) \(version)"
+        }
+        return displayName
+    }
+
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let raw = try container.decode(String.self)

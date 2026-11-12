@@ -1,12 +1,12 @@
-# DICOMSwiftJ2KIntegration (Apple OS 26 Full 2D JPEG 2000 & HTJ2K Adapter)
+# DICOMSwiftJ2KIntegration (Apple OS 26 Full JPEG 2000, HTJ2K, JP3D & JPIP Adapter)
 
-`DICOMSwiftJ2KIntegration` is a nested Swift package inside `DICOMKit` re-exporting `DICOMCore`'s first-class `SwiftJ2K` 12.1.0+ JPEG 2000 Part 1, Part 2 (Annex I/J Multi-Component Transforms), and Part 15 (HTJ2K) integration along with the `dicom-swiftj2k` verification CLI on Apple OS 26+.
+`DICOMSwiftJ2KIntegration` is a nested Swift package inside `DICOMKit` re-exporting `DICOMCore` and `DICOMKit`'s first-class `SwiftJ2K` 12.2.0+ JPEG 2000 Part 1, Part 2 (Annex I/J Multi-Component Transforms), Part 9 (`SwiftJ2KJPIP`), Part 10 (`SwiftJ2K3D`), and Part 15 (HTJ2K) integration along with the `dicom-swiftj2k` verification CLI on Apple OS 26+.
 
 ## Package & Dependency Pinning
 
 - **Deployment floors**: `.macOS(.v26)`, `.iOS(.v26)`, `.tvOS(.v26)`, `.visionOS(.v26)` with Swift 6.4+ (`swift-tools-version: 6.4`).
-- **SwiftJ2K dependency**: released SemVer version `12.1.0` (`from: "12.1.0"`, tag `v12.1.0` @ `3059a3c87d471028f3524241ec4f881f97cac264` on `https://github.com/raster-labs/SwiftJ2K.git`), inherited directly from root `DICOMKit` (`Package.resolved`).
-- **Root `DICOMKit` cutover**: root `Package.swift` uses `SwiftJ2K` (`from: "12.1.0"`) as the default JPEG 2000 / Part 2 / HTJ2K provider (`CodecRegistry.shared.j2kProvider.providerID == .swiftJ2K`, `J2KRoutePlanner.part2MCTDecodeSupported == true`), linking only the qualified 2D `SwiftJ2K` product while marking JP3D (`.96`/`.97`, `dicom-3d`) and JPIP (`.94`/`.95`/`.204`/`.205`, `dicom-jpip`) deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` / `SwiftJ2KJPIP`).
+- **SwiftJ2K dependency**: released SemVer version `12.2.0` (`from: "12.2.0"`, tag `v12.2.0` @ `f337bcf1d577a88e909846373763569c518e2a27` on `https://github.com/raster-labs/SwiftJ2K.git`), inherited directly from root `DICOMKit` (`Package.resolved`).
+- **Root `DICOMKit` integration**: root `Package.swift` uses `SwiftJ2K` (`from: "12.2.0"`) as the default JPEG 2000 / Part 2 / HTJ2K provider (`CodecRegistry.shared.j2kProvider.providerID == .swiftJ2K`, `J2KRoutePlanner.part2MCTDecodeSupported == true`), links `SwiftJ2K3D` for `JP3DCodec` (`1.2.826.0.1.3680043.10.511.1`/`.2`, `JP3DVolumeDocument`, `dicom-3d`), and links `SwiftJ2KJPIP` for `DICOMJPIPClient` (`.94`/`.95`/`.204`/`.205`, `dicom-jpip`, `dicom-viewer --jpip`, `DICOMStudio`).
 
 ## Supported 2D Profiles & Transfer Syntaxes
 

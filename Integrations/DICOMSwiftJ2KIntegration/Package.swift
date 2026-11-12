@@ -24,7 +24,7 @@ let package = Package(
         .package(name: "DICOMKit", path: "../.."),
         .package(
             url: "https://github.com/raster-labs/SwiftJ2K.git",
-            from: "12.1.0"
+            from: "12.2.0"
         )
     ],
     targets: [
@@ -33,7 +33,9 @@ let package = Package(
             dependencies: [
                 .product(name: "DICOMCore", package: "DICOMKit"),
                 .product(name: "DICOMKit", package: "DICOMKit"),
-                .product(name: "SwiftJ2K", package: "SwiftJ2K")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K")
             ]
         ),
         .executableTarget(
@@ -42,7 +44,9 @@ let package = Package(
                 "DICOMSwiftJ2KIntegration",
                 .product(name: "DICOMCore", package: "DICOMKit"),
                 .product(name: "DICOMKit", package: "DICOMKit"),
-                .product(name: "SwiftJ2K", package: "SwiftJ2K")
+                .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K")
             ]
         ),
         .testTarget(
@@ -52,6 +56,8 @@ let package = Package(
                 .product(name: "DICOMCore", package: "DICOMKit"),
                 .product(name: "DICOMKit", package: "DICOMKit"),
                 .product(name: "SwiftJ2K", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2K3D", package: "SwiftJ2K"),
+                .product(name: "SwiftJ2KJPIP", package: "SwiftJ2K"),
                 .target(name: "dicom-swiftj2k", condition: .when(platforms: [.macOS]))
             ]
         )

@@ -10,6 +10,7 @@
 
 import Foundation
 import DICOMCore
+import DICOMKit
 
 // MARK: - CodecInspectorHelpers
 
@@ -74,6 +75,40 @@ public enum CodecInspectorHelpers: Sendable {
             return "Uncompressed"
         }
         return "Unknown (\(transferSyntaxUID))"
+    }
+
+    /// Returns the pinned pure-Swift codec engine version for a transfer syntax UID,
+    /// or `nil` when the syntax does not route through one of the 5 pure-Swift codec libraries.
+    public static func codecEngineVersion(for transferSyntaxUID: String) -> String? {
+        guard let ts = TransferSyntax.from(uid: transferSyntaxUID) else { return nil }
+        if ts.isHTJ2K || ts.isJPEG2000Part2 || ts.isJPEG2000 {
+            return SwiftJ2KDICOMCodec.engineVersion
+        }
+        if ts.isJP3D   { return JP3DCodec.engineVersion }
+        if ts.isJPIP   { return DICOMJPIPClient.engineVersion }
+        if ts.isJPEGLS { return JPEGLSCodec.engineVersion }
+        if ts.isJPEG   { return JLICodec.engineVersion }
+        if ts.isRLE    { return RLECodec.engineVersion }
+        if ts.isJPEGXL { return JXLCodec.engineVersion }
+        return nil
+    }
+
+    /// Returns a human-readable codec display name annotated with its library version
+    /// when backed by one of the pure-Swift codec packages.
+    public static func codecVersionedDisplayName(for transferSyntaxUID: String) -> String {
+        guard let ts = TransferSyntax.from(uid: transferSyntaxUID) else {
+            return "Unknown (\(transferSyntaxUID))"
+        }
+        if ts.isHTJ2K         { return "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion) (HTJ2K)" }
+        if ts.isJPEG2000Part2 { return "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion) (JPEG 2000 Part 2)" }
+        if ts.isJPEG2000      { return "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion) (JPEG 2000)" }
+        if ts.isJP3D          { return "\(JP3DCodec.engineName) \(JP3DCodec.engineVersion) (Volumetric JPEG 2000)" }
+        if ts.isJPIP          { return "\(DICOMJPIPClient.engineName) \(DICOMJPIPClient.engineVersion) (JPIP Streaming)" }
+        if ts.isJPEGLS        { return "\(JPEGLSCodec.engineName) \(JPEGLSCodec.engineVersion) (JPEG-LS)" }
+        if ts.isJPEG          { return "\(JLICodec.engineName) \(JLICodec.engineVersion) (JPEG)" }
+        if ts.isRLE           { return "\(RLECodec.engineName) \(RLECodec.engineVersion) (RLE Lossless)" }
+        if ts.isJPEGXL        { return "\(JXLCodec.engineName) \(JXLCodec.engineVersion) (JPEG XL)" }
+        return codecDisplayName(for: transferSyntaxUID)
     }
 
     // MARK: - Status summary

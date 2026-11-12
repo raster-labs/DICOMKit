@@ -1,20 +1,20 @@
 # DICOMKit Codec Encode/Decode Matrix
 
-Per–transfer-syntax **decode**, **encode**, and **compressed-domain transcode** coverage for the five pure-Swift `raster-labs` codec libraries integrated into `DICOMCore`:
-**SwiftJ2K** (`12.1.0`), **SwiftJLS** (`2.0.0`), **SwiftJLI** (`2.0.2`), **SwiftJXL** (`2.0.0`), and **SwiftRLE** (`1.0.1`).
+Per–transfer-syntax **decode**, **encode**, and **compressed-domain transcode** coverage for the five pure-Swift MIT-licensed `raster-labs` codec libraries integrated into `DICOMCore` and `DICOMKit`:
+**SwiftJ2K** (`12.2.0` — `SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`), **SwiftJLS** (`2.0.1`), **SwiftJLI** (`2.0.3`), **SwiftJXL** (`2.0.1`), and **SwiftRLE** (`1.0.2`).
 
 Verified against the live registry wiring in [`Sources/DICOMCore/ImageCodec.swift`](../Sources/DICOMCore/ImageCodec.swift) (`CodecRegistry.shared`) and [`Sources/DICOMCore/SwiftJ2KProviderRegistry.swift`](../Sources/DICOMCore/SwiftJ2KProviderRegistry.swift).
 
 **Legend**
 - ✅ `<Codec>` — wired into `CodecRegistry.shared` and active for standard decode, caller-owned buffer decode (`decodeFrame(_:descriptor:frameIndex:into:)`), managed `DICOMAllocationBudget` decode (`decodeManagedPixelFrameOutcome`), and/or encode.
-- 🔄 `<Transcoder>` — compressed-domain bitstream transcode without intermediate pixel re-encoding (`TransferSyntaxConverter`, `CompressionManager`, and `dicom-j2k`).
-- ⏸️ *(Deferred)* — intentionally unregistered pending `SwiftJ2K 12.2.0`; fails closed with explicit deferral diagnostics.
+- 🔄 `<Transcoder>` — compressed-domain bitstream transcode without intermediate pixel re-encoding (`TransferSyntaxConverter`, `CompressionManager`, `dicom-j2k`, and `dicom-3d transcode-volume`).
+- 🔗 `<Streaming>` — interactive network streaming via `DICOMJPIPClient` (`SwiftJ2KJPIP`).
 
 All UIDs are under the `1.2.840.10008.1.2.4.*` prefix unless noted.
 
 ---
 
-## 1. SwiftJ2K (`12.1.0`) — `SwiftJ2KDICOMCodec` (`J2KSwiftCodec` / `HTJ2KCodec`)
+## 1. SwiftJ2K (`12.2.0`) — `SwiftJ2KDICOMCodec` (`J2KSwiftCodec` / `HTJ2KCodec`)
 
 JPEG 2000 (Part 1 & Part 2) and High-Throughput JPEG 2000 (Part 15), backed by `J2KCodecProvider.swiftJ2K` (default in `CodecRegistry.shared` with `.strict` fallback policy). Hardware backends: `.metal` (Apple GPU), `.accelerate` (Apple SIMD), and `.scalar` (portable pure Swift).
 
@@ -35,7 +35,7 @@ JPEG 2000 (Part 1 & Part 2) and High-Throughput JPEG 2000 (Part 15), backed by `
 
 ---
 
-## 2. SwiftJLS (`2.0.0`) — `JPEGLSCodec`
+## 2. SwiftJLS (`2.0.1`) — `JPEGLSCodec`
 
 JPEG-LS (ISO/IEC 14495-1 / ITU-T T.87). Per-UID decoders (`JPEGLSCodec(decodingTransferSyntaxUID:)`) and a shared encoder (`JPEGLSCodec()`).
 
@@ -50,7 +50,7 @@ JPEG-LS (ISO/IEC 14495-1 / ITU-T T.87). Per-UID decoders (`JPEGLSCodec(decodingT
 
 ---
 
-## 3. SwiftJLI (`2.0.2`) — `JLICodec`
+## 3. SwiftJLI (`2.0.3`) — `JLICodec`
 
 Pure-Swift ITU-T T.81 JPEG (Baseline SOF0, Extended SOF1, Lossless SOF3), Accelerate-backed. Per-UID decoders (`JLICodec(decodingTransferSyntaxUID:)`) and per-UID encoders (`JLICodec(encodingTransferSyntaxUID:)`).
 
@@ -67,7 +67,7 @@ Pure-Swift ITU-T T.81 JPEG (Baseline SOF0, Extended SOF1, Lossless SOF3), Accele
 
 ---
 
-## 4. SwiftJXL (`2.0.0`) — `JXLCodec`
+## 4. SwiftJXL (`2.0.1`) — `JXLCodec`
 
 JPEG XL (ISO/IEC 18181, Supplement 232: Modular lossless, VarDCT lossy, and `jbrd` lossless JPEG bitstream recompression/reconstruction). Per-UID decoders (`JXLCodec(decodingTransferSyntaxUID:)`) and per-UID pixel encoders (`JXLCodec(encodingTransferSyntaxUID:)`).
 
@@ -83,7 +83,7 @@ JPEG XL (ISO/IEC 18181, Supplement 232: Modular lossless, VarDCT lossy, and `jbr
 
 ---
 
-## 5. SwiftRLE (`1.0.1`) — `RLECodec`
+## 5. SwiftRLE (`1.0.2`) — `RLECodec`
 
 DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`). Single shared `RLECodec()` instance for decode and encode.
 
@@ -93,12 +93,12 @@ DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`). Single shared `RLECode
 
 ---
 
-## 6. Deferred Pending `SwiftJ2K 12.2.0` (Not Registered)
+## 6. SwiftJ2K3D & SwiftJ2KJPIP (`12.2.0`) — Volumetric JP3D & JPIP Streaming
 
-| Surface | UID(s) | Status |
-|---|---|---|
-| `JP3DCodec` / `JP3DVolumeDocument` / `dicom-3d` | `1.2.826.0.1.3680043.10.511.1`, `…511.2` *(experimental private)* | ⏸️ Deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification) |
-| `DICOMJPIPClient` / `dicom-jpip` / `dicom-viewer --jpip` | `1.2.840.10008.1.2.4.94`, `…4.95` | ⏸️ Deferred pending `SwiftJ2K 12.2.0` (`SwiftJPIP` qualification) |
+| Surface | UID(s) | Decode / Retrieve | Encode / Serve | Wavelet-Domain Transcode |
+|---|---|---|---|---|
+| `JP3DCodec` / `JP3DVolumeDocument` / `dicom-3d` | `1.2.826.0.1.3680043.10.511.1`, `…511.2` *(experimental private)* | ✅ `JP3DCodec` (full + 3D ROI) | ✅ `JP3DCodec` (`lossless`, `losslessHTJ2K`, `lossy`, `lossyHTJ2K`) | 🔄 `VolumeTranscoder` (`J2K ↔ HTJ2K`) |
+| `DICOMJPIPClient` / `dicom-jpip` / `dicom-viewer --jpip` / `DICOMStudio` | `1.2.840.10008.1.2.4.94`, `…4.95`, `…4.204`, `…4.205` | 🔗 `JPIPStreamingSession` (full, ROI, quality layers, DWT levels, HTJ2K `.204`/`.205`) | 🔗 `JPIPServer` (`dicom-jpip serve` & in-process) | — |
 
 ---
 
@@ -108,5 +108,4 @@ DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`). Single shared `RLECode
 |---|---|
 | `NativeJPEGCodec` | Apple ImageIO JPEG — opt-in only via explicit `jpegEngine: .native` for `.50` Baseline |
 | `NativeJPEG2000Codec` | Deprecated Apple ImageIO JPEG 2000 — never registered or implicitly invoked |
-| `JP3DCodec` | Experimental JP3D volumetric codec — deferred pending `SwiftJ2K 12.2.0` |
 | `OpenJPEGCodec`, `DjpegCLICodec`, `DjxlCLICodec`, `GrokCLICodec`, `KakaduCLICodec` | External CLI benchmark wrappers used only by `DICOMStudio` `J2KTestBenchService` when external binaries are installed |

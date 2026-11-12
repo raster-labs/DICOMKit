@@ -3,6 +3,7 @@
 import Foundation
 import DICOMCore
 import SwiftJ2K
+import SwiftJ2K3D
 
 /// Encapsulated SOP adapter for JP3D volumetric data.
 ///
@@ -242,24 +243,172 @@ public enum JP3DVolumeDocument: Sendable {
         )
     }
 
-    // MARK: - Decoding
+    // MARK: - Decoding, Inspection & Transcoding
+
+    /// Inspects the embedded JP3D codestream header and JSON sidecar metadata without decoding voxel payloads.
+    public static func inspect(from file: DICOMFile) throws -> (volumeInfo: VolumeInfo, metadata: [String: Any]) {
+        let (codestream, meta) = try extractPayloadParts(from: file)
+        let info = try JP3DCodec().inspectVolume(codestream)
+        return (info, meta)
+    }
+
+    /// Transcodes the embedded JP3D codestream between Part 1 (`J2K`) and Part 15 (`HTJ2K`) in the wavelet domain,
+    /// updating the JSON sidecar `compressionMode` and issuing a new `SOPInstanceUID`.
+    public static func transcode(
+        file: DICOMFile,
+        toHTJ2K: Bool,
+        sopInstanceUID: String? = nil
+    ) async throws -> DICOMFile {
+        guard isJP3DVolumeDocument(file) else {
+            throw DICOMError.parsingFailed("Input DICOM file is not a JP3D volume document (SOP Class \(sopClassUID))")
+        }
+        var (codestream, meta) = try extractPayloadParts(from: file)
+        let codec = JP3DCodec()
+        codestream = try await codec.transcodeVolume(codestream, toHTJ2K: toHTJ2K)
+        let info = try codec.inspectVolume(codestream)
+
+        if toHTJ2K {
+            meta["compressionMode"] = info.isLossless ? "losslessHTJ2K" : "lossyHTJ2K"
+        } else {
+            meta["compressionMode"] = info.isLossless ? "lossless" : "lossy"
+        }
+
+        let payload = try assemblePayload(codestream: codestream, meta: meta)
+        let newInstanceUID = sopInstanceUID ?? UIDGenerator.generateUID().value
+
+        var ds = file.dataSet
+        ds[.encapsulatedDocument] = DataElement.data(
+            tag: .encapsulatedDocument,
+            vr: .OB,
+            data: payload
+        )
+        ds.setString(newInstanceUID, for: .sopInstanceUID, vr: .UI)
+
+        let now = Date()
+        let cal = Calendar(identifier: .gregorian)
+        let comps = cal.dateComponents([.year, .month, .day, .hour, .minute, .second], from: now)
+        ds.setString(
+            String(format: "%04d%02d%02d", comps.year ?? 2026, comps.month ?? 1, comps.day ?? 1),
+            for: .contentDate,
+            vr: .DA
+        )
+        ds.setString(
+            String(format: "%02d%02d%02d", comps.hour ?? 0, comps.minute ?? 0, comps.second ?? 0),
+            for: .contentTime,
+            vr: .TM
+        )
+
+        return DICOMFile.create(
+            dataSet: ds,
+            sopClassUID: sopClassUID,
+            sopInstanceUID: newInstanceUID,
+            transferSyntaxUID: TransferSyntax.explicitVRLittleEndian.uid
+        )
+    }
 
     /// Decodes a JP3D Encapsulated Document back to a synthetic multi-frame series.
     ///
     /// Reads the JP3D codestream and JSON sidecar from the encapsulated document,
-    /// decodes the volume using `JP3DDecoder`, and reconstructs individual DICOM files
+    /// decodes the volume using `JP3DCodec`, and reconstructs individual DICOM files
     /// using the template metadata stored in the sidecar.
     ///
     /// - Parameter file: A `DICOMFile` known to be a JP3D volume document.
     /// - Returns: An array of `DICOMFile`, one per decoded slice.
     /// - Throws: `DICOMError` if parsing or decoding fails.
     public static func decode(from file: DICOMFile) async throws -> [DICOMFile] {
+        let (codestream, meta) = try extractPayloadParts(from: file)
+        let (descriptor, sliceSpacing, origin, orientation, pixelSpacing, photometric) = try parseSidecarGeometry(meta)
+
+        let codec = JP3DCodec()
+        let pixelData = try await codec.decodeVolume(codestream, descriptor: descriptor)
+        let template = buildTemplate(from: meta, fileDataSet: file.dataSet)
+
+        return try reconstructSlices(
+            pixelData: pixelData,
+            descriptor: descriptor,
+            photometricInterpretation: photometric,
+            template: template,
+            sliceSpacing: sliceSpacing,
+            origin: origin,
+            orientation: orientation,
+            pixelSpacing: pixelSpacing
+        )
+    }
+
+    /// Decodes a 3D sub-region (`JP3DRegion`) from a JP3D Encapsulated Document and reconstructs
+    /// cropped DICOM slice files with patient-space `ImagePositionPatient` shifted per PS3.3 C.7.6.2.1.1.
+    public static func decode(from file: DICOMFile, region: JP3DRegion) async throws -> [DICOMFile] {
+        let (codestream, meta) = try extractPayloadParts(from: file)
+        let (fullDescriptor, sliceSpacing, origin, orientation, pixelSpacing, photometric) = try parseSidecarGeometry(meta)
+
+        let clamped = region.clamped(
+            toWidth: fullDescriptor.columns,
+            height: fullDescriptor.rows,
+            depth: fullDescriptor.numberOfFrames
+        )
+        guard !clamped.isEmpty else {
+            throw DICOMError.parsingFailed(
+                "Requested 3D ROI does not intersect volume bounds (\(fullDescriptor.columns)x\(fullDescriptor.rows)x\(fullDescriptor.numberOfFrames))"
+            )
+        }
+
+        let codec = JP3DCodec()
+        let roiDecoded = try await codec.decodeVolumeRegion(
+            codestream,
+            descriptor: fullDescriptor,
+            region: clamped
+        )
+
+        let roiDescriptor = PixelDataDescriptor(
+            rows: roiDecoded.height,
+            columns: roiDecoded.width,
+            numberOfFrames: roiDecoded.depth,
+            bitsAllocated: fullDescriptor.bitsAllocated,
+            bitsStored: fullDescriptor.bitsStored,
+            highBit: fullDescriptor.highBit,
+            isSigned: fullDescriptor.isSigned,
+            samplesPerPixel: fullDescriptor.samplesPerPixel,
+            photometricInterpretation: fullDescriptor.photometricInterpretation
+        )
+
+        // Shift origin for (x0, y0, z0) per PS3.3 C.7.6.2.1.1 Equation C.7.6.2.1-1:
+        // P(x0, y0, z0) = origin + x0 * colSpacing * rowCosine + y0 * rowSpacing * colCosine + z0 * sliceSpacing * normal
+        let iop = orientation ?? [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+        let rowCos = Array(iop[0..<3])
+        let colCos = Array(iop[3..<6])
+        let rowSpacing = pixelSpacing.count >= 2 ? pixelSpacing[0] : 1.0
+        let colSpacing = pixelSpacing.count >= 2 ? pixelSpacing[1] : 1.0
+        let baseAtSliceZ = slicePosition(
+            origin: origin,
+            orientation: iop,
+            spacing: sliceSpacing,
+            index: clamped.z.lowerBound
+        )
+        let roiOrigin = (0..<3).map { axis in
+            baseAtSliceZ[axis]
+                + Double(clamped.x.lowerBound) * colSpacing * rowCos[axis]
+                + Double(clamped.y.lowerBound) * rowSpacing * colCos[axis]
+        }
+
+        let template = buildTemplate(from: meta, fileDataSet: file.dataSet)
+        return try reconstructSlices(
+            pixelData: roiDecoded.data,
+            descriptor: roiDescriptor,
+            photometricInterpretation: photometric,
+            template: template,
+            sliceSpacing: sliceSpacing,
+            origin: roiOrigin,
+            orientation: orientation,
+            pixelSpacing: pixelSpacing
+        )
+    }
+
+    private static func extractPayloadParts(from file: DICOMFile) throws -> (codestream: Data, meta: [String: Any]) {
         guard let payloadElement = file.dataSet[.encapsulatedDocument] else {
             throw DICOMError.parsingFailed("JP3D document: missing Encapsulated Document element")
         }
         let payload = payloadElement.valueData
 
-        // Parse composite payload: [4-byte JP3D len][jp3d][4-byte JSON len][json]
         guard payload.count >= 8 else {
             throw DICOMError.parsingFailed("JP3D document: payload too short (\(payload.count) bytes)")
         }
@@ -277,11 +426,34 @@ public enum JP3DVolumeDocument: Sendable {
         }
         let jsonData = payload.subdata(in: (jsonOffset + 4)..<(jsonOffset + 4 + jsonLen))
 
-        // Parse sidecar to get geometry
         guard let meta = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
             throw DICOMError.parsingFailed("JP3D document: failed to parse JSON sidecar")
         }
+        return (codestream, meta)
+    }
 
+    private static func assemblePayload(codestream: Data, meta: [String: Any]) throws -> Data {
+        let metaJSON = try JSONSerialization.data(withJSONObject: meta, options: [.sortedKeys, .prettyPrinted])
+        var payload = Data()
+        var jp3dLen = UInt32(codestream.count).littleEndian
+        payload.append(Data(bytes: &jp3dLen, count: 4))
+        payload.append(codestream)
+        var jsonLen = UInt32(metaJSON.count).littleEndian
+        payload.append(Data(bytes: &jsonLen, count: 4))
+        payload.append(metaJSON)
+        return payload
+    }
+
+    private static func parseSidecarGeometry(
+        _ meta: [String: Any]
+    ) throws -> (
+        descriptor: PixelDataDescriptor,
+        sliceSpacing: Double,
+        origin: [Double],
+        orientation: [Double]?,
+        pixelSpacing: [Double],
+        photometric: PhotometricInterpretation
+    ) {
         let rows = meta["rows"] as? Int ?? 0
         let columns = meta["columns"] as? Int ?? 0
         let frames = meta["frames"] as? Int ?? 0
@@ -293,7 +465,6 @@ public enum JP3DVolumeDocument: Sendable {
             throw DICOMError.parsingFailed("JP3D document: invalid geometry in sidecar (rows=\(rows) cols=\(columns) frames=\(frames))")
         }
 
-        // Decode the JP3D codestream
         let descriptor = PixelDataDescriptor(
             rows: rows,
             columns: columns,
@@ -305,14 +476,7 @@ public enum JP3DVolumeDocument: Sendable {
             samplesPerPixel: 1,
             photometricInterpretation: .monochrome2
         )
-        let codec = JP3DCodec()
-        let pixelData = try await codec.decodeVolume(codestream, descriptor: descriptor)
-
-        // Build a synthetic template DICOMFile from the sidecar metadata
-        let template = buildTemplate(from: meta, fileDataSet: file.dataSet)
-
-        // Use bridge to reconstruct slices from decoded volume
-        let sliceSpacing = meta["sliceSpacing"] as? Double
+        let sliceSpacing = meta["sliceSpacing"] as? Double ?? 1.0
         let origin = meta["origin"] as? [Double] ?? [0, 0, 0]
         // Sidecars written before 2026-10-01 carry no orientation: those volumes were stacked
         // along z, i.e. the axial orientation (1,0,0,0,1,0)
@@ -325,16 +489,7 @@ public enum JP3DVolumeDocument: Sendable {
             .flatMap(PhotometricInterpretation.init(rawValue:))
             .flatMap { $0 == .monochrome1 || $0 == .monochrome2 ? $0 : nil }
             ?? .monochrome2
-        return try reconstructSlices(
-            pixelData: pixelData,
-            descriptor: descriptor,
-            photometricInterpretation: photometric,
-            template: template,
-            sliceSpacing: sliceSpacing ?? 1.0,
-            origin: origin,
-            orientation: orientation,
-            pixelSpacing: pixelSpacing
-        )
+        return (descriptor, sliceSpacing, origin, orientation, pixelSpacing, photometric)
     }
 
     /// The Storage SOP Class of the decoded slices when the sidecar does not record the

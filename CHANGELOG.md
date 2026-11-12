@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Link and activate `SwiftJ2K3D` (`12.2.0`, Contract API-13) across `DICOMCore`, `DICOMKit`, `dicom-3d`, `DICOMStudio`, and `DICOMSwiftJ2KIntegration`:
+  - Back `JP3DCodec` (`Sources/DICOMCore/JP3DCodec.swift`) with `VolumeEncoder`, `VolumeDecoder`, and `VolumeTranscoder` (`lossless`, `losslessHTJ2K`, `lossy`, `lossyHTJ2K`), bounded `inspectVolume(_:)` (`VolumeInfo`), 3D ROI `decodeVolumeRegion(_:descriptor:region:)` (`JP3DRegion`), wavelet-domain `J2K ↔ HTJ2K` `transcodeVolume(_:toHTJ2K:)`, and synchronous `ImageCodec` / `ImageEncoder` frame & volume bridging, and register experimental private JP3D UIDs (`1.2.826.0.1.3680043.10.511.1` / `.2`) in `CodecRegistry.shared`.
+  - Add `JP3DVolumeDocument.inspect(from:)`, `JP3DVolumeDocument.decode(from:region:)` with shifted patient-space `ImagePositionPatient` geometry, and `JP3DVolumeDocument.transcode(file:toHTJ2K:)`.
+  - Restore all `dicom-3d` processing subcommands (`mpr`, `mip`, `minip`, `average`, `surface`, `export`, `backends`, `encode-volume`, `decode-volume`, `inspect`) and add `decode-volume --roi x,y,z,w,h,d` and `transcode-volume --target htj2k|j2k` (retaining hidden `volume` at exit `1` per `P-3D-VOLUME`).
+- Link and activate `SwiftJ2KJPIP` (`12.2.0`, Contract API-13) across `DICOMKit`, `dicom-jpip`, `dicom-viewer`, `DICOMStudio`, and `DICOMSwiftJ2KIntegration`:
+  - Wire `DICOMJPIPClient` (`Sources/DICOMKit/DICOMJPIPClient.swift`) to `JPIPStreamingSession` for full-image, 2D ROI (`fetchRegion`), progressive quality-layer (`fetchProgressiveQuality`), and wavelet resolution-level (`fetchResolutionLevel`) retrieval over HTTP/HTTPS/WebSocket (`jpip://` / `jpips://` URI normalization) and in-process `JPIPServer` binding, with automatic `JPIPCodingPreference.htj2k` negotiation for JPIP HTJ2K Referenced (`.204` / `.205`).
+  - Restore `DICOMFile.openVolume(from:jpipServerURL:)` and `DICOMFile.openVolumeProgressively(serverURL:sliceJPIPURIs:qualityLayers:)`, live `dicom-jpip` (`fetch`, `uri`, `serve` via `JPIPServer`, `info`), `dicom-viewer --jpip`, and two-phase progressive `ImageViewerViewModel.loadFromJPIP()` in `DICOMStudio`.
+- Expose `engineName` and `engineVersion` constants across all pure-Swift codec and streaming adapters (`SwiftJ2KDICOMCodec`, `JP3DCodec`, `DICOMJPIPClient`, `RLECodec`, `JPEGLSCodec`, `JLICodec`, `JXLCodec`) and surface versioned engine labels in `DICOMStudio` (`CodecInspectorHelpers` and `J2KTestBench`).
+
+### Changed
+
+- Upgrade all five `raster-labs` pure-Swift MIT-licensed codec dependencies in `Package.swift`, `Package.resolved`, `DICOMStudio.xcodeproj`, and `Integrations/DICOMSwiftJ2KIntegration` to their 11 Nov 2026 releases:
+  - `SwiftJ2K` `12.1.0` -> **`12.2.0`** (`SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`)
+  - `SwiftRLE` `1.0.1` -> **`1.0.2`**
+  - `SwiftJLS` `2.0.0` -> **`2.0.1`**
+  - `SwiftJLI` `2.0.2` -> **`2.0.3`**
+  - `SwiftJXL` `2.0.0` -> **`2.0.1`**
+
 ## [3.0.0] - 2026-11-07
 
 ### Added

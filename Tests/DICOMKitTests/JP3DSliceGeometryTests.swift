@@ -66,17 +66,24 @@ struct JP3DSliceGeometryTests {
         #expect(JP3DVolumeDocument.slicePosition(origin: [0, 0, 0], orientation: [1, 0, 0, 0, 0, -1], spacing: 1.5, index: 2) == [0, 3, 0])
     }
 
-    @Test("Unsorted sagittal series: JP3DVolumeDocument.encode fails closed while deferred pending SwiftJ2K 12.2.0")
-    func unsortedSagittalEncodeDeferred() async throws {
+    @Test("Unsorted sagittal series: JP3DVolumeDocument.encode sorts along normal and round-trips geometry")
+    func unsortedSagittalEncodeRoundTripsGeometry() async throws {
         let frameOfReference = "1.2.826.0.1.3680043.10.511.99.1"
         let xs: [Double] = [6, 10, 4, 8]
         let series = try xs.map { x in try slice(index: Int((10 - x) / 2), x: x, frameOfReference: frameOfReference) }
 
-        do {
-            _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-            Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-        } catch let DICOMError.unsupportedTransferSyntax(reason) {
-            #expect(reason.contains("SwiftJ2K 12.2.0"))
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+        #expect(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
+
+        let decoded = try await JP3DVolumeDocument.decode(from: doc)
+        #expect(decoded.count == 4)
+        for (i, file) in decoded.enumerated() {
+            #expect(positions(file) == [10 - 2 * Double(i), -100, 50])
+            #expect(file.dataSet.string(for: .imageOrientationPatient) == "0\\1\\0\\0\\0\\-1")
+            #expect(file.dataSet.string(for: .pixelSpacing) == "0.5\\0.75")
+            #expect(file.dataSet.string(for: .frameOfReferenceUID) == frameOfReference)
+            #expect(file.dataSet.string(for: .rescaleSlope) == "2")
+            #expect(file.dataSet.string(for: .rescaleIntercept) == "-10")
         }
     }
 

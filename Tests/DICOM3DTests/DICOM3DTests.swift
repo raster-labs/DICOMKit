@@ -289,35 +289,33 @@ final class DICOM3DTests: XCTestCase {
         XCTAssertNotNil(extractor)
     }
 
-    // MARK: - JP3D CLI Subcommand Deferral Tests (pending SwiftJ2K 12.2.0 / SwiftJ2K3D)
+    // MARK: - JP3D Volume Document Round-Trip Tests (SwiftJ2K3D 12.2.0)
 
-    func test_encodeVolume_losslessHTJ2K_deferred() async throws {
+    func test_encodeVolume_losslessHTJ2K_roundTrip() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 8, rows: 16, columns: 16)
-        do {
-            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .losslessHTJ2K)
-            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-        } catch let DICOMError.unsupportedTransferSyntax(reason) {
-            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
-        }
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .losslessHTJ2K)
+        XCTAssertTrue(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
+        let decoded = try await JP3DVolumeDocument.decode(from: doc)
+        XCTAssertEqual(decoded.count, 8)
+        XCTAssertEqual(decoded[0].dataSet[.pixelData]?.valueData, series[0].dataSet[.pixelData]?.valueData)
     }
 
-    func test_encodeVolume_lossy_deferred() async throws {
+    func test_encodeVolume_lossy_roundTrip() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 4, rows: 8, columns: 8)
-        do {
-            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .lossy(psnr: 40.0))
-            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-        } catch let DICOMError.unsupportedTransferSyntax(reason) {
-            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
-        }
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossy(psnr: 40.0))
+        XCTAssertTrue(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
+        let decoded = try await JP3DVolumeDocument.decode(from: doc)
+        XCTAssertEqual(decoded.count, 4)
     }
 
-    func test_encodeVolume_lossless_deferred() async throws {
+    func test_encodeVolume_lossless_roundTrip() async throws {
         let series = JP3DTestHelpers.makeSyntheticSeries(slices: 4, rows: 16, columns: 16)
-        do {
-            _ = try await JP3DVolumeDocument.encode(series, compressionMode: .lossless)
-            XCTFail("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-        } catch let DICOMError.unsupportedTransferSyntax(reason) {
-            XCTAssertTrue(reason.contains("SwiftJ2K 12.2.0"))
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+        XCTAssertTrue(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
+        let decoded = try await JP3DVolumeDocument.decode(from: doc)
+        XCTAssertEqual(decoded.count, 4)
+        for i in 0..<4 {
+            XCTAssertEqual(decoded[i].dataSet[.pixelData]?.valueData, series[i].dataSet[.pixelData]?.valueData)
         }
     }
 

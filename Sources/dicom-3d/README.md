@@ -1,13 +1,11 @@
-# dicom-3d — 3D Reconstruction, MPR, and JP3D Volumetric Encoding [DEFERRED — pending SwiftJ2K 12.2.0]
-
-> **Status (SwiftJ2K 12.1.0 cutover):** `dicom-3d` CLI execution and JP3D volumetric encode/decode (`JP3DCodec`, `JP3DVolumeDocument`) are **deferred from usage** pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification). `--help` and CLI option parsing remain available for documentation and inventory compatibility, while operational subcommands exit `1` with an explicit deferral message. Pure 3D slice-geometry, MPR, intensity projection, surface extraction, and NIfTI/MetaImage library types remain available in Swift.
+# dicom-3d — 3D Reconstruction, MPR, and JP3D Volumetric Encoding
 
 **Version:** 1.5.0  
-**Part of:** DICOMKit CLI Tools (Phases 7 + 9.2)
+**Part of:** DICOMKit CLI Tools (powered by `SwiftJ2K3D 12.2.0`)
 
 ## Overview
 
-`dicom-3d` performs 3D volume reconstruction, Multi-Planar Reformation (MPR), intensity projections, JP3D volumetric encode/decode, and format export from multi-slice DICOM series.
+`dicom-3d` performs 3D volume reconstruction, Multi-Planar Reformation (MPR), intensity projections, JP3D volumetric encode/decode/transcode (`SwiftJ2K3D 12.2.0`), and format export from multi-slice DICOM series.
 
 ## Features
 
@@ -41,12 +39,13 @@
 - **MetaImage** format (.mhd + .raw) — ITK/VTK compatible
 - Preserves spatial information and metadata
 
-### JP3D Volumetric Encoding (Deferred Pending SwiftJ2K 12.2.0)
-- **encode-volume** — encode a slice series as a single JP3D DICOM document *(deferred pending `SwiftJ2K 12.2.0` `SwiftJ2K3D` qualification)*
-- **decode-volume** — decode a JP3D document back to individual DICOM slices *(deferred pending `SwiftJ2K 12.2.0` `SwiftJ2K3D` qualification)*
-- **inspect** — display JP3D sidecar metadata without decoding the codestream
-- Compression modes: lossless, lossless-htj2k, lossy, lossy-htj2k
-- ISO/IEC 15444-10 (JP3D) volumetric encode/decode and `dicom-3d` processing subcommands currently fail closed with an explicit `SwiftJ2K 12.2.0` deferral diagnostic.
+### JP3D Volumetric Encoding (`SwiftJ2K3D 12.2.0`)
+- **encode-volume** — encode a slice series as a single JP3D DICOM document
+- **decode-volume** — decode a JP3D document back to individual DICOM slices (full volume or 3D sub-volume `--roi x,y,z,w,h,d` with shifted `ImagePositionPatient`)
+- **transcode-volume** — losslessly transcode a JP3D document between standard JPEG 2000 (`j2k`) and HTJ2K (`htj2k`) in the wavelet domain
+- **inspect** — display JP3D codestream header and sidecar metadata without decoding voxels
+- **backends** — list available `SwiftJ2K3D` hardware acceleration backends (`metal`, `accelerate`, `scalar`)
+- Compression modes: `lossless`, `lossless-htj2k`, `lossy`, `lossy-htj2k`
 
 ## Installation
 
@@ -169,10 +168,17 @@ Encode with lossy compression at 55 dB PSNR:
 dicom-3d encode-volume series/*.dcm --output volume.jp3d.dcm --mode lossy --psnr 55
 ```
 
-Decode back to individual slices:
+Decode back to individual slices (full volume or 3D ROI):
 
 ```bash
 dicom-3d decode-volume volume.jp3d.dcm --output ./decoded/
+dicom-3d decode-volume volume.jp3d.dcm --output ./roi/ --roi 0,0,0,64,64,16
+```
+
+Losslessly transcode between J2K and HTJ2K in the wavelet domain:
+
+```bash
+dicom-3d transcode-volume volume.jp3d.dcm --output volume-htj2k.jp3d.dcm --target htj2k
 ```
 
 Inspect metadata without decoding the codestream:
@@ -411,8 +417,8 @@ Common errors and solutions:
 ## Version History
 
 ### 1.5.0 (Current)
-- `dicom-3d` subcommands deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` volumetric qualification)
-- `inspect`: JP3D sidecar metadata schema retained for compatibility
+- Powered by `SwiftJ2K3D 12.2.0` (`VolumeEncoder`, `VolumeDecoder`, `VolumeTranscoder`)
+- `encode-volume`, `decode-volume` (including `--roi x,y,z,w,h,d`), `transcode-volume` (`--target htj2k|j2k`), `inspect`, and `backends`
 - Compression modes: lossless, lossless-htj2k, lossy, lossy-htj2k
 
 ### 1.4.0
