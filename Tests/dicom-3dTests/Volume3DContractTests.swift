@@ -483,4 +483,34 @@ extension Volume3DContractTests {
         }
         XCTAssertTrue(VolumeCommand.notImplementedMessage.contains("not implemented"))
     }
+
+    func testJP3DEncodeTranscodeAndROIDecodeCommands() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("dicom3d-jp3d-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let seriesDir = tempDir.appendingPathComponent("series")
+        try FileManager.default.createDirectory(at: seriesDir, withIntermediateDirectories: true)
+        for (idx, file) in Self.axialStack().enumerated() {
+            try file.write().write(to: seriesDir.appendingPathComponent("s\(idx).dcm"))
+        }
+
+        let jp3dPath = tempDir.appendingPathComponent("vol.jp3d.dcm").path
+        var encodeCmd = try EncodeVolumeCommand.parse([seriesDir.path, "--output", jp3dPath, "--mode", "lossless"])
+        try encodeCmd.run()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: jp3dPath))
+
+        let htj2kPath = tempDir.appendingPathComponent("vol-ht.jp3d.dcm").path
+        var transcodeCmd = try TranscodeVolumeCommand.parse([jp3dPath, "--output", htj2kPath, "--target", "htj2k"])
+        try transcodeCmd.run()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: htj2kPath))
+
+        let roiDir = tempDir.appendingPathComponent("roi")
+        var decodeCmd = try DecodeVolumeCommand.parse([htj2kPath, "--output", roiDir.path, "--roi", "1,1,1,2,2,2"])
+        try decodeCmd.run()
+
+        let roiSlice0 = try DICOMFile.read(from: roiDir.appendingPathComponent("slice_0000.dcm"))
+        XCTAssertEqual(roiSlice0.dataSet.uint16(for: .columns), 2)
+        XCTAssertEqual(roiSlice0.dataSet.uint16(for: .rows), 2)
+    }
 }

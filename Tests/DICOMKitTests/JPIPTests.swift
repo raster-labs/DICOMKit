@@ -5,6 +5,7 @@ import Testing
 import Foundation
 @testable import DICOMKit
 @testable import DICOMCore
+import SwiftJ2KJPIP
 
 // MARK: - TransferSyntax JPIP Tests
 
@@ -390,40 +391,167 @@ struct DICOMVolumeProgressiveUpdateTests {
     }
 }
 
-// MARK: - Progressive Volume API Surface Tests
+// MARK: - Progressive Volume & Live Loopback JPIP Streaming Tests
 
-@Suite("Progressive Volume API Surface Tests")
+@Suite("Progressive Volume & Live Loopback JPIP Streaming Tests")
 struct ProgressiveVolumeAPISurfaceTests {
 
-    // The two tests that previously lived here called
-    // `DICOMFile.openVolumeProgressively(...)` and asserted that the stream terminated
-    // with zero updates. That was not an API-surface check — it was an assertion that a
-    // non-functional feature failed quietly, which is exactly the behaviour finding F1
-    // set out to remove. The API is now `@available(*, unavailable)`, so the calls no
-    // longer compile. Restore them alongside the implementation when the upstream JPIP
-    // request path lands (original bodies at git de67c39).
-
-    @Test("retrievalUnavailable explains why JPIP cannot fetch")
-    func retrievalUnavailable_describesUpstreamCause() {
-        let description = DICOMJPIPError.retrievalUnavailable.description
-        #expect(!description.isEmpty)
-        // The message must name the cause, not just say "unavailable" — an integrator
-        // hitting this needs to know it is upstream and not their configuration.
-        #expect(description.contains("SwiftJ2K"))
-        #expect(description.lowercased().contains("retrieval"))
+    private func makeLosslessCodestream(
+        width: Int = 16,
+        height: Int = 16,
+        transferSyntaxUID: String = TransferSyntax.jpeg2000Lossless.uid
+    ) throws -> (codestream: Data, rawPixels: Data) {
+        var raw = Data(capacity: width * height)
+        for y in 0..<height {
+            for x in 0..<width {
+                raw.append(UInt8((y * 16 + x) & 0xFF))
+            }
+        }
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            numberOfFrames: 1,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let codestream = try SwiftJ2KDICOMCodec(
+            encodingTransferSyntaxUID: transferSyntaxUID
+        ).encodeFrame(
+            raw,
+            descriptor: desc,
+            frameIndex: 0,
+            configuration: .lossless
+        )
+        return (codestream, raw)
     }
 
-    @Test("retrievalUnavailable is distinct from jpipModuleUnavailable")
-    func retrievalUnavailable_isDistinctFromModuleUnavailable() {
-        // Different failures: the module may be linked (so not `jpipModuleUnavailable`)
-        // and still have no implemented request path.
-        #expect(DICOMJPIPError.retrievalUnavailable.description
-                != DICOMJPIPError.jpipModuleUnavailable.description)
+    @Test("DICOMJPIPClient exposes SwiftJ2KJPIP 12.2.0 engine constants and HTJ2K coding preference")
+    func engineVersion_and_htj2kCodingPreference() {
+        #expect(DICOMJPIPClient.engineName == "SwiftJ2KJPIP")
+        #expect(DICOMJPIPClient.engineVersion == "12.2.0")
+        #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipHTJ2KReferenced.uid) == .htj2k)
+        #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipHTJ2KReferencedDeflate.uid) == .htj2k)
+        #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipReferenced.uid) == .none)
+        #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipReferencedDeflate.uid) == .none)
+    }
+
+    @Test("Live loopback JPIPServer + DICOMJPIPClient streams full image, ROI, progressive layers, and resolution level")
+    func liveLoopback_full_roi_progressive_resolution() async throws {
+        let (codestream, expectedPixels) = try makeLosslessCodestream(width: 16, height: 16)
+        let server = JPIPServer(port: 0, host: "127.0.0.1")
+        await server.registerImageData(name: "ct001", data: codestream)
+        try await server.start()
+        let port = await server.listeningPort
+        #expect(port > 0)
+
+        let baseURL = URL(string: "http://127.0.0.1:\(port)")!
+        let targetURI = URL(string: "http://127.0.0.1:\(port)/ct001")!
+        let client = DICOMJPIPClient(serverURL: baseURL)
+
+        let full = try await client.fetchImage(jpipURI: targetURI)
+        #expect(full.width == 16)
+        #expect(full.height == 16)
+        #expect(full.components == 1)
+        #expect(full.bitDepth == 8)
+        #expect(full.pixelData == expectedPixels)
+
+        let roi = try await client.fetchRegion(
+            jpipURI: targetURI,
+            region: DICOMJPIPRegion(x: 4, y: 2, width: 8, height: 6)
+        )
+        #expect(roi.width == 8)
+        #expect(roi.height == 6)
+        #expect(!roi.pixelData.isEmpty)
+
+        let preview = try await client.fetchProgressiveQuality(jpipURI: targetURI, layers: 1)
+        #expect(preview.width == 16)
+        #expect(preview.height == 16)
+        #expect(preview.qualityLayers == 1)
+
+        let half = try await client.fetchResolutionLevel(jpipURI: targetURI, level: 1)
+        #expect(half.width > 0 && half.width <= 16)
+        #expect(half.height > 0 && half.height <= 16)
+
+        try await client.close()
+        try await server.stop()
+    }
+
+    @Test("Live loopback JPIPServer + HTJ2K (.204) referenced DICOMFile.openVolume and openVolumeProgressively")
+    func liveLoopback_htj2k_and_progressiveVolume() async throws {
+        let (htCodestream, expectedPixels) = try makeLosslessCodestream(
+            width: 16,
+            height: 16,
+            transferSyntaxUID: TransferSyntax.htj2kLossless.uid
+        )
+        let server = JPIPServer(port: 0, host: "127.0.0.1")
+        await server.registerImageData(name: "htslice0", data: htCodestream)
+        await server.registerImageData(name: "htslice1", data: htCodestream)
+        try await server.start()
+        let port = await server.listeningPort
+
+        let serverURL = URL(string: "http://127.0.0.1:\(port)")!
+        let uri0 = URL(string: "http://127.0.0.1:\(port)/htslice0")!
+        let uri1 = URL(string: "http://127.0.0.1:\(port)/htslice1")!
+
+        // Build a JPIP HTJ2K Referenced (.204) DICOM file on disk
+        var ds = DataSet()
+        ds.setString("1.2.840.10008.5.1.4.1.1.2", for: .sopClassUID, vr: .UI)
+        ds.setString(UIDGenerator.generateUID().value, for: .sopInstanceUID, vr: .UI)
+        ds.setString("CT", for: .modality, vr: .CS)
+        ds.setUInt16(16, for: .rows)
+        ds.setUInt16(16, for: .columns)
+        ds.setUInt16(8, for: .bitsAllocated)
+        ds.setUInt16(8, for: .bitsStored)
+        ds.setUInt16(7, for: .highBit)
+        ds.setUInt16(0, for: .pixelRepresentation)
+        ds.setUInt16(1, for: .samplesPerPixel)
+        ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        ds.setString(uri0.absoluteString, for: .pixelDataProviderURL, vr: .UR)
+
+        let jpipFile = DICOMFile.create(
+            dataSet: ds,
+            sopClassUID: "1.2.840.10008.5.1.4.1.1.2",
+            sopInstanceUID: ds.string(for: .sopInstanceUID)!,
+            transferSyntaxUID: TransferSyntax.jpipHTJ2KReferenced.uid
+        )
+        let tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("test_jpip_htj2k_\(UUID().uuidString).dcm")
+        defer { try? FileManager.default.removeItem(at: tmpURL) }
+        try jpipFile.write().write(to: tmpURL)
+
+        let volume = try await DICOMFile.openVolume(from: tmpURL, jpipServerURL: serverURL)
+        #expect(volume.width == 16)
+        #expect(volume.height == 16)
+        #expect(volume.depth == 1)
+        #expect(volume.pixelData == expectedPixels)
+
+        var updates: [DICOMVolumeProgressiveUpdate] = []
+        for await u in DICOMFile.openVolumeProgressively(
+            serverURL: serverURL,
+            sliceJPIPURIs: [uri0, uri1],
+            qualityLayers: 2
+        ) {
+            updates.append(u)
+        }
+        #expect(updates.count == 4)
+        #expect(updates.last?.isVolumeComplete == true)
+
+        // Empty-URI stream terminates cleanly with zero updates
+        var emptyUpdates = 0
+        for await _ in DICOMFile.openVolumeProgressively(serverURL: serverURL, sliceJPIPURIs: [], qualityLayers: 2) {
+            emptyUpdates += 1
+        }
+        #expect(emptyUpdates == 0)
+
+        try await server.stop()
     }
 
     @Test("DICOMVolumeProgressiveUpdate is Sendable")
     func progressiveUpdate_isSendable() {
-        // Compile-time check: assigning to a Sendable-typed variable verifies conformance.
         let update: any Sendable = DICOMVolumeProgressiveUpdate(
             sliceIndex: 0, qualityLayer: 1, totalLayers: 1,
             sliceData: Data(), width: 1, height: 1, isVolumeComplete: true

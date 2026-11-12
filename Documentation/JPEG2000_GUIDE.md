@@ -1,8 +1,6 @@
 # JPEG 2000 Guide for DICOMKit
 
-This guide covers JPEG 2000 (Part 1 & Part 2), High-Throughput JPEG 2000 (HTJ2K, Part 15), progressive wavelet decoding, and compressed-domain transcoding in DICOMKit powered by **SwiftJ2K 12.1.0** (`raster-labs/SwiftJ2K`).
-
-> **Deferral Notice (`SwiftJ2K 12.2.0`):** JP3D volumetric encoding/decoding (`JP3DCodec`, `JP3DVolumeDocument`, `dicom-3d`) and JPIP interactive streaming (`DICOMJPIPClient`, `dicom-jpip`, `dicom-viewer --jpip`) are intentionally deferred in this release pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` and `SwiftJPIP` qualification) and fail closed with explicit unsupported diagnostics.
+This guide covers JPEG 2000 (Part 1 & Part 2), High-Throughput JPEG 2000 (HTJ2K, Part 15), JP3D volumetric compression (Part 10), JPIP interactive streaming (Part 9), progressive wavelet decoding, and compressed-domain transcoding in DICOMKit powered by **SwiftJ2K 12.2.0** (`raster-labs/SwiftJ2K`).
 
 ## Table of Contents
 
@@ -13,24 +11,26 @@ This guide covers JPEG 2000 (Part 1 & Part 2), High-Throughput JPEG 2000 (HTJ2K,
 5. [Progressive Wavelet Decoding](#progressive-wavelet-decoding)
 6. [Hardware Acceleration](#hardware-acceleration)
 7. [CLI Tools](#cli-tools)
-8. [Deferred Surfaces (`SwiftJ2K 12.2.0`)](#deferred-surfaces-swiftj2k-1220)
+8. [JP3D Volumetric & JPIP Streaming (`SwiftJ2K 12.2.0`)](#jp3d-volumetric--jpip-streaming-swiftj2k-1220)
 9. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Overview
 
-DICOMKit uses **SwiftJ2K 12.1.0** (`SwiftJ2KCore`, `SwiftJ2KCodec`, `SwiftJ2KAccelerate`, `SwiftJ2KMetal`) as its sole default JPEG 2000 / HTJ2K codec stack via `J2KCodecProvider.swiftJ2K` in `CodecRegistry.shared` (`J2KProviderFallbackPolicy.strict`). Apple ImageIO (`NativeJPEG2000Codec`) is deprecated and never registered or invoked implicitly.
+DICOMKit uses **SwiftJ2K 12.2.0** (`SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`) as its sole default JPEG 2000 / HTJ2K / JP3D / JPIP stack via `J2KCodecProvider.swiftJ2K` and `JP3DCodec` in `CodecRegistry.shared` (`J2KProviderFallbackPolicy.strict`) and `DICOMJPIPClient` in `DICOMKit`. Apple ImageIO (`NativeJPEG2000Codec`) is deprecated and never registered or invoked implicitly.
 
 ### Codec Stack
 
 ```
-CodecRegistry.shared (J2KCodecProvider.swiftJ2K)
-├── SwiftJ2KDICOMCodec       (Decode + Encode for .90–.93 and .201–.203)
+CodecRegistry.shared (J2KCodecProvider.swiftJ2K + JP3DCodec) & DICOMJPIPClient
+├── SwiftJ2KDICOMCodec       (2D Decode + Encode for .90–.93 and .201–.203)
 │   ├── .metal               (SwiftJ2KMetal GPU backend on Apple Silicon)
 │   ├── .accelerate          (SwiftJ2KAccelerate SIMD backend on Apple platforms)
 │   └── .scalar              (Portable pure-Swift backend)
-└── SwiftJ2KDICOMTranscoder  (Compressed-domain lossless Part 1 ↔ HTJ2K transcode)
+├── SwiftJ2KDICOMTranscoder  (Compressed-domain lossless 2D Part 1 ↔ HTJ2K transcode)
+├── JP3DCodec (SwiftJ2K3D)   (Volumetric encode/decode, 3D ROI, J2K ↔ HTJ2K volume transcode)
+└── DICOMJPIPClient          (SwiftJ2KJPIP .94/.95/.204/.205 streaming + JPIPServer)
 ```
 
 The optimal hardware backend is probed automatically at startup by `CodecBackendProbe` and planned per codestream by `J2KRoutePlanner`. Override when needed via `CodecRegistry.shared.backendPreference` or `--backend`.
@@ -48,8 +48,12 @@ The optimal hardware backend is probed automatically at startup by `CodecBackend
 | HTJ2K Lossless | `1.2.840.10008.1.2.4.201` | ✅ Active | ISO/IEC 15444-15 reversible 5/3 |
 | HTJ2K RPCL Lossless | `1.2.840.10008.1.2.4.202` | ✅ Active | HTJ2K lossless with mandatory RPCL progression |
 | HTJ2K | `1.2.840.10008.1.2.4.203` | ✅ Active | ISO/IEC 15444-15 lossy / reversible |
-| JPIP Referenced | `1.2.840.10008.1.2.4.94` | ⏸️ Deferred | Pending `SwiftJ2K 12.2.0` |
-| JPIP Referenced Deflate | `1.2.840.10008.1.2.4.95` | ⏸️ Deferred | Pending `SwiftJ2K 12.2.0` |
+| JPIP Referenced | `1.2.840.10008.1.2.4.94` | ✅ Active | `DICOMJPIPClient` / `SwiftJ2KJPIP` (PS3.5 A.6) |
+| JPIP Referenced Deflate | `1.2.840.10008.1.2.4.95` | ✅ Active | `DICOMJPIPClient` / `SwiftJ2KJPIP` (PS3.5 A.7) |
+| JPIP HTJ2K Referenced | `1.2.840.10008.1.2.4.204` | ✅ Active | `DICOMJPIPClient` with `JPIPCodingPreference.htj2k` (PS3.5 A.11) |
+| JPIP HTJ2K Referenced Deflate | `1.2.840.10008.1.2.4.205` | ✅ Active | `DICOMJPIPClient` with `JPIPCodingPreference.htj2k` (PS3.5 A.12) |
+| JP3D Lossless *(Experimental)* | `1.2.826.0.1.3680043.10.511.1` | ✅ Active | Private ISO/IEC 15444-10 volumetric lossless (`JP3DCodec`) |
+| JP3D Lossy *(Experimental)* | `1.2.826.0.1.3680043.10.511.2` | ✅ Active | Private ISO/IEC 15444-10 volumetric lossy (`JP3DCodec`) |
 
 ---
 
@@ -174,10 +178,10 @@ dicom-compress transcode ct.j2k.dcm --to htj2k-lossless --output ct.htj2k.dcm
 
 ---
 
-## Deferred Surfaces (`SwiftJ2K 12.2.0`)
+## JP3D Volumetric & JPIP Streaming (`SwiftJ2K 12.2.0`)
 
-- **JP3D (`JP3DCodec`, `JP3DVolumeDocument`, `dicom-3d`):** Volumetric ISO/IEC 15444-10 encode/decode is deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification). Standard multi-frame and slice-series volume loading (`DICOMFile.openVolume` and `JP3DVolumeBridge.makeVolume`, including RLE/J2K/JPEG-LS/JPEG/JXL compressed inputs) remains fully active.
-- **JPIP (`DICOMJPIPClient`, `dicom-jpip`, `dicom-viewer --jpip`):** Interactive JPIP client/server streaming (`.94` / `.95`) is deferred pending `SwiftJ2K 12.2.0` (`SwiftJPIP` qualification). `dicom-jpip uri` local URI construction remains available; network `fetch`/`serve`/`info` and `dicom-viewer --jpip` exit cleanly with explicit deferral messages.
+- **JP3D (`JP3DCodec`, `JP3DVolumeDocument`, `dicom-3d`):** Volumetric ISO/IEC 15444-10 encode, full/3D-ROI decode (`--roi x,y,z,w,h,d`), bounded header inspection (`inspect`), and wavelet-domain `J2K ↔ HTJ2K` transcoding (`transcode-volume`) are powered by `SwiftJ2K3D 12.2.0` under experimental private UIDs (`1.2.826.0.1.3680043.10.511.1` / `.2`).
+- **JPIP (`DICOMJPIPClient`, `dicom-jpip`, `dicom-viewer --jpip`, `DICOMStudio`):** Interactive JPIP client and server streaming (`.94` / `.95` and HTJ2K `.204` / `.205`) are powered by `SwiftJ2KJPIP 12.2.0` (`JPIPStreamingSession` and `JPIPServer`), supporting full-image, 2D ROI, progressive quality-layer, and wavelet resolution-level retrieval over HTTP/HTTPS/WebSocket and in-process transport.
 
 ---
 

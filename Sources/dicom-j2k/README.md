@@ -1,7 +1,7 @@
 # dicom-j2k
 
 Purpose-built CLI for JPEG 2000 / Part 2 / HTJ2K codestream operations on DICOM files.
-Part of DICOMKit, powered by SwiftJ2K v12.1.0+.
+Part of DICOMKit, powered by SwiftJ2K v12.2.0+.
 
 ## Subcommands
 
@@ -31,7 +31,7 @@ Part of DICOMKit, powered by SwiftJ2K v12.1.0+.
 Names as in PS3.6 2026a Table A-1. `.91`, `.93` and `.203` carry either a lossless or a lossy
 codestream (PS3.5 A.4.4). `.92` and `.93` (JPEG 2000 Part 2 Annex I/J Multi-Component Transforms)
 are supported for both read and `transcode` (`j2k-part2-lossless-only`, `j2k-part2-lossless`,
-`j2k-part2-lossy`, `JPEG2000MCLossless`, `JPEG2000MC`) via `SwiftJ2K` 12.1.0+.
+`j2k-part2-lossy`, `JPEG2000MCLossless`, `JPEG2000MC`) via `SwiftJ2K` 12.2.0+.
 
 `--target` also takes a PS3.6 Table A-1 keyword, which selects its Table A-1 UID:
 `JPEG2000Lossless` is .90 and `HTJ2KLossless` .201 (changed 2026-10-01, a note is printed);
@@ -100,7 +100,7 @@ dicom-j2k completions zsh > ~/.zsh/completions/_dicom-j2k
 - `--json` keys: `TransferSyntaxUID` and `NumberOfFrames` (PS3.6 Table 6-1 keywords) and
   `frameNumber` (from 1) were added; `transferSyntaxUID`, `totalFrames` and the 0-based `frame`
   are **deprecated** and keep their old values.
-- Powered by `SwiftJ2K 12.1.0`: full support for JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Multi-component (`.92`/`.93`), and HTJ2K (`.201`/`.202`/`.203`), including lossless compressed-domain Part 1 ↔ HTJ2K transcoding via `SwiftJ2KDICOMTranscoder`. Use lossless (`.90` / `.201`) for archival.
+- Powered by `SwiftJ2K 12.2.0`: full support for JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Multi-component (`.92`/`.93`), and HTJ2K (`.201`/`.202`/`.203`), including lossless compressed-domain Part 1 ↔ HTJ2K transcoding via `SwiftJ2KDICOMTranscoder`. Use lossless (`.90` / `.201`) for archival.
 
 ## Tests
 

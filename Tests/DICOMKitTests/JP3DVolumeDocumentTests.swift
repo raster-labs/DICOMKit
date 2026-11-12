@@ -2,6 +2,7 @@ import Foundation
 import Testing
 @testable import DICOMKit
 import DICOMCore
+import SwiftJ2K3D
 
 /// Tests for JP3DVolumeDocument (Milestone 4.3) and DICOMKit+Volume (Milestone 4.4).
 @Suite("JP3DVolumeDocument Tests")
@@ -89,7 +90,7 @@ struct JP3DVolumeDocumentTests {
         #expect(!JP3DVolumeDocument.isJP3DVolumeDocument(series[0]))
     }
 
-    // MARK: - Validation & Fail-Closed Deferral (pending SwiftJ2K 12.2.0 / SwiftJ2K3D)
+    // MARK: - Input Validation & JP3D Volumetric Round-Trip (SwiftJ2K3D 12.2.0)
 
     @Test("encode empty series throws BridgeError.emptySeries")
     func test_encode_emptySeriesThrows() async {
@@ -130,16 +131,49 @@ struct JP3DVolumeDocumentTests {
         }
     }
 
-    @Test("encode fails closed with SwiftJ2K 12.2.0 deferral across all compression modes")
-    func test_encode_failsClosedWhileDeferred() async throws {
-        let series = try makeSeries(slices: 4, rows: 8, columns: 8)
-        for mode: JP3DCodec.CompressionMode in [.lossless, .lossy(psnr: 40.0), .losslessHTJ2K] {
-            do {
-                _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: mode)
-                Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-            } catch let DICOMError.unsupportedTransferSyntax(reason) {
-                #expect(reason.contains("SwiftJ2K 12.2.0"))
-            }
+    @Test("encode, inspect, 3D ROI decode, and J2K <-> HTJ2K transcode round-trip")
+    func test_encode_inspect_roiDecode_and_transcode() async throws {
+        let series = try makeSeries(slices: 4, rows: 16, columns: 16)
+        let doc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+        #expect(JP3DVolumeDocument.isJP3DVolumeDocument(doc))
+
+        let (info, sidecar) = try JP3DVolumeDocument.inspect(from: doc)
+        #expect(info.width == 16)
+        #expect(info.height == 16)
+        #expect(info.depth == 4)
+        #expect(!info.isHTJ2K)
+        #expect(sidecar["compressionMode"] as? String == "lossless")
+
+        let decodedFull = try await JP3DVolumeDocument.decode(from: doc)
+        #expect(decodedFull.count == 4)
+        for i in 0..<4 {
+            #expect(decodedFull[i].dataSet[.pixelData]?.valueData == series[i].dataSet[.pixelData]?.valueData)
+        }
+
+        // 3D ROI decode: origin (2, 3, 1), size (6, 5, 2)
+        // Pixel spacing is 0.8\0.8, slice spacing is 2.5, axial orientation (1,0,0,0,1,0), origin (0,0,0)
+        let region = JP3DRegion(originX: 2, originY: 3, originZ: 1, width: 6, height: 5, depth: 2)
+        let roiSlices = try await JP3DVolumeDocument.decode(from: doc, region: region)
+        #expect(roiSlices.count == 2)
+        #expect(roiSlices[0].dataSet.uint16(for: .columns) == 6)
+        #expect(roiSlices[0].dataSet.uint16(for: .rows) == 5)
+        let pos0 = (roiSlices[0].dataSet.string(for: .imagePositionPatient) ?? "")
+            .split(separator: "\\").compactMap { Double($0) }
+        #expect(pos0.count == 3)
+        #expect(abs(pos0[0] - 1.6) < 1e-6)  // 2 * 0.8
+        #expect(abs(pos0[1] - 2.4) < 1e-6)  // 3 * 0.8
+        #expect(abs(pos0[2] - 2.5) < 1e-6)  // 1 * 2.5
+
+        // Transcode J2K -> HTJ2K and verify lossless voxel equivalence
+        let transcoded = try await JP3DVolumeDocument.transcode(file: doc, toHTJ2K: true)
+        #expect(JP3DVolumeDocument.isJP3DVolumeDocument(transcoded))
+        let (htInfo, htSidecar) = try JP3DVolumeDocument.inspect(from: transcoded)
+        #expect(htInfo.isHTJ2K)
+        #expect(htSidecar["compressionMode"] as? String == "losslessHTJ2K")
+        let decodedHT = try await JP3DVolumeDocument.decode(from: transcoded)
+        #expect(decodedHT.count == 4)
+        for i in 0..<4 {
+            #expect(decodedHT[i].dataSet[.pixelData]?.valueData == series[i].dataSet[.pixelData]?.valueData)
         }
     }
 }
@@ -324,12 +358,18 @@ struct DICOMVolumeTests {
             )
         }
 
-        do {
-            _ = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
-            Issue.record("Expected JP3DVolumeDocument.encode to fail closed while deferred")
-        } catch let DICOMError.unsupportedTransferSyntax(reason) {
-            #expect(reason.contains("SwiftJ2K 12.2.0"))
-        }
+        let jp3dDoc = try await JP3DVolumeDocument.encode(series: series, compressionMode: .lossless)
+        let tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("test_jp3d_vol_\(UUID().uuidString).dcm")
+        defer { try? FileManager.default.removeItem(at: tmpURL) }
+        try jp3dDoc.write().write(to: tmpURL)
+
+        let volume = try await DICOMFile.openVolume(from: tmpURL)
+        #expect(volume.width == columns)
+        #expect(volume.height == rows)
+        #expect(volume.depth == slices)
+        #expect(volume.modality == "CT")
+        #expect(volume.pixelData.count == rows * columns * 2 * slices)
     }
 
     @Test("openVolume throws for non-existent path")

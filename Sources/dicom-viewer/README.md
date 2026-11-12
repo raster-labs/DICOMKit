@@ -22,7 +22,7 @@ Terminal-based DICOM image viewer for quick inspection and triage.
 - **Resolution Reduce (`--reduce`)**: Fast low-resolution preview at 1/2ⁿ resolution
 - **Region of Interest (`--roi`)**: Crop and display a rectangular subregion
 - **Volume / Multi-frame Mode (`--volume`)**: Multi-frame filmstrip for CT/MR series
-- **JPIP Streaming (`--jpip`)**: Currently unavailable (deferred pending `SwiftJ2K 12.2.0` `SwiftJ2KJPIP` qualification)
+- **JPIP Streaming (`--jpip`)**: Stream remote JPEG 2000 and HTJ2K images directly from a JPIP server (`SwiftJ2KJPIP 12.2.0`), with optional `--roi` and `--reduce`
 
 ## Installation
 
@@ -163,11 +163,18 @@ dicom-viewer volume.dcm --volume
 dicom-viewer ct_volume.dcm --volume --size 160x80
 ```
 
-### JPIP Remote Streaming (Deferred Pending SwiftJ2K 12.2.0)
+### JPIP Remote Streaming (`SwiftJ2KJPIP 12.2.0`)
 
-`--jpip` is currently unavailable because JPIP retrieval is deferred pending `SwiftJ2K 12.2.0`
-(`SwiftJ2KJPIP` qualification). Invoking `--jpip` exits cleanly with a diagnostic recommending
-`dicom-wado` or `dicom-retrieve` for remote studies.
+Stream a remote JPEG 2000 or HTJ2K target from a JPIP server without downloading a full file first:
+
+```bash
+# Stream full target from a JPIP server
+dicom-viewer --jpip "http://pacs.example.com:8080/CT0001"
+
+# Stream a 256×256 ROI or reduced wavelet resolution level
+dicom-viewer --jpip "http://pacs.example.com:8080/CT0001" --roi 100,50,256,256 --mode ansi
+dicom-viewer --jpip "http://pacs.example.com:8080/CT0001" --reduce 2
+```
 
 ## Display Modes
 
@@ -237,4 +244,4 @@ dicom-viewer ct_volume.dcm --volume --size 160x80
 
 ## Version
 
-Current: v1.5.0 (`SwiftJ2K 12.1.0` / `CodecRegistry` integration, `--reduce`, `--roi`, `--volume`; `--jpip` deferred pending `SwiftJ2K 12.2.0`)
+Current: v1.5.0 (`SwiftJ2K 12.2.0` / `SwiftJ2KJPIP 12.2.0` / `CodecRegistry` integration, `--reduce`, `--roi`, `--volume`, `--jpip`)

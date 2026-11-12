@@ -127,7 +127,7 @@ Quality settings only apply to irreversible (lossy) encodes; they are ignored fo
 - DICOM files are detected by `.dcm`, `.dicom`, `.dic` extensions or by the `DICM` magic prefix
 - Batch mode preserves directory structure in the output
 - The tool writes DICOM Part 10 files (preamble, DICM prefix, File Meta Information)
-- Compression and decompression route through the pure-Swift `raster-labs` compression suite (`SwiftJ2K 12.1.0`, `SwiftJLI 2.0.2`, `SwiftJLS 2.0.0`, `SwiftJXL 2.0.0`, `SwiftRLE 1.0.1`) with verified round-trip and benchmark coverage
+- Compression and decompression route through the pure-Swift MIT-licensed `raster-labs` compression suite (`SwiftJ2K 12.2.0`, `SwiftJLI 2.0.3`, `SwiftJLS 2.0.1`, `SwiftJXL 2.0.1`, `SwiftRLE 1.0.2`) with verified round-trip and benchmark coverage
 - Platform codec support may vary; not all codecs are available on all systems
 
 ## Version

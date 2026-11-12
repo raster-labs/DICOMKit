@@ -125,7 +125,7 @@ public final class J2KTestingViewModel {
     public let supportMatrix: [J2KSupportEntry] = J2KTestingViewModel.buildSupportMatrix()
 
     /// Display name for the active JPEG 2000 codec, including its library version
-    /// (e.g. "SwiftJ2K 12.1.0").
+    /// (e.g. "SwiftJ2K 12.2.0").
     public nonisolated static let j2kSwiftCodecName = "\(SwiftJ2KDICOMCodec.engineName) \(SwiftJ2KDICOMCodec.engineVersion)"
 
     // MARK: - Benchmark

@@ -1,7 +1,7 @@
 # DICOMKit Codec Reference
 
-A developer reference for the five pure-Swift `raster-labs` codec libraries integrated into `DICOMCore`:
-**SwiftJ2K** (`12.1.0`), **SwiftJLS** (`2.0.0`), **SwiftJLI** (`2.0.2`), **SwiftJXL** (`2.0.0`), and **SwiftRLE** (`1.0.1`).
+A developer reference for the five pure-Swift MIT-licensed `raster-labs` codec libraries integrated into `DICOMCore` and `DICOMKit`:
+**SwiftJ2K** (`12.2.0` — `SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`), **SwiftJLS** (`2.0.1`), **SwiftJLI** (`2.0.3`), **SwiftJXL** (`2.0.1`), and **SwiftRLE** (`1.0.2`).
 
 ---
 
@@ -9,28 +9,27 @@ A developer reference for the five pure-Swift `raster-labs` codec libraries inte
 
 | Library | Version | Runtime engine | In `CodecRegistry.shared` | DICOM Transfer Syntaxes |
 |---|---|---|---|---|
-| **SwiftJ2K** | `12.1.0` | Pure Swift + Accelerate SIMD + Metal GPU | ✅ Active | 7 — J2K Part 1/2 (`.90`–`.93`) + HTJ2K (`.201`–`.203`), plus compressed-domain Part 1 ↔ HTJ2K transcode |
-| **SwiftJLS** | `2.0.0` | Pure Swift + Accelerate | ✅ Active | 2 — JPEG-LS Lossless (`.80`) + Near-Lossless (`.81`) |
-| **SwiftJLI** | `2.0.2` | Pure Swift + Accelerate | ✅ Active | 4 — JPEG Baseline/Extended (`.50`, `.51`) + Lossless/SV1 (`.57`, `.70`) |
-| **SwiftJXL** | `2.0.0` | Pure Swift + Accelerate | ✅ Active | 3 — JPEG XL Lossless (`.110`), JPEG Recompression (`.111`), JPEG XL Lossy/General (`.112`) |
-| **SwiftRLE** | `1.0.1` | Pure Swift | ✅ Active | 1 — RLE Lossless (`1.2.840.10008.1.2.5`) |
-
-> **Deferred pending `SwiftJ2K 12.2.0`:** JP3D volumetric encode/decode (`JP3DCodec`, experimental private UIDs `1.2.826.0.1.3680043.10.511.1/.2`, `dicom-3d`) and JPIP interactive streaming (`DICOMJPIPClient`, `.94`/`.95`, `dicom-jpip`) are intentionally unregistered and fail closed with explicit `SwiftJ2K 12.2.0` deferral diagnostics.
+| **SwiftJ2K** (`SwiftJ2K`) | `12.2.0` | Pure Swift + Accelerate SIMD + Metal GPU | ✅ Active | 7 — J2K Part 1/2 (`.90`–`.93`) + HTJ2K (`.201`–`.203`), plus compressed-domain Part 1 ↔ HTJ2K transcode |
+| **SwiftJ2K** (`SwiftJ2K3D`) | `12.2.0` | Pure Swift + Accelerate SIMD + Metal GPU | ✅ Active *(experimental)* | 2 — Private JP3D Lossless/Lossy (`1.2.826.0.1.3680043.10.511.1` / `.2`), 3D ROI decode, and wavelet-domain `J2K ↔ HTJ2K` volume transcode |
+| **SwiftJ2K** (`SwiftJ2KJPIP`) | `12.2.0` | Pure Swift HTTP/HTTPS/WS + in-process `JPIPServer` | 🔗 Streaming (`DICOMJPIPClient`) | 4 — JPIP Referenced (`.94`, `.95`) + JPIP HTJ2K Referenced (`.204`, `.205`) |
+| **SwiftJLS** | `2.0.1` | Pure Swift + Accelerate | ✅ Active | 2 — JPEG-LS Lossless (`.80`) + Near-Lossless (`.81`) |
+| **SwiftJLI** | `2.0.3` | Pure Swift + Accelerate | ✅ Active | 4 — JPEG Baseline/Extended (`.50`, `.51`) + Lossless/SV1 (`.57`, `.70`) |
+| **SwiftJXL** | `2.0.1` | Pure Swift + Accelerate | ✅ Active | 3 — JPEG XL Lossless (`.110`), JPEG Recompression (`.111`), JPEG XL Lossy/General (`.112`) |
+| **SwiftRLE** | `1.0.2` | Pure Swift | ✅ Active | 1 — RLE Lossless (`1.2.840.10008.1.2.5`) |
 
 ---
 
-## SwiftJ2K (`12.1.0`) — JPEG 2000 + HTJ2K
+## SwiftJ2K (`12.2.0`) — JPEG 2000 + HTJ2K + JP3D + JPIP
 
-Pure-Swift JPEG 2000 Part 1, Part 2, and Part 15 (HTJ2K) codec stack with Accelerate SIMD and Metal GPU acceleration on Apple platforms (`iOS 26+`, `macOS 26+`, `visionOS 26+`, `tvOS 26+`, `watchOS 26+`, Swift 6.4+). External implementations (OpenJPEG, OpenJPH, Grok, Kakadu) are test-time validation oracles only.
+Pure-Swift JPEG 2000 Part 1, Part 2, Part 9 (JPIP), Part 10 (JP3D), and Part 15 (HTJ2K) codec stack with Accelerate SIMD and Metal GPU acceleration on Apple platforms (`iOS 26+`, `macOS 26+`, `visionOS 26+`, `tvOS 26+`, `watchOS 26+`, Swift 6.4+). External implementations (OpenJPEG, OpenJPH, Grok, Kakadu) are test-time validation oracles only.
 
 ### Library targets / products
 
 | Product | Description |
 |---|---|
-| `SwiftJ2KCore` | Codestream parser, markers, image model, memory tracker |
-| `SwiftJ2KCodec` | JPEG 2000 Part 1/2 & HTJ2K encoder, decoder, progressive resolution decode, and compressed-domain transcoder |
-| `SwiftJ2KAccelerate` | Apple Accelerate SIMD wavelet & colour transforms |
-| `SwiftJ2KMetal` | Apple Metal GPU-accelerated wavelet & colour transforms |
+| `SwiftJ2K` (`SwiftJ2KCore` / `SwiftJ2KCodec` / `SwiftJ2KAccelerate` / `SwiftJ2KMetal`) | 2D JPEG 2000 Part 1/2 & HTJ2K encoder, decoder, progressive resolution decode, and compressed-domain transcoder |
+| `SwiftJ2K3D` | Volumetric JP3D (ISO/IEC 15444-10) `VolumeEncoder`, `VolumeDecoder`, `VolumeTranscoder`, 3D ROI decode, and header inspection |
+| `SwiftJ2KJPIP` | JPIP (ISO/IEC 15444-9) interactive streaming client (`JPIPStreamingSession`) and server (`JPIPServer`) over HTTP/HTTPS/WebSocket and in-process transport |
 
 ### `DICOMCore` codecs (`Sources/DICOMCore/`)
 
@@ -48,9 +47,13 @@ Pure-Swift JPEG 2000 Part 1, Part 2, and Part 15 (HTJ2K) codec stack with Accele
 
 *Note: `1.2.840.10008.1.2.4.202` enforces RPCL progression order.*
 
+**`JP3DCodec`** (registered in `CodecRegistry.shared` for experimental private volumetric UIDs `1.2.826.0.1.3680043.10.511.1` lossless and `…511.2` lossy) wraps `SwiftJ2K3D` (`VolumeEncoder`, `VolumeDecoder`, `VolumeTranscoder`) for multi-frame 8/16-bit grayscale volumetric encode/decode, bounded `inspectVolume`, 3D sub-volume ROI decode (`JP3DRegion`), and wavelet-domain `J2K ↔ HTJ2K` transcoding (`JP3DVolumeDocument`, `dicom-3d`).
+
+**`DICOMJPIPClient`** (`Sources/DICOMKit/DICOMJPIPClient.swift`) wraps `SwiftJ2KJPIP` (`JPIPStreamingSession` and `JPIPServer`) for interactive JPIP Referenced (`.94`/`.95`) and JPIP HTJ2K Referenced (`.204`/`.205`) streaming across `DICOMFile.openVolume(from:jpipServerURL:)`, `DICOMFile.openVolumeProgressively(...)`, `dicom-jpip`, `dicom-viewer --jpip`, and `DICOMStudio`.
+
 ---
 
-## SwiftJLS (`2.0.0`) — JPEG-LS
+## SwiftJLS (`2.0.1`) — JPEG-LS
 
 Pure-Swift implementation of JPEG-LS (ISO/IEC 14495-1 / ITU-T T.87). CharLS is a test-time validation oracle only, not a runtime dependency.
 
@@ -65,7 +68,7 @@ Pure-Swift implementation of JPEG-LS (ISO/IEC 14495-1 / ITU-T T.87). CharLS is a
 
 ---
 
-## SwiftJLI (`2.0.2`) — JPEG (Baseline, Extended, Lossless & SV1)
+## SwiftJLI (`2.0.3`) — JPEG (Baseline, Extended, Lossless & SV1)
 
 Pure-Swift implementation of ITU-T T.81 JPEG modes: Baseline (SOF0), Extended Sequential (SOF1), and Lossless Predictive (SOF3, predictors 1–7), with Accelerate SIMD hot paths. Validated against `libjpeg-turbo`, `mozjpeg`, and `jpegli` at test time only.
 
@@ -88,7 +91,7 @@ Behaviour notes:
 
 ---
 
-## SwiftJXL (`2.0.0`) — JPEG XL
+## SwiftJXL (`2.0.1`) — JPEG XL
 
 Pure-Swift implementation of ISO/IEC 18181 JPEG XL (Modular lossless, VarDCT lossy, and `jbrd` lossless JPEG bitstream recompression/reconstruction). `libjxl` is a test-time validation oracle only.
 
@@ -104,7 +107,7 @@ Pure-Swift implementation of ISO/IEC 18181 JPEG XL (Modular lossless, VarDCT los
 
 ---
 
-## SwiftRLE (`1.0.1`) — RLE Lossless
+## SwiftRLE (`1.0.2`) — RLE Lossless
 
 Pure-Swift DICOM PS3.5 Annex G PackBits byte-plane RLE encoder and decoder with caller-owned buffer and `DICOMAllocationBudget` support.
 

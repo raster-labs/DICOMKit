@@ -1793,4 +1793,59 @@ final class DICOMSwiftJ2KIntegrationTests: XCTestCase {
         } / Double(reference.count)
         return mse == 0 ? 99.0 : (10.0 * log10((255.0 * 255.0) / mse))
     }
+
+    // MARK: - SwiftJ2K 12.2.0 JP3D & JPIP Re-export Smoke Verification
+
+    func testSwiftJ2K12_2_0_EngineVersionsAndJP3DJPIPLoopback() async throws {
+        XCTAssertEqual(SwiftJ2KDICOMCodec.engineVersion, "12.2.0")
+        XCTAssertEqual(JP3DCodec.engineVersion, "12.2.0")
+        XCTAssertEqual(DICOMJPIPClient.engineVersion, "12.2.0")
+
+        // 1. JP3D lossless round-trip + wavelet-domain J2K -> HTJ2K transcode
+        let volDesc = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 4,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var volPixels = Data(capacity: 8 * 8 * 4 * 2)
+        for i in 0..<(8 * 8 * 4) {
+            var le = UInt16((i * 13) & 0x0FFF).littleEndian
+            volPixels.append(Data(bytes: &le, count: 2))
+        }
+        let jp3d = JP3DCodec(compressionMode: .lossless)
+        let encodedVol = try await jp3d.encodeVolume(volPixels, descriptor: volDesc)
+        let transcodedVol = try await jp3d.transcodeVolume(encodedVol, toHTJ2K: true)
+        let info = try jp3d.inspectVolume(transcodedVol)
+        XCTAssertTrue(info.isHTJ2K)
+        let decodedVol = try await jp3d.decodeVolume(transcodedVol, descriptor: volDesc)
+        XCTAssertEqual(decodedVol, volPixels)
+
+        // 2. JPIP loopback streaming
+        let frameDesc = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 1,
+            bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let framePixels = Data((0..<64).map { UInt8($0 * 4) })
+        let j2kCodestream = try SwiftJ2KDICOMCodec(
+            encodingTransferSyntaxUID: TransferSyntax.jpeg2000Lossless.uid
+        ).encodeFrame(
+            framePixels,
+            descriptor: frameDesc,
+            frameIndex: 0,
+            configuration: .lossless
+        )
+        let server = JPIPServer(port: 0, host: "127.0.0.1")
+        await server.registerImageData(name: "smoke", data: j2kCodestream)
+        try await server.start()
+        let port = await server.listeningPort
+
+        let client = DICOMJPIPClient(serverURL: URL(string: "http://127.0.0.1:\(port)")!)
+        let fetched = try await client.fetchImage(jpipURI: URL(string: "http://127.0.0.1:\(port)/smoke")!)
+        XCTAssertEqual(fetched.pixelData, framePixels)
+        try await client.close()
+        try await server.stop()
+    }
 }

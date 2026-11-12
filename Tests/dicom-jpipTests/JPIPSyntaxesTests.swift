@@ -1,6 +1,7 @@
 import XCTest
 import DICOMCore
 import DICOMKit
+import SwiftJ2KJPIP
 @testable import dicom_jpip
 
 /// Pins dicom-jpip to the JPIP Referenced Transfer Syntaxes of PS3.6 2026a Table A-1 and the
@@ -63,5 +64,47 @@ final class JPIPSyntaxesTests: XCTestCase {
         XCTAssertThrowsError(try JPIPSyntaxes.pixelDataProviderURL(from: DataSet(), transferSyntaxUID: "1.2.840.10008.1.2.4.204"))
         XCTAssertThrowsError(try JPIPSyntaxes.pixelDataProviderURL(from: dataSet(url: "http://x/y"),
                                                                    transferSyntaxUID: "1.2.840.10008.1.2.1"))
+    }
+
+    func testServeAndFetchCLIRoundTripOverLoopback() async throws {
+        var ds = DataSet()
+        ds.setString("1.2.840.10008.5.1.4.1.1.2", for: .sopClassUID, vr: .UI)
+        ds.setString(UIDGenerator.generateUID().value, for: .sopInstanceUID, vr: .UI)
+        ds.setUInt16(8, for: .rows)
+        ds.setUInt16(8, for: .columns)
+        ds.setUInt16(8, for: .bitsAllocated)
+        ds.setUInt16(8, for: .bitsStored)
+        ds.setUInt16(7, for: .highBit)
+        ds.setUInt16(0, for: .pixelRepresentation)
+        ds.setUInt16(1, for: .samplesPerPixel)
+        ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+        let expected = Data((0..<64).map { UInt8($0 * 3) })
+        ds[.pixelData] = DataElement.data(tag: .pixelData, vr: .OB, data: expected)
+        let dcmFile = DICOMFile.create(dataSet: ds, sopClassUID: "1.2.840.10008.5.1.4.1.1.2")
+
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("dicom-jpip-cli-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let dcmURL = tempDir.appendingPathComponent("sample.dcm")
+        try dcmFile.write().write(to: dcmURL)
+
+        let server = JPIPServer(port: 0, host: "127.0.0.1")
+        let count = await registerDirectoryTargets(at: tempDir, into: server, verbose: false)
+        XCTAssertEqual(count, 1)
+        try await server.start()
+        let port = await server.listeningPort
+
+        let rawOut = tempDir.appendingPathComponent("out.raw")
+        var fetchCmd = try DICOMJpip.FetchCommand.parse([
+            "http://127.0.0.1:\(port)",
+            "--image", "sample",
+            "--output", rawOut.path
+        ])
+        try fetchCmd.run()
+
+        let fetchedBytes = try Data(contentsOf: rawOut)
+        XCTAssertEqual(fetchedBytes, expected)
+        try await server.stop()
     }
 }

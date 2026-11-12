@@ -39,43 +39,43 @@ DICOMNetwork ──────────────────────�
 
 ### Compression & Codec Architecture (`raster-labs` Pure-Swift Suite)
 
-`DICOMCore` integrates five pure-Swift `raster-labs` codec packages through `CodecRegistry.shared`, with zero runtime C/C++ codec dependencies and zero implicit Apple ImageIO fallbacks:
+`DICOMCore` and `DICOMKit` integrate five pure-Swift MIT-licensed `raster-labs` codec packages through `CodecRegistry.shared` and `DICOMJPIPClient`, with zero runtime C/C++ codec dependencies and zero implicit Apple ImageIO fallbacks:
 
-- **`SwiftJ2K 12.1.0`** (`SwiftJ2KDICOMCodec` / `SwiftJ2KDICOMTranscoder`): JPEG 2000 Part 1/2 (`.90`–`.93`) and HTJ2K Part 15 (`.201`–`.203`), progressive wavelet decode, and compressed-domain Part 1 ↔ HTJ2K transcoding.
-- **`SwiftJLS 2.0.0`** (`JPEGLSCodec`): JPEG-LS Lossless (`.80`) and Near-Lossless (`.81`).
-- **`SwiftJLI 2.0.2`** (`JLICodec`): JPEG Baseline (`.50`), Extended (`.51`), Lossless (`.57`), and Lossless SV1 (`.70`).
-- **`SwiftJXL 2.0.0`** (`JXLCodec`): JPEG XL Lossless (`.110`), JPEG Recompression (`.111` pixel decode + byte-exact `JPEG ↔ .111` bitstream transcoding), and JPEG XL Lossy/General (`.112`).
-- **`SwiftRLE 1.0.1`** (`RLECodec`): DICOM RLE Lossless (`1.2.840.10008.1.2.5`).
+- **`SwiftJ2K 12.2.0`** (`SwiftJ2KDICOMCodec`, `SwiftJ2KDICOMTranscoder`, `JP3DCodec`, `DICOMJPIPClient`): JPEG 2000 Part 1/2 (`.90`–`.93`), HTJ2K Part 15 (`.201`–`.203`), progressive wavelet decode, compressed-domain Part 1 ↔ HTJ2K transcoding, volumetric JP3D (`SwiftJ2K3D`, experimental private UIDs), and JPIP interactive streaming (`SwiftJ2KJPIP`, `.94`/`.95`/`.204`/`.205`).
+- **`SwiftJLS 2.0.1`** (`JPEGLSCodec`): JPEG-LS Lossless (`.80`) and Near-Lossless (`.81`).
+- **`SwiftJLI 2.0.3`** (`JLICodec`): JPEG Baseline (`.50`), Extended (`.51`), Lossless (`.57`), and Lossless SV1 (`.70`).
+- **`SwiftJXL 2.0.1`** (`JXLCodec`): JPEG XL Lossless (`.110`), JPEG Recompression (`.111` pixel decode + byte-exact `JPEG ↔ .111` bitstream transcoding), and JPEG XL Lossy/General (`.112`).
+- **`SwiftRLE 1.0.2`** (`RLECodec`): DICOM RLE Lossless (`1.2.840.10008.1.2.5`).
 
 #### Codec Layering
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  DICOMStudio (SwiftUI app) / dicom-viewer (terminal)         │
-│  + dicom-j2k / dicom-compress / dicom-convert / 41 CLIs      │
+│  + dicom-j2k / dicom-3d / dicom-jpip / dicom-compress / CLIs │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│  DICOMKit (facade) / DICOMNetwork / DICOMWeb                 │
+│  DICOMKit (facade, JP3DVolumeDocument, DICOMJPIPClient)      │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
 │  DICOMCore (CodecRegistry.shared + TransferSyntaxConverter)  │
 │  ├── SwiftJ2KDICOMCodec    (J2K .90–.93, HTJ2K .201–.203)    │
+│  ├── JP3DCodec             (Volumetric JP3D + 3D ROI/xform)  │
 │  ├── JPEGLSCodec           (JPEG-LS .80 / .81)               │
 │  ├── JLICodec              (JPEG .50 / .51 / .57 / .70)      │
 │  ├── JXLCodec              (JPEG XL .110 / .111 / .112)      │
 │  └── RLECodec              (RLE Lossless 1.2.840.10008.1.2.5)│
-│      *(JP3D & JPIP deferred pending SwiftJ2K 12.2.0)*        │
 └───────────────────────────┬──────────────────────────────────┘
                             │
 ┌───────────────────────────▼──────────────────────────────────┐
-│  External Pure-Swift Codec Packages (raster-labs)            │
-│  ├── SwiftJ2K 12.1.0  (Core / Codec / Accelerate / Metal)    │
-│  ├── SwiftJLS 2.0.0   (ISO/IEC 14495-1 JPEG-LS)              │
-│  ├── SwiftJLI 2.0.2   (ITU-T T.81 JPEG + Accelerate)         │
-│  ├── SwiftJXL 2.0.0   (ISO/IEC 18181 JPEG XL + jbrd)         │
-│  └── SwiftRLE 1.0.1   (DICOM Annex G PackBits RLE)           │
+│  External Pure-Swift Codec Packages (raster-labs, MIT)       │
+│  ├── SwiftJ2K 12.2.0  (2D / SwiftJ2K3D / SwiftJ2KJPIP)       │
+│  ├── SwiftJLS 2.0.1   (ISO/IEC 14495-1 JPEG-LS)              │
+│  ├── SwiftJLI 2.0.3   (ITU-T T.81 JPEG + Accelerate)         │
+│  ├── SwiftJXL 2.0.1   (ISO/IEC 18181 JPEG XL + jbrd)         │
+│  └── SwiftRLE 1.0.2   (DICOM Annex G PackBits RLE)           │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -95,7 +95,7 @@ The registry falls through gracefully to `.accelerate` or `.scalar` when Metal i
 
 - `SwiftJ2K` (`J2KCodecProvider.swiftJ2K` with `.strict` fallback policy) is the default codec for all active JPEG 2000 and HTJ2K UIDs
 - `NativeJPEG2000Codec` and `NativeJPEGCodec` (Apple ImageIO) are never registered in `CodecRegistry.shared` (`NativeJPEGCodec` is reachable only via explicit `jpegEngine: .native` for `.50` Baseline encoding)
-- `JP3DCodec` (`dicom-3d`) and `DICOMJPIPClient` (`dicom-jpip`) are cleanly deferred pending `SwiftJ2K 12.2.0`
+- `JP3DCodec` (`SwiftJ2K3D 12.2.0`, `dicom-3d`) is registered for experimental private JP3D UIDs, and `DICOMJPIPClient` (`SwiftJ2KJPIP 12.2.0`, `dicom-jpip`) streams JPIP Referenced (`.94`/`.95`) and JPIP HTJ2K Referenced (`.204`/`.205`) datasets
 
 ### Key Types
 

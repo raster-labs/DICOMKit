@@ -19,7 +19,7 @@ package protocol ProgressiveResolutionDecodableCodec: ImageCodec {
 /// `ManagedDecodedPixelFrame` bounded admission alongside `SwiftJ2K.ResourceLimits`.
 public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, ProgressiveResolutionDecodableCodec, Sendable {
     public static let engineName = "SwiftJ2K"
-    public static let engineVersion = "12.1.0"
+    public static let engineVersion = "12.2.0"
 
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,

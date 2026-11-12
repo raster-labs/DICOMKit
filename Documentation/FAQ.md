@@ -26,7 +26,7 @@ Yes, DICOMKit v1.0+ is designed for production use. It includes comprehensive te
 
 ### Does DICOMKit require any external C/C++ dependencies?
 
-No C/C++ codec libraries are required at runtime. DICOMKit uses five first-party pure-Swift `raster-labs` codec packages (`SwiftJ2K 12.1.0`, `SwiftJLS 2.0.0`, `SwiftJLI 2.0.2`, `SwiftJXL 2.0.0`, and `SwiftRLE 1.0.1`) alongside `swift-argument-parser` (for CLI executables) and Apple system frameworks (Foundation, CoreGraphics, Accelerate, Metal, Network).
+No C/C++ codec libraries are required at runtime. DICOMKit uses five first-party MIT-licensed pure-Swift `raster-labs` codec packages (`SwiftJ2K 12.2.0`, `SwiftJLS 2.0.1`, `SwiftJLI 2.0.3`, `SwiftJXL 2.0.1`, and `SwiftRLE 1.0.2`) alongside `swift-argument-parser` (for CLI executables) and Apple system frameworks (Foundation, CoreGraphics, Accelerate, Metal, Network).
 
 ---
 
@@ -70,7 +70,7 @@ DICOMKit supports all standard uncompressed and compressed DICOM transfer syntax
 - JPEG-LS Lossless and JPEG-LS Near-Lossless (`SwiftJLS`)
 - JPEG 2000 Part 1 & Part 2 (Lossless and Lossy) and HTJ2K Lossless, RPCL Lossless, and Lossy (`SwiftJ2K`)
 - JPEG XL Lossless, JPEG XL JPEG Recompression, and JPEG XL Lossy/General (`SwiftJXL`)
-- *(JP3D volumetric encoding and JPIP interactive streaming are deferred pending `SwiftJ2K 12.2.0`.)*
+- JP3D volumetric encoding/decoding/transcoding (`SwiftJ2K3D 12.2.0`, experimental private UIDs) and JPIP Referenced / JPIP HTJ2K Referenced interactive streaming (`SwiftJ2KJPIP 12.2.0`)
 
 ### Can I read DICOM files without the DICM prefix?
 

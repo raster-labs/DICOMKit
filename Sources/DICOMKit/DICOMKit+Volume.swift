@@ -92,7 +92,7 @@ extension DICOMFile {
             originZ: origin.z,
             pixelData: allPixels,
             sourceTransferSyntax: tsUID.flatMap { TransferSyntax.from(uid: $0) },
-            modality: file.dataSet.string(for: .modality),
+            modality: refDS.string(for: .modality) ?? file.dataSet.string(for: .modality),
             seriesInstanceUID: file.dataSet.string(for: .seriesInstanceUID),
             studyInstanceUID: file.dataSet.string(for: .studyInstanceUID)
         )
@@ -502,9 +502,9 @@ extension DICOMFile {
 
     /// Opens a JPIP-referenced DICOM file and fetches its full pixel data from the server.
     ///
-    /// Use this overload when you have a DICOM file whose transfer syntax is
-    /// ``TransferSyntax/jpipReferenced`` or ``TransferSyntax/jpipReferencedDeflate``
-    /// and whose Pixel Data element contains a JPIP target URI.
+    /// Use this overload when you have a DICOM file whose transfer syntax is one of the
+    /// four JPIP Referenced Transfer Syntaxes (`1.2.840.10008.1.2.4.94`, `.95`, `.204`, `.205`)
+    /// and whose Pixel Data Provider URL `(0028,7FE0)` or Pixel Data element contains a JPIP target URI.
     ///
     /// For a more memory-efficient approach on large studies, see
     /// ``openVolumeProgressively(serverURL:sliceJPIPURIs:qualityLayers:)``.
@@ -514,9 +514,55 @@ extension DICOMFile {
     ///   - jpipServerURL: Base URL of the JPIP server.
     /// - Returns: A ``DICOMVolume`` containing the fully fetched image as a single slice.
     /// - Throws: ``DICOMError`` if the file cannot be read, ``DICOMJPIPError`` if retrieval fails.
-    @available(*, unavailable, message: "JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).")
     public static func openVolume(from url: URL, jpipServerURL: URL) async throws -> DICOMVolume {
-        throw DICOMJPIPError.retrievalUnavailable
+        let file = try DICOMFile.read(from: url)
+        let tsUID = file.fileMetaInformation.string(for: .transferSyntaxUID) ?? ""
+        let jpipURI = try DICOMJPIPClient.jpipURI(from: file.dataSet, transferSyntaxUID: tsUID)
+
+        let client = DICOMJPIPClient(serverURL: jpipServerURL, transferSyntaxUID: tsUID)
+        let image: DICOMJPIPImage
+        do {
+            image = try await client.fetchImage(jpipURI: jpipURI)
+        } catch {
+            try? await client.close()
+            throw error
+        }
+        try? await client.close()
+
+        let ds = file.dataSet
+        let bitsAlloc = image.bitDepth <= 8 ? 8 : 16
+        let highBit = ds.uint16(for: .highBit).map(Int.init) ?? max(0, image.bitDepth - 1)
+        let isSigned = ds.uint16(for: .pixelRepresentation).map { $0 != 0 } ?? image.isSigned
+        let photometric = ds.string(for: .photometricInterpretation)
+            .flatMap { PhotometricInterpretation(rawValue: $0.trimmingCharacters(in: .whitespaces)) }
+            ?? (image.components == 1 ? .monochrome2 : .rgb)
+        let ps = extractPixelSpacing(from: ds)
+        let origin = extractOriginFromDataSet(ds)
+        let sliceSpacing = ds.string(for: .spacingBetweenSlices).flatMap(Double.init)
+            ?? ds.string(for: .sliceThickness).flatMap(Double.init)
+            ?? 1.0
+
+        return DICOMVolume(
+            width: image.width,
+            height: image.height,
+            depth: 1,
+            bitsAllocated: bitsAlloc,
+            bitsStored: image.bitDepth,
+            highBit: highBit,
+            isSigned: isSigned,
+            photometricInterpretation: photometric,
+            spacingX: ps.x,
+            spacingY: ps.y,
+            spacingZ: sliceSpacing,
+            originX: origin.x,
+            originY: origin.y,
+            originZ: origin.z,
+            pixelData: image.pixelData,
+            sourceTransferSyntax: TransferSyntax.from(uid: tsUID),
+            modality: ds.string(for: .modality),
+            seriesInstanceUID: ds.string(for: .seriesInstanceUID),
+            studyInstanceUID: ds.string(for: .studyInstanceUID)
+        )
     }
 
     /// Streams a multi-slice DICOM volume from a JPIP server progressively.
@@ -553,12 +599,53 @@ extension DICOMFile {
     ///   - sliceJPIPURIs: Ordered JPIP target URIs, one per slice, in Z order.
     ///   - qualityLayers: Number of progressive quality passes (default 4; 1 = single full fetch).
     /// - Returns: An `AsyncStream` of ``DICOMVolumeProgressiveUpdate`` values.
-    @available(*, unavailable, message: "JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).")
     public static func openVolumeProgressively(
         serverURL: URL,
         sliceJPIPURIs: [URL],
         qualityLayers: Int = 4
     ) -> AsyncStream<DICOMVolumeProgressiveUpdate> {
-        AsyncStream { $0.finish() }
+        AsyncStream { continuation in
+            Task {
+                guard !sliceJPIPURIs.isEmpty else {
+                    continuation.finish()
+                    return
+                }
+
+                let client = DICOMJPIPClient(serverURL: serverURL)
+                let totalSlices = sliceJPIPURIs.count
+                let clampedLayers = max(1, qualityLayers)
+
+                // Pass 1…N: fetch all slices at successively higher quality layers.
+                for layer in 1...clampedLayers {
+                    if Task.isCancelled { break }
+                    for (sliceIndex, jpipURI) in sliceJPIPURIs.enumerated() {
+                        if Task.isCancelled { break }
+                        guard let image = try? await client.fetchProgressiveQuality(
+                            jpipURI: jpipURI,
+                            layers: layer
+                        ) else {
+                            // Skip failed slices rather than aborting the stream.
+                            continue
+                        }
+
+                        let isLast = (layer == clampedLayers)
+                            && (sliceIndex == totalSlices - 1)
+
+                        continuation.yield(DICOMVolumeProgressiveUpdate(
+                            sliceIndex: sliceIndex,
+                            qualityLayer: layer,
+                            totalLayers: clampedLayers,
+                            sliceData: image.pixelData,
+                            width: image.width,
+                            height: image.height,
+                            isVolumeComplete: isLast
+                        ))
+                    }
+                }
+
+                try? await client.close()
+                continuation.finish()
+            }
+        }
     }
 }

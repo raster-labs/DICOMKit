@@ -16,6 +16,9 @@ import SwiftRLE
 /// relative to the header (G.5), the decoder loop (G.3.2) and the encoder packet rules
 /// (replicate 2–128, literal 1–128, -128 unused, G.3.1) match PS3.5 2026a.
 public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
+    public static let engineName = "SwiftRLE"
+    public static let engineVersion = "1.0.2"
+
     /// Supported RLE transfer syntax
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.rleLossless.uid  // 1.2.840.10008.1.2.5

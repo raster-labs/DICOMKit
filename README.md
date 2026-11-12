@@ -7,16 +7,16 @@ capacities, synchronous worker reservations, cancellation and runtime qualificat
 
 ### v3.0.0 Apple OS 26.0+ / Swift 6.4+ pure-Swift compression suite
 
-`DICOMKit` v3.0.0 raises platform deployment minima to Apple OS 26.0+ (`macOS 26.0+`,
-`iOS 26.0+`, `tvOS 26.0+`, `visionOS 26.0+`) on Swift 6.4 and migrates all 17 active
-encapsulated DICOM transfer syntaxes onto the unified `raster-labs` pure-Swift compression
-suite (`SwiftJ2K 12.1.0`, `SwiftRLE 1.0.1`, `SwiftJLS 2.0.0`, `SwiftJLI 2.0.2`, and
-`SwiftJXL 2.0.0`) with shared `CompressionCore` buffer contracts, compressed-domain
-transcoding fast paths (lossless JPEG 2000 Part 1 <-> HTJ2K and JPEG <-> `.111` JPEG XL
-Recompression), progressive wavelet resolution decode, per-codec backend provenance, and
-`DICOMAllocationBudget` managed frame decoding. Volumetric JP3D (`.105`/`.106`, `dicom-3d`)
-and JPIP streaming (`.94`/`.95`, `dicom-jpip`) remain explicitly deferred pending
-`SwiftJ2K 12.2.0`.
+`DICOMKit` v3.0.0+ raises platform deployment minima to Apple OS 26.0+ (`macOS 26.0+`,
+`iOS 26.0+`, `tvOS 26.0+`, `visionOS 26.0+`) on Swift 6.4 and migrates all encapsulated
+and streaming DICOM transfer syntaxes onto the unified MIT-licensed `raster-labs` pure-Swift
+compression suite (`SwiftJ2K 12.2.0`, `SwiftRLE 1.0.2`, `SwiftJLS 2.0.1`, `SwiftJLI 2.0.3`,
+and `SwiftJXL 2.0.1`) with shared `CompressionCore` buffer contracts, compressed-domain
+transcoding fast paths (lossless JPEG 2000 Part 1 <-> HTJ2K, volumetric JP3D J2K <-> HTJ2K,
+and JPEG <-> `.111` JPEG XL Recompression), progressive wavelet resolution decode, JP3D
+volumetric compression (`SwiftJ2K3D 12.2.0`, `dicom-3d`), interactive JPIP streaming
+(`SwiftJ2KJPIP 12.2.0`, `.94`/`.95`/`.204`/`.205`, `dicom-jpip`), per-codec backend
+provenance, and `DICOMAllocationBudget` managed frame decoding.
 
 ### v2.10.0 strict bounded hospital transfer syntaxes and managed codec decoding
 
@@ -186,13 +186,13 @@ DICOMKit is a modern, Swift-native library for reading, writing, and parsing DIC
 
 ### SwiftJ2K Integration (Apple OS 26 + Swift 6.4+)
 
-DICOMKit integrates **SwiftJ2K v12.1.0** (`from: "12.1.0"`, `raster-labs/SwiftJ2K`) as its sole, default 2D JPEG 2000 and HTJ2K codec stack across `DICOMCore`, `DICOMKit`, `DICOMStudio`, and `dicom-j2k`, replacing the legacy `J2KSwift` dependency.
+DICOMKit integrates **SwiftJ2K v12.2.0** (`from: "12.2.0"`, `raster-labs/SwiftJ2K` — `SwiftJ2K`, `SwiftJ2K3D`, and `SwiftJ2KJPIP`) as its sole, default JPEG 2000, HTJ2K, JP3D volumetric, and JPIP interactive streaming stack across `DICOMCore`, `DICOMKit`, `DICOMStudio`, `dicom-j2k`, `dicom-3d`, `dicom-jpip`, and `dicom-viewer`, replacing the legacy `J2KSwift` dependency.
 
 - ✅ **`SwiftJ2KDICOMCodec` & `J2KSwiftCodec`** — Pure-Swift JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Annex I/J Multi-Component Transforms (`.92`/`.93` lossless and lossy), and Part 15 HTJ2K (`.201`/`.202`/`.203` lossless and lossy `HTIRV`) encoding, decoding, and progressive resolution decode.
 - ✅ **`SwiftJ2KDICOMTranscoder` & `HTJ2KCodec`** — Zero-pixel-allocation compressed-domain transcoding (`pixelAllocationCount == 0`) between lossless JPEG 2000 (`.90`/`.91`) and HTJ2K (`.201`/`.202`/`.203`).
-- ⏸️ **JP3D volumetric (`.96`/`.97`) & `dicom-3d` CLI — Deferred** — Marked deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D` qualification). Pure 3D slice-geometry, MPR, MIP/MinIP, Marching Cubes, and NIfTI/MetaImage library types remain available; `JP3DCodec`, `JP3DVolumeDocument.encode`/`decode`, and `dicom-3d` subcommands fail closed at runtime with an explicit deferral notice.
-- ⏸️ **JPIP streaming (`.94`/`.95`/`.204`/`.205`) & `dicom-jpip` CLI — Deferred** — Transfer syntaxes and PS3.5 target URI extraction remain available, while JPIP retrieval and `dicom-jpip` subcommands are deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2KJPIP` qualification) and fail closed at runtime.
-- ✅ **`RLECodec` (`SwiftRLE` v1.0.1+)** — Pure-Swift DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) encoding and decoding delegated to `raster-labs/SwiftRLE` with shared-storage zero-copy descriptors (`copyPolicy: .requireSharedStorage`), `Fidelity.exactSamples` verification, strict 64-byte header validation, and `DICOMAllocationBudget` managed frame ownership.
+- ✅ **JP3D volumetric (`SwiftJ2K3D 12.2.0`) & `dicom-3d` CLI** — `JP3DCodec` (`1.2.826.0.1.3680043.10.511.1`/`.2` experimental private UIDs), `JP3DVolumeDocument` (encode, full/3D-ROI decode, header inspect, and wavelet-domain `J2K ↔ HTJ2K` transcode), and `dicom-3d` (`mpr`, `mip`, `minip`, `average`, `surface`, `export`, `encode-volume`, `decode-volume --roi`, `transcode-volume`, `inspect`, `backends`).
+- ✅ **JPIP streaming (`SwiftJ2KJPIP 12.2.0`) & `dicom-jpip` CLI** — `DICOMJPIPClient` (`JPIPStreamingSession`) and `JPIPServer` supporting JPIP Referenced (`.94`/`.95`) and JPIP HTJ2K Referenced (`.204`/`.205`), progressive volume streaming (`DICOMFile.openVolume` / `openVolumeProgressively`), `dicom-jpip` (`fetch`, `uri`, `serve`, `info`), `dicom-viewer --jpip`, and `DICOMStudio` progressive JPIP loading.
+- ✅ **`RLECodec` (`SwiftRLE` v1.0.2+)** — Pure-Swift DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) encoding and decoding delegated to `raster-labs/SwiftRLE` with shared-storage zero-copy descriptors (`copyPolicy: .requireSharedStorage`), `Fidelity.exactSamples` verification, strict 64-byte header validation, and `DICOMAllocationBudget` managed frame ownership.
 - ✅ **Hardware acceleration** — `CodecBackend` enum routes across Metal (Apple GPU), Accelerate (CPU SIMD), or scalar CPU automatically with concrete backend provenance verification.
 - ✅ **`dicom-j2k` CLI tool** — 8 subcommands: `info`, `validate`, `transcode` (including Part 2 `.92`/`.93` targets), `reduce`, `roi`, `benchmark`, `compare`, `completions`.
 - ✅ **DICOMStudio** — Progressive `SwiftJ2K` reduced-resolution decoding (`.quarter → .half → .complete`), ROI on pinch-zoom, JP3D MPR views, per-codec hardware provenance (`SwiftJ2K`, `SwiftJLI`, `SwiftJLS`, `SwiftJXL`, `SwiftRLE`).
@@ -1621,8 +1621,8 @@ The following features have known limitations or are not yet implemented:
 |----------|------------|--------|
 | **Character Sets** | Extended character set conversion is read-only | ⚠️ Partial support via v1.0.9 |
 | **HTJ2K Lossy (`.203`)** | Partially validated; some edge cases unconfirmed | ⚠️ Non-blocking |
-| **JP3D (`.96`/`.97`) & `dicom-3d`** | Volumetric JP3D codec and `dicom-3d` CLI execution deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2K3D`) | ⏸️ Deferred pending `SwiftJ2K 12.2.0` |
-| **JPIP (`.94`/`.95`/`.204`/`.205`) & `dicom-jpip`** | URI extraction only; JPIP retrieval and `dicom-jpip` CLI execution deferred pending `SwiftJ2K 12.2.0` (`SwiftJ2KJPIP`) | ⏸️ Deferred pending `SwiftJ2K 12.2.0` |
+| **JP3D (`1.2.826.0.1.3680043.10.511.1`/`.2`)** | Volumetric JP3D uses experimental private UIDs (no standard DICOM transfer syntax) | ✅ Active via `SwiftJ2K3D 12.2.0` (`dicom-3d`) |
+| **JPIP (`.94`/`.95`/`.204`/`.205`)** | Interactive HTTP/HTTPS/WebSocket streaming via `SwiftJ2KJPIP 12.2.0` | ✅ Active via `DICOMJPIPClient` & `dicom-jpip` |
 | **Query/Retrieve Relational** | Basic Q/R only | ⚠️ No relational queries |
 | **Modality Worklist SCP** | SCU (`dicom-mwl`) only; no worklist server role | ❌ Planned |
 | **De-identification** | Profile removes a limited tag set, not the full PS3.15 Annex E table | ⚠️ In progress |
@@ -1675,11 +1675,11 @@ material for other platforms does not establish support.
 | Dependency | Version | Purpose |
 |------------|---------|---------|
 | Swift Argument Parser | 1.8.2+ | CLI tools argument parsing |
-| SwiftJ2K | 12.1.0+ | 2D JPEG 2000 (Part 1 & Part 2 MCT) / HTJ2K (Part 15) codec stack |
-| SwiftRLE | 1.0.1+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
-| SwiftJLS | 2.0.0+ | JPEG-LS Lossless & Near-Lossless (`1.2.840.10008.1.2.4.80` / `.81`) codec |
-| SwiftJLI | 2.0.2+ | JPEG Baseline, Extended, Lossless & Lossless SV1 (`.50` / `.51` / `.57` / `.70`) codec |
-| SwiftJXL | 2.0.0+ | JPEG XL Lossless, JPEG Recompression & Lossy (`.110` / `.111` / `.112`) codec |
+| SwiftJ2K | 12.2.0+ | JPEG 2000 (Part 1 & Part 2 MCT), HTJ2K (Part 15), JP3D (`SwiftJ2K3D`), and JPIP (`SwiftJ2KJPIP`) stack |
+| SwiftRLE | 1.0.2+ | DICOM PS3.5 Annex G RLE Lossless (`1.2.840.10008.1.2.5`) codec |
+| SwiftJLS | 2.0.1+ | JPEG-LS Lossless & Near-Lossless (`1.2.840.10008.1.2.4.80` / `.81`) codec |
+| SwiftJLI | 2.0.3+ | JPEG Baseline, Extended, Lossless & Lossless SV1 (`.50` / `.51` / `.57` / `.70`) codec |
+| SwiftJXL | 2.0.1+ | JPEG XL Lossless, JPEG Recompression & Lossy (`.110` / `.111` / `.112`) codec |
 
 ---
 
@@ -4444,7 +4444,7 @@ A production-quality mobile DICOM viewer for iOS and iPadOS. **Implementation co
 
 #### Planned Demo Applications
 
-- **DICOMTools CLI** - Command-line utilities ✅ Complete Phase 1-9 (41 active CLI executables including: dicom-info, dicom-convert, dicom-anon, dicom-validate, dicom-query, dicom-send, dicom-dump, dicom-diff, dicom-retrieve, dicom-split, dicom-merge, dicom-json, dicom-xml, dicom-pdf, dicom-image, dicom-dcmdir, dicom-archive, dicom-export, dicom-qr, dicom-wado, dicom-echo, dicom-mwl, dicom-mpps, dicom-pixedit, dicom-tags, dicom-uid, dicom-compress, dicom-study, dicom-script, dicom-video, dicom-print, dicom-printscp, dicom-measure, dicom-viewer, dicom-report, dicom-3d [deferred pending SwiftJ2K 12.2.0], dicom-ai, dicom-gateway, dicom-server, dicom-jpip [deferred pending SwiftJ2K 12.2.0], dicom-j2k)
+- **DICOMTools CLI** - Command-line utilities ✅ Complete Phase 1-9 (41 active CLI executables including: dicom-info, dicom-convert, dicom-anon, dicom-validate, dicom-query, dicom-send, dicom-dump, dicom-diff, dicom-retrieve, dicom-split, dicom-merge, dicom-json, dicom-xml, dicom-pdf, dicom-image, dicom-dcmdir, dicom-archive, dicom-export, dicom-qr, dicom-wado, dicom-echo, dicom-mwl, dicom-mpps, dicom-pixedit, dicom-tags, dicom-uid, dicom-compress, dicom-study, dicom-script, dicom-video, dicom-print, dicom-printscp, dicom-measure, dicom-viewer, dicom-report, dicom-3d, dicom-ai, dicom-gateway, dicom-server, dicom-jpip, dicom-j2k)
 - **DICOMToolbox GUI** - ✅ Complete (Phase 1-8) - SwiftUI macOS application providing graphical interface for 37 CLI tools with drag-and-drop, real-time command preview, educational features, DICOM glossary, accessibility, settings, integration testing, documentation, and release preparation (Phases 1-8 implemented with 370+ tests)
 
 See [DEMO_APPLICATION_PLAN.md](DEMO_APPLICATION_PLAN.md) for complete plans and [CLI_TOOLS_GUI_PLAN.md](CLI_TOOLS_GUI_PLAN.md) for GUI toolbox details.
@@ -4584,7 +4584,7 @@ always applied, with the standard's retention options (`--retain-dates` /
 | `dicom-viewer` | Terminal-based DICOM image viewer | `dicom-viewer scan.dcm --interactive` |
 | `dicom-report` | Structured report generation with templates | `dicom-report generate --template radiology --input data.json` |
 | `dicom-measure` | Measurement extraction from images | `dicom-measure analyze scan.dcm --roi automatic` |
-| `dicom-3d` | MPR, volume, and surface operations *(deferred pending SwiftJ2K 12.2.0)* | `dicom-3d mpr series/ --plane sagittal` |
+| `dicom-3d` | MPR, JP3D volumetric encode/decode/transcode, and surface operations | `dicom-3d mpr series/ --planes sagittal` |
 | `dicom-ai` | AI-assisted analysis with DICOM output | `dicom-ai analyze scan.dcm --model detection --output-sr` |
 
 </details>
@@ -4753,7 +4753,7 @@ Core data types and utilities:
 - `PixelDataDescriptor` - Pixel data attributes and metadata
 - `PixelData` - Uncompressed pixel data access
 - `PixelDataError` - Detailed error types for pixel data extraction failures
-- `SwiftJ2KDICOMCodec` / `J2KSwiftCodec` / `HTJ2KCodec` - Pure-Swift JPEG 2000 Part 1, Part 2, and HTJ2K adapters powered by `SwiftJ2K 12.1.0` (plus `JLICodec` via `SwiftJLI 2.0.2`, `JPEGLSCodec` via `SwiftJLS 2.0.0`, `JXLCodec` via `SwiftJXL 2.0.0`, and `RLECodec` via `SwiftRLE 1.0.1`)
+- `SwiftJ2KDICOMCodec` / `JP3DCodec` / `J2KSwiftCodec` / `HTJ2KCodec` - Pure-Swift JPEG 2000 Part 1, Part 2, JP3D volumetric (`SwiftJ2K3D`), and HTJ2K adapters powered by `SwiftJ2K 12.2.0` (plus `JLICodec` via `SwiftJLI 2.0.3`, `JPEGLSCodec` via `SwiftJLS 2.0.1`, `JXLCodec` via `SwiftJXL 2.0.1`, and `RLECodec` via `SwiftRLE 1.0.2`)
 - `WindowSettings` - VOI LUT window center/width settings
 - `DICOMError` - Error types for parsing failures
 - Little Endian and Big Endian byte reading/writing utilities
@@ -5361,19 +5361,19 @@ DICOMKit implements the **DICOM Standard 2026a** published by NEMA. Below is a d
 | 1.2.840.10008.1.2.4.91 | JPEG 2000 | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.92 | JPEG 2000 Part 2 Lossless | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.93 | JPEG 2000 Part 2 Lossy | ✅ | ✅ |
-| 1.2.840.10008.1.2.4.94 | JPIP Referenced | ⏸️ URI only (deferred) | ⏸️ URI only (deferred) |
-| 1.2.840.10008.1.2.4.95 | JPIP Referenced Deflate | ⏸️ URI only (deferred) | ⏸️ URI only (deferred) |
+| 1.2.840.10008.1.2.4.94 | JPIP Referenced | ✅ (`DICOMJPIPClient`) | ✅ (URI + `JPIPServer`) |
+| 1.2.840.10008.1.2.4.95 | JPIP Referenced Deflate | ✅ (`DICOMJPIPClient`) | ✅ (URI + `JPIPServer`) |
 | 1.2.840.10008.1.2.4.110 | JPEG XL Lossless | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.111 | JPEG XL JPEG Recompression | ✅ | ✅ (8-bit JPEG wrap/unwrap) |
 | 1.2.840.10008.1.2.4.112 | JPEG XL | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.201 | HTJ2K Lossless | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.202 | HTJ2K RPCL Lossless | ✅ | ✅ |
 | 1.2.840.10008.1.2.4.203 | HTJ2K Lossy | ✅ | ✅ |
-| 1.2.840.10008.1.2.4.204 | JPIP HTJ2K Referenced | ⏸️ URI only (deferred) | ⏸️ URI only (deferred) |
-| 1.2.840.10008.1.2.4.205 | JPIP HTJ2K Referenced Deflate | ⏸️ URI only (deferred) | ⏸️ URI only (deferred) |
+| 1.2.840.10008.1.2.4.204 | JPIP HTJ2K Referenced | ✅ (`DICOMJPIPClient`) | ✅ (URI + `JPIPServer`) |
+| 1.2.840.10008.1.2.4.205 | JPIP HTJ2K Referenced Deflate | ✅ (`DICOMJPIPClient`) | ✅ (URI + `JPIPServer`) |
 | 1.2.840.10008.1.2.5 | RLE Lossless | ✅ | ✅ |
 
-*Note: All 17 active encapsulated DICOM pixel codecs are powered by pure-Swift `raster-labs` libraries on Apple OS 26.0+ / Swift 6.4+ (`SwiftJ2K 12.1.0`, `SwiftJLI 2.0.2`, `SwiftJLS 2.0.0`, `SwiftJXL 2.0.0`, and `SwiftRLE 1.0.1`). JP3D volumetric encode/decode and JPIP retrieval are deferred pending `SwiftJ2K 12.2.0`. Apple ImageIO (`NativeJPEGCodec` / `NativeJPEG2000Codec`) is never used implicitly on default paths.*
+*Note: All active encapsulated and streaming DICOM pixel codecs are powered by pure-Swift MIT-licensed `raster-labs` libraries on Apple OS 26.0+ / Swift 6.4+ (`SwiftJ2K 12.2.0` — `SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`; `SwiftJLI 2.0.3`; `SwiftJLS 2.0.1`; `SwiftJXL 2.0.1`; and `SwiftRLE 1.0.2`). Apple ImageIO (`NativeJPEGCodec` / `NativeJPEG2000Codec`) is never used implicitly on default paths.*
 
 ### SOP Class Support
 

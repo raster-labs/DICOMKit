@@ -46,6 +46,9 @@ import SwiftJXL
 /// codestream and un-shifted on decode. JPEG XL has no signed 8-bit sample type, so
 /// signed 8-bit is rejected rather than silently mis-encoded.
 public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
+    public static let engineName = "SwiftJXL"
+    public static let engineVersion = "2.0.1"
+
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
         /// Auto-detect JPEG Recompression (`jbrd`) vs pixel JPEG XL.

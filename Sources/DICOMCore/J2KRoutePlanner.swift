@@ -152,7 +152,7 @@ public enum J2KRoutePlanner {
 
     // MARK: - Part-2 capability
 
-    /// Whether the pinned JPEG 2000 engine (`SwiftJ2K` 12.1.0+) can **decode** a genuine
+    /// Whether the pinned JPEG 2000 engine (`SwiftJ2K` 12.2.0+) can **decode** a genuine
     /// JPEG 2000 Part-2 codestream (multi-component transform / `CBD` / `MCT` / `MCC` / `MCO`)
     /// back to exact pixels and encode conformant `.92` / `.93` Part-2 codestreams.
     public static let part2MCTDecodeSupported = true

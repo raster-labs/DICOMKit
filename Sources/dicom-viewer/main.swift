@@ -98,7 +98,7 @@ struct DICOMViewer: ParsableCommand {
     var volume: Bool = false
 
     @Option(name: .long,
-            help: "Fetch and display image from a JPIP server URL (currently unavailable: JPIP retrieval is deferred pending SwiftJ2K 12.2.0).")
+            help: "Fetch and display image from a JPIP server URL.")
     var jpip: String?
 
     mutating func validate() throws {
@@ -483,24 +483,124 @@ struct DICOMViewer: ParsableCommand {
 
     /// Fetch an image from a JPIP server URL and render it.
     private func renderJPIP(urlString: String) throws {
-        guard let jpipURL = URL(string: urlString) else {
+        guard let jpipURL = URL(string: urlString), jpipURL.host != nil else {
             fputs("Error: invalid JPIP URL: \(urlString)\n", stderr)
             throw ExitCode.failure
         }
 
-        // JPIP retrieval is unavailable — DICOMJPIPClient's fetch methods are marked
-        // @available(*, unavailable) because JPIP retrieval is deferred pending
-        // SwiftJ2K 12.2.0 (`SwiftJ2KJPIP` qualification).
-        fputs("""
-            Error: JPIP rendering is not available in this build.
+        let serverURL = DICOMJPIPClient.serverBaseURL(from: jpipURL)
+        let capturedROI = roi
+        let capturedReduce = reduce
 
-            Target: \(jpipURL.absoluteString)
+        final class JPIPResultBox: @unchecked Sendable {
+            var image: DICOMJPIPImage?
+            var error: Error?
+        }
+        let box = JPIPResultBox()
+        let sema = DispatchSemaphore(value: 0)
 
-            JPIP retrieval is deferred pending SwiftJ2K 12.2.0 (SwiftJ2KJPIP qualification).
-            Render a local DICOM file instead, or use dicom-wado / dicom-retrieve for remote sources.
+        Task {
+            let client = DICOMJPIPClient(serverURL: serverURL)
+            do {
+                if let roiStr = capturedROI {
+                    let parts = roiStr.split(separator: ",").compactMap { Int($0) }
+                    if parts.count == 4, parts[2] > 0, parts[3] > 0 {
+                        let region = DICOMJPIPRegion(x: parts[0], y: parts[1], width: parts[2], height: parts[3])
+                        let quality: DICOMJPIPQuality = capturedReduce > 0 ? .resolutionLevel(capturedReduce) : .full
+                        box.image = try await client.fetchRegion(jpipURI: jpipURL, region: region, quality: quality)
+                    } else {
+                        box.image = try await client.fetchImage(jpipURI: jpipURL)
+                    }
+                } else if capturedReduce > 0 {
+                    box.image = try await client.fetchResolutionLevel(jpipURI: jpipURL, level: capturedReduce)
+                } else {
+                    box.image = try await client.fetchImage(jpipURI: jpipURL)
+                }
+            } catch {
+                box.error = error
+            }
+            try? await client.close()
+            sema.signal()
+        }
+        sema.wait()
 
-            """, stderr)
-        throw ExitCode.failure
+        if let err = box.error {
+            fputs("Error fetching JPIP image: \(err)\n", stderr)
+            throw ExitCode.failure
+        }
+        guard let result = box.image else {
+            fputs("Error: no image returned from JPIP server\n", stderr)
+            throw ExitCode.failure
+        }
+
+        if verbose {
+            print("JPIP image: \(result.width)x\(result.height), "
+                  + "\(result.components) component(s), "
+                  + "\(result.bitDepth)-bit, "
+                  + "\(result.qualityLayers) quality layer(s)")
+        }
+
+        let pixelCount = result.width * result.height
+        let maxVal = Double(max(1, (1 << result.bitDepth) - 1))
+        var normalized = [Double](repeating: 0.0, count: pixelCount)
+
+        let bytesPerSample = max(1, (result.bitDepth + 7) / 8)
+        let pixelStride = max(1, result.components) * bytesPerSample
+        let customWindow: WindowSettings? = {
+            if let wc = windowCenter, let ww = windowWidth {
+                return WindowSettings(center: wc, width: ww, function: (try? parsedVOIFunction()) ?? .linear)
+            }
+            return nil
+        }()
+
+        for i in 0..<pixelCount {
+            let offset = i * pixelStride
+            guard offset + bytesPerSample - 1 < result.pixelData.count else { break }
+            var raw = 0
+            for b in 0..<bytesPerSample {
+                raw |= Int(result.pixelData[offset + b]) << (b * 8)
+            }
+            if result.isSigned && bytesPerSample == 2 {
+                raw = Int(Int16(bitPattern: UInt16(truncatingIfNeeded: raw)))
+            }
+            var v: Double
+            if let win = customWindow {
+                v = win.apply(to: Double(raw))
+            } else {
+                v = Double(raw) / maxVal
+            }
+            if invert { v = 1.0 - v }
+            normalized[i] = max(0.0, min(1.0, v))
+        }
+
+        let image = NormalizedImage(
+            pixels: normalized,
+            width: result.width,
+            height: result.height,
+            originalRows: result.height,
+            originalColumns: result.width
+        )
+
+        let termSize = TerminalSize.detect()
+        let fitSize = TerminalRenderer.fitToTerminal(
+            imageWidth: image.width,
+            imageHeight: image.height,
+            terminalWidth: termSize.width,
+            terminalHeight: termSize.height,
+            customWidth: width,
+            customHeight: height
+        )
+        let scaled = TerminalRenderer.scaleImage(image, toWidth: fitSize.width, toHeight: fitSize.height)
+
+        let output: String
+        switch mode {
+        case .ascii:  output = TerminalRenderer.renderASCII(scaled, quality: quality)
+        case .ansi:   output = TerminalRenderer.renderANSI(scaled, colorDepth: color)
+        case .iterm2: output = TerminalRenderer.renderITerm2(image, width: width, height: height)
+        case .kitty:  output = TerminalRenderer.renderKitty(image)
+        case .sixel:  output = TerminalRenderer.renderSixel(scaled)
+        }
+        print(output, terminator: "")
     }
 }
 
