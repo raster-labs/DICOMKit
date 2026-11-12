@@ -849,6 +849,95 @@ struct ManagedCodecTests {
         }
         #expect(budget.receipt.currentTotal == baseline)
     }
+
+    @Test("Managed 16-bit legacy unclamped-MAXVAL JPEG-LS recovery releases staging and preserves tight-budget failures")
+    func managedLegacyUnclampedJPEGLSRecoveryAndBudgetBounds() async throws {
+        let width = 32
+        let height = 32
+        var pixels = Data(capacity: width * height * 2)
+        for y in 0..<height {
+            for x in 0..<width {
+                let signedCT = Int16(truncatingIfNeeded: -1024 + ((x * 431 + y * 1307) % 3600))
+                let word = UInt16(bitPattern: signedCT)
+                pixels.append(UInt8(word & 0xFF))
+                pixels.append(UInt8((word >> 8) & 0xFF))
+            }
+        }
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let legacyStream = try await JPEGLSCodecStrictDecodingTests.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: width,
+            height: height,
+            bitsPerSample: 16
+        )
+
+        // 1. Managed decode recovers exact signed 16-bit CT samples with zero retained staging.
+        let budget = try DICOMAllocationBudget()
+        let baseline = budget.receipt.currentTotal
+        do {
+            let encodedBuf = try owned(legacyStream, budget: budget)
+            let frame = try JPEGLSCodec(decodingSyntax: .lossless)
+                .decodeManagedPixelFrame(encodedBuf, descriptor: desc, frameIndex: 0, budget: budget)
+            #expect(budget.receipt.current.staging == 0)
+            #expect(frame.data.count == desc.bytesPerFrame)
+            #expect(budget.receipt.current.decoded == frame.data.capacity)
+            #expect(frame.data.withUnsafeBytes { Data($0) } == pixels)
+            destroy(frame)
+            destroy(encodedBuf)
+        }
+        #expect(budget.receipt.currentTotal == baseline)
+
+        // 2. Tight budget with zero room for fallback staging on a corrupt 16-bit stream
+        //    preserves .codecFailure instead of turning into an allocation failure.
+        let validStandard = try JPEGLSCodec().encodeFrame(pixels, descriptor: desc, frameIndex: 0, configuration: .lossless)
+        var corrupt16 = Data(validStandard.prefix(max(24, validStandard.count / 2)))
+        corrupt16.append(contentsOf: [0xFF, 0xD9])
+        // Measure exact primary workspace + metadata ceiling using an explicit-LSE stream (no fallback).
+        let sosRange = try #require(corrupt16.range(of: Data([0xFF, 0xDA])))
+        var explicitLSECorrupt = Data()
+        explicitLSECorrupt.append(corrupt16[..<sosRange.lowerBound])
+        explicitLSECorrupt.append(contentsOf: [
+            0xFF, 0xF8, 0x00, 0x0D, 0x01,
+            0xFF, 0xFF, 0x00, 0x12, 0x00, 0x43, 0x01, 0x14, 0x00, 0x40
+        ])
+        explicitLSECorrupt.append(corrupt16[sosRange.lowerBound...])
+
+        let probeBudget = try DICOMAllocationBudget()
+        do {
+            let probeIn = try owned(explicitLSECorrupt, budget: probeBudget)
+            let probeOut = JPEGLSCodec(decodingSyntax: .lossless)
+                .decodeManagedPixelFrameOutcome(probeIn, descriptor: desc, frameIndex: 0, budget: probeBudget)
+            switch probeOut {
+            case .success:
+                Issue.record("Corrupt 16-bit stream unexpectedly decoded")
+            case .failure(let f):
+                #expect(f.code == .codecFailure)
+            }
+        }
+        let tightBudget = try DICOMAllocationBudget(limits: .init(total: probeBudget.receipt.peakTotal))
+        let tightBaseline = tightBudget.receipt.currentTotal
+        do {
+            let tightIn = try owned(corrupt16, budget: tightBudget)
+            let tightOut = JPEGLSCodec(decodingSyntax: .lossless)
+                .decodeManagedPixelFrameOutcome(tightIn, descriptor: desc, frameIndex: 0, budget: tightBudget)
+            switch tightOut {
+            case .success:
+                Issue.record("Corrupt 16-bit stream unexpectedly decoded under tight budget")
+            case .failure(let f):
+                #expect(f.code == .codecFailure)
+            }
+        }
+        #expect(tightBudget.receipt.currentTotal == tightBaseline)
+    }
 }
 
 private struct ManagedCancellationState: ~Copyable {

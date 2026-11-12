@@ -1,5 +1,6 @@
 import Testing
 import Foundation
+import SwiftJLS
 @testable import DICOMCore
 
 @Suite("JPEGLSCodec Tests")
@@ -545,6 +546,344 @@ struct JPEGLSCodecStrictDecodingTests {
         #expect(throws: DICOMError.self) { try JPEGLSCodec().decodeFrame(encoded.prefix(encoded.count / 2), descriptor: descriptor, frameIndex: 0) }
         #expect(throws: DICOMError.self) {
             try JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless).decodeFrame(Data([0, 1, 2, 3]), descriptor: descriptor, frameIndex: 0)
+        }
+    }
+
+    // MARK: - Legacy DICOMKIT_0.5.0 Unclamped MAXVAL (> 12-bit, Missing LSE) Recovery
+
+    /// Synthesizes a genuine legacy JPEG-LS codestream matching `DICOMKIT_0.5.0`'s defect:
+    /// encodes with unclamped ITU-T T.87 Table C.2 thresholds (`factor = (MAXVAL + 128) / 256`,
+    /// e.g. `T1=258, T2=1027, T3=4356` for 16-bit lossless) and strips the 15-byte `LSE` (`FF F8`)
+    /// preset segment so the stream carries no `LSE` marker before `SOS`.
+    static func makeLegacyUnclampedCodestream(
+        pixels: Data,
+        width: Int,
+        height: Int,
+        bitsPerSample: Int,
+        samplesPerPixel: Int = 1,
+        near: Int = 0
+    ) async throws -> Data {
+        let maxVal = (1 << bitsPerSample) - 1
+        let factor = (maxVal + 128) / 256
+        let t1 = min(max(factor * (3 - 2) + 2 + 3 * near, near + 1), maxVal)
+        let t2 = min(max(factor * (7 - 3) + 3 + 5 * near, t1), maxVal)
+        let t3 = min(max(factor * (21 - 4) + 4 + 7 * near, t2), maxVal)
+        let preset = try SwiftJLS.CodecOptions.Preset(
+            maximumSampleValue: maxVal,
+            threshold1: t1,
+            threshold2: t2,
+            threshold3: t3,
+            reset: 64
+        )
+        let limits = try SwiftJLS.ResourceLimits(
+            maximumCompressedBytes: 16 << 20,
+            maximumDecodedBytes: 16 << 20,
+            maximumWorkspaceBytes: 64 << 20,
+            maximumPixels: 4 << 20,
+            deadlineSeconds: 30.0,
+            maximumMemoryBytes: Int.max
+        )
+        let components: [SwiftJLS.ComponentRole]
+        let colour: SwiftJLS.ColourInterpretation
+        let planes: [SwiftJLS.PlaneDescriptor]
+        let interleave: SwiftJLS.CodecOptions.InterleaveMode
+        if samplesPerPixel == 1 {
+            components = [.grey]
+            colour = .greyscale
+            planes = [
+                try SwiftJLS.PlaneDescriptor(
+                    width: width,
+                    height: height,
+                    components: [0],
+                    offset: 0,
+                    sampleStride: 2,
+                    pixelStride: 2,
+                    rowBytes: width * 2,
+                    byteCount: width * height * 2
+                )
+            ]
+            interleave = .none
+        } else {
+            components = [
+                .uninterpreted("JPEG-LS:1"),
+                .uninterpreted("JPEG-LS:2"),
+                .uninterpreted("JPEG-LS:3")
+            ]
+            colour = .unknown
+            planes = [
+                try SwiftJLS.PlaneDescriptor(
+                    width: width,
+                    height: height,
+                    components: [0, 1, 2],
+                    offset: 0,
+                    sampleStride: 2,
+                    pixelStride: 6,
+                    rowBytes: width * 6,
+                    byteCount: width * height * 6
+                )
+            ]
+            interleave = .sample
+        }
+        let imgDesc = try SwiftJLS.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: 16,
+            meaningfulBits: bitsPerSample,
+            byteOrder: .littleEndian,
+            components: components,
+            colour: colour,
+            alpha: .absent,
+            planes: planes,
+            limits: limits
+        )
+        let dest = try SwiftJLS.ImageDestination.allocate(descriptor: imgDesc, limits: limits)
+        let image = try dest.write { dst in
+            pixels.withUnsafeBytes { src in
+                dst.copyMemory(from: src)
+            }
+        }
+        let mode: SwiftJLS.CompressionMode = near == 0 ? .lossless : .nearLossless(maximumAbsoluteError: near)
+        let options = try SwiftJLS.CodecOptions(
+            restartIntervalLines: 0,
+            preset: preset,
+            interleaveMode: interleave,
+            colourTransform: .none
+        )
+        let encoder = try SwiftJLS.Encoder(configuration: .init(mode: mode, codecOptions: options))
+        let encoded = try await encoder.encode(
+            image,
+            options: .init(resourceLimits: limits, copyPolicy: .requireSharedStorage, metadataPolicy: .discardAncillary)
+        ).data
+
+        let expectedLSE = Data([
+            0xFF, 0xF8, 0x00, 0x0D, 0x01,
+            UInt8((maxVal >> 8) & 0xFF), UInt8(maxVal & 0xFF),
+            UInt8((t1 >> 8) & 0xFF), UInt8(t1 & 0xFF),
+            UInt8((t2 >> 8) & 0xFF), UInt8(t2 & 0xFF),
+            UInt8((t3 >> 8) & 0xFF), UInt8(t3 & 0xFF),
+            0x00, 0x40
+        ])
+        let range = try #require(encoded.range(of: expectedLSE))
+        var stripped = Data()
+        stripped.append(encoded[..<range.lowerBound])
+        stripped.append(encoded[range.upperBound...])
+        return stripped
+    }
+
+    @Test("Legacy 13..16-bit unclamped-MAXVAL JPEG-LS streams without LSE recover bit-exactly")
+    func legacyUnclampedMaxValRecoveryAcrossPrecisions() async throws {
+        let width = 32
+        let height = 32
+        for bits in 13...16 {
+            let maxVal = (1 << bits) - 1
+            let isSigned = (bits == 16)
+            var pixels = Data(capacity: width * height * 2)
+            for y in 0..<height {
+                for x in 0..<width {
+                    // Use sharp local steps across 18..4356 so context quantization differs
+                    // decisively between standard Table C.2 (T1=18,T2=67,T3=276) and legacy unclamped.
+                    let raw: Int
+                    if (x + y) % 5 == 0 {
+                        raw = (x * 997 + y * 4099) & maxVal
+                    } else {
+                        raw = ((x * 73 + y * 211) + ((y % 3) * 1800)) & maxVal
+                    }
+                    let word = UInt16(raw)
+                    pixels.append(UInt8(word & 0xFF))
+                    pixels.append(UInt8((word >> 8) & 0xFF))
+                }
+            }
+            let legacyStream = try await Self.makeLegacyUnclampedCodestream(
+                pixels: pixels,
+                width: width,
+                height: height,
+                bitsPerSample: bits
+            )
+            // Confirm no LSE marker remains in the stripped legacy codestream.
+            #expect(legacyStream.range(of: Data([0xFF, 0xF8, 0x00, 0x0D, 0x01])) == nil)
+
+            let desc = PixelDataDescriptor(
+                rows: height,
+                columns: width,
+                bitsAllocated: 16,
+                bitsStored: bits,
+                highBit: bits - 1,
+                isSigned: isSigned,
+                samplesPerPixel: 1,
+                photometricInterpretation: .monochrome2
+            )
+            let codec = JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless)
+            let decoded = try codec.decodeFrame(legacyStream, descriptor: desc, frameIndex: 0)
+            #expect(decoded == pixels, "Bit-exact recovery failed for \(bits)-bit monochrome")
+
+            // Exact encoded byte ceiling must still admit the 15-byte internal LSE synthesis.
+            let tightLimits = PixelDecodeLimits(
+                maximumEncodedBytes: legacyStream.count,
+                maximumDecodedBytes: 4 << 20,
+                maximumPixels: width * height
+            )
+            let tightCodec = JPEGLSCodec(decodingSyntax: .lossless, decodingLimits: tightLimits)
+            let tightDecoded = try tightCodec.decodePixelFrame(legacyStream, descriptor: desc, frameIndex: 0)
+            #expect(tightDecoded.data == pixels)
+        }
+    }
+
+    @Test("Legacy 16-bit 3-component unclamped-MAXVAL JPEG-LS stream without LSE recovers bit-exactly")
+    func legacyUnclampedMaxValRecoveryRGB16() async throws {
+        let width = 16
+        let height = 16
+        var pixels = Data(capacity: width * height * 6)
+        for i in 0..<(width * height * 3) {
+            let word = UInt16((i * 2503 + (i % 7) * 911) & 0xFFFF)
+            pixels.append(UInt8(word & 0xFF))
+            pixels.append(UInt8((word >> 8) & 0xFF))
+        }
+        let legacyStream = try await Self.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: width,
+            height: height,
+            bitsPerSample: 16,
+            samplesPerPixel: 3
+        )
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: false,
+            samplesPerPixel: 3,
+            photometricInterpretation: .rgb,
+            planarConfiguration: 0
+        )
+        let decoded = try JPEGLSCodec(decodingSyntax: .lossless)
+            .decodeFrame(legacyStream, descriptor: desc, frameIndex: 0)
+        #expect(decoded == pixels)
+
+        let budget = try DICOMAllocationBudget()
+        let inBuf = try DICOMByteBuffer(count: legacyStream.count, budget: budget, resource: .encoded)
+        legacyStream.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
+        let managed = try JPEGLSCodec(decodingSyntax: .lossless)
+            .decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
+        #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
+        #expect(budget.receipt.current.staging == 0)
+    }
+
+    @Test("JPEGLSCodec 16-bit encoder emits standard ITU-T T.87 Table C.2 clamped thresholds")
+    func sixteenBitEncoderUsesClampedTableC2Defaults() async throws {
+        let width = 24
+        let height = 24
+        var pixels = Data(capacity: width * height * 2)
+        for i in 0..<(width * height) {
+            let signedCT = Int16(truncatingIfNeeded: -1024 + ((i * 317) % 3500))
+            let word = UInt16(bitPattern: signedCT)
+            pixels.append(UInt8(word & 0xFF))
+            pixels.append(UInt8((word >> 8) & 0xFF))
+        }
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let encoded = try JPEGLSCodec().encodeFrame(pixels, descriptor: desc, frameIndex: 0, configuration: .lossless)
+        // Decode directly with unmodified SwiftJLS.Decoder to prove standard Table C.2 compliance.
+        let limits = try SwiftJLS.ResourceLimits(
+            maximumCompressedBytes: 4 << 20,
+            maximumDecodedBytes: 4 << 20,
+            maximumWorkspaceBytes: 16 << 20,
+            maximumPixels: width * height,
+            deadlineSeconds: 10.0,
+            maximumMemoryBytes: Int.max
+        )
+        let decoder = try SwiftJLS.Decoder(configuration: .init(codecOptions: .init()))
+        let imgDesc = try SwiftJLS.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: 16,
+            meaningfulBits: 16,
+            byteOrder: .littleEndian,
+            components: [.grey],
+            colour: .greyscale,
+            alpha: .absent,
+            planes: [
+                try SwiftJLS.PlaneDescriptor(
+                    width: width,
+                    height: height,
+                    components: [0],
+                    offset: 0,
+                    sampleStride: 2,
+                    pixelStride: 2,
+                    rowBytes: width * 2,
+                    byteCount: width * height * 2
+                )
+            ],
+            limits: limits
+        )
+        let dest = try SwiftJLS.ImageDestination.allocate(descriptor: imgDesc, limits: limits)
+        let direct = try await decoder.decode(
+            encoded,
+            into: dest,
+            options: .init(resourceLimits: limits, copyPolicy: .requireSharedStorage, metadataPolicy: .discardAncillary)
+        )
+        let directBytes = try direct.image.storage.withUnsafeBytes { Data($0) }
+        #expect(directBytes == pixels)
+    }
+
+    @Test("Streams with explicit LSE Id=1 or genuine 16-bit corruption are never mis-recovered")
+    func explicitLSEAndCorrupt16BitStreamsStillFail() async throws {
+        let width = 16
+        let height = 16
+        var pixels = Data(capacity: width * height * 2)
+        for i in 0..<(width * height) {
+            let word = UInt16((i * 1777) & 0xFFFF)
+            pixels.append(UInt8(word & 0xFF))
+            pixels.append(UInt8((word >> 8) & 0xFF))
+        }
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let valid = try JPEGLSCodec().encodeFrame(pixels, descriptor: desc, frameIndex: 0, configuration: .lossless)
+        // Truncate inside entropy data while preserving EOI so header inspection passes but entropy fails.
+        var truncatedEntropy = Data(valid.prefix(max(24, valid.count / 2)))
+        truncatedEntropy.append(contentsOf: [0xFF, 0xD9])
+        #expect(throws: DICOMError.self) {
+            _ = try JPEGLSCodec(decodingSyntax: .lossless).decodeFrame(truncatedEntropy, descriptor: desc, frameIndex: 0)
+        }
+
+        // Inject an explicit standard LSE Id=1 before SOS in a legacy unclamped stream:
+        // decoder must honour the explicit LSE and reject rather than overwriting it.
+        let legacyStream = try await Self.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: width,
+            height: height,
+            bitsPerSample: 16
+        )
+        let sosMarker = try #require(legacyStream.range(of: Data([0xFF, 0xDA])))
+        var mismatchedExplicitLSE = Data()
+        mismatchedExplicitLSE.append(legacyStream[..<sosMarker.lowerBound])
+        // Explicit LSE Id=1 declaring standard T1=18 (0x0012), T2=67 (0x0043), T3=276 (0x0114)
+        mismatchedExplicitLSE.append(contentsOf: [
+            0xFF, 0xF8, 0x00, 0x0D, 0x01,
+            0xFF, 0xFF, 0x00, 0x12, 0x00, 0x43, 0x01, 0x14, 0x00, 0x40
+        ])
+        mismatchedExplicitLSE.append(legacyStream[sosMarker.lowerBound...])
+        #expect(throws: DICOMError.self) {
+            _ = try JPEGLSCodec(decodingSyntax: .lossless)
+                .decodeFrame(mismatchedExplicitLSE, descriptor: desc, frameIndex: 0)
         }
     }
 }
