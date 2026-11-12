@@ -196,7 +196,10 @@ struct DICOMFileTests {
     
     @Test("Version constant")
     func testVersionConstant() {
-        #expect(version == "3.0.0")
+        #expect(version == "3.0.1")
+        #expect(DICOMFile.implementationVersionName == "DICOMKIT_3.0.1")
+        #expect(DICOMFile.implementationVersionName.count <= 16)
+        #expect(DICOMFile.implementationClassUID == "1.2.826.0.1.3680043.10.511.3.0.5.0")
     }
     
     @Test("DICOM standard edition")

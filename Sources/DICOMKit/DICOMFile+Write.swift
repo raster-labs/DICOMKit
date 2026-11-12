@@ -180,13 +180,14 @@ extension DICOMFile {
     ///
     /// PS3.10 Table 7.1-1 makes it Type 1 and PS3.5 §9.2.2 requires a privately defined UID
     /// under a registered root the organisation owns. The value is arc `.3` of the library's
-    /// private root `1.2.826.0.1.3680043.10.511` followed by the library version (0.5.0).
+    /// private root `1.2.826.0.1.3680043.10.511` followed by the originating 0.5.0 arc.
     /// Before 2026-09-29 it was `1.2.276.0.7230010.3.0.3.6.5`, which is DCMTK 3.6.5's own
     /// Implementation Class UID under the OFFIS root.
     public static let implementationClassUID = "1.2.826.0.1.3680043.10.511.3.0.5.0"
 
-    /// Implementation Version Name (0002,0013) written by every file writer of this library.
-    public static let implementationVersionName = "DICOMKIT_0.5.0"
+    /// Implementation Version Name (0002,0013) written by every file writer of this library,
+    /// tracking `DICOMKit.version` within the 16-character PS3.5 VR `SH` limit.
+    public static let implementationVersionName = String("DICOMKIT_\(version)".prefix(16))
 
     /// DICOM File Preamble size (128 bytes of zeros)
     private static let preambleSize = 128
