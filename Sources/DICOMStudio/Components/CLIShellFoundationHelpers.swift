@@ -205,7 +205,7 @@ public enum VersionHelpers: Sendable {
   /// The current DICOM Studio version.
   public static let currentStudioVersion =
     SemanticVersion(parsing: StudioBuildInfo.dicomKitVersion)
-    ?? SemanticVersion(major: 3, minor: 0, patch: 0)
+    ?? SemanticVersion(major: 3, minor: 1, patch: 0)
 
   /// Checks the compatibility between a tool version and the studio version.
   public static func checkCompatibility(

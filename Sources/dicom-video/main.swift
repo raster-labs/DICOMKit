@@ -172,8 +172,8 @@ struct MetadataOptions: ParsableArguments {
             patientID: patientID,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            studyDate: studyDate,
-            studyTime: studyTime,
+            studyDate: studyDate.flatMap(ImageConverter.OutputRules.studyDate),
+            studyTime: studyTime.flatMap(ImageConverter.OutputRules.studyTime),
             studyUID: studyUID,
             seriesUID: seriesUID,
             accessionNumber: accessionNumber,
@@ -249,7 +249,8 @@ extension DICOMVideo {
             // Values the engine accepts but the IOD does not are refused
             // (DICOMKit VideoOptionConformance; exit 1, nothing written).
             let refusals = DICOMKit.VideoOptionConformance.violations(
-                type: resolvedType, metadata: sharedMetadata, transferSyntax: transferSyntax)
+                type: resolvedType, metadata: sharedMetadata, transferSyntax: transferSyntax,
+                studyDate: metadata.studyDate, studyTime: metadata.studyTime)
             if !refusals.isEmpty {
                 refusals.forEach(printError)
                 throw ExitCode(1)
@@ -506,7 +507,8 @@ extension DICOMVideo {
             }
             let refusals = DICOMKit.VideoOptionConformance.violations(
                 type: type ?? .endoscopic, metadata: sharedMetadata,
-                transferSyntax: transferSyntax)
+                transferSyntax: transferSyntax,
+                studyDate: metadata.studyDate, studyTime: metadata.studyTime)
             if !refusals.isEmpty {
                 refusals.forEach(printError)
                 throw ExitCode(1)

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-12
+
 ### Added
 
 - Link and activate `SwiftJ2K3D` (`12.2.0`, Contract API-13) across `DICOMCore`, `DICOMKit`, `dicom-3d`, `DICOMStudio`, and `DICOMSwiftJ2KIntegration`:
@@ -26,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `SwiftJLS` `2.0.0` -> **`2.0.1`**
   - `SwiftJLI` `2.0.2` -> **`2.0.3`**
   - `SwiftJXL` `2.0.0` -> **`2.0.1`**
+- Type `VideoWorkflow.Metadata.studyDate` and `studyTime` as `DICOMDate?` and `DICOMTime?`, with strict Gregorian `DA` and `TM` validation across `VideoOptionConformance`, `dicom-video`, and `DICOMStudio` (`CLIWorkshopViewModel`).
+- Align `DICOMStudio` version, packaging scripts, and Homebrew formulas with `v3.1.0`, and update copyright holder to Raster Images Private Limited.
 
 ## [3.0.0] - 2026-11-07
 

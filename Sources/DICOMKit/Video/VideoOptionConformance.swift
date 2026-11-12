@@ -47,10 +47,14 @@ public enum VideoOptionConformance {
     ///   - type: The `--type` in effect (the default when none was given).
     ///   - metadata: The validated metadata (modality already resolved).
     ///   - transferSyntax: The `--transfer-syntax` value, if given.
+    ///   - studyDate: The raw `--study-date` string, if given.
+    ///   - studyTime: The raw `--study-time` string, if given.
     public static func violations(
         type: VideoConsole.TypeArgument,
         metadata: VideoWorkflow.Metadata,
-        transferSyntax: String?
+        transferSyntax: String?,
+        studyDate: String? = nil,
+        studyTime: String? = nil
     ) -> [String] {
         var lines: [String] = []
         if let uid = transferSyntax, let line = transferSyntaxViolation(uid) {
@@ -77,21 +81,66 @@ public enum VideoOptionConformance {
                 Patient's Birth Date (0010,0030); refused.
                 """))
         }
-        lines += studyDateTimeViolations(metadata: metadata)
+        if studyDate != nil || studyTime != nil {
+            lines += studyDateTimeViolations(studyDate: studyDate, studyTime: studyTime)
+        } else {
+            lines += studyDateTimeViolations(metadata: metadata)
+        }
         return lines
     }
 
     /// Strict Gregorian DA and TM validation shared with the image converter.
     /// Unknown values are represented by nil, not by the conversion clock.
-    public static func studyDateTimeViolations(metadata: VideoWorkflow.Metadata) -> [String] {
+    public static func studyDateTimeViolations(
+        studyDate: String? = nil,
+        studyTime: String? = nil
+    ) -> [String] {
         var lines: [String] = []
-        if let date = metadata.studyDate, ImageConverter.OutputRules.studyDate(date) == nil {
+        if let date = studyDate, ImageConverter.OutputRules.studyDate(date) == nil {
             lines.append("--study-date \(date) is not a valid Gregorian DA value (YYYYMMDD) for Study Date (0008,0020); refused.")
         }
-        if let time = metadata.studyTime, ImageConverter.OutputRules.studyTime(time) == nil {
+        if let time = studyTime, ImageConverter.OutputRules.studyTime(time) == nil {
             lines.append("--study-time \(time) is not a valid TM value (HH, HHMM or HHMMSS[.FFFFFF]) for Study Time (0008,0030); refused.")
         }
         return lines
+    }
+
+    /// Validates `DICOMDate` and `DICOMTime` values on ``VideoWorkflow/Metadata``
+    /// against Gregorian calendar rules and TM component ranges.
+    public static func studyDateTimeViolations(metadata: VideoWorkflow.Metadata) -> [String] {
+        var lines: [String] = []
+        if let date = metadata.studyDate, !isValidStudyDate(date) {
+            lines.append("--study-date \(date.dicomString) is not a valid Gregorian DA value (YYYYMMDD) for Study Date (0008,0020); refused.")
+        }
+        if let time = metadata.studyTime, !isValidStudyTime(time) {
+            lines.append("--study-time \(time.dicomString) is not a valid TM value (HH, HHMM or HHMMSS[.FFFFFF]) for Study Time (0008,0030); refused.")
+        }
+        return lines
+    }
+
+    private static func isValidStudyDate(_ date: DICOMDate) -> Bool {
+        guard (0...9999).contains(date.year), (1...12).contains(date.month), (1...31).contains(date.day) else {
+            return false
+        }
+        return ImageConverter.OutputRules.studyDate(date.dicomString) != nil
+    }
+
+    private static func isValidStudyTime(_ time: DICOMTime) -> Bool {
+        guard (0...23).contains(time.hour) else { return false }
+        if let minute = time.minute {
+            guard (0...59).contains(minute) else { return false }
+        } else if time.second != nil || time.microsecond != nil {
+            return false
+        }
+        if let second = time.second {
+            guard (0...60).contains(second) else { return false }
+        } else if time.microsecond != nil {
+            return false
+        }
+        if let microsecond = time.microsecond {
+            guard (0...999_999).contains(microsecond) else { return false }
+        }
+        return ImageConverter.OutputRules.studyTime(time.dicomString) != nil
     }
 
     /// A refusal when `--transfer-syntax` names a UID that DICOMCore treats as

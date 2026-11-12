@@ -525,14 +525,14 @@ struct PerformanceToolsHelpersTests {
     func testDICOMKitVersion() {
         #expect(ConformanceStatementHelpers.dicomkitVersion() == DICOMKit.version)
         #expect(StudioBuildInfo.dicomKitVersion == DICOMKit.version)
-        #expect(StudioBuildInfo.dicomKitVersion == "3.0.0")
+        #expect(StudioBuildInfo.dicomKitVersion == "3.1.0")
     }
 
     @Test("StudioBuildInfo and version helpers align with Swift 6.4 and OS 26.0+")
     func testStudioBuildInfoAlignment() {
         #expect(StudioBuildInfo.swiftVersion == "6.4")
         #expect(StudioBuildInfo.platform == "macOS 26+ / iOS 26+")
-        #expect(VersionHelpers.currentStudioVersion == SemanticVersion(major: 3, minor: 0, patch: 0))
+        #expect(VersionHelpers.currentStudioVersion == SemanticVersion(major: 3, minor: 1, patch: 0))
         #expect(WelcomeViewHelpers.appVersion() == "DICOM Studio v\(StudioBuildInfo.appVersion)")
     }
 
