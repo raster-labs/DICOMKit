@@ -382,11 +382,19 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// that omitted `min(MAXVAL, 4095)` clamping in ITU-T T.87 Table C.2 without emitting `LSE`.
     private struct LegacyUnclampedJPEGLSPresetPlan: Sendable {
         let sosOffset: Int
+        let effectiveSourceCount: Int
         let lseSegment: (
             UInt8, UInt8, UInt8, UInt8, UInt8,
             UInt8, UInt8, UInt8, UInt8, UInt8,
             UInt8, UInt8, UInt8, UInt8, UInt8
         )
+
+        var patchedByteCount: Int? {
+            let (total, overflow) = effectiveSourceCount.addingReportingOverflow(
+                JPEGLSCodec.legacyLSESegmentByteCount
+            )
+            return overflow ? nil : total
+        }
 
         func writePatchedCodestream(
             from source: UnsafeRawBufferPointer,
@@ -394,9 +402,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         ) {
             guard let srcBase = source.baseAddress?.assumingMemoryBound(to: UInt8.self),
                   let dstBase = destination.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  let expectedDestinationCount = patchedByteCount,
                   sosOffset >= 0,
-                  sosOffset <= source.count,
-                  destination.count >= source.count + JPEGLSCodec.legacyLSESegmentByteCount else {
+                  effectiveSourceCount >= sosOffset,
+                  effectiveSourceCount <= source.count,
+                  destination.count >= expectedDestinationCount else {
                 return
             }
             if sosOffset > 0 {
@@ -407,7 +417,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     (dstBase + sosOffset).update(from: lsePtr, count: JPEGLSCodec.legacyLSESegmentByteCount)
                 }
             }
-            let suffixCount = source.count - sosOffset
+            let suffixCount = effectiveSourceCount - sosOffset
             if suffixCount > 0 {
                 (dstBase + sosOffset + JPEGLSCodec.legacyLSESegmentByteCount)
                     .update(from: srcBase + sosOffset, count: suffixCount)
@@ -418,6 +428,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     /// Inspects `bytes` up to the first `SOS` (`0xFFDA`) marker and returns a synthesized `LSE`
     /// insertion plan **only** when `SOF55` precision is in `13...16` (`MAXVAL > 4095`) and no
     /// explicit `LSE` (`0xFFF8`, `Id = 1`) preset segment already precedes `SOS`.
+    ///
+    /// If the input ends with a single DICOM PS3.5 Section 8.2 / Annex A.4 even-length `0x00`
+    /// pad byte after an odd-length `FF D9` codestream, `effectiveSourceCount` excludes that pad
+    /// byte because inserting the 15-byte `LSE` segment flips codestream parity from odd to even.
     private static func makeLegacyUnclampedJPEGLSPresetPlan(
         _ bytes: UnsafeRawBufferPointer
     ) -> LegacyUnclampedJPEGLSPresetPlan? {
@@ -426,30 +440,39 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         }
 
         guard bytes.count >= 4, bytes[0] == 0xFF else { return nil }
+        let effectiveSourceCount: Int
+        if bytes.count % 2 == 0,
+           bytes[bytes.count - 1] == 0x00,
+           bytes[bytes.count - 2] == 0xD9,
+           bytes[bytes.count - 3] == 0xFF {
+            effectiveSourceCount = bytes.count - 1
+        } else {
+            effectiveSourceCount = bytes.count
+        }
         var cursor = 1
-        while cursor < bytes.count && bytes[cursor] == 0xFF {
+        while cursor < effectiveSourceCount && bytes[cursor] == 0xFF {
             cursor += 1
         }
-        guard cursor < bytes.count, bytes[cursor] == 0xD8 else { return nil }
+        guard cursor < effectiveSourceCount, bytes[cursor] == 0xD8 else { return nil }
         cursor += 1
 
         var frameBits: Int?
-        while cursor < bytes.count {
+        while cursor < effectiveSourceCount {
             let markerStart = cursor
             guard bytes[cursor] == 0xFF else { return nil }
-            while cursor < bytes.count && bytes[cursor] == 0xFF {
+            while cursor < effectiveSourceCount && bytes[cursor] == 0xFF {
                 cursor += 1
             }
-            guard cursor < bytes.count else { return nil }
+            guard cursor < effectiveSourceCount else { return nil }
             let marker = bytes[cursor]
             cursor += 1
 
             if marker == 0xD9 {
                 return nil
             }
-            guard bytes.count - cursor >= 2 else { return nil }
+            guard effectiveSourceCount - cursor >= 2 else { return nil }
             let length = word(cursor)
-            guard length >= 2, length <= bytes.count - cursor else { return nil }
+            guard length >= 2, length <= effectiveSourceCount - cursor else { return nil }
             let payload = cursor + 2
             let end = cursor + length
 
@@ -493,7 +516,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     UInt8((t3 >> 8) & 0xFF), UInt8(t3 & 0xFF),
                     UInt8((reset >> 8) & 0xFF), UInt8(reset & 0xFF)
                 )
-                return LegacyUnclampedJPEGLSPresetPlan(sosOffset: markerStart, lseSegment: lse)
+                return LegacyUnclampedJPEGLSPresetPlan(
+                    sosOffset: markerStart,
+                    effectiveSourceCount: effectiveSourceCount,
+                    lseSegment: lse
+                )
 
             default:
                 break
@@ -505,11 +532,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     private static func makeLegacyUnclampedJPEGLSCodestream(from data: Data) -> Data? {
         data.withUnsafeBytes { raw in
-            guard let plan = makeLegacyUnclampedJPEGLSPresetPlan(raw) else {
+            guard let plan = makeLegacyUnclampedJPEGLSPresetPlan(raw),
+                  let patchedCount = plan.patchedByteCount else {
                 return nil
             }
-            let (patchedCount, overflow) = raw.count.addingReportingOverflow(legacyLSESegmentByteCount)
-            guard !overflow else { return nil }
             var patched = Data(count: patchedCount)
             patched.withUnsafeMutableBytes { dst in
                 plan.writePatchedCodestream(from: raw, into: dst)
@@ -797,14 +823,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                         return .failure(DICOMManagedFailure(.cancelled))
                     }
                     guard (13...16).contains(header.bitsPerSample),
-                          let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded) else {
-                        workspace.keepAlive()
-                        return .failure(Self.managedFailure(failure))
-                    }
-                    let (patchedCount, countOverflow) = encoded.count.addingReportingOverflow(
-                        Self.legacyLSESegmentByteCount
-                    )
-                    guard !countOverflow else {
+                          let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded),
+                          let patchedCount = plan.patchedByteCount else {
                         workspace.keepAlive()
                         return .failure(Self.managedFailure(failure))
                     }
