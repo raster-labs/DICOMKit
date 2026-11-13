@@ -1,6 +1,6 @@
 # Homebrew Cask for DICOMToolbox GUI Application
 cask "dicomtoolbox" do
-  version "3.1.1"
+  version "3.1.2"
   sha256 "" # Will be filled in upon first release
 
   url "https://github.com/Raster-Lab/DICOMKit/releases/download/v#{version}/DICOMToolbox-#{version}.dmg"

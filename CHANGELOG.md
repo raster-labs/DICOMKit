@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.2] - 2026-11-13
+
 ### Fixed
 
 - Reject scoped, multiple, or malformed Softcopy VOI items that the singular GSPS model cannot represent, instead of applying the first item globally or falling back to top-level window values. Reject incomplete relationship references and malformed present frame restrictions instead of dropping entries or widening scope. See `Documentation/GSPSVOIAdmission.md`.
