@@ -68,7 +68,7 @@ struct AboutView: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// "Version 3.1.0 (1)" — the build number only when the bundle has one.
+    /// "Version 3.1.1 (1)" — the build number only when the bundle has one.
     private var versionLine: String {
         if let build = StudioBuildInfo.buildNumber {
             return "Version \(StudioBuildInfo.appVersion) (\(build))"

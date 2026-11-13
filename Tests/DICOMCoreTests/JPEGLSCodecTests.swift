@@ -713,7 +713,7 @@ struct JPEGLSCodecStrictDecodingTests {
                 samplesPerPixel: 1,
                 photometricInterpretation: .monochrome2
             )
-            let codec = JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless)
+            let codec = JPEGLSCodec(decodingTransferSyntaxUID: Self.lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
             let decoded = try codec.decodeFrame(legacyStream, descriptor: desc, frameIndex: 0)
             #expect(decoded == pixels, "Bit-exact recovery failed for \(bits)-bit monochrome")
 
@@ -723,7 +723,7 @@ struct JPEGLSCodecStrictDecodingTests {
                 maximumDecodedBytes: 4 << 20,
                 maximumPixels: width * height
             )
-            let tightCodec = JPEGLSCodec(decodingSyntax: .lossless, decodingLimits: tightLimits)
+            let tightCodec = JPEGLSCodec(decodingSyntax: .lossless, decodingLimits: tightLimits, missingPresetPolicy: .allowLegacyUnclampedRecovery)
             let tightDecoded = try tightCodec.decodePixelFrame(legacyStream, descriptor: desc, frameIndex: 0)
             #expect(tightDecoded.data == pixels)
         }
@@ -776,7 +776,7 @@ struct JPEGLSCodecStrictDecodingTests {
         #expect(dicomPaddedOdd.count % 2 == 0)
         #expect(Array(dicomPaddedOdd.suffix(3)) == [0xFF, 0xD9, 0x00])
 
-        let codec = JPEGLSCodec(decodingSyntax: .lossless)
+        let codec = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
         #expect(try codec.decodeFrame(oddCase.raw, descriptor: desc, frameIndex: 0) == oddCase.pixels)
         #expect(try codec.decodeFrame(dicomPaddedOdd, descriptor: desc, frameIndex: 0) == oddCase.pixels)
         #expect(try codec.decodeFrame(evenCase.raw, descriptor: desc, frameIndex: 0) == evenCase.pixels)
@@ -834,14 +834,14 @@ struct JPEGLSCodecStrictDecodingTests {
             photometricInterpretation: .rgb,
             planarConfiguration: 0
         )
-        let decoded = try JPEGLSCodec(decodingSyntax: .lossless)
+        let decoded = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
             .decodeFrame(legacyStream, descriptor: desc, frameIndex: 0)
         #expect(decoded == pixels)
 
         let budget = try DICOMAllocationBudget()
         let inBuf = try DICOMByteBuffer(count: legacyStream.count, budget: budget, resource: .encoded)
         legacyStream.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
-        let managed = try JPEGLSCodec(decodingSyntax: .lossless)
+        let managed = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
             .decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
         #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
         #expect(budget.receipt.current.staging == 0)
@@ -938,7 +938,7 @@ struct JPEGLSCodecStrictDecodingTests {
         var truncatedEntropy = Data(valid.prefix(max(24, valid.count / 2)))
         truncatedEntropy.append(contentsOf: [0xFF, 0xD9])
         #expect(throws: DICOMError.self) {
-            _ = try JPEGLSCodec(decodingSyntax: .lossless).decodeFrame(truncatedEntropy, descriptor: desc, frameIndex: 0)
+            _ = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery).decodeFrame(truncatedEntropy, descriptor: desc, frameIndex: 0)
         }
 
         // Inject an explicit standard LSE Id=1 before SOS in a legacy unclamped stream:
@@ -959,7 +959,7 @@ struct JPEGLSCodecStrictDecodingTests {
         ])
         mismatchedExplicitLSE.append(legacyStream[sosMarker.lowerBound...])
         #expect(throws: DICOMError.self) {
-            _ = try JPEGLSCodec(decodingSyntax: .lossless)
+            _ = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
                 .decodeFrame(mismatchedExplicitLSE, descriptor: desc, frameIndex: 0)
         }
     }

@@ -23,7 +23,7 @@ log_dir=".build/ci-logs/focused-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}
 mkdir -p "$log_dir"
 marker="$log_dir/built-head.txt"
 swift_test_flags=(-Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --scratch-path .build -c debug)
-core_filter='StrictDICOMTimeTests|DICOMTimeTests|DataElementTests|BugRegressionTests|DICOMExternalAllocationTests'
+core_filter='JPEGLSNegativeRegressionTests|StrictDICOMTimeTests|DICOMTimeTests|DataElementTests|BugRegressionTests|DICOMExternalAllocationTests'
 cli_filter='SegmentationNativeGeometryTests|ImageConverterOutputRulesTests|BoundedInputTests/(signedPaddingVR|paddingVRNestedContext|paddingVRRejectsContext|paddingVRLocalOverride|paddingVRPreservesExplicitMismatch|paddingVRRejectsLength|paddingVRAbsentIsUnchanged|paddingVRFinalizationCancellation|allocationFailureSweep|modalityLUTImplicitValues|modalityLUTNestedContext|modalityLUTRejectsMalformed|modalityLUTPreservesExplicit|modalityLUTScopeExclusions|modalityLUTFinalizationCancellation)\('
 
 check_source() {
@@ -50,6 +50,10 @@ run_tests() {
     2>&1 | tee "$log_dir/core-tests.log"
   grep -Eq 'Test run with 81 tests in 5 suites passed' "$log_dir/core-tests.log" \
     || fail 'Expected all 81 selected Core tests in 5 suites to pass; zero or partial selection is not a pass.'
+  grep -Fq "Test Suite 'JPEGLSNegativeRegressionTests' passed" "$log_dir/core-tests.log" \
+    || fail 'The strict JPEG-LS admission regressions did not pass.'
+  grep -Eq 'Executed 6 tests, with 0 failures \(0 unexpected\)' "$log_dir/core-tests.log" \
+    || fail 'Expected all 6 JPEG-LS XCTest cases to pass.'
   swift test "${swift_test_flags[@]}" --test-product DICOMKitTests \
     --skip-build --no-parallel --filter "$cli_filter" \
     2>&1 | tee "$log_dir/cli-tests.log"
@@ -64,7 +68,7 @@ run_tests() {
   grep -Eq 'Executed 8 tests, with 0 failures \(0 unexpected\)' "$log_dir/cli-tests.log" \
     || fail 'Expected all 8 native SEG regression cases to pass.'
   check_source
-  printf 'Focused validation passed: 81 Core, 15 bounded-input, 6 CLI and 8 SEG tests. Logs: %s\n' "$log_dir"
+  printf 'Focused validation passed: 81 Core, 15 bounded-input, 6 CLI, 8 SEG and 6 JPEG-LS tests. Logs: %s\n' "$log_dir"
 }
 
 case "$phase" in

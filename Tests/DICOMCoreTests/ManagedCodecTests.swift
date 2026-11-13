@@ -909,7 +909,7 @@ struct ManagedCodecTests {
                     let padBase = padBudget.receipt.currentTotal
                     do {
                         let padBuf = try owned(padded, budget: padBudget)
-                        let padFrame = try JPEGLSCodec(decodingSyntax: .lossless)
+                        let padFrame = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
                             .decodeManagedPixelFrame(padBuf, descriptor: desc, frameIndex: 0, budget: padBudget)
                         #expect(padBudget.receipt.current.staging == 0)
                         #expect(padFrame.data.withUnsafeBytes { Data($0) } == altPixels)
@@ -925,7 +925,7 @@ struct ManagedCodecTests {
         let baseline = budget.receipt.currentTotal
         for streamVariant in variants {
             let encodedBuf = try owned(streamVariant, budget: budget)
-            let frame = try JPEGLSCodec(decodingSyntax: .lossless)
+            let frame = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
                 .decodeManagedPixelFrame(encodedBuf, descriptor: desc, frameIndex: 0, budget: budget)
             #expect(budget.receipt.current.staging == 0)
             #expect(frame.data.count == desc.bytesPerFrame)
@@ -954,7 +954,7 @@ struct ManagedCodecTests {
         let probeBudget = try DICOMAllocationBudget()
         do {
             let probeIn = try owned(explicitLSECorrupt, budget: probeBudget)
-            let probeOut = JPEGLSCodec(decodingSyntax: .lossless)
+            let probeOut = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
                 .decodeManagedPixelFrameOutcome(probeIn, descriptor: desc, frameIndex: 0, budget: probeBudget)
             switch probeOut {
             case .success:
@@ -967,7 +967,7 @@ struct ManagedCodecTests {
         let tightBaseline = tightBudget.receipt.currentTotal
         do {
             let tightIn = try owned(corrupt16, budget: tightBudget)
-            let tightOut = JPEGLSCodec(decodingSyntax: .lossless)
+            let tightOut = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
                 .decodeManagedPixelFrameOutcome(tightIn, descriptor: desc, frameIndex: 0, budget: tightBudget)
             switch tightOut {
             case .success:
