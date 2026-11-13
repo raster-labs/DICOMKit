@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- JPEG-LS decoding now treats standard-default entropy failure as final when LSE preset parameters are absent. Previously, automatic synthesis of legacy unclamped parameters could admit a stream rejected by strict decoding. Trusted legacy compatibility is retained only through explicit `JPEGLSCodec.MissingPresetPolicy.allowLegacyUnclampedRecovery`, consistently across owning and managed decode paths.
+
 ## [3.1.0] - 2026-11-13
 
 ### Fixed

@@ -49,6 +49,17 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         case useCodestreamForUnsignedMonochrome
     }
 
+    /// Interpretation of streams that omit an LSE preset-coding-parameters segment.
+    public enum MissingPresetPolicy: Sendable, Equatable {
+        /// Use the JPEG-LS standard defaults; entropy failure is final (the default).
+        case requireStandardDefaults
+        /// Explicit compatibility mode for independently identified legacy encoders.
+        /// A failed 13...16-bit decode may be retried with unclamped legacy thresholds.
+        /// Do not enable for strict admission of untrusted streams: successful recovery
+        /// does not establish that these were the source's intended coding parameters.
+        case allowLegacyUnclampedRecovery
+    }
+
     /// Header-derived interpretation shared by indexing and sample decoding.
     /// Successful inspection does not qualify entropy data or decoded sample values.
     public struct FrameInfo: Sendable {
@@ -83,10 +94,12 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     private let syntaxRestriction: SyntaxRestriction
     private let decodingLimits: PixelDecodeLimits
     private let precisionPolicy: PrecisionPolicy
+    private let missingPresetPolicy: MissingPresetPolicy
 
     /// Creates a decoder with optional syntax enforcement and caller-selected resource bounds.
     public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default,
-                precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
+                precisionPolicy: PrecisionPolicy = .requireSourceMatch,
+                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults) {
         switch decodingTransferSyntaxUID {
         case nil: self.syntaxRestriction = .any
         case TransferSyntax.jpegLSLossless.uid: self.syntaxRestriction = .lossless
@@ -95,6 +108,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         }
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy
+        self.missingPresetPolicy = missingPresetPolicy
     }
 
     /// Create the same decoder from finite scalar policy without initializing UID Strings.
@@ -102,8 +116,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     ///   - decodingSyntax: Existing JPEG-LS profile restriction to enforce.
     ///   - decodingLimits: Bounds enforced before sample decoding.
     ///   - precisionPolicy: Existing explicit source/codestream precision policy.
+    ///   - missingPresetPolicy: Explicit opt-in for nonstandard legacy preset recovery.
     public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init(),
-                precisionPolicy: PrecisionPolicy = .requireSourceMatch) {
+                precisionPolicy: PrecisionPolicy = .requireSourceMatch,
+                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults) {
         switch decodingSyntax {
         case .any: syntaxRestriction = .any
         case .lossless: syntaxRestriction = .lossless
@@ -111,6 +127,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         }
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy
+        self.missingPresetPolicy = missingPresetPolicy
     }
 
     // MARK: - Decoding
@@ -822,7 +839,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                         workspace.keepAlive()
                         return .failure(DICOMManagedFailure(.cancelled))
                     }
-                    guard (13...16).contains(header.bitsPerSample),
+                    guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                          (13...16).contains(header.bitsPerSample),
                           let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded),
                           let patchedCount = plan.patchedByteCount else {
                         workspace.keepAlive()
@@ -1050,7 +1068,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     staging.keepAlive()
                     decodedPayload = payload
                 case .failure(let failure):
-                    guard failure.code != .cancelled,
+                    guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                          failure.code != .cancelled,
                           failure.code != .limitExceeded,
                           cancellation.failure == nil,
                           !Task.isCancelled,
@@ -1181,7 +1200,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         expectedByteCount: Int,
         losslessExpected: Bool
     ) throws -> Data? {
-        guard !Task.isCancelled,
+        guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+              !Task.isCancelled,
               (13...16).contains(summary.bitsPerSample),
               let patchedData = Self.makeLegacyUnclampedJPEGLSCodestream(from: originalData) else {
             return nil
