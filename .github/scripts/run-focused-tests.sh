@@ -24,7 +24,7 @@ mkdir -p "$log_dir"
 marker="$log_dir/built-head.txt"
 swift_test_flags=(-Xswiftc -Xfrontend -Xswiftc -enable-cross-import-overlays --scratch-path .build -c debug)
 core_filter='StrictDICOMTimeTests|DICOMTimeTests|DataElementTests|BugRegressionTests|DICOMExternalAllocationTests'
-cli_filter='ImageConverterOutputRulesTests|BoundedInputTests/(signedPaddingVR|paddingVRNestedContext|paddingVRRejectsContext|paddingVRLocalOverride|paddingVRPreservesExplicitMismatch|paddingVRRejectsLength|paddingVRAbsentIsUnchanged|paddingVRFinalizationCancellation|allocationFailureSweep|modalityLUTImplicitValues|modalityLUTNestedContext|modalityLUTRejectsMalformed|modalityLUTPreservesExplicit|modalityLUTScopeExclusions|modalityLUTFinalizationCancellation)\('
+cli_filter='SegmentationNativeGeometryTests|ImageConverterOutputRulesTests|BoundedInputTests/(signedPaddingVR|paddingVRNestedContext|paddingVRRejectsContext|paddingVRLocalOverride|paddingVRPreservesExplicitMismatch|paddingVRRejectsLength|paddingVRAbsentIsUnchanged|paddingVRFinalizationCancellation|allocationFailureSweep|modalityLUTImplicitValues|modalityLUTNestedContext|modalityLUTRejectsMalformed|modalityLUTPreservesExplicit|modalityLUTScopeExclusions|modalityLUTFinalizationCancellation)\('
 
 check_source() {
   [[ "$(git rev-parse HEAD)" == "$head" ]] || fail 'HEAD changed during focused validation.'
@@ -59,8 +59,12 @@ run_tests() {
     || fail 'Expected all 6 selected CLI XCTest cases to pass; zero or partial selection is not a pass.'
   grep -Eq 'Test run with 15 tests in 1 suite passed' "$log_dir/cli-tests.log" \
     || fail 'Expected all 15 selected bounded-input tests to pass; zero or partial selection is not a pass.'
+  grep -Fq "Test Suite 'SegmentationNativeGeometryTests' passed" "$log_dir/cli-tests.log" \
+    || fail 'The eight native SEG packing/calibration regression tests did not pass.'
+  grep -Eq 'Executed 8 tests, with 0 failures \(0 unexpected\)' "$log_dir/cli-tests.log" \
+    || fail 'Expected all 8 native SEG regression cases to pass.'
   check_source
-  printf 'Focused validation passed: 81 Core, 15 bounded-input and 6 CLI tests. Logs: %s\n' "$log_dir"
+  printf 'Focused validation passed: 81 Core, 15 bounded-input, 6 CLI and 8 SEG tests. Logs: %s\n' "$log_dir"
 }
 
 case "$phase" in

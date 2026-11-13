@@ -115,6 +115,7 @@ public final class SegmentationBuilder {
     private var contentDate: DICOMDate?
     private var contentTime: DICOMTime?
     private var frameOfReferenceUID: String?
+    private var pixelMeasures: PixelMeasures?
     private var pixelPaddingValue: Int?
     private var labelmapBitsAllocated: Int?
     private var paletteColor: (iccProfile: Data, colorSpace: String?)?
@@ -174,6 +175,14 @@ public final class SegmentationBuilder {
     }
     
     // MARK: - Configuration Methods
+
+    /// Sets shared pixel calibration (PS3.3 C.7.6.16.2.1). Values are in mm;
+    /// spacing order is row then column. Required attributes are supplied by the caller.
+    @discardableResult
+    public func setPixelMeasures(_ measures: PixelMeasures) -> Self {
+        pixelMeasures = measures
+        return self
+    }
     
     /// Sets the Type 2 Patient (PS3.3 2026a Table C.7-1) and General Study (Table C.7-3)
     /// attributes, e.g. `SegmentationPatientAndStudy(copyingFrom: sourceImage)`
@@ -367,7 +376,10 @@ public final class SegmentationBuilder {
         }
         
         // Validate mask dimensions
-        let expectedPixels = rows * columns
+        let (expectedPixels, overflow) = rows.multipliedReportingOverflow(by: columns)
+        guard rows > 0, columns > 0, !overflow else {
+            throw SegmentationBuilderError.invalidPlaneGeometry("Invalid binary frame dimensions")
+        }
         guard mask.count == expectedPixels else {
             throw SegmentationBuilderError.invalidMaskDimensions(expected: expectedPixels, got: mask.count)
         }
@@ -624,6 +636,7 @@ public final class SegmentationBuilder {
     /// - Throws: SegmentationBuilderError if validation fails
     /// - Returns: A tuple containing the Segmentation object and its pixel data
     public func build() throws -> (segmentation: Segmentation, pixelData: Data) {
+        try pixelMeasures?.validate(rows: rows, columns: columns)
         // Validate at least one segment
         guard !segments.isEmpty else {
             throw SegmentationBuilderError.noSegmentsAdded
@@ -676,8 +689,22 @@ public final class SegmentationBuilder {
             highBit = 0
             maxFractionalValue = nil
             fractionalType = nil
-            for segmentData in sortedSegments {
-                combinedPixelData.append(segmentData.pixelData)
+            let (pixelsPerFrame, dimensionOverflow) = rows.multipliedReportingOverflow(by: columns)
+            let (totalBits, countOverflow) = pixelsPerFrame.multipliedReportingOverflow(by: sortedSegments.count)
+            guard rows > 0, columns > 0, !dimensionOverflow, !countOverflow else {
+                throw SegmentationBuilderError.invalidPlaneGeometry("Binary frame size overflow")
+            }
+            let byteCount = totalBits / 8 + (totalBits % 8 == 0 ? 0 : 1)
+            combinedPixelData = Data(count: byteCount + byteCount % 2)
+            // Segment masks are individually packed internally; concatenate only
+            // their meaningful bits, not their trailing byte padding.
+            for (frame, segmentData) in sortedSegments.enumerated() {
+                for pixel in 0..<pixelsPerFrame {
+                    if (segmentData.pixelData[pixel / 8] >> (pixel % 8)) & 1 != 0 {
+                        let bit = frame * pixelsPerFrame + pixel
+                        combinedPixelData[bit / 8] |= 1 << (bit % 8)
+                    }
+                }
             }
             numberOfFrames = sortedSegments.count
             segmentsOverlap = nil
@@ -881,7 +908,7 @@ public final class SegmentationBuilder {
             samplesPerPixel: 1,
             photometricInterpretation: paletteColor == nil ? "MONOCHROME2" : "PALETTE COLOR",
             pixelRepresentation: 0,
-            sharedFunctionalGroups: nil,
+            sharedFunctionalGroups: pixelMeasures.map { FunctionalGroup(pixelMeasures: $0) },
             perFrameFunctionalGroups: perFrameFunctionalGroups,
             paletteColorLookupTable: paletteColorLookupTable,
             iccProfile: paletteColor?.iccProfile,
@@ -1110,6 +1137,10 @@ extension Segmentation {
 
     /// The Segmentation IOD rules ``buildDataSet(pixelData:)`` enforces
     private func validateForDataSet() throws {
+        try sharedFunctionalGroups?.pixelMeasures?.validate(rows: rows, columns: columns)
+        for group in perFrameFunctionalGroups {
+            try group.pixelMeasures?.validate(rows: rows, columns: columns)
+        }
         // Table C.8.20-4 (Segment Description Macro): Segmented Property Category Code
         // Sequence (0062,0003) and Segmented Property Type Code Sequence (0062,000F) are
         // Type 1 with "Only a single Item" (Baseline CID 7150 / CID 7151)
@@ -1321,7 +1352,8 @@ extension Segmentation {
                             inStackPositionNumber: group.frameContent?.inStackPositionNumber
                         ),
                         planePosition: group.planePosition,
-                        planeOrientation: group.planeOrientation
+                        planeOrientation: group.planeOrientation,
+                        pixelMeasures: group.pixelMeasures
                     )
                 }
                 return Segmentation.functionalGroupItem(frameGroup, segmentationType: segmentationType)
@@ -1494,6 +1526,24 @@ extension Segmentation {
     /// One Item of the Shared or Per-Frame Functional Groups Sequence
     private static func functionalGroupItem(_ group: FunctionalGroup, segmentationType: SegmentationType) -> SequenceItem {
         var elements: [DataElement] = []
+
+        if let measures = group.pixelMeasures {
+            var values: [DataElement] = []
+            if let spacing = measures.pixelSpacing {
+                values.append(DataElement.strings(tag: .pixelSpacing, vr: .DS,
+                    values: spacing.map { DICOMDecimalString(value: $0).dicomString }))
+            }
+            if let thickness = measures.sliceThickness {
+                values.append(DataElement.string(tag: .sliceThickness, vr: .DS,
+                    value: DICOMDecimalString(value: thickness).dicomString))
+            }
+            if let spacing = measures.spacingBetweenSlices {
+                values.append(DataElement.string(tag: .spacingBetweenSlices, vr: .DS,
+                    value: DICOMDecimalString(value: spacing).dicomString))
+            }
+            elements.append(sequenceElement(tag: .pixelMeasuresSequence,
+                                            items: [SequenceItem(elements: values)]))
+        }
 
         // Segmentation Macro (Table C.8.20-3) — not for LABELMAP (Table A.51-2)
         if segmentationType != .labelmap, let ident = group.segmentIdentification {

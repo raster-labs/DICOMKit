@@ -132,8 +132,12 @@ public struct SegmentationParser {
         let colorSpace = isPaletteColor ? dataSet.string(for: .colorSpace) : nil
         
         // Parse Functional Groups
-        let sharedFunctionalGroups = parseSharedFunctionalGroups(from: dataSet)
-        let perFrameFunctionalGroups = parsePerFrameFunctionalGroups(from: dataSet)
+        let sharedFunctionalGroups = try parseSharedFunctionalGroups(from: dataSet)
+        let perFrameFunctionalGroups = try parsePerFrameFunctionalGroups(from: dataSet)
+        try sharedFunctionalGroups?.pixelMeasures?.validate(rows: Int(rows), columns: Int(columns))
+        for group in perFrameFunctionalGroups {
+            try group.pixelMeasures?.validate(rows: Int(rows), columns: Int(columns))
+        }
         
         return Segmentation(
             sopInstanceUID: sopInstanceUID,
@@ -321,28 +325,28 @@ public struct SegmentationParser {
     }
     
     /// Parse Shared Functional Groups Sequence
-    private static func parseSharedFunctionalGroups(from dataSet: DataSet) -> FunctionalGroup? {
+    private static func parseSharedFunctionalGroups(from dataSet: DataSet) throws -> FunctionalGroup? {
         guard let sequence = dataSet.sequence(for: .sharedFunctionalGroupsSequence),
               let item = sequence.first else {
             return nil
         }
         
-        return parseFunctionalGroup(from: item)
+        return try parseFunctionalGroup(from: item)
     }
     
     /// Parse Per-Frame Functional Groups Sequence
-    private static func parsePerFrameFunctionalGroups(from dataSet: DataSet) -> [FunctionalGroup] {
+    private static func parsePerFrameFunctionalGroups(from dataSet: DataSet) throws -> [FunctionalGroup] {
         guard let sequence = dataSet.sequence(for: .perFrameFunctionalGroupsSequence) else {
             return []
         }
         
-        return sequence.compactMap { item in
-            parseFunctionalGroup(from: item)
+        return try sequence.compactMap { item in
+            try parseFunctionalGroup(from: item)
         }
     }
     
     /// Parse a single Functional Group
-    private static func parseFunctionalGroup(from item: SequenceItem) -> FunctionalGroup? {
+    private static func parseFunctionalGroup(from item: SequenceItem) throws -> FunctionalGroup? {
         var hasContent = false
         
         // Parse Segment Identification Sequence
@@ -462,6 +466,36 @@ public struct SegmentationParser {
             }
         }
         
+        var pixelMeasures: PixelMeasures?
+        if let element = item[.pixelMeasuresSequence] {
+            guard element.vr == .SQ, let items = element.sequenceItems, items.count == 1 else {
+                throw DICOMError.parsingFailed("Pixel Measures Sequence requires one item")
+            }
+            func values(_ tag: Tag, count: Int) throws -> [Double]? {
+                guard let value = items[0][tag] else { return nil }
+                guard value.vr == .DS else {
+                    throw DICOMError.parsingFailed("Pixel Measures requires DS values")
+                }
+                // Reject the entire attribute if any component is invalid; do not
+                // compact malformed geometry into a different numeric tuple.
+                let parts = value.valueData.split(separator: 0x5c, omittingEmptySubsequences: false)
+                guard parts.count == count else {
+                    throw DICOMError.parsingFailed("Invalid Pixel Measures multiplicity")
+                }
+                return try parts.map { part in
+                    let result = part.withUnsafeBytes { DICOMDecimalString.parseScalar($0) }
+                    guard result.status == .success else {
+                        throw DICOMError.parsingFailed("Invalid Pixel Measures decimal")
+                    }
+                    return result.value
+                }
+            }
+            pixelMeasures = PixelMeasures(pixelSpacing: try values(.pixelSpacing, count: 2),
+                sliceThickness: try values(.sliceThickness, count: 1)?.first,
+                spacingBetweenSlices: try values(.spacingBetweenSlices, count: 1)?.first)
+            hasContent = true
+        }
+
         // Only return a FunctionalGroup if we found at least some content
         guard hasContent else {
             return nil
@@ -472,7 +506,8 @@ public struct SegmentationParser {
             derivationImage: derivationImage,
             frameContent: frameContent,
             planePosition: planePosition,
-            planeOrientation: planeOrientation
+            planeOrientation: planeOrientation,
+            pixelMeasures: pixelMeasures
         )
     }
 }

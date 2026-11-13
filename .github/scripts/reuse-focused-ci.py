@@ -50,7 +50,7 @@ def main():
     validation["reusedCI"] = {
         "run": int(args.run), "attempt": attempt, "head": head, "tree": tree,
         "url": run["html_url"], "workflowPath": run["path"], "testJobId": job["id"],
-        "testScope": "81 Core, 15 bounded-input and 6 CLI tests",
+        "testScope": "81 Core, 15 bounded-input, 6 CLI and 8 SEG tests",
     }
     args.validation.write_text(json.dumps(validation, indent=2) + "\n")
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:

@@ -136,7 +136,8 @@ public struct SegmentationPixelDataExtractor: Sendable {
     ///
     /// Binary segmentations use 1 bit per pixel, packed into bytes (8 pixels per byte).
     /// Each bit represents presence (1) or absence (0) of the segment at that pixel location.
-    /// Bits are packed with the most significant bit first.
+    /// Bits are packed least significant bit first, continuously across frames;
+    /// only the complete Pixel Data value is padded (PS3.5 8.1.1).
     ///
     /// Reference: PS3.3 C.8.20.2 - Binary segmentation encoding
     ///
@@ -156,33 +157,21 @@ public struct SegmentationPixelDataExtractor: Sendable {
             return nil
         }
         
-        let totalPixels = rows * columns
-        
-        // Binary segmentation: 1 bit per pixel, packed into bytes
-        // Each frame requires ceil(totalPixels / 8) bytes
-        let bitsPerFrame = totalPixels
-        let bytesPerFrame = (bitsPerFrame + 7) / 8  // Round up to nearest byte
-        
-        let frameOffset = frameIndex * bytesPerFrame
-        
-        guard frameOffset + bytesPerFrame <= pixelData.count else {
-            return nil
-        }
-        
-        // Extract the packed frame data
-        let frameData = pixelData.subdata(in: frameOffset..<(frameOffset + bytesPerFrame))
-        
-        // Unpack the bits into individual pixel values
-        var mask = [UInt8](repeating: 0, count: totalPixels)
-        
-        for pixelIndex in 0..<totalPixels {
-            let byteIndex = pixelIndex / 8
-            let bitIndex = pixelIndex % 8   // least significant bit first (PS3.5 8.1.1, D.1)
+        let (totalPixels, pixelOverflow) = rows.multipliedReportingOverflow(by: columns)
+        guard !pixelOverflow else { return nil }
+        let (firstBit, offsetOverflow) = frameIndex.multipliedReportingOverflow(by: totalPixels)
+        guard !offsetOverflow else { return nil }
+        let (endBit, endOverflow) = firstBit.addingReportingOverflow(totalPixels)
+        guard !endOverflow else { return nil }
+        let requiredBytes = endBit / 8 + (endBit % 8 == 0 ? 0 : 1)
+        guard requiredBytes <= pixelData.count else { return nil }
 
-            if byteIndex < frameData.count {
-                let byte = frameData[byteIndex]
-                let bitValue = (byte >> bitIndex) & 0x01
-                mask[pixelIndex] = bitValue
+        // Read the original stream without copying or assuming a zero Data startIndex.
+        var mask = [UInt8](repeating: 0, count: totalPixels)
+        pixelData.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            for pixelIndex in 0..<totalPixels {
+                let bit = firstBit + pixelIndex
+                mask[pixelIndex] = (bytes[bit / 8] >> (bit % 8)) & 1
             }
         }
         

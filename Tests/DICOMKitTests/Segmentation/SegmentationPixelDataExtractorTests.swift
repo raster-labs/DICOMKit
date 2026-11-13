@@ -85,8 +85,8 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
     func test_extractBinaryFrame_multipleFrames_succeeds() {
         // Given: Two frames of 2x2 pixels each, least significant bit first
         // Frame 0: 1,0,1,0 in bits 0...3 = 0x05
-        // Frame 1: 0,1,0,1 in bits 0...3 = 0x0A
-        let pixelData = Data([0x05, 0x0A])
+        // Frame 1: 0,1,0,1 in bits 4...7; only the complete value is padded.
+        let pixelData = Data([0xA5, 0x00])
 
         // When: Extracting frame 0
         let mask0 = SegmentationPixelDataExtractor.extractBinaryFrame(
@@ -526,8 +526,8 @@ final class SegmentationPixelDataExtractorTests: XCTestCase {
             perFrameFunctionalGroups: [fg1, fg2]
         )
         
-        // Two frames, least significant bit first: Frame 0 = 1,0,1,0 (0x05), Frame 1 = 0,1,0,1 (0x0A)
-        let pixelData = Data([0x05, 0x0A])
+        // Two continuous four-bit frames: 1,0,1,0 then 0,1,0,1; even value padding.
+        let pixelData = Data([0xA5, 0x00])
         
         // When: Extracting all segments
         let masks = SegmentationPixelDataExtractor.extractAllSegmentMasks(
