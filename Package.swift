@@ -712,6 +712,7 @@ let package = Package(
                 "PresentationStateTests/DisplayFeaturesTests.swift",
                 "PresentationStateTests/DisplayShutterTests.swift",
                 "PresentationStateTests/GraphicAnnotationTests.swift",
+                "PresentationStateTests/GSPSVOIScopeTests.swift",
                 "PresentationStateTests/ICCProfileAdvancedTests.swift",
                 "PresentationStateTests/ICCProfileParserTests.swift",
                 "PresentationStateTests/LUTColorTransformTests.swift",
