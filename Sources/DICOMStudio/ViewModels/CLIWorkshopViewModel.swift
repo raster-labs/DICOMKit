@@ -4065,13 +4065,15 @@ private func executeDicomStudy() async {
             let value = paramValue(id).trimmingCharacters(in: .whitespaces)
             return value.isEmpty ? nil : value
         }
+        let rawStudyDate = paramValue("studyDate").isEmpty ? nil : paramValue("studyDate")
+        let rawStudyTime = paramValue("studyTime").isEmpty ? nil : paramValue("studyTime")
         return VideoWorkflow.Metadata(
             patientName: optional("patientName"),
             patientID: optional("patientID"),
             patientBirthDate: optional("patientBirthDate"),
             patientSex: optional("patientSex"),
-            studyDate: paramValue("studyDate").isEmpty ? nil : paramValue("studyDate"),
-            studyTime: paramValue("studyTime").isEmpty ? nil : paramValue("studyTime"),
+            studyDate: rawStudyDate.flatMap(ImageConverter.OutputRules.studyDate),
+            studyTime: rawStudyTime.flatMap(ImageConverter.OutputRules.studyTime),
             studyUID: optional("studyUID"),
             seriesUID: optional("seriesUID"),
             accessionNumber: optional("accessionNumber"),
@@ -4112,7 +4114,11 @@ private func executeDicomStudy() async {
         } else if sources.count > 1 {
             metadata.audioChannelSources = sources
         }
-        let violations = VideoOptionConformance.violations(type: type, metadata: metadata, transferSyntax: transferSyntax)
+        let rawStudyDate = paramValue("studyDate").isEmpty ? nil : paramValue("studyDate")
+        let rawStudyTime = paramValue("studyTime").isEmpty ? nil : paramValue("studyTime")
+        let violations = VideoOptionConformance.violations(
+            type: type, metadata: metadata, transferSyntax: transferSyntax,
+            studyDate: rawStudyDate, studyTime: rawStudyTime)
         return (metadata, lines, nil, violations)
     }
 

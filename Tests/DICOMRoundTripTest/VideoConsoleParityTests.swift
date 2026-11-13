@@ -44,7 +44,11 @@ final class VideoConsoleParityTests: XCTestCase {
         ] {
             let outcome = try VideoWorkflow.convert(
                 bitstream: h264MP4(), type: .photographic, typeWasExplicit: true,
-                metadata: .init(studyDate: date, studyTime: time, studyUID: "1.2.3.4"),
+                metadata: .init(
+                    studyDate: ImageConverter.OutputRules.studyDate(date),
+                    studyTime: ImageConverter.OutputRules.studyTime(time),
+                    studyUID: "1.2.3.4"
+                ),
                 now: Date(timeIntervalSince1970: 0))
             let ds = try DICOMFile.read(from: XCTUnwrap(outcome.data)).dataSet
             XCTAssertEqual(ds[Tag(group: 0x0008, element: 0x0020)]?.vr, .DA)
@@ -60,7 +64,11 @@ final class VideoConsoleParityTests: XCTestCase {
             for (date, time) in [(nil, nil), ("20240229", nil), (nil, "1020")] as [(String?, String?)] {
                 let outcome = try VideoWorkflow.convert(
                     bitstream: h264MP4(), type: .photographic, typeWasExplicit: true,
-                    metadata: .init(studyDate: date, studyTime: time, studyUID: uid))
+                    metadata: .init(
+                        studyDate: date.flatMap(ImageConverter.OutputRules.studyDate),
+                        studyTime: time.flatMap(ImageConverter.OutputRules.studyTime),
+                        studyUID: uid
+                    ))
                 let ds = try DICOMFile.read(from: XCTUnwrap(outcome.data)).dataSet
                 XCTAssertEqual(try XCTUnwrap(ds[.studyDate]).valueData.count, date == nil ? 0 : 8)
                 XCTAssertEqual(try XCTUnwrap(ds[.studyTime]).valueData.count, time == nil ? 0 : 4)
@@ -76,7 +84,10 @@ final class VideoConsoleParityTests: XCTestCase {
             let result = VideoWorkflow.runBatch(
                 inputs: [URL(fileURLWithPath: "/a.mp4"), URL(fileURLWithPath: "/b.mp4")],
                 type: .photographic, typeWasExplicit: true, seriesMode: mode,
-                metadata: .init(studyDate: "20240229", studyTime: "102030.123456"),
+                metadata: .init(
+                    studyDate: ImageConverter.OutputRules.studyDate("20240229"),
+                    studyTime: ImageConverter.OutputRules.studyTime("102030.123456")
+                ),
                 now: Date(timeIntervalSince1970: 0), readFile: { _ in self.h264MP4() },
                 writeFile: { written.append(try XCTUnwrap($0.data)); return $0.outputName })
             XCTAssertEqual(result.exitCode, .success)
@@ -90,7 +101,10 @@ final class VideoConsoleParityTests: XCTestCase {
     }
 
     func testInvalidStudyStartRejectsBeforeDryRunOrBatchIO() throws {
-        for metadata in [VideoWorkflow.Metadata(studyDate: "20230229"), .init(studyTime: "240000")] {
+        for metadata in [
+            VideoWorkflow.Metadata(studyDate: DICOMDate(year: 2023, month: 2, day: 29)),
+            .init(studyTime: DICOMTime(hour: 24, minute: 0, second: 0))
+        ] {
             for dryRun in [false, true] {
                 XCTAssertThrowsError(try VideoWorkflow.convert(
                     bitstream: Data(), type: .photographic, typeWasExplicit: true,

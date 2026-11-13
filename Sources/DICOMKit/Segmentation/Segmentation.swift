@@ -517,6 +517,9 @@ public struct FunctionalGroup: Sendable {
     
     /// Plane Orientation
     public let planeOrientation: PlaneOrientation?
+
+    /// Shared or per-frame calibration in mm (PS3.3 C.7.6.16.2.1).
+    public let pixelMeasures: PixelMeasures?
     
     /// Initialize a FunctionalGroup
     public init(
@@ -524,13 +527,47 @@ public struct FunctionalGroup: Sendable {
         derivationImage: DerivationImage? = nil,
         frameContent: FrameContent? = nil,
         planePosition: PlanePosition? = nil,
-        planeOrientation: PlaneOrientation? = nil
+        planeOrientation: PlaneOrientation? = nil,
+        pixelMeasures: PixelMeasures? = nil
     ) {
         self.segmentIdentification = segmentIdentification
         self.derivationImage = derivationImage
         self.frameContent = frameContent
         self.planePosition = planePosition
         self.planeOrientation = planeOrientation
+        self.pixelMeasures = pixelMeasures
+    }
+}
+
+/// Pixel Measures Functional Group. Pixel spacing is [row, column] in mm.
+/// Optional fields preserve absence; calibration is never inferred or defaulted.
+/// A spatial Segmentation Storage object with Frame of Reference UID requires
+/// Pixel Spacing and Slice Thickness (PS3.3 Table C.7.6.16-2).
+public struct PixelMeasures: Sendable, Equatable {
+    public let pixelSpacing: [Double]?
+    public let sliceThickness: Double?
+    public let spacingBetweenSlices: Double?
+
+    public init(pixelSpacing: [Double]? = nil, sliceThickness: Double? = nil,
+                spacingBetweenSlices: Double? = nil) {
+        self.pixelSpacing = pixelSpacing
+        self.sliceThickness = sliceThickness
+        self.spacingBetweenSlices = spacingBetweenSlices
+    }
+
+    internal func validate(rows: Int, columns: Int) throws {
+        if let spacing = pixelSpacing {
+            guard spacing.count == 2, spacing.allSatisfy({ $0.isFinite && $0 >= 0 }),
+                  (spacing[0] > 0 || rows == 1), (spacing[1] > 0 || columns == 1) else {
+                throw DICOMError.parsingFailed("Invalid Pixel Measures Pixel Spacing")
+            }
+        }
+        if let thickness = sliceThickness, !thickness.isFinite || thickness <= 0 {
+            throw DICOMError.parsingFailed("Invalid Pixel Measures Slice Thickness")
+        }
+        if let spacing = spacingBetweenSlices, !spacing.isFinite || spacing < 0 {
+            throw DICOMError.parsingFailed("Invalid Pixel Measures Spacing Between Slices")
+        }
     }
 }
 
