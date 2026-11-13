@@ -110,7 +110,9 @@ public struct GrayscalePresentationState: PresentationState, Sendable {
     /// Modality LUT transformation (rescale slope/intercept or LUT)
     public let modalityLUT: ModalityLUT?
     
-    /// VOI LUT transformation (window/level or LUT)
+    /// One VOI LUT transformation (window/level or LUT) for all images and frames
+    /// in `referencedSeries`. This property cannot represent a narrower scope
+    /// or multiple Softcopy VOI items; the parser explicitly rejects those forms.
     public let voiLUT: VOILUT?
     
     /// Presentation LUT transformation (IDENTITY or INVERSE)

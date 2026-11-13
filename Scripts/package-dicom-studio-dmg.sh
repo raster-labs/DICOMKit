@@ -19,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Default values
-VERSION="3.1.1"
+VERSION="3.1.2"
 SIGN_IDENTITY=""
 NOTARIZE=false
 BUILD_DIR=".build/release"

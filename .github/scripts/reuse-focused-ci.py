@@ -42,7 +42,7 @@ def main():
     job = matches[0]
     assert job["status"] == "completed" and job["conclusion"] == "success"
     steps = {step["name"]: step for step in job["steps"]}
-    for name in ("Build and discover focused Debug test products", "Run focused tests (81 Core, 15 bounded input, 6 CLI, 8 SEG and 6 JPEG-LS)"):
+    for name in ("Build and discover focused Debug test products", "Run focused tests (81 Core, 15 bounded input, 6 CLI, 8 SEG, 6 JPEG-LS and 24 GSPS)"):
         assert steps[name]["conclusion"] == "success", "Focused CI step did not pass: " + name
     validation = json.loads(args.validation.read_text())
     assert validation["validationCommit"] == git("rev-parse", "HEAD")
@@ -50,7 +50,7 @@ def main():
     validation["reusedCI"] = {
         "run": int(args.run), "attempt": attempt, "head": head, "tree": tree,
         "url": run["html_url"], "workflowPath": run["path"], "testJobId": job["id"],
-        "testScope": "81 Core, 15 bounded-input, 6 CLI, 8 SEG and 6 JPEG-LS tests",
+        "testScope": "81 Core, 15 bounded-input, 6 CLI, 8 SEG, 6 JPEG-LS and 24 GSPS tests",
     }
     args.validation.write_text(json.dumps(validation, indent=2) + "\n")
     with open(os.environ["GITHUB_OUTPUT"], "a") as output:
