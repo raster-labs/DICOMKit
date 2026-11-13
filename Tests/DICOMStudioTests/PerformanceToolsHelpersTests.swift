@@ -525,7 +525,7 @@ struct PerformanceToolsHelpersTests {
     func testDICOMKitVersion() {
         #expect(ConformanceStatementHelpers.dicomkitVersion() == DICOMKit.version)
         #expect(StudioBuildInfo.dicomKitVersion == DICOMKit.version)
-        #expect(StudioBuildInfo.dicomKitVersion == "3.1.0")
+        #expect(StudioBuildInfo.dicomKitVersion == "3.1.1")
     }
 
     @Test("StudioBuildInfo and version helpers align with Swift 6.4 and OS 26.0+")

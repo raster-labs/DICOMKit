@@ -5,9 +5,9 @@ RLE, and JPEG XL) are available through explicit allocation ownership. See
 [the allocation contract](Documentation/BoundedInput/AllocationContract.md) for retained
 capacities, synchronous worker reservations, cancellation and runtime qualification.
 
-### v3.1.0 Apple OS 26.0+ / Swift 6.4+ pure-Swift compression, JP3D & JPIP suite
+### v3.1.1 Apple OS 26.0+ / Swift 6.4+ pure-Swift compression, JP3D & JPIP suite
 
-`DICOMKit` v3.1.0 targets Apple OS 26.0+ (`macOS 26.0+`,
+`DICOMKit` v3.1.1 targets Apple OS 26.0+ (`macOS 26.0+`,
 `iOS 26.0+`, `tvOS 26.0+`, `visionOS 26.0+`) on Swift 6.4 and runs all encapsulated
 and streaming DICOM transfer syntaxes on the unified MIT-licensed `raster-labs` pure-Swift
 compression suite (`SwiftJ2K 12.2.0`, `SwiftRLE 1.0.2`, `SwiftJLS 2.0.1`, `SwiftJLI 2.0.3`,
@@ -1700,7 +1700,7 @@ let package = Package(
         .macOS(.v26)
     ],
     dependencies: [
-        .package(url: "https://github.com/raster-labs/DICOMKit.git", from: "3.1.0")
+        .package(url: "https://github.com/raster-labs/DICOMKit.git", from: "3.1.1")
     ],
     targets: [
         .target(
@@ -1716,7 +1716,7 @@ let package = Package(
 Or add it through Xcode:
 1. File → Add Package Dependencies
 2. Enter: `https://github.com/raster-labs/DICOMKit`
-3. Select version 3.1.0 or later
+3. Select version 3.1.1 or later
 
 #### Available Products
 
