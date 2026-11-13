@@ -532,7 +532,7 @@ struct PerformanceToolsHelpersTests {
     func testStudioBuildInfoAlignment() {
         #expect(StudioBuildInfo.swiftVersion == "6.4")
         #expect(StudioBuildInfo.platform == "macOS 26+ / iOS 26+")
-        #expect(VersionHelpers.currentStudioVersion == SemanticVersion(major: 3, minor: 1, patch: 0))
+        #expect(VersionHelpers.currentStudioVersion == SemanticVersion(major: 3, minor: 1, patch: 1))
         #expect(WelcomeViewHelpers.appVersion() == "DICOM Studio v\(StudioBuildInfo.appVersion)")
     }
 
