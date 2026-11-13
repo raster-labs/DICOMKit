@@ -1,17 +1,17 @@
 # Homebrew Formula for DICOMKit CLI Tools
 #
 # IMPORTANT: Before using this formula, you must:
-# 1. Create a release tag (e.g., v3.0.0) in the DICOMKit repository
+# 1. Create a release tag (e.g., v3.1.0) in the DICOMKit repository
 # 2. Calculate the SHA256 checksum of the release tarball:
-#    curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.0.0.tar.gz | shasum -a 256
+#    curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.0.tar.gz | shasum -a 256
 # 3. Replace the empty sha256 value below with the actual checksum
 #
 class Dicomkit < Formula
   desc "Pure Swift DICOM toolkit with 35 command-line utilities"
   homepage "https://github.com/Raster-Lab/DICOMKit"
-  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.0.0.tar.gz"
-  # TODO: Replace with actual SHA256 after creating the v3.0.0 release
-  # Generate with: curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.0.0.tar.gz | shasum -a 256
+  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.0.tar.gz"
+  # TODO: Replace with actual SHA256 after creating the v3.1.0 release
+  # Generate with: curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.0.tar.gz | shasum -a 256
   sha256 ""
   license "MIT"
   head "https://github.com/Raster-Lab/DICOMKit.git", branch: "main"

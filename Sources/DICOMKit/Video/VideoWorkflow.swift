@@ -117,8 +117,8 @@ public enum VideoWorkflow {
         public var patientID: String?
         public var patientBirthDate: String?
         public var patientSex: String?
-        public var studyDate: String?
-        public var studyTime: String?
+        public var studyDate: DICOMDate?
+        public var studyTime: DICOMTime?
         public var studyUID: String?
         public var seriesUID: String?
         public var accessionNumber: String?
@@ -145,8 +145,8 @@ public enum VideoWorkflow {
             patientID: String? = nil,
             patientBirthDate: String? = nil,
             patientSex: String? = nil,
-            studyDate: String? = nil,
-            studyTime: String? = nil,
+            studyDate: DICOMDate? = nil,
+            studyTime: DICOMTime? = nil,
             studyUID: String? = nil,
             seriesUID: String? = nil,
             accessionNumber: String? = nil,
@@ -403,8 +403,8 @@ public enum VideoWorkflow {
         // Study start is user metadata, not the time an existing clip is wrapped.
         // Missing Type 2 values remain present and empty (PS3.3 C.7.2.1).
         builder.setStudyDateTime(
-            date: metadata.studyDate.flatMap(ImageConverter.OutputRules.studyDate),
-            time: metadata.studyTime.flatMap(ImageConverter.OutputRules.studyTime))
+            date: metadata.studyDate,
+            time: metadata.studyTime)
         builder.setAcquisitionDateTime(date: today, time: time)
 
         // The payload is encapsulated unchanged, so audio in an MP4 or MPEG-TS

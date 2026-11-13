@@ -2,7 +2,7 @@
 class Dicomkit < Formula
   desc "Pure Swift DICOM toolkit with 35 command-line utilities"
   homepage "https://github.com/Raster-Lab/DICOMKit"
-  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.0.0.tar.gz"
+  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.0.tar.gz"
   sha256 "" # Will be filled in upon first release
   license "MIT"
   head "https://github.com/Raster-Lab/DICOMKit.git", branch: "main"

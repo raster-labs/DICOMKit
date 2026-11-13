@@ -10,27 +10,35 @@ final class VideoOptionConformanceTests: XCTestCase {
     func testStudyDateUsesStrictGregorianCalendar() {
         for value in ["20240229", "20241130"] {
             XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
-                metadata: .init(studyDate: value)).isEmpty, value)
+                studyDate: value).isEmpty, value)
+            XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
+                metadata: .init(studyDate: ImageConverter.OutputRules.studyDate(value))).isEmpty, value)
         }
         for value in ["20230229", "20240431", "2024.02.29", "2024-02-29", "202402", " 20240229", "20240229 ", "２０２４０２２９", ""] {
             let errors = VideoOptionConformance.violations(
-                type: .photographic, metadata: .init(studyDate: value), transferSyntax: nil)
+                type: .photographic, metadata: .init(), transferSyntax: nil, studyDate: value)
             XCTAssertEqual(errors.count, 1, value)
             XCTAssertTrue(errors.first?.contains("(0008,0020)") == true, value)
         }
+        XCTAssertEqual(VideoOptionConformance.studyDateTimeViolations(
+            metadata: .init(studyDate: DICOMDate(year: 2023, month: 2, day: 29))).count, 1)
     }
 
     func testStudyTimeUsesStrictTMIncludingPartialAndFractionalValues() {
         for value in ["10", "1020", "102030", "102030.1", "102030.123456", "235960"] {
             XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
-                metadata: .init(studyTime: value)).isEmpty, value)
+                studyTime: value).isEmpty, value)
+            XCTAssertTrue(VideoOptionConformance.studyDateTimeViolations(
+                metadata: .init(studyTime: ImageConverter.OutputRules.studyTime(value))).isEmpty, value)
         }
         for value in ["24", "1260", "126060", "102061", "10:20:30", "102030.", "102030.1234567", "102", "1020.1", " 102030", "102030 ", ""] {
             let errors = VideoOptionConformance.violations(
-                type: .photographic, metadata: .init(studyTime: value), transferSyntax: nil)
+                type: .photographic, metadata: .init(), transferSyntax: nil, studyTime: value)
             XCTAssertEqual(errors.count, 1, value)
             XCTAssertTrue(errors.first?.contains("(0008,0030)") == true, value)
         }
+        XCTAssertEqual(VideoOptionConformance.studyDateTimeViolations(
+            metadata: .init(studyTime: DICOMTime(hour: 24, minute: 0, second: 0))).count, 1)
     }
 
     // MARK: - VideoOptionConformance
