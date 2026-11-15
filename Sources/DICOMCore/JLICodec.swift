@@ -1,5 +1,96 @@
 import Foundation
+import Synchronization
 import SwiftJLI
+
+private final class JLIBorrowedReadOnlyStorage: SwiftJLI.ReadOnlyImageStorage, Sendable {
+    let data: Data
+    let allocationID = UUID()
+    var byteCount: Int { data.count }
+    init(data: Data) { self.data = data }
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try data.withUnsafeBytes(body)
+    }
+}
+
+private final class JLIDataBackedWritableStorage: SwiftJLI.WritableImageStorage, Sendable {
+    let byteCount: Int
+    let allocationID = UUID()
+    private enum Phase { case available, writing, sealed, invalid }
+    private struct State: Sendable {
+        var data: Data
+        var phase: Phase = .available
+        var lease: SwiftJLI.StorageWriteLease?
+    }
+    private let state: Mutex<State>
+    private let engaged = Atomic<Bool>(false)
+
+    init(byteCount: Int) {
+        self.byteCount = byteCount
+        self.state = Mutex(State(data: Data(count: byteCount)))
+    }
+
+    func reserveWrite() throws -> SwiftJLI.StorageWriteLease {
+        try locked { state in
+            guard state.phase == .available else {
+                throw SwiftJLI.CodecError(.storageUnavailable, "Storage unavailable.")
+            }
+            let lease = SwiftJLI.StorageWriteLease()
+            state.lease = lease
+            state.phase = .writing
+            return lease
+        }
+    }
+
+    func withUnsafeMutableBytes<R>(
+        lease: SwiftJLI.StorageWriteLease,
+        _ body: (UnsafeMutableRawBufferPointer) throws -> R
+    ) throws -> R {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLI.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            return try state.data.withUnsafeMutableBytes(body)
+        }
+    }
+
+    func finishAndSeal(lease: SwiftJLI.StorageWriteLease) throws -> any SwiftJLI.ReadOnlyImageStorage {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLI.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            let sealed = JLIBorrowedReadOnlyStorage(data: state.data)
+            state.data = Data()
+            state.lease = nil
+            state.phase = .sealed
+            return sealed
+        }
+    }
+
+    func abortAndInvalidate(lease: SwiftJLI.StorageWriteLease) throws {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLI.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            state.data = Data()
+            state.lease = nil
+            state.phase = .invalid
+        }
+    }
+
+    private func locked<R>(_ body: (inout State) throws -> R) throws -> R {
+        guard !engaged.load(ordering: .acquiring) else {
+            throw SwiftJLI.CodecError(.storageUnavailable, "Reentrant storage borrow.")
+        }
+        guard let result = try state.withLockIfAvailable({ state -> R in
+            engaged.store(true, ordering: .releasing)
+            defer { engaged.store(false, ordering: .releasing) }
+            return try body(&state)
+        }) else {
+            throw SwiftJLI.CodecError(.storageUnavailable, "Concurrent storage borrow.")
+        }
+        return result
+    }
+}
 
 /// JPEG codec backed by the `SwiftJLI` pure-Swift JPEG package.
 ///
@@ -25,7 +116,7 @@ import SwiftJLI
 /// channel-interleaved little-endian layout (`copyPolicy: .requireSharedStorage`), with
 /// `Fidelity.exactSamples` verified on lossless `.57` and `.70` paths.
 /// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a SwiftJLI/ITU-T T.81 SOF3 precision limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
-public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
+public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJLI"
     public static let engineVersion = "2.0.3"
 
@@ -70,6 +161,28 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     }
     private let syntaxRestriction: SyntaxRestriction
     private let decodingLimits: PixelDecodeLimits
+    public let decodeBackend: CodecBackend?
+    public let maximumWorkers: Int?
+    public let restartInterval: Int
+    public let restartIntervalRows: Int
+
+    private init(
+        explicitEncodingTransferSyntaxUID: String?,
+        syntaxRestriction: SyntaxRestriction,
+        decodingLimits: PixelDecodeLimits,
+        decodeBackend: CodecBackend?,
+        maximumWorkers: Int?,
+        restartInterval: Int,
+        restartIntervalRows: Int
+    ) {
+        self.explicitEncodingTransferSyntaxUID = explicitEncodingTransferSyntaxUID
+        self.syntaxRestriction = syntaxRestriction
+        self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartInterval = max(0, min(65535, restartInterval))
+        self.restartIntervalRows = max(0, restartIntervalRows)
+    }
 
     /// Creates a JPEG codec.
     /// - Parameters:
@@ -77,7 +190,12 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     ///   - decodingTransferSyntaxUID: Optional syntax to enforce against the encoded JPEG process.
     ///   - decodingLimits: Bounds enforced before sample decoding.
     public init(encodingTransferSyntaxUID: String = TransferSyntax.jpegLosslessSV1.uid,
-                decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default) {
+                decodingTransferSyntaxUID: String? = nil,
+                decodingLimits: PixelDecodeLimits = .default,
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                restartInterval: Int = 0,
+                restartIntervalRows: Int = 0) {
         self.explicitEncodingTransferSyntaxUID = encodingTransferSyntaxUID
         switch decodingTransferSyntaxUID {
         case nil: self.syntaxRestriction = .any
@@ -88,6 +206,10 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         default: self.syntaxRestriction = .unsupported
         }
         self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartInterval = max(0, min(65535, restartInterval))
+        self.restartIntervalRows = max(0, restartIntervalRows)
     }
 
     /// Create the same decoder from finite scalar policy without initializing UID Strings.
@@ -96,7 +218,12 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
     /// - Parameters:
     ///   - decodingSyntax: Existing JPEG process restriction to enforce.
     ///   - decodingLimits: Bounds enforced before sample decoding.
-    public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init()) {
+    public init(decodingSyntax: DecodingSyntax,
+                decodingLimits: PixelDecodeLimits = .init(),
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                restartInterval: Int = 0,
+                restartIntervalRows: Int = 0) {
         explicitEncodingTransferSyntaxUID = nil
         switch decodingSyntax {
         case .any: syntaxRestriction = .any
@@ -106,6 +233,79 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         case .losslessSV1: syntaxRestriction = .losslessSV1
         }
         self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartInterval = max(0, min(65535, restartInterval))
+        self.restartIntervalRows = max(0, restartIntervalRows)
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        JLICodec(
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartInterval: restartInterval,
+            restartIntervalRows: restartIntervalRows
+        )
+    }
+
+    public func withMaximumWorkers(_ maximumWorkers: Int?) -> JLICodec {
+        JLICodec(
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartInterval: restartInterval,
+            restartIntervalRows: restartIntervalRows
+        )
+    }
+
+    public func withRestartInterval(_ restartInterval: Int) -> JLICodec {
+        JLICodec(
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartInterval: restartInterval,
+            restartIntervalRows: restartIntervalRows
+        )
+    }
+
+    public func withRestartIntervalRows(_ restartIntervalRows: Int) -> JLICodec {
+        JLICodec(
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartInterval: restartInterval,
+            restartIntervalRows: restartIntervalRows
+        )
+    }
+
+    /// Checks whether the requested `CodecBackend` is natively supported (`SwiftJLI` executes on CPU SIMD or scalar CPU, never Metal GPU).
+    public static func supportsBackend(_ backend: CodecBackend?) -> Bool {
+        guard let backend else { return true }
+        switch backend {
+        case .scalar, .accelerate:
+            return true
+        case .metal:
+            return false
+        }
+    }
+
+    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLI.ExecutionPolicy {
+        guard let backend else { return .automatic }
+        switch backend {
+        case .scalar:
+            return .required(.scalarCPU)
+        case .accelerate, .metal:
+            return .preferred(.accelerated)
+        }
     }
 
     /// Whether the target syntax is one of the two lossless (SOF3) JPEG processes.
@@ -157,45 +357,24 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             : strippedData
 
         do {
+            try Task.checkCancellation()
             let jliLimits = try makeDecodeResourceLimits(encodedByteCount: inputData.count, header: header)
-            let decoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJLI"
-            ) {
-                try await Self.decodeWithSwiftJLI(
-                    inputData,
-                    header: header,
-                    sourceColourModel: plan.sourceColourModel,
-                    limits: jliLimits
-                )
-            }
+            let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
+            let decoded = try Self.decodeWithSwiftJLI(
+                inputData,
+                header: header,
+                sourceColourModel: plan.sourceColourModel,
+                limits: jliLimits,
+                executionPolicy: executionPolicy
+            )
 
             let rawBps = header.precision <= 8 ? 1 : 2
             let widen8To16 = header.precision <= 8 && descriptor.bitsAllocated == 16
             let expectedRawCount = widen8To16 ? (expectedBytes / 2) : expectedBytes
 
-            let interleaved: [UInt8] = try decoded.image.storage.withUnsafeBytes { raw in
-                guard raw.count >= expectedRawCount else {
-                    throw DICOMError.parsingFailed("JPEG decoder returned truncated pixel storage")
-                }
-                if widen8To16 {
-                    var widened = [UInt8](repeating: 0, count: expectedBytes)
-                    for idx in 0..<expectedRawCount {
-                        widened[idx * 2] = raw[idx]
-                    }
-                    return widened
-                }
-                if let base = raw.baseAddress {
-                    return Array(UnsafeBufferPointer(start: base.assumingMemoryBound(to: UInt8.self), count: expectedBytes))
-                }
-                return []
-            }
-
             guard decoded.image.descriptor.width == descriptor.columns,
                   decoded.image.descriptor.height == descriptor.rows,
-                  rawBps == (decoded.image.descriptor.storageBits / 8),
-                  interleaved.count == expectedBytes else {
+                  rawBps == (decoded.image.descriptor.storageBits / 8) else {
                 throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
             }
 
@@ -221,6 +400,43 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                 photometricInterpretation: outputPI,
                 planarConfiguration: descriptor.planarConfiguration
             )
+
+            // Zero-copy fast path for monochrome and pixel-interleaved colour frames without 8->16 widening.
+            if !widen8To16, (output.samplesPerPixel == 1 || output.planarConfiguration == 0),
+               let zeroCopy = decoded.image.storage as? JLIBorrowedReadOnlyStorage {
+                guard zeroCopy.data.count >= expectedBytes else {
+                    throw DICOMError.parsingFailed("JPEG decoder returned truncated pixel storage")
+                }
+                let outData = zeroCopy.data.count == expectedBytes
+                    ? zeroCopy.data
+                    : zeroCopy.data.prefix(expectedBytes)
+                return DecodedPixelFrame(
+                    data: outData,
+                    descriptor: output,
+                    sourceFrameIndex: frameIndex
+                )
+            }
+
+            let interleaved: [UInt8] = try decoded.image.storage.withUnsafeBytes { raw in
+                guard raw.count >= expectedRawCount else {
+                    throw DICOMError.parsingFailed("JPEG decoder returned truncated pixel storage")
+                }
+                if widen8To16 {
+                    var widened = [UInt8](repeating: 0, count: expectedBytes)
+                    for idx in 0..<expectedRawCount {
+                        widened[idx * 2] = raw[idx]
+                    }
+                    return widened
+                }
+                if let base = raw.baseAddress {
+                    return Array(UnsafeBufferPointer(start: base.assumingMemoryBound(to: UInt8.self), count: expectedBytes))
+                }
+                return []
+            }
+            guard interleaved.count == expectedBytes else {
+                throw DICOMError.parsingFailed("JPEG decoder returned a mismatched frame")
+            }
+
             return DecodedPixelFrame(
                 data: dicomFrameBytes(fromInterleaved: interleaved, descriptor: output),
                 descriptor: output,
@@ -361,12 +577,14 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         let maxPixels = max(1, max(decodingLimits.maximumPixels, pixels))
         let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes, rawBytes))
         let maxDim = max(65535, max(header.width, header.height))
+        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLI.ResourceLimits.default.maximumWorkers
         return try SwiftJLI.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
             maximumDimension: maxDim,
+            maximumWorkers: workers,
             deadlineSeconds: 30.0,
             maximumMemoryBytes: Int.max
         )
@@ -376,8 +594,9 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         _ inputData: Data,
         header: JPEGFrameEnvelope,
         sourceColourModel: SwiftJLI.JPEGSourceColourModel?,
-        limits: SwiftJLI.ResourceLimits
-    ) async throws -> SwiftJLI.DecodedImage {
+        limits: SwiftJLI.ResourceLimits,
+        executionPolicy: SwiftJLI.ExecutionPolicy
+    ) throws -> SwiftJLI.DecodedImage {
         let width = header.width
         let height = header.height
         let nc = header.components.count
@@ -409,8 +628,10 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             iccProfile: nil,
             limits: limits
         )
-        let destination = try SwiftJLI.ImageDestination.allocate(
+        let writableStorage = JLIDataBackedWritableStorage(byteCount: byteCount)
+        let destination = try SwiftJLI.ImageDestination(
             descriptor: dstDescriptor,
+            storage: writableStorage,
             limits: limits
         )
         let decoderConfig = SwiftJLI.DecoderConfiguration(
@@ -421,10 +642,11 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         let decoder = try SwiftJLI.Decoder(configuration: decoderConfig)
         let decodeOptions = SwiftJLI.DecodeOptions(
             resourceLimits: limits,
+            executionPolicy: executionPolicy,
             copyPolicy: .requireSharedStorage,
             metadataPolicy: .discardAncillary
         )
-        let decoded = try await decoder.decode(inputData, into: destination, options: decodeOptions)
+        let decoded = try decoder.decodeSynchronously(inputData, into: destination, options: decodeOptions)
         guard decoded.report.copyEvents.isEmpty else {
             throw DICOMError.parsingFailed("SwiftJLI decode violated requireSharedStorage copy policy")
         }
@@ -540,17 +762,17 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                     return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: 0x0200))
                 }
 
-                let bridgeOutcome = CompressionSuiteSyncBridge.runManaged(
-                    deadlineSeconds: 30.0,
-                    joinGraceSeconds: 1.0,
+                let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
+                let bridgeOutcome = Self.runManagedSynchronous(
                     domain: 0x0200,
                     cancellation: cancellation
                 ) {
-                    try await Self.decodeWithSwiftJLI(
+                    try Self.decodeWithSwiftJLI(
                         inputData,
                         header: header,
                         sourceColourModel: plan.sourceColourModel,
-                        limits: jliLimits
+                        limits: jliLimits,
+                        executionPolicy: executionPolicy
                     )
                 }
                 staging.keepAlive()
@@ -712,6 +934,38 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
                                                budget: budget, cancellation: cancellation)
     }
 
+    private static func runManagedSynchronous<T>(
+        domain: UInt16,
+        cancellation: DICOMCancellation,
+        operation: () throws -> T
+    ) -> DICOMManagedOutcome<T> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+        do {
+            let value = try operation()
+            if let failure = cancellation.failure { return .failure(failure) }
+            if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+            return .success(value)
+        } catch is CancellationError {
+            return .failure(DICOMManagedFailure(.cancelled))
+        } catch let managed as DICOMManagedFailure {
+            return .failure(managed)
+        } catch let dicomError as DICOMError {
+            switch dicomError {
+            case .limitExceeded:
+                return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+            case .unsupportedTransferSyntax:
+                return .failure(DICOMManagedFailure(.invalidTransferSyntax, 9, domain: domain))
+            default:
+                return .failure(DICOMManagedFailure(.malformed, 10, domain: domain))
+            }
+        } catch let codecError as SwiftJLI.CodecError where codecError.category == .resourceLimitExceeded {
+            return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+        } catch {
+            return .failure(DICOMManagedFailure(.codecFailure, 107, domain: domain))
+        }
+    }
+
     // MARK: - Encoding
 
     /// Whether this codec can encode the given configuration for its target syntax.
@@ -815,45 +1069,61 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
             }
         }
 
-        let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
+        let requiredBytes = width * height * spp * bps
+        let needsSignedSubwordMask = lossless && descriptor.isSigned && meaningfulBits < storageBits
+        let canBorrowDirect = (spp == 1 || descriptor.planarConfiguration == 0)
+            && !needsSignedSubwordMask
+            && frameData.count >= requiredBytes
 
         do {
+            try Task.checkCancellation()
             let limits = try makeEncodeResourceLimits(
                 width: width,
                 height: height,
                 spp: spp,
                 bps: bps
             )
-            let image = try Self.buildEncodeImage(
-                interleaved: interleaved,
-                width: width,
-                height: height,
-                spp: spp,
-                storageBits: storageBits,
-                meaningfulBits: meaningfulBits,
-                isSigned: descriptor.isSigned,
-                lossless: lossless,
-                isPreconvertedYBR: isPreconvertedYBR,
-                limits: limits
-            )
+            let image: SwiftJLI.Image
+            if canBorrowDirect {
+                image = try Self.buildZeroCopyEncodeImage(
+                    frameData: frameData,
+                    width: width,
+                    height: height,
+                    spp: spp,
+                    storageBits: storageBits,
+                    meaningfulBits: meaningfulBits,
+                    isPreconvertedYBR: isPreconvertedYBR,
+                    limits: limits
+                )
+            } else {
+                let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
+                image = try Self.buildEncodeImage(
+                    interleaved: interleaved,
+                    width: width,
+                    height: height,
+                    spp: spp,
+                    storageBits: storageBits,
+                    meaningfulBits: meaningfulBits,
+                    isSigned: descriptor.isSigned,
+                    lossless: lossless,
+                    isPreconvertedYBR: isPreconvertedYBR,
+                    limits: limits
+                )
+            }
             let encoderConfig = try encoderConfiguration(
                 descriptor: descriptor,
                 configuration: configuration,
                 isPreconvertedYBR: isPreconvertedYBR
             )
             let encoder = try SwiftJLI.Encoder(configuration: encoderConfig)
+            let executionPolicy = Self.resolveExecutionPolicy(for: configuration.forcedBackend ?? decodeBackend)
             let encodeOptions = SwiftJLI.EncodeOptions(
                 resourceLimits: limits,
+                executionPolicy: executionPolicy,
                 copyPolicy: .requireSharedStorage,
                 metadataPolicy: .discardAncillary
             )
-            let encoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJLI"
-            ) {
-                try await encoder.encode(image, options: encodeOptions)
-            }
+            let encoded = try encoder.encodeSynchronously(image, options: encodeOptions)
             guard encoded.report.copyEvents.isEmpty else {
                 throw DICOMError.parsingFailed("SwiftJLI encode violated requireSharedStorage copy policy")
             }
@@ -906,13 +1176,73 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
         let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
         let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 8192)
+        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLI.ResourceLimits.default.maximumWorkers
         return try SwiftJLI.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
+            maximumWorkers: workers,
             deadlineSeconds: 30.0,
             maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func buildZeroCopyEncodeImage(
+        frameData: Data,
+        width: Int,
+        height: Int,
+        spp: Int,
+        storageBits: Int,
+        meaningfulBits: Int,
+        isPreconvertedYBR: Bool,
+        limits: SwiftJLI.ResourceLimits
+    ) throws -> SwiftJLI.Image {
+        let bps = storageBits / 8
+        let pixelStride = spp * bps
+        let rowBytes = width * pixelStride
+        let requiredBytes = rowBytes * height
+        let components: [SwiftJLI.ComponentRole]
+        let colour: SwiftJLI.ColourInterpretation
+        if spp == 1 {
+            components = [.grey]
+            colour = .greyscale
+        } else if isPreconvertedYBR {
+            components = [.uninterpreted("Y"), .uninterpreted("Cb"), .uninterpreted("Cr")]
+            colour = .unknown
+        } else {
+            components = [.red, .green, .blue]
+            colour = .rgb
+        }
+        let plane = try SwiftJLI.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<spp),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: requiredBytes
+        )
+        let imageDescriptor = try SwiftJLI.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: meaningfulBits,
+            byteOrder: .littleEndian,
+            components: components,
+            colour: colour,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: nil,
+            limits: limits
+        )
+        let slice = frameData.count == requiredBytes ? frameData : frameData.prefix(requiredBytes)
+        return try SwiftJLI.Image(
+            descriptor: imageDescriptor,
+            storage: JLIBorrowedReadOnlyStorage(data: slice),
+            limits: limits
         )
     }
 
@@ -1030,11 +1360,19 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         isPreconvertedYBR: Bool
     ) throws -> SwiftJLI.EncoderConfiguration {
         if encodesLossless {
+            let effectiveRestart: Int
+            if restartIntervalRows > 0 {
+                let mcusPerRow = max(1, descriptor.columns)
+                let maxRowsInDRI = max(1, 65535 / mcusPerRow)
+                effectiveRestart = min(restartIntervalRows, maxRowsInDRI) * mcusPerRow
+            } else {
+                effectiveRestart = restartInterval
+            }
             // SOF3 predictor 1, point-transform 0 — bit-exact. Both .57 (Process 14)
             // and .70 (SV1) are valid with the left predictor; .70 *requires* it.
             return try SwiftJLI.EncoderConfiguration(
                 mode: .lossless,
-                codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: 0)
+                codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: effectiveRestart)
             )
         }
 
@@ -1043,6 +1381,15 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         //   • colour as YCbCr 4:2:2 — PS3.5 2026a Table 8.2.1-1 allows a 3-sample JPEG Baseline
         //     stream only as YBR_FULL_422 or RGB (components stored as RGB). SwiftJLI's lossy
         //     path writes 4:2:2 YCbCr, labelled YBR_FULL_422 by the transcoders (D190 / D-CORE-2).
+        let effectiveRestart: Int
+        if restartIntervalRows > 0 {
+            let mcuWidth = descriptor.samplesPerPixel == 3 ? 16 : 8
+            let mcusPerRow = max(1, (descriptor.columns + mcuWidth - 1) / mcuWidth)
+            let maxRowsInDRI = max(1, 65535 / mcusPerRow)
+            effectiveRestart = min(restartIntervalRows, maxRowsInDRI) * mcusPerRow
+        } else {
+            effectiveRestart = restartInterval
+        }
         let dctOptions = SwiftJLI.DCTOptions(
             quality: Self.jpegQuality(from: configuration.quality),
             distance: nil,
@@ -1053,7 +1400,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, Sendable {
         )
         return try SwiftJLI.EncoderConfiguration(
             mode: .lossy,
-            codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: 0, dct: dctOptions)
+            codecOptions: SwiftJLI.CodecOptions(predictor: 1, restartInterval: effectiveRestart, dct: dctOptions)
         )
     }
 

@@ -15,7 +15,7 @@ import SwiftRLE
 /// the Composite Pixel Code first, G.2), the 64-byte header with up to 15 segment offsets
 /// relative to the header (G.5), the decoder loop (G.3.2) and the encoder packet rules
 /// (replicate 2–128, literal 1–128, -128 unused, G.3.1) match PS3.5 2026a.
-public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
+public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftRLE"
     public static let engineVersion = "1.0.2"
 
@@ -30,9 +30,54 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     ]
 
     private let decodingLimits: PixelDecodeLimits
+    public let decodeBackend: CodecBackend?
+    public let maximumWorkers: Int?
 
-    public init(decodingLimits: PixelDecodeLimits = .default) {
+    public init(
+        decodingLimits: PixelDecodeLimits = .default,
+        decodeBackend: CodecBackend? = nil,
+        maximumWorkers: Int? = nil
+    ) {
         self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        RLECodec(
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers
+        )
+    }
+
+    public func withMaximumWorkers(_ maximumWorkers: Int?) -> RLECodec {
+        RLECodec(
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers
+        )
+    }
+
+    /// Checks whether the requested `CodecBackend` is natively supported (`SwiftRLE` executes on CPU SIMD or scalar CPU, never Metal GPU).
+    public static func supportsBackend(_ backend: CodecBackend?) -> Bool {
+        guard let backend else { return true }
+        switch backend {
+        case .scalar, .accelerate:
+            return true
+        case .metal:
+            return false
+        }
+    }
+
+    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftRLE.ExecutionPolicy {
+        guard let backend else { return .automatic }
+        switch backend {
+        case .scalar:
+            return .preferred(.scalarCPU)
+        case .accelerate, .metal:
+            return .preferred(.accelerated)
+        }
     }
 
     // MARK: - Managed Budget-Accounted Decoding
@@ -140,8 +185,10 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                 decodedByteCount: expectedBytes,
                 pixelsPerFrame: geometry.pixelsPerFrame,
                 rows: descriptor.rows,
-                columns: descriptor.columns
+                columns: descriptor.columns,
+                maximumWorkers: maximumWorkers
             )
+            let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
             switch DICOMByteBuffer.admitInitialized(
                 count: expectedBytes,
@@ -171,6 +218,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                             geometry: geometry,
                             descriptor: descriptor,
                             limits: rleLimits,
+                            executionPolicy: executionPolicy,
                             into: dst,
                             cancellation: cancellation
                         )
@@ -251,8 +299,10 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             decodedByteCount: expectedBytes,
             pixelsPerFrame: geometry.pixelsPerFrame,
             rows: descriptor.rows,
-            columns: descriptor.columns
+            columns: descriptor.columns,
+            maximumWorkers: maximumWorkers
         )
+        let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
         try frameData.withUnsafeBytes { rawEncoded in
             let segmentRanges = try Self.validateRLEHeader(rawEncoded, expectedSegments: geometry.expectedSegments)
@@ -263,10 +313,12 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                 try Self.decodeValidatedBuffer(
                     encodedBase: encodedBase,
                     encodedCount: rawEncoded.count,
+                    backingData: frameData,
                     segmentRanges: segmentRanges,
                     geometry: geometry,
                     descriptor: descriptor,
                     limits: rleLimits,
+                    executionPolicy: executionPolicy,
                     into: destination,
                     cancellation: .never
                 )
@@ -320,8 +372,11 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             pixelsPerFrame: geometry.pixelsPerFrame,
             rows: descriptor.rows,
             columns: descriptor.columns,
-            expectedSegments: geometry.expectedSegments
+            expectedSegments: geometry.expectedSegments,
+            maximumWorkers: maximumWorkers
         )
+        let effectiveBackend = configuration.forcedBackend ?? decodeBackend
+        let executionPolicy = Self.resolveExecutionPolicy(for: effectiveBackend)
 
         // Primary zero-copy path: SwiftRLE.Encoder over borrowed ReadOnlyImageStorage.
         if frameData.count >= geometry.bytesPerFrame,
@@ -346,7 +401,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                 )
                 let encodeOptions = SwiftRLE.EncodeOptions(
                     resourceLimits: rleLimits,
-                    executionPolicy: .automatic,
+                    executionPolicy: executionPolicy,
                     copyPolicy: .requireSharedStorage
                 )
                 let encoded = try SwiftRLE.Encoder(configuration: encoderConfig)
@@ -375,7 +430,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         }
         let encodeOptions = SwiftRLE.EncodeOptions(
             resourceLimits: rleLimits,
-            executionPolicy: .automatic,
+            executionPolicy: executionPolicy,
             copyPolicy: .requireSharedStorage
         )
 
@@ -562,10 +617,12 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
     private static func decodeValidatedBuffer(
         encodedBase: UnsafePointer<UInt8>,
         encodedCount: Int,
+        backingData: Data? = nil,
         segmentRanges: [Range<Int>],
         geometry: ValidatedRLEGeometry,
         descriptor: PixelDataDescriptor,
         limits: SwiftRLE.ResourceLimits,
+        executionPolicy: SwiftRLE.ExecutionPolicy,
         into destination: UnsafeMutableRawBufferPointer,
         cancellation: DICOMCancellation
     ) throws {
@@ -578,7 +635,11 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
 
         if canTryDirectFrameKernel,
            let rleDescriptor = try? makeSwiftRLEFrameDescriptor(descriptor: descriptor, limits: limits) {
-            let contiguousFrame = Data(bytes: encodedBase, count: encodedCount)
+            let contiguousFrame = backingData ?? Data(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: encodedBase),
+                count: encodedCount,
+                deallocator: .none
+            )
             let dstStorage = BorrowedDestinationImageStorage(
                 pointer: UnsafeMutableRawBufferPointer(start: destination.baseAddress, count: geometry.bytesPerFrame)
             )
@@ -599,7 +660,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
                 )
                 let decodeOptions = SwiftRLE.DecodeOptions(
                     resourceLimits: limits,
-                    executionPolicy: .automatic,
+                    executionPolicy: executionPolicy,
                     copyPolicy: .requireSharedStorage
                 )
                 let decoded = try decoder.decodeSynchronously(
@@ -626,6 +687,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             geometry: geometry,
             descriptor: descriptor,
             limits: limits,
+            executionPolicy: executionPolicy,
             into: destination,
             cancellation: cancellation
         )
@@ -637,6 +699,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         geometry: ValidatedRLEGeometry,
         descriptor: PixelDataDescriptor,
         limits: SwiftRLE.ResourceLimits,
+        executionPolicy: SwiftRLE.ExecutionPolicy,
         into destination: UnsafeMutableRawBufferPointer,
         cancellation: DICOMCancellation
     ) throws {
@@ -648,7 +711,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         let packBitsDecoder = try SwiftRLE.PackBitsDecoder(configuration: .packBits)
         let decodeOptions = SwiftRLE.DecodeOptions(
             resourceLimits: limits,
-            executionPolicy: .automatic,
+            executionPolicy: executionPolicy,
             copyPolicy: .requireSharedStorage
         )
 
@@ -819,7 +882,8 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         decodedByteCount: Int,
         pixelsPerFrame: Int,
         rows: Int,
-        columns: Int
+        columns: Int,
+        maximumWorkers: Int? = nil
     ) -> SwiftRLE.ResourceLimits {
         let defaults = SwiftRLE.ResourceLimits.general
         let maxCompressed = max(defaults.maximumCompressedBytes, max(1, encodedByteCount))
@@ -830,6 +894,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         let safeCombined = combined.overflow ? Int.max / 2 : combined.partialValue
         let withMeta = safeCombined.addingReportingOverflow(32 * 1024 * 1024)
         let maxMemory = max(defaults.maximumMemoryBytes, withMeta.overflow ? Int.max / 2 : withMeta.partialValue)
+        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? defaults.maximumWorkers
 
         return (try? SwiftRLE.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
@@ -841,7 +906,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             maximumMetadataBytes: defaults.maximumMetadataBytes,
             maximumICCBytes: defaults.maximumICCBytes,
             maximumNestingDepth: defaults.maximumNestingDepth,
-            maximumWorkers: defaults.maximumWorkers,
+            maximumWorkers: workers,
             deadlineSeconds: 30.0,
             maximumMemoryBytes: maxMemory
         )) ?? defaults
@@ -852,7 +917,8 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
         pixelsPerFrame: Int,
         rows: Int,
         columns: Int,
-        expectedSegments: Int
+        expectedSegments: Int,
+        maximumWorkers: Int? = nil
     ) -> SwiftRLE.ResourceLimits {
         let rowBound = columns + (columns + 2) / 3
         let segBound = rowBound.multipliedReportingOverflow(by: rows)
@@ -864,7 +930,8 @@ public struct RLECodec: ImageCodec, ImageEncoder, Sendable {
             decodedByteCount: decodedByteCount,
             pixelsPerFrame: pixelsPerFrame,
             rows: rows,
-            columns: columns
+            columns: columns,
+            maximumWorkers: maximumWorkers
         )
     }
 
