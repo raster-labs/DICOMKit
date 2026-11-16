@@ -533,6 +533,7 @@ public struct ImageContentItem: ContentItem, Sendable, Equatable, Hashable {
         sopClassUID: String,
         sopInstanceUID: String,
         frameNumbers: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil,
         relationshipType: RelationshipType? = nil,
         contentItems: [AnyContentItem] = []
     ) {
@@ -541,7 +542,8 @@ public struct ImageContentItem: ContentItem, Sendable, Equatable, Hashable {
         self.imageReference = ImageReference(
             sopClassUID: sopClassUID,
             sopInstanceUID: sopInstanceUID,
-            frameNumbers: frameNumbers
+            frameNumbers: frameNumbers,
+            presentationStateReference: presentationStateReference
         )
         self.relationshipType = relationshipType
         self.observationDateTime = nil

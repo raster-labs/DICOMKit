@@ -720,6 +720,7 @@ let package = Package(
                 "PresentationStateTests/PresentationStateTests.swift",
                 "PresentationStateTests/PseudoColorPresentationStateTests.swift",
                 "PresentationStateTests/SpatialTransformationTests.swift",
+                "PresentationStateTests/PresentationStateAnnotationAPITests.swift",
                 // DICOM_TAG_AUDIT_FINDINGS.md: parsers rebuilt from numeric PS3.6
                 // tags, so a wrong Tag constant cannot round-trip through itself.
                 "TagAuditRegressionTests.swift",

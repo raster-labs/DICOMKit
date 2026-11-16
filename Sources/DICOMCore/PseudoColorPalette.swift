@@ -223,6 +223,15 @@ extension PseudoColorPalette {
         return nil
     }
 
+    /// Initializes a well-known DICOM PS3.6 Annex B palette from its Well-Known Color Palette SOP Instance UID.
+    public init?(wellKnownSOPInstanceUID: String) {
+        let trimmed = wellKnownSOPInstanceUID.trimmingCharacters(in: CharacterSet(charactersIn: "\0 \t\r\n"))
+        guard let match = Self.allCases.first(where: { $0.wellKnownSOPInstanceUID == trimmed }) else {
+            return nil
+        }
+        self = match
+    }
+
     /// The DICOM Content Label (0070,0080), for the eight the standard defines.
     public var contentLabel: String? {
         if case let .dicomWellKnown(label, _) = provenance { return label }
@@ -309,6 +318,39 @@ extension PseudoColorPalette {
         green.reserveCapacity(Self.entryCount)
         blue.reserveCapacity(Self.entryCount)
         for entry in entries() {
+            red.append(UInt16(entry.red) << 8)
+            green.append(UInt16(entry.green) << 8)
+            blue.append(UInt16(entry.blue) << 8)
+        }
+        return PaletteColorLUT(
+            redDescriptor: descriptor,
+            greenDescriptor: descriptor,
+            blueDescriptor: descriptor,
+            redLUT: red,
+            greenLUT: green,
+            blueLUT: blue
+        )
+    }
+
+    /// Returns this palette as a DICOM ``PaletteColorLUT``, optionally reversed.
+    ///
+    /// - Parameter inverted: When `true`, reverses the 256 colour ramp entries.
+    /// - Returns: A 256-entry ``PaletteColorLUT`` matching PS3.6 Annex B.
+    public func paletteColorLUT(inverted: Bool = false) -> PaletteColorLUT {
+        guard inverted else { return lut() }
+        let descriptor = PaletteColorLUT.Descriptor(
+            numberOfEntries: Self.entryCount,
+            firstMappedValue: 0,
+            bitsPerEntry: 8
+        )
+        let reversedEntries = entries().reversed()
+        var red: [UInt16] = []
+        var green: [UInt16] = []
+        var blue: [UInt16] = []
+        red.reserveCapacity(Self.entryCount)
+        green.reserveCapacity(Self.entryCount)
+        blue.reserveCapacity(Self.entryCount)
+        for entry in reversedEntries {
             red.append(UInt16(entry.red) << 8)
             green.append(UInt16(entry.green) << 8)
             blue.append(UInt16(entry.blue) << 8)

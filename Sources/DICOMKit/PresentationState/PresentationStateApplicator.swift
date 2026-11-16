@@ -46,12 +46,17 @@ public struct PresentationStateApplicator: Sendable {
     /// - Parameters:
     ///   - pixelData: The pixel data to render
     ///   - frameIndex: The frame index to render (default 0)
+    ///   - sopInstanceUID: Optional SOP Instance UID of the image, used to resolve image/frame-scoped Softcopy VOI LUTs
     /// - Returns: CGImage with presentation state applied, or nil if rendering fails
-    public func apply(to pixelData: PixelData, frameIndex: Int = 0) -> CGImage? {
+    public func apply(
+        to pixelData: PixelData,
+        frameIndex: Int = 0,
+        sopInstanceUID: String? = nil
+    ) -> CGImage? {
         let descriptor = pixelData.descriptor
         
         guard descriptor.photometricInterpretation.isMonochrome else {
-            // Presentation states only apply to monochrome images
+            // Grayscale presentation states only apply to monochrome images
             return nil
         }
         
@@ -69,9 +74,13 @@ public struct PresentationStateApplicator: Sendable {
         // The PS3.4 N.2 chain of this presentation state, shared with the exporter and
         // the renderers (GrayscaleDisplayPipeline). Cells are read Bits Allocated wide
         // (PS3.5 8.1.1, D67), then shifted, masked and sign-extended.
+        let effectiveVOI = presentationState.effectiveVOILUT(
+            forImage: sopInstanceUID,
+            frameNumber: frameIndex + 1
+        )
         let pipeline = GrayscaleDisplayPipeline(
             modalityLUT: presentationState.modalityLUT,
-            voiLUT: presentationState.voiLUT,
+            voiLUT: effectiveVOI,
             presentationLUT: presentationState.presentationLUT)
         let bytesPerSample = descriptor.bytesPerSample
         frameData.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
@@ -106,6 +115,293 @@ public struct PresentationStateApplicator: Sendable {
             from: outputBytes,
             width: finalWidth,
             height: finalHeight
+        )
+    }
+
+    // MARK: - Static Applicator Overloads (GSPS, CSPS, Pseudo-CSPS)
+
+    /// Applies a `GrayscalePresentationState` (GSPS) to monochrome pixel data.
+    public static func apply(
+        _ state: GrayscalePresentationState,
+        to pixelData: PixelData,
+        frameIndex: Int = 0,
+        sopInstanceUID: String? = nil
+    ) -> CGImage? {
+        PresentationStateApplicator(presentationState: state)
+            .apply(to: pixelData, frameIndex: frameIndex, sopInstanceUID: sopInstanceUID)
+    }
+
+    /// Applies a `PseudoColorPresentationState` (Pseudo-CSPS, PS3.3 A.33.3 / PS3.4 N.2) to monochrome pixel data.
+    ///
+    /// Pipeline:
+    /// 1. Modality LUT -> Effective Softcopy VOI LUT -> normalized index
+    /// 2. Palette Color Lookup Table mapping to RGB
+    /// 3. Display Shutters with `ShutterPresentationColorCIELabValue (0018,1624)`
+    /// 4. Spatial Transformation (clockwise rotation then horizontal flip)
+    /// 5. Output rendered with the state's ICC Profile (or sRGB)
+    public static func apply(
+        _ state: PseudoColorPresentationState,
+        to pixelData: PixelData,
+        frameIndex: Int = 0,
+        sopInstanceUID: String? = nil
+    ) -> CGImage? {
+        let descriptor = pixelData.descriptor
+        guard descriptor.photometricInterpretation.isMonochrome,
+              let frameData = pixelData.frameData(at: frameIndex) else {
+            return nil
+        }
+
+        let width = descriptor.columns
+        let height = descriptor.rows
+        let totalPixels = width * height
+        guard width > 0, height > 0 else { return nil }
+
+        let effectiveVOI = state.effectiveVOILUT(
+            forImage: sopInstanceUID,
+            frameNumber: frameIndex + 1
+        )
+        let pipeline = GrayscaleDisplayPipeline(
+            modalityLUT: state.modalityLUT,
+            voiLUT: effectiveVOI,
+            presentationLUT: .identity
+        )
+        let lut = state.paletteColorLUT
+        let entryCount = max(1, lut.redDescriptor.numberOfEntries)
+        let firstMapped = lut.redDescriptor.firstMappedValue
+
+        var rgbaBytes = [UInt8](repeating: 255, count: totalPixels * 4)
+        let bytesPerSample = descriptor.bytesPerSample
+
+        frameData.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) in
+            for i in 0..<totalPixels {
+                let offset = i * bytesPerSample
+                guard offset + bytesPerSample <= bytes.count else { break }
+                let stored = descriptor.storedValue(fromCell: descriptor.cellValue(in: bytes, at: offset))
+                // PS3.4 N.2: VOI LUT output is scaled across the Palette Color LUT input range
+                let displayByte = Int(pipeline.displayByte(forStoredValue: stored, descriptor: descriptor))
+                let mappedValue: Int
+                if entryCount == 256 && firstMapped == 0 {
+                    mappedValue = displayByte
+                } else {
+                    mappedValue = firstMapped + (displayByte * (entryCount - 1)) / 255
+                }
+                let color = lut.lookup(mappedValue)
+                let dst = i * 4
+                rgbaBytes[dst] = color.red
+                rgbaBytes[dst + 1] = color.green
+                rgbaBytes[dst + 2] = color.blue
+                rgbaBytes[dst + 3] = 255
+            }
+        }
+
+        if !state.shutters.isEmpty {
+            applyColorShutters(
+                shutters: state.shutters,
+                shutterColor: state.shutterPresentationColor,
+                to: &rgbaBytes,
+                width: width,
+                height: height
+            )
+        }
+
+        var finalWidth = width
+        var finalHeight = height
+        if let spatial = state.spatialTransformation, spatial.hasTransformation {
+            (rgbaBytes, finalWidth, finalHeight) = applyRGBASpatialTransformation(
+                to: rgbaBytes,
+                width: width,
+                height: height,
+                transform: spatial
+            )
+        }
+
+        return createRGBACGImage(
+            from: rgbaBytes,
+            width: finalWidth,
+            height: finalHeight,
+            iccProfile: state.iccProfile
+        )
+    }
+
+    /// Applies a `ColorPresentationState` (CSPS, PS3.3 A.33.2 / PS3.4 N.2) to color pixel data.
+    ///
+    /// Pipeline:
+    /// 1. Color sample extraction (RGB / PALETTE COLOR)
+    /// 2. Display Shutters with `ShutterPresentationColorCIELabValue (0018,1624)`
+    /// 3. Spatial Transformation (clockwise rotation then horizontal flip)
+    /// 4. Output rendered with the state's ICC Profile (or sRGB)
+    public static func apply(
+        _ state: ColorPresentationState,
+        to pixelData: PixelData,
+        frameIndex: Int = 0
+    ) -> CGImage? {
+        let descriptor = pixelData.descriptor
+        guard !descriptor.photometricInterpretation.isMonochrome else {
+            return nil
+        }
+
+        let width = descriptor.columns
+        let height = descriptor.rows
+        let totalPixels = width * height
+        guard width > 0, height > 0 else { return nil }
+
+        var rgbaBytes = [UInt8](repeating: 255, count: totalPixels * 4)
+        for y in 0..<height {
+            for x in 0..<width {
+                guard let rgb = pixelData.colorValue(row: y, column: x, frame: frameIndex) else {
+                    return nil
+                }
+                let dst = (y * width + x) * 4
+                rgbaBytes[dst] = UInt8(clamping: rgb.red)
+                rgbaBytes[dst + 1] = UInt8(clamping: rgb.green)
+                rgbaBytes[dst + 2] = UInt8(clamping: rgb.blue)
+                rgbaBytes[dst + 3] = 255
+            }
+        }
+
+        if !state.shutters.isEmpty {
+            applyColorShutters(
+                shutters: state.shutters,
+                shutterColor: state.shutterPresentationColor,
+                to: &rgbaBytes,
+                width: width,
+                height: height
+            )
+        }
+
+        var finalWidth = width
+        var finalHeight = height
+        if let spatial = state.spatialTransformation, spatial.hasTransformation {
+            (rgbaBytes, finalWidth, finalHeight) = applyRGBASpatialTransformation(
+                to: rgbaBytes,
+                width: width,
+                height: height,
+                transform: spatial
+            )
+        }
+
+        return createRGBACGImage(
+            from: rgbaBytes,
+            width: finalWidth,
+            height: finalHeight,
+            iccProfile: state.iccProfile
+        )
+    }
+
+    /// Applies a `BlendingPresentationState` (PS3.3 A.33.4 / PS3.4 N.2.4) to underlay and overlay pixel data.
+    ///
+    /// Pipeline:
+    /// 1. Underlay monochrome pipeline (`underlayModalityLUT` -> `underlayVOILUT` -> grayscale RGB)
+    /// 2. Overlay monochrome pipeline (`overlayModalityLUT` -> `overlayVOILUT` -> `PaletteColorLUT`)
+    /// 3. Alpha blending with `RelativeOpacity (0070,0403)`: `(1 - α) * underlay + α * overlay`
+    /// 4. Display Shutters and Spatial Transformation
+    public static func apply(
+        _ state: BlendingPresentationState,
+        underlayPixelData: PixelData,
+        overlayPixelData: PixelData,
+        underlayFrameIndex: Int = 0,
+        overlayFrameIndex: Int = 0
+    ) -> CGImage? {
+        let uDesc = underlayPixelData.descriptor
+        let oDesc = overlayPixelData.descriptor
+        guard uDesc.photometricInterpretation.isMonochrome,
+              oDesc.photometricInterpretation.isMonochrome,
+              let uFrame = underlayPixelData.frameData(at: underlayFrameIndex),
+              let oFrame = overlayPixelData.frameData(at: overlayFrameIndex) else {
+            return nil
+        }
+
+        let width = uDesc.columns
+        let height = uDesc.rows
+        let totalPixels = width * height
+        guard width > 0, height > 0, oDesc.columns > 0, oDesc.rows > 0 else { return nil }
+
+        let uPipeline = GrayscaleDisplayPipeline(
+            modalityLUT: state.underlayModalityLUT,
+            voiLUT: state.underlayVOILUT,
+            presentationLUT: .identity
+        )
+        let oPipeline = GrayscaleDisplayPipeline(
+            modalityLUT: state.overlayModalityLUT,
+            voiLUT: state.overlayVOILUT,
+            presentationLUT: .identity
+        )
+        let lut = state.paletteColorLUT ?? PseudoColorPalette.hotIron.paletteColorLUT()
+        let entryCount = max(1, lut.redDescriptor.numberOfEntries)
+        let firstMapped = lut.redDescriptor.firstMappedValue
+        let alpha = max(0.0, min(1.0, state.relativeOpacity))
+        let oneMinusAlpha = 1.0 - alpha
+
+        var rgbaBytes = [UInt8](repeating: 255, count: totalPixels * 4)
+        let uBps = uDesc.bytesPerSample
+        let oBps = oDesc.bytesPerSample
+
+        uFrame.withUnsafeBytes { (uBytes: UnsafeRawBufferPointer) in
+            oFrame.withUnsafeBytes { (oBytes: UnsafeRawBufferPointer) in
+                for y in 0..<height {
+                    let oY = min(oDesc.rows - 1, (y * oDesc.rows) / height)
+                    for x in 0..<width {
+                        let oX = min(oDesc.columns - 1, (x * oDesc.columns) / width)
+                        let uIndex = y * width + x
+                        let oIndex = oY * oDesc.columns + oX
+                        let uOffset = uIndex * uBps
+                        let oOffset = oIndex * oBps
+                        guard uOffset + uBps <= uBytes.count,
+                              oOffset + oBps <= oBytes.count else { continue }
+
+                        let uStored = uDesc.storedValue(fromCell: uDesc.cellValue(in: uBytes, at: uOffset))
+                        let uGray = Double(uPipeline.displayByte(forStoredValue: uStored, descriptor: uDesc))
+
+                        let oStored = oDesc.storedValue(fromCell: oDesc.cellValue(in: oBytes, at: oOffset))
+                        let oByte = Int(oPipeline.displayByte(forStoredValue: oStored, descriptor: oDesc))
+                        let mappedValue: Int
+                        if entryCount == 256 && firstMapped == 0 {
+                            mappedValue = oByte
+                        } else {
+                            mappedValue = firstMapped + (oByte * (entryCount - 1)) / 255
+                        }
+                        let oColor = lut.lookup(mappedValue)
+
+                        let r = UInt8(clamping: Int((oneMinusAlpha * uGray + alpha * Double(oColor.red)).rounded()))
+                        let g = UInt8(clamping: Int((oneMinusAlpha * uGray + alpha * Double(oColor.green)).rounded()))
+                        let b = UInt8(clamping: Int((oneMinusAlpha * uGray + alpha * Double(oColor.blue)).rounded()))
+
+                        let dst = uIndex * 4
+                        rgbaBytes[dst] = r
+                        rgbaBytes[dst + 1] = g
+                        rgbaBytes[dst + 2] = b
+                        rgbaBytes[dst + 3] = 255
+                    }
+                }
+            }
+        }
+
+        if !state.shutters.isEmpty {
+            applyColorShutters(
+                shutters: state.shutters,
+                shutterColor: state.shutterPresentationColor,
+                to: &rgbaBytes,
+                width: width,
+                height: height
+            )
+        }
+
+        var finalWidth = width
+        var finalHeight = height
+        if let spatial = state.spatialTransformation, spatial.hasTransformation {
+            (rgbaBytes, finalWidth, finalHeight) = applyRGBASpatialTransformation(
+                to: rgbaBytes,
+                width: width,
+                height: height,
+                transform: spatial
+            )
+        }
+
+        return createRGBACGImage(
+            from: rgbaBytes,
+            width: finalWidth,
+            height: finalHeight,
+            iccProfile: state.iccProfile
         )
     }
     
@@ -272,6 +568,155 @@ public struct PresentationStateApplicator: Sendable {
             bitsPerComponent: bitsPerComponent,
             bitsPerPixel: bitsPerPixel,
             bytesPerRow: bytesPerRow,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo,
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: false,
+            intent: .defaultIntent
+        )
+    }
+
+    // MARK: - Color & Pseudo-Color Helpers
+
+    private static func applyColorShutters(
+        shutters: [DisplayShutter],
+        shutterColor: CIELabColor?,
+        to rgbaBytes: inout [UInt8],
+        width: Int,
+        height: Int
+    ) {
+        let shapes = shutters.filter {
+            if case .bitmap = $0 { return false }
+            return true
+        }
+        guard !shapes.isEmpty else { return }
+
+        let sRGB = (shutterColor ?? .shutterBlack).sRGB
+        let fillR = UInt8(max(0, min(255, Int((sRGB.red * 255).rounded()))))
+        let fillG = UInt8(max(0, min(255, Int((sRGB.green * 255).rounded()))))
+        let fillB = UInt8(max(0, min(255, Int((sRGB.blue * 255).rounded()))))
+
+        for y in 0..<height {
+            for x in 0..<width {
+                let visible = shapes.allSatisfy { $0.contains(column: x + 1, row: y + 1) }
+                if !visible {
+                    let dst = (y * width + x) * 4
+                    rgbaBytes[dst] = fillR
+                    rgbaBytes[dst + 1] = fillG
+                    rgbaBytes[dst + 2] = fillB
+                    rgbaBytes[dst + 3] = 255
+                }
+            }
+        }
+    }
+
+    private static func applyRGBASpatialTransformation(
+        to rgbaBytes: [UInt8],
+        width: Int,
+        height: Int,
+        transform: SpatialTransformation
+    ) -> ([UInt8], Int, Int) {
+        var current = rgbaBytes
+        var currentWidth = width
+        var currentHeight = height
+
+        if transform.isRotated {
+            switch transform.rotation {
+            case 90:
+                var rotated = [UInt8](repeating: 255, count: current.count)
+                for y in 0..<currentHeight {
+                    for x in 0..<currentWidth {
+                        let src = (y * currentWidth + x) * 4
+                        let dstX = currentHeight - 1 - y
+                        let dstY = x
+                        let dst = (dstY * currentHeight + dstX) * 4
+                        rotated[dst] = current[src]
+                        rotated[dst + 1] = current[src + 1]
+                        rotated[dst + 2] = current[src + 2]
+                        rotated[dst + 3] = current[src + 3]
+                    }
+                }
+                current = rotated
+                swap(&currentWidth, &currentHeight)
+            case 180:
+                var rotated = [UInt8](repeating: 255, count: current.count)
+                let totalPixels = currentWidth * currentHeight
+                for i in 0..<totalPixels {
+                    let src = i * 4
+                    let dst = (totalPixels - 1 - i) * 4
+                    rotated[dst] = current[src]
+                    rotated[dst + 1] = current[src + 1]
+                    rotated[dst + 2] = current[src + 2]
+                    rotated[dst + 3] = current[src + 3]
+                }
+                current = rotated
+            case 270:
+                var rotated = [UInt8](repeating: 255, count: current.count)
+                for y in 0..<currentHeight {
+                    for x in 0..<currentWidth {
+                        let src = (y * currentWidth + x) * 4
+                        let dstX = y
+                        let dstY = currentWidth - 1 - x
+                        let dst = (dstY * currentHeight + dstX) * 4
+                        rotated[dst] = current[src]
+                        rotated[dst + 1] = current[src + 1]
+                        rotated[dst + 2] = current[src + 2]
+                        rotated[dst + 3] = current[src + 3]
+                    }
+                }
+                current = rotated
+                swap(&currentWidth, &currentHeight)
+            default:
+                break
+            }
+        }
+
+        if transform.isFlipped {
+            var flipped = [UInt8](repeating: 255, count: current.count)
+            for y in 0..<currentHeight {
+                for x in 0..<currentWidth {
+                    let src = (y * currentWidth + x) * 4
+                    let dst = (y * currentWidth + (currentWidth - 1 - x)) * 4
+                    flipped[dst] = current[src]
+                    flipped[dst + 1] = current[src + 1]
+                    flipped[dst + 2] = current[src + 2]
+                    flipped[dst + 3] = current[src + 3]
+                }
+            }
+            current = flipped
+        }
+
+        return (current, currentWidth, currentHeight)
+    }
+
+    private static func createRGBACGImage(
+        from rgbaBytes: [UInt8],
+        width: Int,
+        height: Int,
+        iccProfile: ICCProfile?
+    ) -> CGImage? {
+        guard width > 0, height > 0 else { return nil }
+        let colorSpace: CGColorSpace
+        if let profileData = iccProfile?.profileData,
+           let iccSpace = CGColorSpace(iccData: profileData as CFData),
+           iccSpace.numberOfComponents == 3 {
+            colorSpace = iccSpace
+        } else {
+            colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+        }
+
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.noneSkipLast.rawValue)
+        guard let provider = CGDataProvider(data: Data(rgbaBytes) as CFData) else {
+            return nil
+        }
+
+        return CGImage(
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: width * 4,
             space: colorSpace,
             bitmapInfo: bitmapInfo,
             provider: provider,

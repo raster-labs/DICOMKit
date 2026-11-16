@@ -270,19 +270,30 @@ public struct ReferencedSOP: Sendable, Equatable, Hashable {
     }
 }
 
-/// Reference to a DICOM image with optional frame specification
+/// Reference to a DICOM image with optional frame, segment, and presentation state specification
+///
+/// Reference: PS3.3 Section C.18.4 (Table C.18.4-1 — Image Reference Macro)
 public struct ImageReference: Sendable, Equatable, Hashable {
     /// The SOP reference
     public let sopReference: ReferencedSOP
     
-    /// Optional frame numbers (for multi-frame images)
+    /// Optional frame numbers (for multi-frame images) — Referenced Frame Number (0008,1160)
     public let frameNumbers: [Int]?
     
-    /// Optional segment numbers (for segmentation objects)
+    /// Optional segment numbers (for segmentation objects) — Referenced Segment Number (0062,000B)
     public let segmentNumbers: [Int]?
     
-    /// Optional purpose of reference
+    /// Optional purpose of reference — Purpose of Reference Code Sequence (0040,A170)
     public let purposeOfReference: CodedConcept?
+
+    /// Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS, or Blending)
+    /// encoded as the nested Referenced SOP Sequence (0008,1199) inside the Image Reference Macro item
+    /// (PS3.3 Table C.18.4-1).
+    public let presentationStateReference: ReferencedSOP?
+
+    /// Optional Real World Value Mapping reference — Referenced Real World Value Mapping Instance Sequence (0008,114B)
+    /// (PS3.3 Table C.18.4-1).
+    public let realWorldValueMappingReference: ReferencedSOP?
     
     /// Creates an image reference
     /// - Parameters:
@@ -290,28 +301,50 @@ public struct ImageReference: Sendable, Equatable, Hashable {
     ///   - frameNumbers: Optional frame numbers
     ///   - segmentNumbers: Optional segment numbers
     ///   - purposeOfReference: Optional purpose of reference
+    ///   - presentationStateReference: Optional Softcopy Presentation State SOP reference (GSPS/CSPS/Pseudo-CSPS)
+    ///   - realWorldValueMappingReference: Optional Real World Value Mapping SOP reference
     public init(
         sopReference: ReferencedSOP,
         frameNumbers: [Int]? = nil,
         segmentNumbers: [Int]? = nil,
-        purposeOfReference: CodedConcept? = nil
+        purposeOfReference: CodedConcept? = nil,
+        presentationStateReference: ReferencedSOP? = nil,
+        realWorldValueMappingReference: ReferencedSOP? = nil
     ) {
         self.sopReference = sopReference
         self.frameNumbers = frameNumbers
         self.segmentNumbers = segmentNumbers
         self.purposeOfReference = purposeOfReference
+        self.presentationStateReference = presentationStateReference
+        self.realWorldValueMappingReference = realWorldValueMappingReference
     }
     
-    /// Creates an image reference with just UIDs
+    /// Creates an image reference with UIDs and optional frame numbers / presentation state reference
     public init(
         sopClassUID: String,
         sopInstanceUID: String,
-        frameNumbers: [Int]? = nil
+        frameNumbers: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil,
+        realWorldValueMappingReference: ReferencedSOP? = nil
     ) {
         self.sopReference = ReferencedSOP(sopClassUID: sopClassUID, sopInstanceUID: sopInstanceUID)
         self.frameNumbers = frameNumbers
         self.segmentNumbers = nil
         self.purposeOfReference = nil
+        self.presentationStateReference = presentationStateReference
+        self.realWorldValueMappingReference = realWorldValueMappingReference
+    }
+
+    /// Returns a copy of this image reference with the given Softcopy Presentation State reference attached.
+    public func withPresentationState(_ presentationStateReference: ReferencedSOP?) -> ImageReference {
+        ImageReference(
+            sopReference: sopReference,
+            frameNumbers: frameNumbers,
+            segmentNumbers: segmentNumbers,
+            purposeOfReference: purposeOfReference,
+            presentationStateReference: presentationStateReference,
+            realWorldValueMappingReference: realWorldValueMappingReference
+        )
     }
 }
 

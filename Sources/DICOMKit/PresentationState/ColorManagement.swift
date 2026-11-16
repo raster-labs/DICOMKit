@@ -114,6 +114,28 @@ public struct ICCProfile: Sendable, Hashable {
         // Fallback: create with unknown color space
         return ICCProfile(profileData: profileData, colorSpace: .custom)
     }
+
+    /// Extract ICC Profile from a `DataSet` (ICC Profile `(0028,2000)` and Color Space `(0028,2002)`).
+    public static func extract(from dataSet: DataSet) -> ICCProfile? {
+        guard let element = dataSet[.iccProfile] else {
+            return nil
+        }
+        let profileData = element.valueData
+        if let parsed = try? ICCProfileParser.parse(profileData) {
+            return ICCProfile(parsed: parsed, profileData: profileData)
+        }
+        let csString = dataSet.string(for: .colorSpace)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let cs: ColorSpace
+        switch csString {
+        case "SRGB": cs = .sRGB
+        case "ADOBERGB": cs = .adobeRGB
+        case "ROMMRGB", "PROPHOTO": cs = .proPhotoRGB
+        case "DISPLAYP3", "P3": cs = .displayP3
+        case "REC2020", "BT2020": cs = .rec2020
+        default: cs = .custom
+        }
+        return ICCProfile(profileData: profileData, colorSpace: cs)
+    }
     
     /// Extract color space from DICOM Color Space tag (0028,2002)
     ///

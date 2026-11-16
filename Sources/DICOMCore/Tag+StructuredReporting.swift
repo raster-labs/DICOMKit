@@ -222,6 +222,10 @@ extension Tag {
     /// Referenced Segment Number (0062,000B)
     /// VR: US, VM: 1-n
     public static let referencedSegmentNumber = Tag(group: 0x0062, element: 0x000B)
+
+    /// Referenced Real World Value Mapping Instance Sequence (0008,114B)
+    /// VR: SQ, VM: 1
+    public static let referencedRealWorldValueMappingInstanceSequence = Tag(group: 0x0008, element: 0x114B)
     
     /// Purpose of Reference Code Sequence (0040,A170)
     /// VR: SQ, VM: 1

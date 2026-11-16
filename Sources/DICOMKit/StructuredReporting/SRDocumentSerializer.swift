@@ -633,7 +633,7 @@ public struct SRDocumentSerializer: Sendable {
             
         case .image:
             if let imageItem = item.asImage {
-                elements.append(createImageReferencedSOPSequenceElement(imageItem: imageItem))
+                elements.append(try createImageReferencedSOPSequenceElement(imageItem: imageItem))
             }
             
         case .waveform:
@@ -847,8 +847,8 @@ public struct SRDocumentSerializer: Sendable {
         return createSequenceElement(tag: .referencedSOPSequence, items: [sequenceItem])
     }
     
-    /// Creates a Referenced SOP Sequence element for an image reference
-    private func createImageReferencedSOPSequenceElement(imageItem: ImageContentItem) -> DataElement {
+    /// Creates a Referenced SOP Sequence element for an image reference (PS3.3 Table C.18.4-1)
+    private func createImageReferencedSOPSequenceElement(imageItem: ImageContentItem) throws -> DataElement {
         var elements: [DataElement] = []
         
         elements.append(DataElement.string(
@@ -883,6 +883,34 @@ public struct SRDocumentSerializer: Sendable {
                 vr: .US,
                 length: UInt32(segmentData.count),
                 valueData: segmentData
+            ))
+        }
+
+        // Nested Referenced SOP Sequence (0008,1199) for Softcopy Presentation State (PS3.3 Table C.18.4-1)
+        if let prRef = imageItem.imageReference.presentationStateReference {
+            elements.append(createReferencedSOPSequenceElement(
+                sopClassUID: prRef.sopClassUID,
+                sopInstanceUID: prRef.sopInstanceUID
+            ))
+        }
+
+        // Referenced Real World Value Mapping Instance Sequence (0008,114B) (PS3.3 Table C.18.4-1)
+        if let rwvmRef = imageItem.imageReference.realWorldValueMappingReference {
+            let rwvmItem = SequenceItem(elements: [
+                DataElement.string(tag: .referencedSOPClassUID, vr: .UI, value: rwvmRef.sopClassUID),
+                DataElement.string(tag: .referencedSOPInstanceUID, vr: .UI, value: rwvmRef.sopInstanceUID)
+            ])
+            elements.append(createSequenceElement(
+                tag: .referencedRealWorldValueMappingInstanceSequence,
+                items: [rwvmItem]
+            ))
+        }
+
+        // Purpose of Reference Code Sequence (0040,A170)
+        if let purpose = imageItem.imageReference.purposeOfReference {
+            elements.append(try createCodeSequenceElement(
+                tag: .purposeOfReferenceCodeSequence,
+                code: purpose
             ))
         }
         

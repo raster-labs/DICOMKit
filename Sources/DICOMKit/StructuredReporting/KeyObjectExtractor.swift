@@ -101,7 +101,8 @@ public struct KeyObjects: Sendable, Equatable {
                     sopClassUID: sopRef.sopClassUID,
                     sopInstanceUID: sopRef.sopInstanceUID,
                     description: currentDescription,
-                    frames: frames
+                    frames: frames,
+                    presentationStateReference: imageItem.imageReference.presentationStateReference
                 )
                 objects.append(keyObject)
                 

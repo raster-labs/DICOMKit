@@ -354,19 +354,22 @@ public struct KeyObjectSelectionBuilder: Sendable {
     ///   - sopInstanceUID: SOP Instance UID of the referenced instance
     ///   - description: Optional text description of why this object is selected
     ///   - frames: Optional frame numbers for multi-frame images
+    ///   - presentationStateReference: Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS)
     /// - Returns: Updated builder
     public func addKeyObject(
         sopClassUID: String,
         sopInstanceUID: String,
         description: String? = nil,
-        frames: [Int]? = nil
+        frames: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) -> KeyObjectSelectionBuilder {
         var copy = self
         let keyObject = KeyObject(
             sopClassUID: sopClassUID,
             sopInstanceUID: sopInstanceUID,
             description: description,
-            frames: frames
+            frames: frames,
+            presentationStateReference: presentationStateReference
         )
         copy.keyObjects.append(keyObject)
         return copy
@@ -457,19 +460,32 @@ public struct KeyObjectSelectionBuilder: Sendable {
                 contentItems.append(AnyContentItem(textItem))
             }
             
-            // Add the referenced object using ImageReference
-            let imageRef = ImageReference(
-                sopClassUID: keyObject.sopClassUID,
-                sopInstanceUID: keyObject.sopInstanceUID,
-                frameNumbers: keyObject.frames
-            )
-            
-            let imageItem = ImageContentItem(
-                conceptName: nil,
-                imageReference: imageRef,
-                relationshipType: .contains
-            )
-            contentItems.append(AnyContentItem(imageItem))
+            // TID 2010 Rows 4–6: non-image composite objects (e.g. standalone Presentation States
+            // or SR documents) use COMPOSITE value type; images use IMAGE value type (with optional
+            // nested Softcopy Presentation State reference per PS3.3 Table C.18.4-1).
+            if keyObject.isCompositeObject {
+                let compositeItem = CompositeContentItem(
+                    conceptName: nil,
+                    sopClassUID: keyObject.sopClassUID,
+                    sopInstanceUID: keyObject.sopInstanceUID,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(compositeItem))
+            } else {
+                let imageRef = ImageReference(
+                    sopClassUID: keyObject.sopClassUID,
+                    sopInstanceUID: keyObject.sopInstanceUID,
+                    frameNumbers: keyObject.frames,
+                    presentationStateReference: keyObject.presentationStateReference
+                )
+                
+                let imageItem = ImageContentItem(
+                    conceptName: nil,
+                    imageReference: imageRef,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(imageItem))
+            }
         }
         
         // Create the root container with the document title as its concept name
@@ -513,18 +529,42 @@ public struct KeyObject: Sendable, Equatable {
     
     /// Optional frame numbers for multi-frame images
     public let frames: [Int]?
+
+    /// Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS, or Blending)
+    /// specifying how the referenced image shall be displayed (PS3.3 Table C.18.4-1).
+    public let presentationStateReference: ReferencedSOP?
     
     /// Creates a new key object
     public init(
         sopClassUID: String,
         sopInstanceUID: String,
         description: String? = nil,
-        frames: [Int]? = nil
+        frames: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) {
         self.sopClassUID = sopClassUID
         self.sopInstanceUID = sopInstanceUID
         self.description = description
         self.frames = frames
+        self.presentationStateReference = presentationStateReference
+    }
+
+    /// Whether the referenced SOP Class is a standalone composite object (Presentation State or SR)
+    /// rather than an image (TID 2010 Row 6 vs Row 4).
+    public var isCompositeObject: Bool {
+        let presentationStateClasses: Set<String> = [
+            .grayscaleSoftcopyPresentationStateStorage,
+            .colorSoftcopyPresentationStateStorage,
+            .pseudoColorSoftcopyPresentationStateStorage,
+            .blendingSoftcopyPresentationStateStorage
+        ]
+        if presentationStateClasses.contains(sopClassUID) {
+            return true
+        }
+        if SRDocumentType.from(sopClassUID: sopClassUID) != nil {
+            return true
+        }
+        return false
     }
 }
 

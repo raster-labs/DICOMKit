@@ -688,16 +688,35 @@ public struct PresentationStateStore: Sendable {
                 resolvedState = Self.replacingPresentationLUT(resolvedState, with: .inverse)
             }
 
+            // When no sidecar accompanied the file, fall back to the native
+            // DICOM Graphic Annotation Sequence inside the dataset so standard
+            // PR files restore their annotations without requiring a sidecar.
+            var resolvedByFrame = sidecar.annotationsByFrame
+            var resolvedByImage = sidecar.annotationsByFrameByImage
+            if resolvedByFrame.isEmpty && resolvedByImage.isEmpty && !resolvedState.graphicAnnotations.isEmpty {
+                let fallbackCols = resolvedState.displayedArea.map { max(1, $0.bottomRight.column) } ?? 512
+                let fallbackRows = resolvedState.displayedArea.map { max(1, $0.bottomRight.row) } ?? 512
+                let refUIDs = resolvedState.referencedSeries.flatMap { $0.referencedImages.map(\.sopInstanceUID) }
+                let images = refUIDs.map {
+                    AdoptableImage(sopInstanceUID: $0, columns: fallbackCols, rows: fallbackRows, numberOfFrames: 1)
+                }
+                let nativeContents = Self.importedSidecar(for: resolvedState, images: images)
+                resolvedByImage = nativeContents.annotationsByFrameByImage
+                if refUIDs.count == 1, let singleUID = refUIDs.first, let singleMap = resolvedByImage[singleUID] {
+                    resolvedByFrame = singleMap
+                }
+            }
+
             stored.append(StoredPresentationState(
                 state: resolvedState,
                 url: url,
                 displayLabel: (displayLabel?.isEmpty == false) ? displayLabel : nil,
-                annotationsByFrame: sidecar.annotationsByFrame,
+                annotationsByFrame: resolvedByFrame,
                 palette: palette,
                 seriesInstanceUID: file.dataSet.string(for: .seriesInstanceUID) ?? "",
                 seriesNumber: file.dataSet.string(for: .seriesNumber)
                     .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) },
-                annotationsByFrameByImage: sidecar.annotationsByFrameByImage,
+                annotationsByFrameByImage: resolvedByImage,
                 isImported: sidecar.isImported))
         }
 
@@ -1322,4 +1341,85 @@ public struct PresentationStateStore: Sendable {
     /// Explicit VR Little Endian — what a GSPS is normally stored as, and what
     /// keeps the files readable by anything else.
     public static let transferSyntaxUID = "1.2.840.10008.1.2.1"
+
+    // MARK: - DICOMKit Unified Document & SR Bridge Integration
+
+    /// Parses a `StoredPresentationState` file into a typed `DICOMKit.PresentationStateDocument`
+    /// (`.grayscale`, `.color`, `.pseudoColor`, or `.blending`).
+    public func document(forState stored: StoredPresentationState) -> PresentationStateDocument? {
+        try? PresentationStateParser(allowScopedVOILUT: true).parse(contentsOf: stored.url)
+    }
+
+    /// Publishes a saved view into a destination folder along with companion DICOM Structured Report
+    /// files (`TID 1500 Measurement Report` and/or `TID 2010 Key Object Selection`) referencing the
+    /// published Presentation States per PS3.3 Table C.18.4-1.
+    @discardableResult
+    public func publishWithStructuredReport(
+        label: String,
+        studyInstanceUID: String,
+        into destination: URL,
+        patient: PresentationStatePatientContext,
+        imageWidth: Int = 512,
+        imageHeight: Int = 512,
+        options: CompanionSROptions = .both
+    ) throws -> (series: PublishedSeries, measurementReportURLs: [URL], keyObjectSelectionURLs: [URL])? {
+        guard let published = try publish(label: label, studyInstanceUID: studyInstanceUID, into: destination) else {
+            return nil
+        }
+
+        var mrURLs: [URL] = []
+        var kosURLs: [URL] = []
+
+        for instance in published.instances {
+            guard let loaded = try? PresentationStateManager.load(
+                from: instance.url,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight
+            ) else { continue }
+
+            if options.generateMeasurementReport {
+                let srDoc = try PresentationStateSRBridge.buildMeasurementReport(
+                    from: loaded.document,
+                    annotations: loaded.annotations,
+                    patient: patient,
+                    imageWidth: imageWidth,
+                    imageHeight: imageHeight,
+                    seriesNumber: published.seriesNumber + 1,
+                    procedureReported: options.procedureReported
+                )
+                let srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+                let srFile = DICOMFile.create(
+                    dataSet: srDataSet,
+                    sopClassUID: srDoc.sopClassUID,
+                    sopInstanceUID: srDoc.sopInstanceUID,
+                    transferSyntaxUID: Self.transferSyntaxUID
+                )
+                let srURL = destination.appendingPathComponent("SR_\(srDoc.sopInstanceUID).dcm")
+                try srFile.write().write(to: srURL, options: [.atomic])
+                mrURLs.append(srURL)
+            }
+
+            if options.generateKeyObjectSelection {
+                let kosDoc = try PresentationStateSRBridge.buildKeyObjectSelection(
+                    from: loaded.document,
+                    patient: patient,
+                    purpose: options.keyObjectSelectionPurpose,
+                    description: options.keyObjectDescription ?? published.label,
+                    seriesNumber: published.seriesNumber + 2
+                )
+                let kosDataSet = try SRDocumentSerializer().serialize(document: kosDoc)
+                let kosFile = DICOMFile.create(
+                    dataSet: kosDataSet,
+                    sopClassUID: kosDoc.sopClassUID,
+                    sopInstanceUID: kosDoc.sopInstanceUID,
+                    transferSyntaxUID: Self.transferSyntaxUID
+                )
+                let kosURL = destination.appendingPathComponent("KO_\(kosDoc.sopInstanceUID).dcm")
+                try kosFile.write().write(to: kosURL, options: [.atomic])
+                kosURLs.append(kosURL)
+            }
+        }
+
+        return (published, mrURLs, kosURLs)
+    }
 }

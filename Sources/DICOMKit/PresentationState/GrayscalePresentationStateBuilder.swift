@@ -158,7 +158,9 @@ public struct GrayscalePresentationStateBuilder: Sendable {
         }
 
         // MARK: Display transformations
-        if let voiLUT = state.voiLUT {
+        if !state.scopedVOILUTs.isEmpty {
+            Self.applyScopedVOILUTs(state.scopedVOILUTs, to: &dataSet)
+        } else if let voiLUT = state.voiLUT {
             Self.applyVOILUT(voiLUT, to: &dataSet)
         }
         if let spatial = state.spatialTransformation {
@@ -167,8 +169,9 @@ public struct GrayscalePresentationStateBuilder: Sendable {
             dataSet.setInteger(spatial.rotation, for: .imageRotation)
             dataSet.setString(spatial.horizontalFlip ? "Y" : "N", for: .imageHorizontalFlip, vr: .CS)
         }
-        if let area = Self.displayedArea(of: state, imageSize: imageSize) {
-            dataSet[.displayedAreaSelectionSequence] = Self.displayedAreaElement(area)
+        let scopedAreas = Self.scopedDisplayedAreas(of: state, imageSize: imageSize)
+        if !scopedAreas.isEmpty {
+            dataSet[.displayedAreaSelectionSequence] = Self.scopedDisplayedAreasElement(scopedAreas)
         }
 
         // MARK: Display Shutter (C.7.6.11, C.11.12)
@@ -299,12 +302,26 @@ public struct GrayscalePresentationStateBuilder: Sendable {
         imageSize: (columns: Int, rows: Int)?
     ) -> DisplayedArea? {
         if let area = state.displayedArea { return area }
+        if let firstScoped = state.scopedDisplayedAreas.first?.displayedArea { return firstScoped }
         guard let size = imageSize, size.columns > 0, size.rows > 0 else { return nil }
         // Table C.10-4: corners are column\row relative to the origin 1\1.
         return DisplayedArea(
             topLeft: (column: 1, row: 1),
             bottomRight: (column: size.columns, row: size.rows),
             sizeMode: .scaleToFit)
+    }
+
+    static func scopedDisplayedAreas(
+        of state: GrayscalePresentationState,
+        imageSize: (columns: Int, rows: Int)?
+    ) -> [ScopedDisplayedArea] {
+        if !state.scopedDisplayedAreas.isEmpty {
+            return state.scopedDisplayedAreas
+        }
+        if let area = displayedArea(of: state, imageSize: imageSize) {
+            return [ScopedDisplayedArea(displayedArea: area)]
+        }
+        return []
     }
 
     // MARK: - LUT and shutter encoding
@@ -428,32 +445,94 @@ public struct GrayscalePresentationStateBuilder: Sendable {
     /// the mode goes out as SCALE TO FIT, the mode whose meaning needs neither.
     /// ``validate(_:imageSize:)`` reports that downgrade before it happens.
     private static func displayedAreaElement(_ area: DisplayedArea) -> DataElement {
-        // Encodings come from the dictionary (SL for the corners, DS, IS, FL).
-        // The parser accepts the IS corners older builds wrote.
-        let sizeMode: PresentationSizeMode = (try? area.validate()) == nil
-            ? .scaleToFit : area.sizeMode
-        var elements: [DataElement] = [
-            Self.integers([area.topLeft.column, area.topLeft.row],
-                          for: .displayedAreaTopLeftHandCorner),
-            Self.integers([area.bottomRight.column, area.bottomRight.row],
-                          for: .displayedAreaBottomRightHandCorner),
-            DataElement.string(
-                tag: .presentationSizeMode, vr: .CS, value: sizeMode.rawValue),
-        ]
-        if let spacing = area.pixelSpacing {
-            // Row spacing then column spacing (Table C.10-4, 10.7.1.3)
-            elements.append(Self.reals([spacing.row, spacing.column],
-                                       for: .presentationPixelSpacing))
-        } else {
-            let ratio = area.pixelAspectRatio ?? (vertical: 1, horizontal: 1)
-            elements.append(Self.integers([ratio.vertical, ratio.horizontal],
-                                          for: .presentationPixelAspectRatio))
+        scopedDisplayedAreasElement([ScopedDisplayedArea(displayedArea: area)])
+    }
+
+    private static func scopedDisplayedAreasElement(_ scopedAreas: [ScopedDisplayedArea]) -> DataElement {
+        let items = scopedAreas.map { scoped -> SequenceItem in
+            let area = scoped.displayedArea
+            // Encodings come from the dictionary (SL for the corners, DS, IS, FL).
+            // The parser accepts the IS corners older builds wrote.
+            let sizeMode: PresentationSizeMode = (try? area.validate()) == nil
+                ? .scaleToFit : area.sizeMode
+            var elements: [DataElement] = []
+            if !scoped.referencedImages.isEmpty {
+                elements.append(referencedImagesElement(scoped.referencedImages))
+            }
+            elements.append(contentsOf: [
+                Self.integers([area.topLeft.column, area.topLeft.row],
+                              for: .displayedAreaTopLeftHandCorner),
+                Self.integers([area.bottomRight.column, area.bottomRight.row],
+                              for: .displayedAreaBottomRightHandCorner),
+                DataElement.string(
+                    tag: .presentationSizeMode, vr: .CS, value: sizeMode.rawValue),
+            ])
+            if let spacing = area.pixelSpacing {
+                // Row spacing then column spacing (Table C.10-4, 10.7.1.3)
+                elements.append(Self.reals([spacing.row, spacing.column],
+                                           for: .presentationPixelSpacing))
+            } else {
+                let ratio = area.pixelAspectRatio ?? (vertical: 1, horizontal: 1)
+                elements.append(Self.integers([ratio.vertical, ratio.horizontal],
+                                              for: .presentationPixelAspectRatio))
+            }
+            if let magnification = area.magnificationRatio {
+                elements.append(Self.reals([magnification],
+                                           for: .presentationPixelMagnificationRatio))
+            }
+            return SequenceItem(elements: elements)
         }
-        if let magnification = area.magnificationRatio {
-            elements.append(Self.reals([magnification],
-                                       for: .presentationPixelMagnificationRatio))
+        return sequence(tag: .displayedAreaSelectionSequence, items: items)
+    }
+
+    private static func referencedImagesElement(_ images: [ReferencedImage]) -> DataElement {
+        let imageItems = images.map { image -> SequenceItem in
+            var imageElements: [DataElement] = [
+                DataElement.string(
+                    tag: .referencedSOPClassUID, vr: .UI, value: image.sopClassUID),
+                DataElement.string(
+                    tag: .referencedSOPInstanceUID, vr: .UI, value: image.sopInstanceUID)
+            ]
+            if let frames = image.referencedFrameNumbers, !frames.isEmpty {
+                imageElements.append(DataElement.string(
+                    tag: .referencedFrameNumber, vr: .IS,
+                    value: frames.map(String.init).joined(separator: "\\")))
+            }
+            return SequenceItem(elements: imageElements)
         }
-        return sequence(tag: .displayedAreaSelectionSequence, items: [SequenceItem(elements: elements)])
+        return sequence(tag: .referencedImageSequence, items: imageItems)
+    }
+
+    private static func applyScopedVOILUTs(_ scopedVOILUTs: [ScopedVOILUT], to dataSet: inout DataSet) {
+        if scopedVOILUTs.count == 1, scopedVOILUTs[0].referencedImages.isEmpty {
+            applyVOILUT(scopedVOILUTs[0].voiLUT, to: &dataSet)
+            return
+        }
+        let items = scopedVOILUTs.map { scoped -> SequenceItem in
+            var itemElements: [DataElement] = []
+            if !scoped.referencedImages.isEmpty {
+                itemElements.append(referencedImagesElement(scoped.referencedImages))
+            }
+            switch scoped.voiLUT {
+            case .window(let center, let width, let explanation, let function):
+                itemElements.append(DataElement.string(
+                    tag: .windowCenter, vr: .DS, value: Self.decimalString(center)))
+                itemElements.append(DataElement.string(
+                    tag: .windowWidth, vr: .DS, value: Self.decimalString(width)))
+                if let explanation {
+                    itemElements.append(DataElement.string(
+                        tag: .windowCenterWidthExplanation, vr: .LO, value: explanation))
+                }
+                if function != .linear {
+                    itemElements.append(DataElement.string(
+                        tag: .voiLUTFunction, vr: .CS, value: function.rawValue))
+                }
+            case .lut(let lut):
+                itemElements.append(sequence(tag: .voiLUTSequence, items: [Self.lutItem(lut)]))
+            }
+            return SequenceItem(elements: itemElements)
+        }
+        dataSet[.softcopyVOILUTSequence] = sequence(tag: .softcopyVOILUTSequence, items: items)
     }
 
     private static func applyVOILUT(_ voiLUT: VOILUT, to dataSet: inout DataSet) {

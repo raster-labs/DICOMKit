@@ -114,7 +114,7 @@ public struct ColorPresentationStateBuilder: Sendable {
         dataSet[.iccProfile] = DataElement(
             tag: .iccProfile, vr: .OB,
             length: UInt32(profileData.count), valueData: profileData)
-        if let colorSpace = Self.colorSpaceTerm(for: state.iccProfile) {
+        if let colorSpace = state.colorSpace ?? Self.colorSpaceTerm(for: state.iccProfile) {
             dataSet.setString(colorSpace, for: .colorSpace, vr: .CS)
         }
 
@@ -138,6 +138,7 @@ public struct ColorPresentationStateBuilder: Sendable {
             referencedSeries: state.referencedSeries,
             spatialTransformation: state.spatialTransformation,
             displayedArea: state.displayedArea,
+            scopedDisplayedAreas: state.scopedDisplayedAreas,
             graphicLayers: state.graphicLayers,
             graphicAnnotations: state.graphicAnnotations,
             shutters: state.shutters,
@@ -178,7 +179,7 @@ extension ColorPresentationState {
     /// - Parameters:
     ///   - parsed: What `GrayscalePresentationStateParser` returned for the object.
     ///   - iccProfile: The object's ICC Profile module, when the caller read it.
-    public init(parsed: GrayscalePresentationState, iccProfile: ICCProfile? = nil) {
+    public init(parsed: GrayscalePresentationState, iccProfile: ICCProfile? = nil, colorSpace: String? = nil) {
         self.init(
             sopInstanceUID: parsed.sopInstanceUID,
             sopClassUID: parsed.sopClassUID,
@@ -190,8 +191,10 @@ extension ColorPresentationState {
             presentationCreatorsName: parsed.presentationCreatorsName,
             referencedSeries: parsed.referencedSeries,
             iccProfile: iccProfile,
+            colorSpace: colorSpace,
             spatialTransformation: parsed.spatialTransformation,
             displayedArea: parsed.displayedArea,
+            scopedDisplayedAreas: parsed.scopedDisplayedAreas,
             graphicLayers: parsed.graphicLayers,
             graphicAnnotations: parsed.graphicAnnotations,
             shutters: parsed.shutters,

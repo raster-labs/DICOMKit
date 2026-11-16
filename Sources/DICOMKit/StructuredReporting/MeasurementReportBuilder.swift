@@ -420,7 +420,8 @@ public struct MeasurementReportBuilder: Sendable {
         frameNumbers: [Int]? = nil,
         modality: CodedConcept? = nil,
         targetRegion: CodedConcept? = nil,
-        laterality: CodedConcept? = nil
+        laterality: CodedConcept? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) -> MeasurementReportBuilder {
         var copy = self
         let entry = ImageLibraryEntry(
@@ -429,7 +430,8 @@ public struct MeasurementReportBuilder: Sendable {
             frameNumbers: frameNumbers,
             modality: modality,
             targetRegion: targetRegion,
-            laterality: laterality
+            laterality: laterality,
+            presentationStateReference: presentationStateReference
         )
         copy.imageLibraryEntries.append(entry)
         return copy
@@ -841,7 +843,8 @@ public struct MeasurementReportBuilder: Sendable {
                     imageReference: ImageReference(
                         sopClassUID: entry.sopClassUID,
                         sopInstanceUID: entry.sopInstanceUID,
-                        frameNumbers: entry.frameNumbers
+                        frameNumbers: entry.frameNumbers,
+                        presentationStateReference: entry.presentationStateReference
                     ),
                     relationshipType: .contains
                 )))
@@ -1051,6 +1054,10 @@ public struct ImageLibraryEntry: Sendable, Equatable {
     
     /// Optional laterality code
     public let laterality: CodedConcept?
+
+    /// Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS, or Blending)
+    /// specifying how the referenced image shall be displayed (PS3.3 Table C.18.4-1).
+    public let presentationStateReference: ReferencedSOP?
     
     /// Creates an image library entry
     public init(
@@ -1059,7 +1066,8 @@ public struct ImageLibraryEntry: Sendable, Equatable {
         frameNumbers: [Int]? = nil,
         modality: CodedConcept? = nil,
         targetRegion: CodedConcept? = nil,
-        laterality: CodedConcept? = nil
+        laterality: CodedConcept? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) {
         self.sopClassUID = sopClassUID
         self.sopInstanceUID = sopInstanceUID
@@ -1067,6 +1075,7 @@ public struct ImageLibraryEntry: Sendable, Equatable {
         self.modality = modality
         self.targetRegion = targetRegion
         self.laterality = laterality
+        self.presentationStateReference = presentationStateReference
     }
 }
 

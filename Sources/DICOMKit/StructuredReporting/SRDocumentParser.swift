@@ -688,15 +688,32 @@ public struct SRDocumentParser: Sendable {
         
         // Parse purpose of reference if present
         var purposeOfReference: CodedConcept?
+        var presentationStateReference: ReferencedSOP?
+        var realWorldValueMappingReference: ReferencedSOP?
         if let refSOPSeq = item[.referencedSOPSequence]?.sequenceItems?.first {
             purposeOfReference = try? parseCodedConceptFromItem(refSOPSeq, tag: .purposeOfReferenceCodeSequence)
+            // Nested Referenced SOP Sequence (0008,1199) in Image Reference Macro (PS3.3 Table C.18.4-1):
+            // uniquely identifies the Softcopy Presentation State SOP Instance (GSPS, CSPS, Pseudo-CSPS, Blending)
+            presentationStateReference = try? parseReferencedSOPSequence(from: refSOPSeq)
+            // Referenced Real World Value Mapping Instance Sequence (0008,114B) (PS3.3 Table C.18.4-1)
+            if let rwvmItem = refSOPSeq[.referencedRealWorldValueMappingInstanceSequence]?.sequenceItems?.first,
+               let rwvmClass = rwvmItem.string(for: .referencedSOPClassUID)?.trimmingCharacters(in: .whitespaces),
+               let rwvmInstance = rwvmItem.string(for: .referencedSOPInstanceUID)?.trimmingCharacters(in: .whitespaces),
+               !rwvmClass.isEmpty, !rwvmInstance.isEmpty {
+                realWorldValueMappingReference = ReferencedSOP(
+                    sopClassUID: rwvmClass,
+                    sopInstanceUID: rwvmInstance
+                )
+            }
         }
         
         let imageRef = ImageReference(
             sopReference: sopRef,
             frameNumbers: frameNumbers,
             segmentNumbers: segmentNumbers,
-            purposeOfReference: purposeOfReference
+            purposeOfReference: purposeOfReference,
+            presentationStateReference: presentationStateReference,
+            realWorldValueMappingReference: realWorldValueMappingReference
         )
         
         return AnyContentItem(ImageContentItem(

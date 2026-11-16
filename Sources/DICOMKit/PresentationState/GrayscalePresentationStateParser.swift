@@ -51,8 +51,18 @@ public struct GrayscalePresentationStateParser: Sendable {
         case invalidReference(String)
     }
     
+    /// Whether to allow multiple or image/frame-scoped Softcopy VOI LUT Sequence (0028,3110) items
+    /// and populate ``GrayscalePresentationState/scopedVOILUTs`` (PS3.3 Section C.11.8).
+    /// Defaults to `false` for backward compatibility with single-VOI callers.
+    public let allowScopedVOILUT: Bool
+
     /// Creates a new GSPS parser
-    public init() {}
+    /// - Parameter allowScopedVOILUT: When `true`, parses multi-item and per-image/per-frame scoped
+    ///   `SoftcopyVOILUTSequence` items into `scopedVOILUTs`; when `false` (default), rejects scoped
+    ///   or multi-item VOI sequences with `ParseError.unsupportedVOILUT`.
+    public init(allowScopedVOILUT: Bool = false) {
+        self.allowScopedVOILUT = allowScopedVOILUT
+    }
     
     // MARK: - Public Parsing API
     
@@ -87,7 +97,8 @@ public struct GrayscalePresentationStateParser: Sendable {
         // measurements on it arrive, and refusing the file loses them.
         guard sopClassUID == .grayscaleSoftcopyPresentationStateStorage
             || sopClassUID == .pseudoColorSoftcopyPresentationStateStorage
-            || sopClassUID == .colorSoftcopyPresentationStateStorage else {
+            || sopClassUID == .colorSoftcopyPresentationStateStorage
+            || (allowScopedVOILUT && sopClassUID == .blendingSoftcopyPresentationStateStorage) else {
             throw ParseError.invalidSOPClassUID(sopClassUID)
         }
         
@@ -109,14 +120,17 @@ public struct GrayscalePresentationStateParser: Sendable {
         
         // Parse Display Transformation Modules
         let modalityLUT = try parseModalityLUT(from: dataSet)
-        let voiLUT = try parseVOILUT(from: dataSet)
+        let scopedVOILUTs = try parseScopedVOILUTs(from: dataSet, referencedSeries: referencedSeries)
+        let voiLUT = scopedVOILUTs.first(where: { $0.referencedImages.isEmpty })?.voiLUT ?? scopedVOILUTs.first?.voiLUT
         let presentationLUT = try parsePresentationLUT(from: dataSet)
         
         // Parse Spatial Transformation Module
         let spatialTransformation = parseSpatialTransformation(from: dataSet)
         
         // Parse Displayed Area Module
-        let displayedArea = parseDisplayedArea(from: dataSet)
+        let scopedDisplayedAreas = parseScopedDisplayedAreas(from: dataSet)
+        let displayedArea = scopedDisplayedAreas.first(where: { $0.referencedImages.isEmpty })?.displayedArea
+            ?? scopedDisplayedAreas.first?.displayedArea
         
         // Parse Graphic Layer Module
         let graphicLayers = parseGraphicLayers(from: dataSet)
@@ -145,9 +159,11 @@ public struct GrayscalePresentationStateParser: Sendable {
             referencedSeries: referencedSeries,
             modalityLUT: modalityLUT,
             voiLUT: voiLUT,
+            scopedVOILUTs: scopedVOILUTs,
             presentationLUT: presentationLUT,
             spatialTransformation: spatialTransformation,
             displayedArea: displayedArea,
+            scopedDisplayedAreas: scopedDisplayedAreas,
             graphicLayers: graphicLayers,
             graphicAnnotations: graphicAnnotations,
             shutters: shutters,
@@ -243,54 +259,107 @@ public struct GrayscalePresentationStateParser: Sendable {
         return nil
     }
     
-    private func parseVOILUT(from dataSet: DataSet) throws -> VOILUT? {
+    private func parseScopedVOILUTs(
+        from dataSet: DataSet,
+        referencedSeries: [ReferencedSeries]
+    ) throws -> [ScopedVOILUT] {
         // The Softcopy VOI LUT Sequence (C.11.8) is where a presentation
         // state's window actually lives — read it first. The top-level
         // spelling below stays as the fallback that keeps files written by
         // older builds (which wrote only top-level) restoring their window.
         if let softcopyElement = dataSet[.softcopyVOILUTSequence] {
-            // Presence is authoritative: an unsupported sequence must never
-            // fall through to a global legacy window. The singular model and
-            // applicator cannot retain per-image/per-frame VOI selection.
             guard softcopyElement.vr == .SQ,
                   let items = softcopyElement.sequenceItems,
-                  items.count == 1 else {
+                  !items.isEmpty else {
+                throw ParseError.unsupportedVOILUT("Expected a non-empty Softcopy VOI LUT Sequence")
+            }
+            if !allowScopedVOILUT && items.count != 1 {
                 throw ParseError.unsupportedVOILUT("Expected exactly one Softcopy VOI LUT item")
             }
-            let item = items[0]
-            guard item[.referencedImageSequence] == nil else {
-                throw ParseError.unsupportedVOILUT("Image/frame-scoped Softcopy VOI is not supported")
-            }
-            if item[.windowCenter] != nil || item[.windowWidth] != nil {
-                guard item[.voiLUTSequence] == nil,
-                      item[.windowCenter]?.vr == .DS, item[.windowWidth]?.vr == .DS,
-                      let centers = item.strings(for: .windowCenter), centers.count == 1,
-                      let widths = item.strings(for: .windowWidth), widths.count == 1,
-                      let center = Self.decimal(centers[0]), center.isFinite,
-                      let width = Self.decimal(widths[0]), width.isFinite else {
-                    throw ParseError.unsupportedVOILUT("Expected one unambiguous finite window pair")
+
+            let allReferencedImages = referencedSeries.flatMap(\.referencedImages)
+            var result: [ScopedVOILUT] = []
+            for item in items {
+                var scopedImages: [ReferencedImage] = []
+                if let refImgElement = item[.referencedImageSequence] {
+                    guard allowScopedVOILUT else {
+                        throw ParseError.unsupportedVOILUT("Image/frame-scoped Softcopy VOI is not supported")
+                    }
+                    guard refImgElement.vr == .SQ,
+                          let refImgItems = refImgElement.sequenceItems,
+                          !refImgItems.isEmpty else {
+                        throw ParseError.unsupportedVOILUT("Malformed Referenced Image Sequence in Softcopy VOI LUT item")
+                    }
+                    for imgItem in refImgItems {
+                        let sopClassUID = try referenceUID(.referencedSOPClassUID, in: imgItem)
+                        let sopInstanceUID = try referenceUID(.referencedSOPInstanceUID, in: imgItem)
+                        let frameNumbers: [Int]?
+                        if let frameElement = imgItem[.referencedFrameNumber] {
+                            guard frameElement.vr == .IS,
+                                  let rawValues = frameElement.stringValues, !rawValues.isEmpty,
+                                  rawValues.allSatisfy({ DICOMValueRules.valueProblem($0, vr: .IS) == nil }),
+                                  let values = frameElement.integerStringValues, !values.isEmpty,
+                                  values.allSatisfy({ $0.value > 0 }) else {
+                                throw ParseError.unsupportedVOILUT("Invalid Referenced Frame Numbers in Softcopy VOI LUT item")
+                            }
+                            frameNumbers = values.map { $0.value }
+                        } else {
+                            frameNumbers = nil
+                        }
+                        // Verify the scoped image belongs to referencedSeries
+                        guard let parentRef = allReferencedImages.first(where: {
+                            $0.sopInstanceUID == sopInstanceUID && $0.sopClassUID == sopClassUID
+                        }) else {
+                            throw ParseError.unsupportedVOILUT("Softcopy VOI LUT references image not in Referenced Series Sequence")
+                        }
+                        if let parentFrames = parentRef.referencedFrameNumbers,
+                           let scopedFrames = frameNumbers,
+                           !scopedFrames.allSatisfy({ parentFrames.contains($0) }) {
+                            throw ParseError.unsupportedVOILUT("Softcopy VOI LUT references frame outside Referenced Series Sequence scope")
+                        }
+                        scopedImages.append(ReferencedImage(
+                            sopClassUID: sopClassUID,
+                            sopInstanceUID: sopInstanceUID,
+                            referencedFrameNumbers: frameNumbers
+                        ))
+                    }
                 }
-                let explanation = item.string(for: .windowCenterWidthExplanation)
-                let function = VOILUTFunction.parse(item.string(for: .voiLUTFunction))
-                return .window(
-                    center: center, width: width,
-                    explanation: explanation, function: function)
-            }
-            if let lutElement = item[.voiLUTSequence] {
-                guard lutElement.vr == .SQ,
-                      let lutItems = lutElement.sequenceItems, lutItems.count == 1 else {
-                    throw ParseError.unsupportedVOILUT("Expected exactly one VOI LUT table")
+
+                let voi: VOILUT
+                if item[.windowCenter] != nil || item[.windowWidth] != nil {
+                    guard item[.voiLUTSequence] == nil,
+                          item[.windowCenter]?.vr == .DS, item[.windowWidth]?.vr == .DS,
+                          let centers = item.strings(for: .windowCenter), centers.count == 1,
+                          let widths = item.strings(for: .windowWidth), widths.count == 1,
+                          let center = Self.decimal(centers[0]), center.isFinite,
+                          let width = Self.decimal(widths[0]), width.isFinite else {
+                        throw ParseError.unsupportedVOILUT("Expected one unambiguous finite window pair")
+                    }
+                    let explanation = item.string(for: .windowCenterWidthExplanation)
+                    let function = VOILUTFunction.parse(item.string(for: .voiLUTFunction))
+                    voi = .window(
+                        center: center, width: width,
+                        explanation: explanation, function: function)
+                } else if let lutElement = item[.voiLUTSequence] {
+                    guard lutElement.vr == .SQ,
+                          let lutItems = lutElement.sequenceItems, lutItems.count == 1 else {
+                        throw ParseError.unsupportedVOILUT("Expected exactly one VOI LUT table")
+                    }
+                    voi = .lut(try parseLUTData(from: lutItems[0]))
+                } else {
+                    throw ParseError.unsupportedVOILUT("Softcopy VOI item has no supported transformation")
                 }
-                return .lut(try parseLUTData(from: lutItems[0]))
+
+                result.append(ScopedVOILUT(voiLUT: voi, referencedImages: scopedImages))
             }
-            throw ParseError.unsupportedVOILUT("Softcopy VOI item has no supported transformation")
+            return result
         }
 
         // Check for LUT Sequence first
         if let lutSequence = dataSet.sequence(for: .voiLUTSequence),
            let firstItem = lutSequence.first {
             let lutData = try parseLUTData(from: firstItem)
-            return .lut(lutData)
+            return [ScopedVOILUT(voiLUT: .lut(lutData))]
         }
         
         // Check for Window Center/Width
@@ -302,10 +371,10 @@ public struct GrayscalePresentationStateParser: Sendable {
             let functionString = dataSet.string(for: .voiLUTFunction)
             let function = VOILUTFunction.parse(functionString)
             
-            return .window(center: center, width: width, explanation: explanation, function: function)
+            return [ScopedVOILUT(voiLUT: .window(center: center, width: width, explanation: explanation, function: function))]
         }
         
-        return nil
+        return []
     }
     
     /// A DS value as the parser needs it: trimmed and numeric, or nil.
@@ -380,50 +449,69 @@ public struct GrayscalePresentationStateParser: Sendable {
         return nil
     }
     
-    private func parseDisplayedArea(from dataSet: DataSet) -> DisplayedArea? {
+    private func parseScopedDisplayedAreas(from dataSet: DataSet) -> [ScopedDisplayedArea] {
         guard let displayedAreaSequence = dataSet.sequence(for: .displayedAreaSelectionSequence),
-              let firstItem = displayedAreaSequence.first else {
-            return nil
+              !displayedAreaSequence.isEmpty else {
+            return []
         }
-        
-        guard let topLeftValues = firstItem[.displayedAreaTopLeftHandCorner]?.integerValuesTolerant,
-              topLeftValues.count == 2,
-              let bottomRightValues = firstItem[.displayedAreaBottomRightHandCorner]?.integerValuesTolerant,
-              bottomRightValues.count == 2 else {
-            return nil
-        }
-        
-        let topLeft = (column: topLeftValues[0], row: topLeftValues[1])
-        let bottomRight = (column: bottomRightValues[0], row: bottomRightValues[1])
-        
-        let sizeModeString = firstItem.string(for: .presentationSizeMode)?
-            .trimmingCharacters(in: .whitespaces) ?? "SCALE TO FIT"
-        let sizeMode = PresentationSizeMode(rawValue: sizeModeString) ?? .scaleToFit
 
-        // Table C.10-4 Type 1C attributes. Presentation Pixel Spacing (0070,0101)
-        // is DS, row spacing then column spacing (10.7.1.3); Presentation Pixel
-        // Aspect Ratio (0070,0102) is IS, vertical then horizontal; Presentation
-        // Pixel Magnification Ratio (0070,0103) is FL.
-        var pixelSpacing: (row: Double, column: Double)? = nil
-        if let spacing = firstItem[.presentationPixelSpacing]?.realValuesTolerant,
-           spacing.count == 2 {
-            pixelSpacing = (row: spacing[0], column: spacing[1])
-        }
-        var pixelAspectRatio: (vertical: Int, horizontal: Int)? = nil
-        if let ratio = firstItem[.presentationPixelAspectRatio]?.integerValuesTolerant,
-           ratio.count == 2 {
-            pixelAspectRatio = (vertical: ratio[0], horizontal: ratio[1])
-        }
-        let magnificationRatio = firstItem[.presentationPixelMagnificationRatio]?
-            .realValuesTolerant?.first
+        return displayedAreaSequence.compactMap { item in
+            guard let topLeftValues = item[.displayedAreaTopLeftHandCorner]?.integerValuesTolerant,
+                  topLeftValues.count == 2,
+                  let bottomRightValues = item[.displayedAreaBottomRightHandCorner]?.integerValuesTolerant,
+                  bottomRightValues.count == 2 else {
+                return nil
+            }
 
-        return DisplayedArea(
-            topLeft: topLeft,
-            bottomRight: bottomRight,
-            sizeMode: sizeMode,
-            pixelSpacing: pixelSpacing,
-            pixelAspectRatio: pixelAspectRatio,
-            magnificationRatio: magnificationRatio)
+            let topLeft = (column: topLeftValues[0], row: topLeftValues[1])
+            let bottomRight = (column: bottomRightValues[0], row: bottomRightValues[1])
+
+            let sizeModeString = item.string(for: .presentationSizeMode)?
+                .trimmingCharacters(in: .whitespaces) ?? "SCALE TO FIT"
+            let sizeMode = PresentationSizeMode(rawValue: sizeModeString) ?? .scaleToFit
+
+            var pixelSpacing: (row: Double, column: Double)? = nil
+            if let spacing = item[.presentationPixelSpacing]?.realValuesTolerant,
+               spacing.count == 2 {
+                pixelSpacing = (row: spacing[0], column: spacing[1])
+            }
+            var pixelAspectRatio: (vertical: Int, horizontal: Int)? = nil
+            if let ratio = item[.presentationPixelAspectRatio]?.integerValuesTolerant,
+               ratio.count == 2 {
+                pixelAspectRatio = (vertical: ratio[0], horizontal: ratio[1])
+            }
+            let magnificationRatio = item[.presentationPixelMagnificationRatio]?
+                .realValuesTolerant?.first
+
+            let area = DisplayedArea(
+                topLeft: topLeft,
+                bottomRight: bottomRight,
+                sizeMode: sizeMode,
+                pixelSpacing: pixelSpacing,
+                pixelAspectRatio: pixelAspectRatio,
+                magnificationRatio: magnificationRatio)
+
+            let referencedImages = parseAnnotationReferencedImages(from: item)
+            return ScopedDisplayedArea(displayedArea: area, referencedImages: referencedImages)
+        }
+    }
+
+    private func parseAnnotationReferencedImages(from item: SequenceItem) -> [ReferencedImage] {
+        guard let imageSeq = item[.referencedImageSequence]?.sequenceItems else {
+            return []
+        }
+        return imageSeq.compactMap { imgItem -> ReferencedImage? in
+            guard let sopClassUID = imgItem.string(for: .referencedSOPClassUID),
+                  let sopInstanceUID = imgItem.string(for: .referencedSOPInstanceUID) else {
+                return nil
+            }
+            let frames = imgItem[.referencedFrameNumber]?.integerStringValues?.map { $0.value }
+            return ReferencedImage(
+                sopClassUID: sopClassUID,
+                sopInstanceUID: sopInstanceUID,
+                referencedFrameNumbers: frames
+            )
+        }
     }
     
     private func parseGraphicLayers(from dataSet: DataSet) -> [GraphicLayer] {
