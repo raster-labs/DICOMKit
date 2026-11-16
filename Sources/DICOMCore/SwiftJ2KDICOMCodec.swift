@@ -1489,8 +1489,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
                 }
 
                 var normalized = Data(count: frameBytes)
-                exactSlice.withUnsafeBytes { srcRaw in
-                    normalized.withUnsafeMutableBytes { dstRaw in
+                exactSlice.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+                    normalized.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
                         for i in 0..<frameBytes {
                             dstRaw[i] = srcRaw[i] & keep8
                         }
@@ -1504,8 +1504,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             } else {
                 let shift = 8 - descriptor.bitsStored
                 var normalized = Data(count: frameBytes)
-                exactSlice.withUnsafeBytes { srcRaw in
-                    normalized.withUnsafeMutableBytes { dstRaw in
+                exactSlice.withUnsafeBytes { (srcRaw: UnsafeRawBufferPointer) in
+                    normalized.withUnsafeMutableBytes { (dstRaw: UnsafeMutableRawBufferPointer) in
                         for i in 0..<frameBytes {
                             let s = Int8(bitPattern: srcRaw[i])
                             dstRaw[i] = UInt8(bitPattern: (s << shift) >> shift)
