@@ -147,6 +147,24 @@ struct SiblingCodecAccelerationTests {
             decodeBackend: .accelerate
         )?.codec as? JXLCodec
         #expect(jxlAccel?.decodeBackend == .accelerate)
+
+        // Verify .scalar clamps default effectiveWorkers to 1 across all 4 sibling codecs,
+        // while .accelerate / nil use multi-worker defaults and explicit overrides are honored.
+        #expect(RLECodec.effectiveWorkers(for: .scalar, configured: nil) == 1)
+        #expect(JPEGLSCodec.effectiveWorkers(for: .scalar, configured: nil) == 1)
+        #expect(JLICodec.effectiveWorkers(for: .scalar, configured: nil) == 1)
+        #expect(JXLCodec.effectiveWorkers(for: .scalar, configured: nil) == 1)
+
+        #expect(RLECodec.effectiveWorkers(for: .accelerate, configured: 10) == 10)
+        #expect(JPEGLSCodec.effectiveWorkers(for: .accelerate, configured: 10) == 10)
+        #expect(JLICodec.effectiveWorkers(for: .accelerate, configured: 10) == 10)
+        #expect(JXLCodec.effectiveWorkers(for: .accelerate, configured: 10) == 8)
+
+        if case .required(.scalarCPU) = RLECodec.resolveExecutionPolicy(for: .scalar) {
+            // Expected strict scalarCPU enforcement
+        } else {
+            Issue.record("RLECodec.resolveExecutionPolicy(for: .scalar) must return .required(.scalarCPU)")
+        }
     }
 
     @Test("RLECodec 1T scalar and 10T accelerated paths are bit-exact across 16-bit mono and 8-bit RGB")

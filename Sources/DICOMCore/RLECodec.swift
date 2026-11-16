@@ -70,14 +70,25 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         }
     }
 
-    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftRLE.ExecutionPolicy {
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftRLE.ExecutionPolicy {
         guard let backend else { return .automatic }
         switch backend {
         case .scalar:
-            return .preferred(.scalarCPU)
+            return .required(.scalarCPU)
         case .accelerate, .metal:
             return .preferred(.accelerated)
         }
+    }
+
+    @inline(__always)
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+        if let configured {
+            return max(1, min(configured, 64))
+        }
+        if backend == .scalar {
+            return 1
+        }
+        return SwiftRLE.ResourceLimits.general.maximumWorkers
     }
 
     // MARK: - Managed Budget-Accounted Decoding
@@ -186,7 +197,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                 pixelsPerFrame: geometry.pixelsPerFrame,
                 rows: descriptor.rows,
                 columns: descriptor.columns,
-                maximumWorkers: maximumWorkers
+                maximumWorkers: Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
             )
             let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
@@ -300,7 +311,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             pixelsPerFrame: geometry.pixelsPerFrame,
             rows: descriptor.rows,
             columns: descriptor.columns,
-            maximumWorkers: maximumWorkers
+            maximumWorkers: Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
         )
         let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
@@ -367,15 +378,15 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
     ) throws -> Data {
         try Task.checkCancellation()
         let geometry = try Self.validateGeometry(descriptor)
+        let effectiveBackend = configuration.forcedBackend ?? decodeBackend
         let rleLimits = Self.makeEncodeResourceLimits(
             decodedByteCount: max(frameData.count, geometry.bytesPerFrame),
             pixelsPerFrame: geometry.pixelsPerFrame,
             rows: descriptor.rows,
             columns: descriptor.columns,
             expectedSegments: geometry.expectedSegments,
-            maximumWorkers: maximumWorkers
+            maximumWorkers: Self.effectiveWorkers(for: effectiveBackend, configured: maximumWorkers)
         )
-        let effectiveBackend = configuration.forcedBackend ?? decodeBackend
         let executionPolicy = Self.resolveExecutionPolicy(for: effectiveBackend)
 
         // Primary zero-copy path: SwiftRLE.Encoder over borrowed ReadOnlyImageStorage.

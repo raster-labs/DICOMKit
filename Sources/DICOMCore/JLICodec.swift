@@ -298,7 +298,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         }
     }
 
-    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLI.ExecutionPolicy {
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLI.ExecutionPolicy {
         guard let backend else { return .automatic }
         switch backend {
         case .scalar:
@@ -306,6 +306,17 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         case .accelerate, .metal:
             return .preferred(.accelerated)
         }
+    }
+
+    @inline(__always)
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+        if let configured {
+            return max(1, min(configured, 64))
+        }
+        if backend == .scalar {
+            return 1
+        }
+        return SwiftJLI.ResourceLimits.default.maximumWorkers
     }
 
     /// Whether the target syntax is one of the two lossless (SOF3) JPEG processes.
@@ -577,7 +588,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         let maxPixels = max(1, max(decodingLimits.maximumPixels, pixels))
         let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes, rawBytes))
         let maxDim = max(65535, max(header.width, header.height))
-        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLI.ResourceLimits.default.maximumWorkers
+        let workers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
         return try SwiftJLI.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,
@@ -1077,11 +1088,13 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
 
         do {
             try Task.checkCancellation()
+            let effectiveBackend = configuration.forcedBackend ?? decodeBackend
             let limits = try makeEncodeResourceLimits(
                 width: width,
                 height: height,
                 spp: spp,
-                bps: bps
+                bps: bps,
+                backend: effectiveBackend
             )
             let image: SwiftJLI.Image
             if canBorrowDirect {
@@ -1164,7 +1177,8 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         width: Int,
         height: Int,
         spp: Int,
-        bps: Int
+        bps: Int,
+        backend: CodecBackend?
     ) throws -> SwiftJLI.ResourceLimits {
         let (pixels, pOver) = width.multipliedReportingOverflow(by: height)
         let (samples, sOver) = pixels.multipliedReportingOverflow(by: spp)
@@ -1176,7 +1190,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
         let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
         let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 8192)
-        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLI.ResourceLimits.default.maximumWorkers
+        let workers = Self.effectiveWorkers(for: backend, configured: maximumWorkers)
         return try SwiftJLI.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,

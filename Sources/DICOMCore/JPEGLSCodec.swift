@@ -119,7 +119,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
 
     /// JPEG-LS scan interleave mode (`ILV` parameter in SOS, ITU-T T.87 C.2.3).
     public enum InterleaveMode: Sendable, Equatable {
-        /// `.none` (`ILV = 0`) for monochrome, `.sample` (`ILV = 2`) for multi-component.
+        /// `.none` (`ILV = 0`) for monochrome and multi-component scans (enabling parallel plane coding).
         case automatic
         /// Non-interleaved (`ILV = 0`, one scan per component).
         case none
@@ -301,7 +301,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         }
     }
 
-    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLS.ExecutionPolicy {
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLS.ExecutionPolicy {
         guard let backend else { return .automatic }
         switch backend {
         case .scalar:
@@ -309,6 +309,17 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         case .accelerate, .metal:
             return .preferred(.accelerated)
         }
+    }
+
+    @inline(__always)
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+        if let configured {
+            return max(1, min(configured, 64))
+        }
+        if backend == .scalar {
+            return 1
+        }
+        return SwiftJLS.ResourceLimits.default.maximumWorkers
     }
 
     // MARK: - Decoding
@@ -754,7 +765,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         let defaultWorkspace = 512 * 1024 * 1024
         let (sum1, over1) = maxEncoded.addingReportingOverflow(maxDecoded)
         let maxWorkspace = over1 ? Int.max : max(defaultWorkspace, sum1)
-        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLS.ResourceLimits.default.maximumWorkers
+        let workers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
         return try SwiftJLS.ResourceLimits(
             maximumCompressedBytes: maxEncoded,
             maximumDecodedBytes: maxDecoded,
@@ -1802,7 +1813,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         }
 
         do {
-            let limits = try makeEncodeResourceLimits(descriptor: descriptor)
+            let effectiveBackend = configuration.forcedBackend ?? decodeBackend
+            let limits = try makeEncodeResourceLimits(descriptor: descriptor, backend: effectiveBackend)
             let image = try Self.buildEncodeImage(
                 from: frameData,
                 descriptor: descriptor,
@@ -1819,7 +1831,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             )
             let encoderConfig = try SwiftJLS.EncoderConfiguration(mode: mode, codecOptions: codecOptions)
             let encoder = try SwiftJLS.Encoder(configuration: encoderConfig)
-            let executionPolicy = Self.resolveExecutionPolicy(for: configuration.forcedBackend ?? decodeBackend)
+            let executionPolicy = Self.resolveExecutionPolicy(for: effectiveBackend)
             let encodeOptions = SwiftJLS.EncodeOptions(
                 resourceLimits: limits,
                 executionPolicy: executionPolicy,
@@ -1853,7 +1865,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         }
     }
 
-    private func makeEncodeResourceLimits(descriptor: PixelDataDescriptor) throws -> SwiftJLS.ResourceLimits {
+    private func makeEncodeResourceLimits(descriptor: PixelDataDescriptor, backend: CodecBackend?) throws -> SwiftJLS.ResourceLimits {
         let (pixels, pOver) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
         let (samples, sOver) = pixels.multipliedReportingOverflow(by: max(1, descriptor.samplesPerPixel))
         let (decodedBytes, bOver) = samples.multipliedReportingOverflow(by: bytesPerSample(descriptor))
@@ -1864,7 +1876,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
         let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
         let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 4096)
-        let workers = maximumWorkers.map { max(1, min($0, 64)) } ?? SwiftJLS.ResourceLimits.default.maximumWorkers
+        let workers = Self.effectiveWorkers(for: backend, configured: maximumWorkers)
         return try SwiftJLS.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,

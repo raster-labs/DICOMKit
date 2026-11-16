@@ -311,7 +311,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         }
     }
 
-    private static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJXL.ExecutionPolicy {
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJXL.ExecutionPolicy {
         guard let backend else { return .automatic }
         switch backend {
         case .scalar:
@@ -498,7 +498,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
     }
 
     @inline(__always)
-    private static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
         if let configured {
             return clampWorkers(configured)
         }
@@ -1201,7 +1201,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                 return try JLICodec(
                     decodingLimits: decodingLimits,
                     decodeBackend: decodeBackend,
-                    maximumWorkers: maximumWorkers
+                    maximumWorkers: effectiveWorkers
                 ).decodeFrame(reconstructedJPEG, descriptor: descriptor, frameIndex: frameIndex)
             } catch {
                 if syntaxRestriction == .any {
