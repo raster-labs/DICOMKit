@@ -1,5 +1,5 @@
 {
-  "originHash" : "514dd20709f2a450d0d3937741c99f14bde80bb31a553b453c72c6e954f28727",
+  "originHash" : "8118b8ae79cd1a4a5b5233b99a921a5b1b2d01c97d9a7f3305fac26215b3e448",
   "pins" : [
     {
       "identity" : "swift-argument-parser",
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftJ2K.git",
       "state" : {
-        "revision" : "f337bcf1d577a88e909846373763569c518e2a27",
-        "version" : "12.2.0"
+        "revision" : "793195b0f97d6050af46d90c7a66b5a84f85960f",
+        "version" : "12.3.1"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftJLI.git",
       "state" : {
-        "revision" : "0f6815fa65b8afdeeb3e2878fc8ccba314f745fa",
-        "version" : "2.0.3"
+        "revision" : "0cb16e3ca822c6485173b4eef2f1b6f74dd71b21",
+        "version" : "2.1.0"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftJLS.git",
       "state" : {
-        "revision" : "c49b5d6320e83d33d832afd3a3729e85abccce2d",
-        "version" : "2.0.1"
+        "revision" : "8527cf4e047aa72ae308ee5b985cd6eba6d4580a",
+        "version" : "2.1.1"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftJXL.git",
       "state" : {
-        "revision" : "23ff41e2bb4e94834f901238ae5268a6e98885e0",
-        "version" : "2.0.1"
+        "revision" : "335b2aa51e0c0e758d3a273da806653e39402b4d",
+        "version" : "2.1.1"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/raster-labs/SwiftRLE.git",
       "state" : {
-        "revision" : "31704547c32aa967ef24d84539999a7228279934",
-        "version" : "1.0.2"
+        "revision" : "6e7a00d8907c8afb6719319252b4d6b2fe7b6d2f",
+        "version" : "1.1.0"
       }
     }
   ],
