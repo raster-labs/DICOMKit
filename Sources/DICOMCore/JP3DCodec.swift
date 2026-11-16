@@ -8,7 +8,7 @@ import SwiftJ2K3D
 /// JP3D volumetric JPEG 2000 codec for DICOM multi-frame data backed by `SwiftJ2K3D` Contract **API-13**.
 ///
 /// `JP3DCodec` wraps `SwiftJ2K3D`'s `VolumeEncoder`, `VolumeDecoder`, and `VolumeTranscoder`
-/// (`SwiftJ2K` 12.3.0+) to provide volumetric compression, decompression, bounded structural
+/// (`SwiftJ2K` 12.3.1+) to provide volumetric compression, decompression, bounded structural
 /// inspection, 3D region-of-interest decoding, and wavelet-domain `J2K ↔ HTJ2K` transcoding
 /// under experimental private JP3D transfer syntaxes.
 ///
@@ -20,7 +20,7 @@ import SwiftJ2K3D
 /// - `1.2.826.0.1.3680043.10.511.2` — JP3D Lossy (experimental)
 public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJ2K3D"
-    public static let engineVersion = "12.3.0"
+    public static let engineVersion = "12.3.1"
 
     /// Private experimental JP3D transfer syntax UIDs.
     public static let supportedTransferSyntaxes: [String] = [

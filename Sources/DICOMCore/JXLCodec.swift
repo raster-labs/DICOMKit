@@ -138,7 +138,7 @@ private final class JXLDataBackedWritableStorage: SwiftJXL.WritableImageStorage,
 /// signed 8-bit is rejected rather than silently mis-encoded.
 public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJXL"
-    public static let engineVersion = "2.1.0"
+    public static let engineVersion = "2.1.1"
 
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
