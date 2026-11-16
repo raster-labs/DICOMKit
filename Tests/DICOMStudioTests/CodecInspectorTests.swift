@@ -68,22 +68,22 @@ struct CodecInspectorHelpersTests {
     }
     @Test("codecEngineVersion and versionedDisplayName expose all 5 upgraded codec versions")
     func testCodecEngineVersions() {
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpeg2000Lossless.uid) == "12.2.0")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.htj2kLossless.uid) == "12.2.0")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jp3dLossless.uid) == "12.2.0")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpipReferenced.uid) == "12.2.0")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.rleLossless.uid) == "1.0.2")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegLSLossless.uid) == "2.0.1")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegBaseline.uid) == "2.0.3")
-        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegXLLossless.uid) == "2.0.1")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpeg2000Lossless.uid) == "12.3.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.htj2kLossless.uid) == "12.3.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jp3dLossless.uid) == "12.3.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpipReferenced.uid) == "12.3.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.rleLossless.uid) == "1.1.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegLSLossless.uid) == "2.1.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegBaseline.uid) == "2.1.0")
+        #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.jpegXLLossless.uid) == "2.1.0")
         #expect(CodecInspectorHelpers.codecEngineVersion(for: TransferSyntax.explicitVRLittleEndian.uid) == nil)
 
-        #expect(CodecInspectorHelpers.codecVersionedDisplayName(for: TransferSyntax.htj2kLossless.uid) == "SwiftJ2K 12.2.0 (HTJ2K)")
-        #expect(CodecInspectorHelpers.codecVersionedDisplayName(for: TransferSyntax.rleLossless.uid) == "SwiftRLE 1.0.2 (RLE Lossless)")
-        #expect(J2KBenchCodec.j2kSwift.versionedDisplayName == "SwiftJ2K 12.2.0")
-        #expect(J2KBenchCodec.jliSwift.versionedDisplayName == "SwiftJLI 2.0.3")
-        #expect(J2KBenchCodec.jlSwift.versionedDisplayName == "SwiftJLS 2.0.1")
-        #expect(J2KBenchCodec.jxlSwift.versionedDisplayName == "SwiftJXL 2.0.1")
+        #expect(CodecInspectorHelpers.codecVersionedDisplayName(for: TransferSyntax.htj2kLossless.uid) == "SwiftJ2K 12.3.0 (HTJ2K)")
+        #expect(CodecInspectorHelpers.codecVersionedDisplayName(for: TransferSyntax.rleLossless.uid) == "SwiftRLE 1.1.0 (RLE Lossless)")
+        #expect(J2KBenchCodec.j2kSwift.versionedDisplayName == "SwiftJ2K 12.3.0")
+        #expect(J2KBenchCodec.jliSwift.versionedDisplayName == "SwiftJLI 2.1.0")
+        #expect(J2KBenchCodec.jlSwift.versionedDisplayName == "SwiftJLS 2.1.0")
+        #expect(J2KBenchCodec.jxlSwift.versionedDisplayName == "SwiftJXL 2.1.0")
     }
 }
 

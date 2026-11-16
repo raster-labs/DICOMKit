@@ -1,5 +1,105 @@
 import Foundation
+import Synchronization
 import SwiftJ2K
+
+private final class DataReadOnlyImageStorage: ReadOnlyImageStorage, Sendable {
+    let data: Data
+    let allocationID: UUID
+
+    var byteCount: Int { data.count }
+
+    init(data: Data, allocationID: UUID = UUID()) {
+        self.data = data
+        self.allocationID = allocationID
+    }
+
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try data.withUnsafeBytes(body)
+    }
+}
+
+private final class DataBackedWritableImageStorage: WritableImageStorage, Sendable {
+    let byteCount: Int
+    let allocationID: UUID
+
+    private enum Phase { case available, writing, sealed, invalid }
+    private struct State: Sendable {
+        var data: Data
+        var phase: Phase = .available
+        var lease: StorageWriteLease?
+    }
+
+    private let state: Mutex<State>
+    private let engaged = Atomic<Bool>(false)
+
+    init(byteCount: Int) {
+        self.byteCount = byteCount
+        self.allocationID = UUID()
+        self.state = Mutex(State(data: Data(count: byteCount)))
+    }
+
+    func reserveWrite() throws -> StorageWriteLease {
+        try locked { state in
+            guard state.phase == .available else {
+                throw CodecError(.storageUnavailable, "Storage already has a writer or is sealed/invalid.")
+            }
+            let lease = StorageWriteLease()
+            state.lease = lease
+            state.phase = .writing
+            return lease
+        }
+    }
+
+    func withUnsafeMutableBytes<R>(
+        lease: StorageWriteLease,
+        _ body: (UnsafeMutableRawBufferPointer) throws -> R
+    ) throws -> R {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw CodecError(.storageUnavailable, "Write lease is stale, foreign or unavailable.")
+            }
+            return try state.data.withUnsafeMutableBytes(body)
+        }
+    }
+
+    func finishAndSeal(lease: StorageWriteLease) throws -> any ReadOnlyImageStorage {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw CodecError(.storageUnavailable, "Write lease is stale, foreign or unavailable.")
+            }
+            let sealed = DataReadOnlyImageStorage(data: state.data, allocationID: allocationID)
+            state.data = Data()
+            state.lease = nil
+            state.phase = .sealed
+            return sealed
+        }
+    }
+
+    func abortAndInvalidate(lease: StorageWriteLease) throws {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw CodecError(.storageUnavailable, "Write lease is stale, foreign or unavailable.")
+            }
+            state.data = Data()
+            state.lease = nil
+            state.phase = .invalid
+        }
+    }
+
+    private func locked<R>(_ body: (inout State) throws -> R) throws -> R {
+        guard !engaged.load(ordering: .acquiring) else {
+            throw CodecError(.storageUnavailable, "A storage borrow is already active.")
+        }
+        guard let result = try state.withLockIfAvailable({ state -> R in
+            engaged.store(true, ordering: .releasing)
+            defer { engaged.store(false, ordering: .releasing) }
+            return try body(&state)
+        }) else {
+            throw CodecError(.storageUnavailable, "A storage borrow is already active.")
+        }
+        return result
+    }
+}
 
 /// Capability protocol for JPEG 2000 / HTJ2K decoders that produce coarse reduced-resolution previews.
 package protocol ProgressiveResolutionDecodableCodec: ImageCodec {
@@ -19,7 +119,7 @@ package protocol ProgressiveResolutionDecodableCodec: ImageCodec {
 /// `ManagedDecodedPixelFrame` bounded admission alongside `SwiftJ2K.ResourceLimits`.
 public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, ProgressiveResolutionDecodableCodec, Sendable {
     public static let engineName = "SwiftJ2K"
-    public static let engineVersion = "12.2.0"
+    public static let engineVersion = "12.3.0"
 
     public static let supportedTransferSyntaxes: [String] = [
         TransferSyntax.jpeg2000Lossless.uid,
@@ -250,21 +350,23 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
     // MARK: - Decoding
 
     public func decodeFrame(_ frameData: Data, descriptor: PixelDataDescriptor, frameIndex: Int) throws -> Data {
+        try Task.checkCancellation()
         let prepared = try prepareDecode(frameData, descriptor: descriptor, frameIndex: frameIndex)
-        let decoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
-            try await Self.executeDecode(prepared: prepared, options: options)
+        let decoded: DecodedImage
+        if options.resourceLimits.deadlineSeconds >= 5.0 {
+            do {
+                decoded = try Self.executeDecodeSync(prepared: prepared, options: options)
+            } catch {
+                throw SwiftJ2KSyncBridge.translateError(error)
+            }
+            try Task.checkCancellation()
+        } else {
+            decoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
+                try await Self.executeDecode(prepared: prepared, options: options)
+            }
         }
         try finishDecodeTelemetryAndChecks(decoded, prepared: prepared, frameIndex: frameIndex)
-
-        let expectedBytes = prepared.expectedFrameBytes
-        return try decoded.image.storage.withUnsafeBytes { rawBytes in
-            guard rawBytes.count >= expectedBytes else {
-                throw DICOMError.parsingFailed(
-                    "SwiftJ2K decoded storage (\(rawBytes.count) bytes) shorter than expected frame (\(expectedBytes) bytes)"
-                )
-            }
-            return Data(rawBytes.prefix(expectedBytes))
-        }
+        return try Self.extractDecodedData(decoded, expectedBytes: prepared.expectedFrameBytes)
     }
 
     public func decodeFrame(
@@ -273,14 +375,25 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         frameIndex: Int,
         into destination: UnsafeMutableRawBufferPointer
     ) throws -> Int {
+        try Task.checkCancellation()
         let prepared = try prepareDecode(frameData, descriptor: descriptor, frameIndex: frameIndex)
         guard destination.count >= prepared.expectedFrameBytes, let dstBase = destination.baseAddress else {
             throw DICOMError.limitExceeded(
                 "Caller-owned destination too small: \(destination.count) bytes for \(prepared.expectedFrameBytes)-byte frame"
             )
         }
-        let decoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
-            try await Self.executeDecode(prepared: prepared, options: options)
+        let decoded: DecodedImage
+        if options.resourceLimits.deadlineSeconds >= 5.0 {
+            do {
+                decoded = try Self.executeDecodeSync(prepared: prepared, options: options)
+            } catch {
+                throw SwiftJ2KSyncBridge.translateError(error)
+            }
+            try Task.checkCancellation()
+        } else {
+            decoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
+                try await Self.executeDecode(prepared: prepared, options: options)
+            }
         }
         try finishDecodeTelemetryAndChecks(decoded, prepared: prepared, frameIndex: frameIndex)
 
@@ -322,16 +435,11 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             throw SwiftJ2KSyncBridge.translateError(error)
         }
         try finishDecodeTelemetryAndChecks(decoded, prepared: prepared, frameIndex: frameIndex)
-        let expectedBytes = prepared.expectedFrameBytes
-        return try decoded.image.storage.withUnsafeBytes { rawBytes in
-            guard rawBytes.count >= expectedBytes else {
-                throw DICOMError.parsingFailed("SwiftJ2K decoded storage capacity mismatch")
-            }
-            return Data(rawBytes.prefix(expectedBytes))
-        }
+        return try Self.extractDecodedData(decoded, expectedBytes: prepared.expectedFrameBytes)
     }
 
-    /// Decodes a coarse reduced-resolution preview (`level == 0` is full resolution; each level up halves both dimensions).
+    /// Decodes a coarse reduced-resolution preview (`level == 0` is full resolution; each level up halves both dimensions)
+    /// by skipping the finest wavelet subbands (`CodecOptions.resolutionReductionLevels`) directly inside `SwiftJ2K`.
     public func decodeFrameAtResolution(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
@@ -341,10 +449,88 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         guard level >= 0 else {
             throw DICOMError.parsingFailed("Resolution level (\(level)) must be non-negative")
         }
-        let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: 0)
         guard level > 0 else {
+            let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: 0)
             return (fullBytes, descriptor.rows, descriptor.columns)
         }
+
+        let prepared = try prepareDecode(frameData, descriptor: descriptor, frameIndex: 0)
+        let minNL = J2KCodestreamInspector.minimumDecompositionLevels(in: prepared.codestream) ?? 0
+        let nativeLevel = min(level, min(32, max(0, minNL)))
+
+        if nativeLevel > 0 {
+            let decoded: DecodedImage
+            let nativeRows: Int
+            let nativeCols: Int
+            let nativeDescriptor: PixelDataDescriptor
+            do {
+                let decoder = try Decoder(
+                    configuration: .init(codecOptions: try CodecOptions(resolutionReductionLevels: nativeLevel))
+                )
+                let execution = Self.resolveExecution(for: prepared.requestedBackend)
+                let decodeOptions = DecodeOptions(
+                    resourceLimits: options.resourceLimits,
+                    executionPolicy: execution.policy,
+                    acceleratedEnginePreference: execution.enginePreference,
+                    copyPolicy: .requireSharedStorage,
+                    metadataPolicy: .preserve
+                )
+                let inspected = try decoder.inspect(prepared.codestream, options: decodeOptions)
+                nativeRows = inspected.descriptor.height
+                nativeCols = inspected.descriptor.width
+                nativeDescriptor = PixelDataDescriptor(
+                    rows: nativeRows,
+                    columns: nativeCols,
+                    numberOfFrames: 1,
+                    bitsAllocated: descriptor.bitsAllocated,
+                    bitsStored: descriptor.bitsStored,
+                    highBit: descriptor.highBit,
+                    isSigned: descriptor.isSigned,
+                    samplesPerPixel: descriptor.samplesPerPixel,
+                    photometricInterpretation: descriptor.photometricInterpretation,
+                    planarConfiguration: descriptor.planarConfiguration
+                )
+                let swiftDesc = try Self.makeSwiftImageDescriptor(
+                    from: nativeDescriptor,
+                    limits: options.resourceLimits
+                )
+                let storage = DataBackedWritableImageStorage(byteCount: swiftDesc.requiredByteCount)
+                let destination = try ImageDestination(
+                    descriptor: swiftDesc,
+                    storage: storage,
+                    limits: options.resourceLimits
+                )
+                decoded = try await decoder.decode(prepared.codestream, into: destination, options: decodeOptions)
+            } catch {
+                throw SwiftJ2KSyncBridge.translateError(error)
+            }
+            try Self.verifyExecutedBackend(report: decoded.report, requested: prepared.requestedBackend)
+            options.telemetryHandler?(SwiftJ2KOperationRecord(
+                kind: .decode,
+                transferSyntaxUID: prepared.transferSyntaxUID ?? "unknown",
+                targetTransferSyntaxUID: nil,
+                frameIndex: 0,
+                report: decoded.report
+            ))
+            let nativeExpectedBytes = nativeDescriptor.bytesPerFrame
+            let nativeBytes = try Self.extractDecodedData(decoded, expectedBytes: nativeExpectedBytes)
+            if nativeLevel == level {
+                return (nativeBytes, nativeRows, nativeCols)
+            }
+            let residualFactor = 1 << min(30, level - nativeLevel)
+            let newRows = max(1, (nativeRows + residualFactor - 1) / residualFactor)
+            let newCols = max(1, (nativeCols + residualFactor - 1) / residualFactor)
+            let downsampled = Self.downsamplePackedPixels(
+                nativeBytes,
+                descriptor: nativeDescriptor,
+                factor: residualFactor,
+                newRows: newRows,
+                newCols: newCols
+            )
+            return (downsampled, newRows, newCols)
+        }
+
+        let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: 0)
         let factor = 1 << min(30, level)
         let newRows = max(1, (descriptor.rows + factor - 1) / factor)
         let newCols = max(1, (descriptor.columns + factor - 1) / factor)
@@ -635,14 +821,25 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         frameIndex: Int,
         configuration: CompressionConfiguration
     ) throws -> Data {
+        try Task.checkCancellation()
         let prepared = try prepareEncode(
             frameData,
             descriptor: descriptor,
             frameIndex: frameIndex,
             configuration: configuration
         )
-        let encoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
-            try await Self.executeEncode(prepared: prepared, options: options)
+        let encoded: EncodedImage
+        if options.resourceLimits.deadlineSeconds >= 5.0 {
+            do {
+                encoded = try Self.executeEncodeSync(prepared: prepared, options: options)
+            } catch {
+                throw SwiftJ2KSyncBridge.translateError(error)
+            }
+            try Task.checkCancellation()
+        } else {
+            encoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
+                try await Self.executeEncode(prepared: prepared, options: options)
+            }
         }
         return try finalizeEncodedFrame(encoded, prepared: prepared, descriptor: descriptor, frameIndex: frameIndex)
     }
@@ -1082,12 +1279,33 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         )
     }
 
+    private static func extractDecodedData(_ decoded: DecodedImage, expectedBytes: Int) throws -> Data {
+        if let direct = decoded.image.storage as? DataReadOnlyImageStorage {
+            guard direct.data.count >= expectedBytes else {
+                throw DICOMError.parsingFailed(
+                    "SwiftJ2K decoded storage (\(direct.data.count) bytes) shorter than expected frame (\(expectedBytes) bytes)"
+                )
+            }
+            return direct.data.count == expectedBytes ? direct.data : direct.data.prefix(expectedBytes)
+        }
+        return try decoded.image.storage.withUnsafeBytes { rawBytes in
+            guard rawBytes.count >= expectedBytes else {
+                throw DICOMError.parsingFailed(
+                    "SwiftJ2K decoded storage (\(rawBytes.count) bytes) shorter than expected frame (\(expectedBytes) bytes)"
+                )
+            }
+            return Data(rawBytes.prefix(expectedBytes))
+        }
+    }
+
     private static func executeDecode(
         prepared: PreparedDecode,
         options: SwiftJ2KProviderOptions
     ) async throws -> DecodedImage {
-        let destination = try ImageDestination.allocate(
+        let storage = DataBackedWritableImageStorage(byteCount: prepared.swiftDescriptor.requiredByteCount)
+        let destination = try ImageDestination(
             descriptor: prepared.swiftDescriptor,
+            storage: storage,
             limits: options.resourceLimits
         )
         let decoder = try Decoder()
@@ -1100,6 +1318,207 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             metadataPolicy: .preserve
         )
         return try await decoder.decode(prepared.codestream, into: destination, options: decodeOptions)
+    }
+
+    private static func executeDecodeSync(
+        prepared: PreparedDecode,
+        options: SwiftJ2KProviderOptions
+    ) throws -> DecodedImage {
+        let storage = DataBackedWritableImageStorage(byteCount: prepared.swiftDescriptor.requiredByteCount)
+        let destination = try ImageDestination(
+            descriptor: prepared.swiftDescriptor,
+            storage: storage,
+            limits: options.resourceLimits
+        )
+        let decoder = try Decoder()
+        let execution = resolveExecution(for: prepared.requestedBackend)
+        let decodeOptions = DecodeOptions(
+            resourceLimits: options.resourceLimits,
+            executionPolicy: execution.policy,
+            acceleratedEnginePreference: execution.enginePreference,
+            copyPolicy: .requireSharedStorage,
+            metadataPolicy: .preserve
+        )
+        return try decoder.decodeSynchronously(prepared.codestream, into: destination, options: decodeOptions)
+    }
+
+    private static func makeInputImage(
+        frameData: Data,
+        descriptor: PixelDataDescriptor,
+        swiftDescriptor: ImageDescriptor,
+        frameBytes: Int,
+        limits: ResourceLimits
+    ) throws -> Image {
+        let exactSlice: Data
+        if frameData.startIndex == 0 && frameData.count == frameBytes {
+            exactSlice = frameData
+        } else {
+            exactSlice = frameData.prefix(frameBytes)
+        }
+
+        if descriptor.bitsStored == descriptor.bitsAllocated {
+            return try Image(
+                descriptor: swiftDescriptor,
+                storage: DataReadOnlyImageStorage(data: exactSlice),
+                limits: limits
+            )
+        }
+
+        if descriptor.bitsAllocated == 16 {
+            if !descriptor.isSigned {
+                let keep16 = UInt16((1 << descriptor.bitsStored) - 1).littleEndian
+                let unused16 = ~keep16
+                let u64 = UInt64(unused16)
+                let unused64 = u64 | (u64 << 16) | (u64 << 32) | (u64 << 48)
+
+                let allClean = exactSlice.withUnsafeBytes { raw -> Bool in
+                    guard let base = raw.baseAddress else { return true }
+                    let n64 = frameBytes >> 3
+                    var acc: UInt64 = 0
+                    var i = 0
+                    while i < n64 {
+                        acc |= base.loadUnaligned(fromByteOffset: i << 3, as: UInt64.self) & unused64
+                        i += 1
+                    }
+                    var off = n64 << 3
+                    while off + 2 <= frameBytes {
+                        let w = base.loadUnaligned(fromByteOffset: off, as: UInt16.self)
+                        if (w & unused16) != 0 { return false }
+                        off += 2
+                    }
+                    return acc == 0
+                }
+                if allClean {
+                    return try Image(
+                        descriptor: swiftDescriptor,
+                        storage: DataReadOnlyImageStorage(data: exactSlice),
+                        limits: limits
+                    )
+                }
+
+                let keep64 = ~unused64
+                var normalized = Data(count: frameBytes)
+                exactSlice.withUnsafeBytes { srcRaw in
+                    normalized.withUnsafeMutableBytes { dstRaw in
+                        guard let src = srcRaw.baseAddress, let dst = dstRaw.baseAddress else { return }
+                        let n64 = frameBytes >> 3
+                        var i = 0
+                        while i < n64 {
+                            let off = i << 3
+                            let v = src.loadUnaligned(fromByteOffset: off, as: UInt64.self) & keep64
+                            dst.storeBytes(of: v, toByteOffset: off, as: UInt64.self)
+                            i += 1
+                        }
+                        var off = n64 << 3
+                        while off + 2 <= frameBytes {
+                            let v = src.loadUnaligned(fromByteOffset: off, as: UInt16.self) & keep16
+                            dst.storeBytes(of: v, toByteOffset: off, as: UInt16.self)
+                            off += 2
+                        }
+                    }
+                }
+                return try Image(
+                    descriptor: swiftDescriptor,
+                    storage: DataReadOnlyImageStorage(data: normalized),
+                    limits: limits
+                )
+            } else {
+                let shift = 16 - descriptor.bitsStored
+                let allSignExtended = exactSlice.withUnsafeBytes { raw -> Bool in
+                    guard let base = raw.baseAddress else { return true }
+                    var off = 0
+                    while off + 2 <= frameBytes {
+                        let s = Int16(littleEndian: base.loadUnaligned(fromByteOffset: off, as: Int16.self))
+                        if ((s << shift) >> shift) != s { return false }
+                        off += 2
+                    }
+                    return true
+                }
+                if allSignExtended {
+                    return try Image(
+                        descriptor: swiftDescriptor,
+                        storage: DataReadOnlyImageStorage(data: exactSlice),
+                        limits: limits
+                    )
+                }
+
+                var normalized = Data(count: frameBytes)
+                exactSlice.withUnsafeBytes { srcRaw in
+                    normalized.withUnsafeMutableBytes { dstRaw in
+                        guard let src = srcRaw.baseAddress, let dst = dstRaw.baseAddress else { return }
+                        var off = 0
+                        while off + 2 <= frameBytes {
+                            let s = Int16(littleEndian: src.loadUnaligned(fromByteOffset: off, as: Int16.self))
+                            let ext = ((s << shift) >> shift).littleEndian
+                            dst.storeBytes(of: ext, toByteOffset: off, as: Int16.self)
+                            off += 2
+                        }
+                    }
+                }
+                return try Image(
+                    descriptor: swiftDescriptor,
+                    storage: DataReadOnlyImageStorage(data: normalized),
+                    limits: limits
+                )
+            }
+        } else {
+            // bitsAllocated == 8 && bitsStored < 8
+            if !descriptor.isSigned {
+                let keep8 = UInt8((1 << descriptor.bitsStored) - 1)
+                let unused8 = ~keep8
+                let unused64 = UInt64(unused8) &* 0x0101_0101_0101_0101
+
+                let allClean = exactSlice.withUnsafeBytes { raw -> Bool in
+                    guard let base = raw.baseAddress else { return true }
+                    let n64 = frameBytes >> 3
+                    var acc: UInt64 = 0
+                    for i in 0..<n64 {
+                        acc |= base.loadUnaligned(fromByteOffset: i << 3, as: UInt64.self) & unused64
+                    }
+                    for off in (n64 << 3)..<frameBytes {
+                        if (raw[off] & unused8) != 0 { return false }
+                    }
+                    return acc == 0
+                }
+                if allClean {
+                    return try Image(
+                        descriptor: swiftDescriptor,
+                        storage: DataReadOnlyImageStorage(data: exactSlice),
+                        limits: limits
+                    )
+                }
+
+                var normalized = Data(count: frameBytes)
+                exactSlice.withUnsafeBytes { srcRaw in
+                    normalized.withUnsafeMutableBytes { dstRaw in
+                        for i in 0..<frameBytes {
+                            dstRaw[i] = srcRaw[i] & keep8
+                        }
+                    }
+                }
+                return try Image(
+                    descriptor: swiftDescriptor,
+                    storage: DataReadOnlyImageStorage(data: normalized),
+                    limits: limits
+                )
+            } else {
+                let shift = 8 - descriptor.bitsStored
+                var normalized = Data(count: frameBytes)
+                exactSlice.withUnsafeBytes { srcRaw in
+                    normalized.withUnsafeMutableBytes { dstRaw in
+                        for i in 0..<frameBytes {
+                            let s = Int8(bitPattern: srcRaw[i])
+                            dstRaw[i] = UInt8(bitPattern: (s << shift) >> shift)
+                        }
+                    }
+                }
+                return try Image(
+                    descriptor: swiftDescriptor,
+                    storage: DataReadOnlyImageStorage(data: normalized),
+                    limits: limits
+                )
+            }
+        }
     }
 
     private func finishDecodeTelemetryAndChecks(
@@ -1189,36 +1608,13 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
                 from: descriptor,
                 limits: options.resourceLimits
             )
-            let destination = try ImageDestination.allocate(
-                descriptor: swiftDescriptor,
+            image = try Self.makeInputImage(
+                frameData: frameData,
+                descriptor: descriptor,
+                swiftDescriptor: swiftDescriptor,
+                frameBytes: geometry.frameBytes,
                 limits: options.resourceLimits
             )
-            let bytesPerSample = descriptor.bytesPerSample
-            let columns = descriptor.columns
-            let planePixels = geometry.pixels
-            let samplesPerPixel = descriptor.samplesPerPixel
-            let planarConfiguration = descriptor.planarConfiguration
-
-            // Normalise every DICOM Pixel Cell via `storedValue(fromCell:)` (PS3.5 §8.1.1) so both
-            // sign-extended and zero-cleared unused high bits in <16-in-16 frames yield exact logical samples.
-            image = try frameData.withUnsafeBytes { rawFrame in
-                guard rawFrame.count >= geometry.frameBytes else {
-                    throw CodecError(.invalidArgument, "Frame buffer shorter than required byte count.")
-                }
-                return try destination.writeSamples { component, x, y in
-                    let pixelIndex = y * columns + x
-                    let byteOffset: Int
-                    if samplesPerPixel == 1 {
-                        byteOffset = pixelIndex * bytesPerSample
-                    } else if planarConfiguration == 1 {
-                        byteOffset = (component * planePixels + pixelIndex) * bytesPerSample
-                    } else {
-                        byteOffset = (pixelIndex * 3 + component) * bytesPerSample
-                    }
-                    let cell = descriptor.cellValue(in: rawFrame, at: byteOffset)
-                    return descriptor.storedValue(fromCell: cell)
-                }
-            }
 
             let isLossless = intent.isLossless
             let isPart2 = (family == .part2)
@@ -1288,6 +1684,22 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             metadataPolicy: .preserve
         )
         return try await encoder.encode(prepared.image, options: encodeOptions)
+    }
+
+    private static func executeEncodeSync(
+        prepared: PreparedEncode,
+        options: SwiftJ2KProviderOptions
+    ) throws -> EncodedImage {
+        let encoder = try Encoder(configuration: prepared.encoderConfiguration)
+        let execution = resolveExecution(for: prepared.requestedBackend)
+        let encodeOptions = EncodeOptions(
+            resourceLimits: options.resourceLimits,
+            executionPolicy: execution.policy,
+            acceleratedEnginePreference: execution.enginePreference,
+            copyPolicy: .requireSharedStorage,
+            metadataPolicy: .preserve
+        )
+        return try encoder.encodeSynchronously(prepared.image, options: encodeOptions)
     }
 
     private func finalizeEncodedFrame(

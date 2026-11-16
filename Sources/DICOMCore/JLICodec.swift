@@ -118,7 +118,7 @@ private final class JLIDataBackedWritableStorage: SwiftJLI.WritableImageStorage,
 /// NEMA-verified: 2026a, checked 2026-10-01 — the four JPEG UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` admits a subset of PS3.5 2026a Tables 8.2.1-1/8.2.1-2: Baseline 8/8 (colour written YCbCr 4:2:2 = YBR_FULL_422, D190), Extended 8/8 or 16/12 monochrome only (Table 8.2.1-1 has no 3-sample .51 row), Lossless 8-or-16 allocated with 2–16 stored (the tables allow 1–16; 1 is a SwiftJLI/ITU-T T.81 SOF3 precision limit), YBR_FULL_422 only with Baseline. The "§A.4.1–A.4.3" citation was narrowed to §A.4.1 (A.4.2 is RLE, A.4.3 JPEG-LS). The codec implements ITU-T T.81, outside DICOM.
 public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJLI"
-    public static let engineVersion = "2.0.3"
+    public static let engineVersion = "2.1.0"
 
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
