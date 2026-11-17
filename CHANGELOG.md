@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-11-16
+
+### Fixed
+
+- Raise minimum SemVer dependency floors in `Package.swift` and `Integrations/DICOMSwiftJ2KIntegration/Package.swift` so SwiftPM and Xcode consumers never resolve superseded patch tags:
+  - `SwiftJ2K` `from: "12.3.1"` (`v12.3.1` @ `793195b0f97d6050af46d90c7a66b5a84f85960f`)
+  - `SwiftRLE` `from: "1.1.0"` (`v1.1.0` @ `6e7a00d8907c8afb6719319252b4d6b2fe7b6d2f`)
+  - `SwiftJLS` `from: "2.1.2"` (`v2.1.2` @ `d998731aab1b68de193a32b44e9704960b5a3732`)
+  - `SwiftJLI` `from: "2.1.0"` (`v2.1.0` @ `0cb16e3ca822c6485173b4eef2f1b6f74dd71b21`)
+  - `SwiftJXL` `from: "2.1.1"` (`v2.1.1` @ `335b2aa51e0c0e758d3a273da806653e39402b4d`)
+- Synchronize `Package.resolved`, `DICOMStudio.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` (`xcodebuild -onlyUsePackageVersionsFromResolvedFile`), and `Integrations/DICOMSwiftJ2KIntegration/Package.resolved` on the `v3.2.1` release tag.
+- Align `engineVersion` provenance constants across `SwiftJ2KDICOMCodec` (`"12.3.1"`), `JP3DCodec` (`"12.3.1"`), `DICOMJPIPClient` (`"12.3.1"`), `RLECodec` (`"1.1.0"`), `JPEGLSCodec` (`"2.1.2"`), `JLICodec` (`"2.1.0"`), `JXLCodec` (`"2.1.1"`), and `DICOMStudio` (`CodecInspectorHelpers`, `J2KBenchCodec`, `StudioBuildInfo`).
+
+## [3.2.0] - 2026-11-16
+
+### Changed
+
+- Upgrade all five MIT-licensed `raster-labs` pure-Swift compression and streaming dependencies to their SIMD/Accelerate and multi-worker performance releases:
+  - `SwiftJ2K` `12.3.0` (`from: "12.3.0"`, `SwiftJ2K`, `SwiftJ2K3D`, `SwiftJ2KJPIP`): `BoundedParallelPool` intra-tile / multi-tile code-block parallelism, zero-task-spawn synchronous fast paths (`encodeSynchronously`, `decodeSynchronously`, `transcodeSynchronously`), native `CodecOptions.resolutionReductionLevels` reduced-resolution wavelet subband decode, multi-candidate HTJ2K PCRD rate allocation, and vectorised SIMD/Accelerate (`vDSP`) Tier-1 EBCOT / MQ / clean-room ITU-T Rec. T.814 HTJ2K / DWT / RCT / ICT kernels.
+  - `SwiftRLE` `1.1.0` (`from: "1.1.0"`): synchronous `encodeSync` / `decodeSync` APIs, `Backend.accelerated` 16-byte SIMD byte-plane split/interleave, and multi-worker parallel segment coding.
+  - `SwiftJLS` `2.1.0` (`from: "2.1.0"`): synchronous `encodeSync` / `decodeIntoSync` APIs, `Backend.accelerated` 16-bit lossless context/Golomb fast path, and multi-worker component-plane coding.
+  - `SwiftJLI` `2.1.0` (`from: "2.1.0"`): native `SwiftJLIEntropyC` C11 Huffman/AC/DCT kernels, synchronous `encodeSync` / `decodeSync` / `decodeIntoSync` APIs, and `Backend.accelerated` greyscale SOF3 row-pipelining.
+  - `SwiftJXL` `2.1.0` (`from: "2.1.0"`): SIMD/Accelerate (`vDSP`) and bounded multi-worker Modular, VarDCT (single-cell & large-grid hierarchical analysis), and native `jbrd` JPEG reconstruction acceleration.
+- Wire zero-actor-hop synchronous codec bridges across `SwiftJ2KDICOMCodec`, `SwiftJ2KDICOMTranscoder`, `RLECodec`, `JPEGLSCodec`, `JLICodec`, and `JXLCodec`, retire `CompressionSuiteSyncBridge`, and enforce strict `.scalar` worker clamping (`maximumWorkers = 1`, `ExecutionPolicy.required(.scalarCPU)`) alongside multi-worker `.accelerate` / `auto` routing and reduced-resolution J2K codestream/subband inspection (`J2KCodestreamInspector`, `SwiftJ2KProviderOptions`).
+
 ## [3.1.2] - 2026-11-13
 
 ### Fixed

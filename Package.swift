@@ -232,16 +232,16 @@ let package = Package(
         // .package(url: "https://github.com/awslabs/aws-sdk-swift.git", from: "1.6.0"),
         // SwiftJ2K — pure-Swift JPEG 2000 Part 1, Part 2 MCT, Part 15 HTJ2K,
         // Volumetric JP3D (`SwiftJ2K3D`), and Interactive JPIP (`SwiftJ2KJPIP`) codec suite.
-        .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.2.0"),
+        .package(url: "https://github.com/raster-labs/SwiftJ2K.git", from: "12.3.1"),
         // SwiftRLE — pure-Swift DICOM RLE Lossless (PS3.5 Annex G) and PackBits codec.
-        .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.0.2"),
+        .package(url: "https://github.com/raster-labs/SwiftRLE.git", from: "1.1.0"),
         // SwiftJLS — pure-Swift JPEG-LS (ITU-T T.87 / ISO-IEC 14495-1) codec.
-        .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.0.1"),
+        .package(url: "https://github.com/raster-labs/SwiftJLS.git", from: "2.1.2"),
         // SwiftJLI — pure-Swift JPEG (ITU-T T.81 SOF0/SOF1/SOF2/SOF3) codec.
-        .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.0.3"),
+        .package(url: "https://github.com/raster-labs/SwiftJLI.git", from: "2.1.0"),
         // SwiftJXL — pure-Swift JPEG XL (ISO/IEC 18181) codec with Modular lossless,
         // VarDCT lossy, and reversible JPEG bitstream recompression (`jbrd`).
-        .package(url: "https://github.com/raster-labs/SwiftJXL.git", from: "2.0.1")
+        .package(url: "https://github.com/raster-labs/SwiftJXL.git", from: "2.1.1")
     ],
     targets: [
         .target(

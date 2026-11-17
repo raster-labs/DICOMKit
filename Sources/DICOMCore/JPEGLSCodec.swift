@@ -1,5 +1,96 @@
 import Foundation
+import Synchronization
 import SwiftJLS
+
+private final class JLSBorrowedReadOnlyStorage: SwiftJLS.ReadOnlyImageStorage, Sendable {
+    let data: Data
+    let allocationID = UUID()
+    var byteCount: Int { data.count }
+    init(data: Data) { self.data = data }
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try data.withUnsafeBytes(body)
+    }
+}
+
+private final class JLSDataBackedWritableStorage: SwiftJLS.WritableImageStorage, Sendable {
+    let byteCount: Int
+    let allocationID = UUID()
+    private enum Phase { case available, writing, sealed, invalid }
+    private struct State: Sendable {
+        var data: Data
+        var phase: Phase = .available
+        var lease: SwiftJLS.StorageWriteLease?
+    }
+    private let state: Mutex<State>
+    private let engaged = Atomic<Bool>(false)
+
+    init(byteCount: Int) {
+        self.byteCount = byteCount
+        self.state = Mutex(State(data: Data(count: byteCount)))
+    }
+
+    func reserveWrite() throws -> SwiftJLS.StorageWriteLease {
+        try locked { state in
+            guard state.phase == .available else {
+                throw SwiftJLS.CodecError(.storageUnavailable, "Storage unavailable.")
+            }
+            let lease = SwiftJLS.StorageWriteLease()
+            state.lease = lease
+            state.phase = .writing
+            return lease
+        }
+    }
+
+    func withUnsafeMutableBytes<R>(
+        lease: SwiftJLS.StorageWriteLease,
+        _ body: (UnsafeMutableRawBufferPointer) throws -> R
+    ) throws -> R {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLS.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            return try state.data.withUnsafeMutableBytes(body)
+        }
+    }
+
+    func finishAndSeal(lease: SwiftJLS.StorageWriteLease) throws -> any SwiftJLS.ReadOnlyImageStorage {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLS.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            let sealed = JLSBorrowedReadOnlyStorage(data: state.data)
+            state.data = Data()
+            state.lease = nil
+            state.phase = .sealed
+            return sealed
+        }
+    }
+
+    func abortAndInvalidate(lease: SwiftJLS.StorageWriteLease) throws {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJLS.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            state.data = Data()
+            state.lease = nil
+            state.phase = .invalid
+        }
+    }
+
+    private func locked<R>(_ body: (inout State) throws -> R) throws -> R {
+        guard !engaged.load(ordering: .acquiring) else {
+            throw SwiftJLS.CodecError(.storageUnavailable, "Reentrant storage borrow.")
+        }
+        guard let result = try state.withLockIfAvailable({ state -> R in
+            engaged.store(true, ordering: .releasing)
+            defer { engaged.store(false, ordering: .releasing) }
+            return try body(&state)
+        }) else {
+            throw SwiftJLS.CodecError(.storageUnavailable, "Concurrent storage borrow.")
+        }
+        return result
+    }
+}
 
 /// JPEG-LS codec backed by the `SwiftJLS` package.
 ///
@@ -12,9 +103,9 @@ import SwiftJLS
 ///   • 1.2.840.10008.1.2.4.80  JPEG-LS Lossless
 ///   • 1.2.840.10008.1.2.4.81  JPEG-LS Near-Lossless
 /// NEMA-verified: 2026a, checked 2026-09-25 — the two JPEG-LS UIDs come from `TransferSyntax` (PS3.6 2026a Table A-1). `canEncode` (8 or 16 allocated, 2–16 stored, 1 or 3 samples) matches PS3.5 2026a Table 8.2.3-1. The header citation said §A.4.5 (MPEG2); corrected to §A.4.3. The codec implements ITU-T T.87, outside DICOM.
-public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
+public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJLS"
-    public static let engineVersion = "2.0.1"
+    public static let engineVersion = "2.1.2"
 
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
@@ -28,7 +119,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// JPEG-LS scan interleave mode (`ILV` parameter in SOS, ITU-T T.87 C.2.3).
     public enum InterleaveMode: Sendable, Equatable {
-        /// `.none` (`ILV = 0`) for monochrome, `.sample` (`ILV = 2`) for multi-component.
+        /// `.none` (`ILV = 0`) for monochrome and multi-component scans (enabling parallel plane coding).
         case automatic
         /// Non-interleaved (`ILV = 0`, one scan per component).
         case none
@@ -95,11 +186,35 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     private let decodingLimits: PixelDecodeLimits
     private let precisionPolicy: PrecisionPolicy
     private let missingPresetPolicy: MissingPresetPolicy
+    public let decodeBackend: CodecBackend?
+    public let maximumWorkers: Int?
+    public let restartIntervalLines: Int
+
+    private init(
+        syntaxRestriction: SyntaxRestriction,
+        decodingLimits: PixelDecodeLimits,
+        precisionPolicy: PrecisionPolicy,
+        missingPresetPolicy: MissingPresetPolicy,
+        decodeBackend: CodecBackend?,
+        maximumWorkers: Int?,
+        restartIntervalLines: Int
+    ) {
+        self.syntaxRestriction = syntaxRestriction
+        self.decodingLimits = decodingLimits
+        self.precisionPolicy = precisionPolicy
+        self.missingPresetPolicy = missingPresetPolicy
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartIntervalLines = max(0, restartIntervalLines)
+    }
 
     /// Creates a decoder with optional syntax enforcement and caller-selected resource bounds.
     public init(decodingTransferSyntaxUID: String? = nil, decodingLimits: PixelDecodeLimits = .default,
                 precisionPolicy: PrecisionPolicy = .requireSourceMatch,
-                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults) {
+                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults,
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                restartIntervalLines: Int = 0) {
         switch decodingTransferSyntaxUID {
         case nil: self.syntaxRestriction = .any
         case TransferSyntax.jpegLSLossless.uid: self.syntaxRestriction = .lossless
@@ -109,6 +224,9 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy
         self.missingPresetPolicy = missingPresetPolicy
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartIntervalLines = max(0, restartIntervalLines)
     }
 
     /// Create the same decoder from finite scalar policy without initializing UID Strings.
@@ -119,7 +237,10 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
     ///   - missingPresetPolicy: Explicit opt-in for nonstandard legacy preset recovery.
     public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init(),
                 precisionPolicy: PrecisionPolicy = .requireSourceMatch,
-                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults) {
+                missingPresetPolicy: MissingPresetPolicy = .requireStandardDefaults,
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                restartIntervalLines: Int = 0) {
         switch decodingSyntax {
         case .any: syntaxRestriction = .any
         case .lossless: syntaxRestriction = .lossless
@@ -128,6 +249,77 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         self.decodingLimits = decodingLimits
         self.precisionPolicy = precisionPolicy
         self.missingPresetPolicy = missingPresetPolicy
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.restartIntervalLines = max(0, restartIntervalLines)
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        JPEGLSCodec(
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            precisionPolicy: precisionPolicy,
+            missingPresetPolicy: missingPresetPolicy,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartIntervalLines: restartIntervalLines
+        )
+    }
+
+    public func withMaximumWorkers(_ maximumWorkers: Int?) -> JPEGLSCodec {
+        JPEGLSCodec(
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            precisionPolicy: precisionPolicy,
+            missingPresetPolicy: missingPresetPolicy,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartIntervalLines: restartIntervalLines
+        )
+    }
+
+    public func withRestartIntervalLines(_ restartIntervalLines: Int) -> JPEGLSCodec {
+        JPEGLSCodec(
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            precisionPolicy: precisionPolicy,
+            missingPresetPolicy: missingPresetPolicy,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartIntervalLines: restartIntervalLines
+        )
+    }
+
+    /// Checks whether the requested `CodecBackend` is natively supported (`SwiftJLS` executes on CPU SIMD or scalar CPU, never Metal GPU).
+    public static func supportsBackend(_ backend: CodecBackend?) -> Bool {
+        guard let backend else { return true }
+        switch backend {
+        case .scalar, .accelerate:
+            return true
+        case .metal:
+            return false
+        }
+    }
+
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJLS.ExecutionPolicy {
+        guard let backend else { return .automatic }
+        switch backend {
+        case .scalar:
+            return .required(.scalarCPU)
+        case .accelerate, .metal:
+            return .preferred(.accelerated)
+        }
+    }
+
+    @inline(__always)
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+        if let configured {
+            return max(1, min(configured, 64))
+        }
+        if backend == .scalar {
+            return 1
+        }
+        return SwiftJLS.ResourceLimits.default.maximumWorkers
     }
 
     // MARK: - Decoding
@@ -573,11 +765,13 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let defaultWorkspace = 512 * 1024 * 1024
         let (sum1, over1) = maxEncoded.addingReportingOverflow(maxDecoded)
         let maxWorkspace = over1 ? Int.max : max(defaultWorkspace, sum1)
+        let workers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
         return try SwiftJLS.ResourceLimits(
             maximumCompressedBytes: maxEncoded,
             maximumDecodedBytes: maxDecoded,
             maximumWorkspaceBytes: maxWorkspace,
             maximumPixels: maxPixels,
+            maximumWorkers: workers,
             deadlineSeconds: 30.0,
             maximumMemoryBytes: Int.max
         )
@@ -1047,19 +1241,19 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
 
                 let losslessExpected = (syntaxRestriction == .lossless) || !summary.hasNearLosslessScan
                 let expectedByteCount = info.expectedByteCount
-                let decodeOutcome = CompressionSuiteSyncBridge.runManaged(
-                    deadlineSeconds: 30.0,
-                    joinGraceSeconds: 1.0,
+                let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
+                let decodeOutcome = Self.runManagedSynchronous(
                     domain: 0x0100,
                     cancellation: cancellation
                 ) {
-                    try await Self.decodeToDICOMBytes(
+                    try Self.decodeToDICOMBytes(
                         data: data,
                         decoder: decoder,
                         inspected: inspected,
                         descriptor: targetDescriptor,
                         expectedByteCount: expectedByteCount,
                         limits: limits,
+                        executionPolicy: executionPolicy,
                         requireExactFidelity: losslessExpected
                     )
                 }
@@ -1101,6 +1295,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                             patchedData,
                             options: .init(
                                 resourceLimits: fallbackLimits,
+                                executionPolicy: executionPolicy,
                                 copyPolicy: .requireSharedStorage,
                                 metadataPolicy: .discardAncillary
                             )
@@ -1110,19 +1305,18 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                         staging.keepAlive()
                         return .failure(failure)
                     }
-                    let fallbackOutcome = CompressionSuiteSyncBridge.runManaged(
-                        deadlineSeconds: 30.0,
-                        joinGraceSeconds: 1.0,
+                    let fallbackOutcome = Self.runManagedSynchronous(
                         domain: 0x0100,
                         cancellation: cancellation
                     ) {
-                        try await Self.decodeToDICOMBytes(
+                        try Self.decodeToDICOMBytes(
                             data: patchedData,
                             decoder: decoder,
                             inspected: fallbackInspected,
                             descriptor: targetDescriptor,
                             expectedByteCount: expectedByteCount,
                             limits: fallbackLimits,
+                            executionPolicy: executionPolicy,
                             requireExactFidelity: losslessExpected
                         )
                     }
@@ -1191,6 +1385,38 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                                    operand3: error.operand1, domain: 0x0100)
     }
 
+    private static func runManagedSynchronous<T>(
+        domain: UInt16,
+        cancellation: DICOMCancellation,
+        operation: () throws -> T
+    ) -> DICOMManagedOutcome<T> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+        do {
+            let value = try operation()
+            if let failure = cancellation.failure { return .failure(failure) }
+            if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+            return .success(value)
+        } catch is CancellationError {
+            return .failure(DICOMManagedFailure(.cancelled))
+        } catch let managed as DICOMManagedFailure {
+            return .failure(managed)
+        } catch let dicomError as DICOMError {
+            switch dicomError {
+            case .limitExceeded:
+                return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+            case .unsupportedTransferSyntax:
+                return .failure(DICOMManagedFailure(.invalidTransferSyntax, 9, domain: domain))
+            default:
+                return .failure(DICOMManagedFailure(.malformed, 10, domain: domain))
+            }
+        } catch let codecError as SwiftJLS.CodecError where codecError.category == .resourceLimitExceeded {
+            return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+        } catch {
+            return .failure(DICOMManagedFailure(.codecFailure, 107, domain: domain))
+        }
+    }
+
     private func attemptLegacyUnclampedDecode(
         originalData: Data,
         summary: ParsedJPEGLSSummary,
@@ -1198,6 +1424,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         targetDescriptor: PixelDataDescriptor,
         wideComponentBytes: Int,
         expectedByteCount: Int,
+        executionPolicy: SwiftJLS.ExecutionPolicy,
         losslessExpected: Bool
     ) throws -> Data? {
         guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
@@ -1215,25 +1442,22 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 patchedData,
                 options: .init(
                     resourceLimits: fallbackLimits,
+                    executionPolicy: executionPolicy,
                     copyPolicy: .requireSharedStorage,
                     metadataPolicy: .discardAncillary
                 )
             )
-            return try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJLS"
-            ) {
-                try await Self.decodeToDICOMBytes(
-                    data: patchedData,
-                    decoder: decoder,
-                    inspected: fallbackInspected,
-                    descriptor: targetDescriptor,
-                    expectedByteCount: expectedByteCount,
-                    limits: fallbackLimits,
-                    requireExactFidelity: losslessExpected
-                )
-            }
+            try Task.checkCancellation()
+            return try Self.decodeToDICOMBytes(
+                data: patchedData,
+                decoder: decoder,
+                inspected: fallbackInspected,
+                descriptor: targetDescriptor,
+                expectedByteCount: expectedByteCount,
+                limits: fallbackLimits,
+                executionPolicy: executionPolicy,
+                requireExactFidelity: losslessExpected
+            )
         } catch let cancellationError as CancellationError {
             throw cancellationError
         } catch {
@@ -1257,24 +1481,21 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let decoder = try SwiftJLS.Decoder(configuration: .init(codecOptions: codecOptions))
         let losslessExpected = (syntaxRestriction == .lossless) || !summary.hasNearLosslessScan
         let expectedByteCount = info.expectedByteCount
+        let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
         let bytes: Data
         do {
-            bytes = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJLS"
-            ) {
-                try await Self.decodeToDICOMBytes(
-                    data: data,
-                    decoder: decoder,
-                    inspected: inspected,
-                    descriptor: targetDescriptor,
-                    expectedByteCount: expectedByteCount,
-                    limits: limits,
-                    requireExactFidelity: losslessExpected
-                )
-            }
+            try Task.checkCancellation()
+            bytes = try Self.decodeToDICOMBytes(
+                data: data,
+                decoder: decoder,
+                inspected: inspected,
+                descriptor: targetDescriptor,
+                expectedByteCount: expectedByteCount,
+                limits: limits,
+                executionPolicy: executionPolicy,
+                requireExactFidelity: losslessExpected
+            )
         } catch let error as CancellationError {
             throw error
         } catch let error as DICOMError {
@@ -1288,6 +1509,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 targetDescriptor: targetDescriptor,
                 wideComponentBytes: wideComponentBytes,
                 expectedByteCount: expectedByteCount,
+                executionPolicy: executionPolicy,
                 losslessExpected: losslessExpected
             ) {
                 bytes = recovered
@@ -1305,6 +1527,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 targetDescriptor: targetDescriptor,
                 wideComponentBytes: wideComponentBytes,
                 expectedByteCount: expectedByteCount,
+                executionPolicy: executionPolicy,
                 losslessExpected: losslessExpected
             ) {
                 bytes = recovered
@@ -1319,6 +1542,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 targetDescriptor: targetDescriptor,
                 wideComponentBytes: wideComponentBytes,
                 expectedByteCount: expectedByteCount,
+                executionPolicy: executionPolicy,
                 losslessExpected: losslessExpected
             ) {
                 bytes = recovered
@@ -1343,23 +1567,27 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         descriptor: PixelDataDescriptor,
         expectedByteCount: Int,
         limits: SwiftJLS.ResourceLimits,
+        executionPolicy: SwiftJLS.ExecutionPolicy,
         requireExactFidelity: Bool
-    ) async throws -> Data {
+    ) throws -> Data {
         let dstDescriptor = try makeDecodeDestinationDescriptor(
             from: descriptor,
             inspected: inspected,
             limits: limits
         )
-        let destination = try SwiftJLS.ImageDestination.allocate(
+        let writableStorage = JLSDataBackedWritableStorage(byteCount: max(expectedByteCount, dstDescriptor.requiredByteCount))
+        let destination = try SwiftJLS.ImageDestination(
             descriptor: dstDescriptor,
+            storage: writableStorage,
             limits: limits
         )
         let decodeOptions = SwiftJLS.DecodeOptions(
             resourceLimits: limits,
+            executionPolicy: executionPolicy,
             copyPolicy: .requireSharedStorage,
             metadataPolicy: .discardAncillary
         )
-        let decoded = try await decoder.decode(data, into: destination, options: decodeOptions)
+        let decoded = try decoder.decodeSynchronously(data, into: destination, options: decodeOptions)
         guard decoded.report.copyEvents.isEmpty else {
             throw DICOMError.parsingFailed("JPEG-LS decode violated requireSharedStorage copy policy")
         }
@@ -1375,7 +1603,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let meaningfulBits = dstDescriptor.meaningfulBits
         let maxSample = UInt16((1 << meaningfulBits) - 1)
 
-        return try decoded.image.storage.withUnsafeBytes { raw in
+        try decoded.image.storage.withUnsafeBytes { raw in
             guard raw.count >= expectedByteCount else {
                 throw DICOMError.parsingFailed("JPEG-LS decoded storage shorter than expected")
             }
@@ -1389,17 +1617,50 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                     }
                 } else {
                     let sampleCount = expectedByteCount / 2
-                    for i in 0..<sampleCount {
-                        let word = UInt16(raw[i * 2]) | (UInt16(raw[i * 2 + 1]) << 8)
-                        if word > maxSample {
-                            throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                    if let base16 = raw.baseAddress?.assumingMemoryBound(to: UInt16.self) {
+                        let vecMax = SIMD8<UInt16>(repeating: maxSample)
+                        var idx = 0
+                        while idx + 8 <= sampleCount {
+                            let v = SIMD8<UInt16>(
+                                UInt16(littleEndian: base16[idx]),
+                                UInt16(littleEndian: base16[idx + 1]),
+                                UInt16(littleEndian: base16[idx + 2]),
+                                UInt16(littleEndian: base16[idx + 3]),
+                                UInt16(littleEndian: base16[idx + 4]),
+                                UInt16(littleEndian: base16[idx + 5]),
+                                UInt16(littleEndian: base16[idx + 6]),
+                                UInt16(littleEndian: base16[idx + 7])
+                            )
+                            if any(v .> vecMax) {
+                                throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                            }
+                            idx += 8
+                        }
+                        while idx < sampleCount {
+                            if UInt16(littleEndian: base16[idx]) > maxSample {
+                                throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                            }
+                            idx += 1
+                        }
+                    } else {
+                        for i in 0..<sampleCount {
+                            let word = UInt16(raw[i * 2]) | (UInt16(raw[i * 2 + 1]) << 8)
+                            if word > maxSample {
+                                throw DICOMError.parsingFailed("Decoded JPEG-LS samples exceed the encoded precision")
+                            }
                         }
                     }
                 }
             }
-            guard let base = raw.baseAddress else {
-                return Data()
-            }
+        }
+
+        if let zeroCopy = decoded.image.storage as? JLSBorrowedReadOnlyStorage {
+            return zeroCopy.data.count == expectedByteCount
+                ? zeroCopy.data
+                : zeroCopy.data.prefix(expectedByteCount)
+        }
+        return try decoded.image.storage.withUnsafeBytes { raw in
+            guard let base = raw.baseAddress else { return Data() }
             return Data(bytes: base, count: expectedByteCount)
         }
     }
@@ -1542,7 +1803,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let swiftInterleave: SwiftJLS.CodecOptions.InterleaveMode
         switch interleaveMode {
         case .automatic:
-            swiftInterleave = descriptor.samplesPerPixel > 1 ? .sample : .none
+            swiftInterleave = .none
         case .none:
             swiftInterleave = .none
         case .line:
@@ -1552,7 +1813,8 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         }
 
         do {
-            let limits = try makeEncodeResourceLimits(descriptor: descriptor)
+            let effectiveBackend = configuration.forcedBackend ?? decodeBackend
+            let limits = try makeEncodeResourceLimits(descriptor: descriptor, backend: effectiveBackend)
             let image = try Self.buildEncodeImage(
                 from: frameData,
                 descriptor: descriptor,
@@ -1563,24 +1825,21 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
                 ? .lossless
                 : .nearLossless(maximumAbsoluteError: near)
             let codecOptions = try SwiftJLS.CodecOptions(
-                restartIntervalLines: 0,
+                restartIntervalLines: restartIntervalLines,
                 interleaveMode: swiftInterleave,
                 colourTransform: .none
             )
             let encoderConfig = try SwiftJLS.EncoderConfiguration(mode: mode, codecOptions: codecOptions)
             let encoder = try SwiftJLS.Encoder(configuration: encoderConfig)
+            let executionPolicy = Self.resolveExecutionPolicy(for: effectiveBackend)
             let encodeOptions = SwiftJLS.EncodeOptions(
                 resourceLimits: limits,
+                executionPolicy: executionPolicy,
                 copyPolicy: .requireSharedStorage,
                 metadataPolicy: .discardAncillary
             )
-            let encoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJLS"
-            ) {
-                try await encoder.encode(image, options: encodeOptions)
-            }
+            try Task.checkCancellation()
+            let encoded = try encoder.encodeSynchronously(image, options: encodeOptions)
             guard encoded.report.copyEvents.isEmpty else {
                 throw DICOMError.parsingFailed("JPEG-LS encode violated requireSharedStorage copy policy")
             }
@@ -1606,7 +1865,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         }
     }
 
-    private func makeEncodeResourceLimits(descriptor: PixelDataDescriptor) throws -> SwiftJLS.ResourceLimits {
+    private func makeEncodeResourceLimits(descriptor: PixelDataDescriptor, backend: CodecBackend?) throws -> SwiftJLS.ResourceLimits {
         let (pixels, pOver) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
         let (samples, sOver) = pixels.multipliedReportingOverflow(by: max(1, descriptor.samplesPerPixel))
         let (decodedBytes, bOver) = samples.multipliedReportingOverflow(by: bytesPerSample(descriptor))
@@ -1617,11 +1876,13 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
         let maxDecoded = max(512 * 1024 * 1024, decodedBytes)
         let (worstCompressed, cOver) = samples.multipliedReportingOverflow(by: 12)
         let maxCompressed = cOver ? Int.max : max(256 * 1024 * 1024, worstCompressed + 4096)
+        let workers = Self.effectiveWorkers(for: backend, configured: maximumWorkers)
         return try SwiftJLS.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
+            maximumWorkers: workers,
             deadlineSeconds: 30.0,
             maximumMemoryBytes: Int.max
         )
@@ -1727,12 +1988,23 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, Sendable {
             limits: limits
         )
 
+        let requiredBytes = swiftDescriptor.requiredByteCount
+        let needsSignedSubwordMask = descriptor.isSigned && bitsPerSample < storageBits
+
+        // Zero-copy fast path when source samples need no signed sub-word masking and cover requiredBytes.
+        if !needsSignedSubwordMask && frameData.count >= requiredBytes {
+            let slice = frameData.count == requiredBytes ? frameData : frameData.prefix(requiredBytes)
+            return try SwiftJLS.Image(
+                descriptor: swiftDescriptor,
+                storage: JLSBorrowedReadOnlyStorage(data: slice),
+                limits: limits
+            )
+        }
+
         let destination = try SwiftJLS.ImageDestination.allocate(
             descriptor: swiftDescriptor,
             limits: limits
         )
-        let requiredBytes = swiftDescriptor.requiredByteCount
-        let needsSignedSubwordMask = descriptor.isSigned && bitsPerSample < storageBits
 
         return try destination.write { dstRaw in
             guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {

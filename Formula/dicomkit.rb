@@ -1,11 +1,11 @@
 # Homebrew Formula for DICOMKit CLI Tools
 class Dicomkit < Formula
   desc "Pure Swift DICOM toolkit with 35 command-line utilities"
-  homepage "https://github.com/Raster-Lab/DICOMKit"
-  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.2.tar.gz"
-  sha256 "" # Will be filled in upon first release
+  homepage "https://github.com/raster-labs/DICOMKit"
+  url "https://github.com/raster-labs/DICOMKit/archive/refs/tags/v3.2.1.tar.gz"
+  sha256 "9b425fbbaccfb72fc63f9d8719e03d98a34c51aef79f26c010cb0949ea348faf"
   license "MIT"
-  head "https://github.com/Raster-Lab/DICOMKit.git", branch: "main"
+  head "https://github.com/raster-labs/DICOMKit.git", branch: "main"
 
   depends_on xcode: ["26.0", :build]
   depends_on macos: :tahoe

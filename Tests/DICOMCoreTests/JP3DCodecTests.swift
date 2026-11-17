@@ -69,20 +69,20 @@ struct JP3DCodecTests {
 
     // MARK: - Codec Suite Engine Version Constants
 
-    @Test("All 5 pure-Swift codec engines expose their 11 Nov 2026 release versions")
+    @Test("All 5 pure-Swift codec engines expose their 16 Nov 2026 release versions")
     func test_codecEngineVersions() {
         #expect(SwiftJ2KDICOMCodec.engineName == "SwiftJ2K")
-        #expect(SwiftJ2KDICOMCodec.engineVersion == "12.2.0")
+        #expect(SwiftJ2KDICOMCodec.engineVersion == "12.3.1")
         #expect(JP3DCodec.engineName == "SwiftJ2K3D")
-        #expect(JP3DCodec.engineVersion == "12.2.0")
+        #expect(JP3DCodec.engineVersion == "12.3.1")
         #expect(RLECodec.engineName == "SwiftRLE")
-        #expect(RLECodec.engineVersion == "1.0.2")
+        #expect(RLECodec.engineVersion == "1.1.0")
         #expect(JPEGLSCodec.engineName == "SwiftJLS")
-        #expect(JPEGLSCodec.engineVersion == "2.0.1")
+        #expect(JPEGLSCodec.engineVersion == "2.1.2")
         #expect(JLICodec.engineName == "SwiftJLI")
-        #expect(JLICodec.engineVersion == "2.0.3")
+        #expect(JLICodec.engineVersion == "2.1.0")
         #expect(JXLCodec.engineName == "SwiftJXL")
-        #expect(JXLCodec.engineVersion == "2.0.1")
+        #expect(JXLCodec.engineVersion == "2.1.1")
     }
 
     // MARK: - Transfer Syntax Tests

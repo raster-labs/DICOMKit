@@ -1,20 +1,18 @@
 # Homebrew Formula for DICOMKit CLI Tools
 #
 # IMPORTANT: Before using this formula, you must:
-# 1. Create a release tag (e.g., v3.1.2) in the DICOMKit repository
+# 1. Create a release tag (e.g., v3.2.1) in the DICOMKit repository
 # 2. Calculate the SHA256 checksum of the release tarball:
-#    curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.2.tar.gz | shasum -a 256
+#    curl -L https://github.com/raster-labs/DICOMKit/archive/refs/tags/v3.2.1.tar.gz | shasum -a 256
 # 3. Replace the empty sha256 value below with the actual checksum
 #
 class Dicomkit < Formula
   desc "Pure Swift DICOM toolkit with 35 command-line utilities"
-  homepage "https://github.com/Raster-Lab/DICOMKit"
-  url "https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.2.tar.gz"
-  # TODO: Replace with actual SHA256 after creating the v3.1.2 release
-  # Generate with: curl -L https://github.com/Raster-Lab/DICOMKit/archive/refs/tags/v3.1.2.tar.gz | shasum -a 256
-  sha256 ""
+  homepage "https://github.com/raster-labs/DICOMKit"
+  url "https://github.com/raster-labs/DICOMKit/archive/refs/tags/v3.2.1.tar.gz"
+  sha256 "9b425fbbaccfb72fc63f9d8719e03d98a34c51aef79f26c010cb0949ea348faf"
   license "MIT"
-  head "https://github.com/Raster-Lab/DICOMKit.git", branch: "main"
+  head "https://github.com/raster-labs/DICOMKit.git", branch: "main"
 
   depends_on xcode: ["26.0", :build]
   depends_on macos: :tahoe

@@ -87,21 +87,22 @@ public struct SwiftJ2KProviderOptions: Sendable {
     /// Optional per-operation telemetry sink invoked with the exact `SwiftJ2K.OperationReport`.
     public let telemetryHandler: (@Sendable (SwiftJ2KOperationRecord) -> Void)?
 
-    /// Default bounded per-frame options aligned with `PixelDecodeLimits.default` (64 MiB encoded/decoded, 16M pixels, 120s deadline).
+    /// Default bounded per-frame options aligned with `PixelDecodeLimits.default` (64 MiB encoded, 256 MiB decoded, 64M pixels, multi-worker, 120s deadline).
     public static let `default`: SwiftJ2KProviderOptions = {
+        let defaultWorkers = min(max(1, ProcessInfo.processInfo.activeProcessorCount), 16)
         let limits = (try? ResourceLimits(
             maximumCompressedBytes: 64 << 20,
-            maximumDecodedBytes: 64 << 20,
-            maximumWorkspaceBytes: 256 << 20,
-            maximumPixels: 16 << 20,
+            maximumDecodedBytes: 256 << 20,
+            maximumWorkspaceBytes: 512 << 20,
+            maximumPixels: 64 << 20,
             maximumDimension: 65_535,
             maximumFrames: 1,
             maximumMetadataBytes: 4 << 20,
             maximumICCBytes: 4 << 20,
             maximumNestingDepth: 16,
-            maximumWorkers: 1,
+            maximumWorkers: defaultWorkers,
             deadlineSeconds: 120.0,
-            maximumMemoryBytes: 384 << 20
+            maximumMemoryBytes: 1024 << 20
         )) ?? .default
         return SwiftJ2KProviderOptions(
             resourceLimits: limits,
@@ -121,13 +122,14 @@ public struct SwiftJ2KProviderOptions: Sendable {
         decodingLimits: PixelDecodeLimits,
         defaultBackend: CodecBackend? = nil
     ) -> SwiftJ2KProviderOptions {
+        let defaultWorkers = min(max(1, ProcessInfo.processInfo.activeProcessorCount), 16)
         let maxEncoded = max(1, decodingLimits.maximumEncodedBytes)
         let maxDecoded = max(1, decodingLimits.maximumDecodedBytes)
         let maxPixels = max(1, decodingLimits.maximumPixels)
         let (ws4, wsOv) = maxDecoded.multipliedReportingOverflow(by: 4)
-        let maxWorkspace = max(256 << 20, wsOv ? (1 << 30) : ws4)
+        let maxWorkspace = max(512 << 20, wsOv ? (1 << 30) : ws4)
         let (mem6, memOv) = maxDecoded.multipliedReportingOverflow(by: 6)
-        let maxMemory = max(384 << 20, max(maxWorkspace, memOv ? (1 << 30) : mem6))
+        let maxMemory = max(1024 << 20, max(maxWorkspace, memOv ? (1 << 30) : mem6))
         let limits = (try? ResourceLimits(
             maximumCompressedBytes: maxEncoded,
             maximumDecodedBytes: maxDecoded,
@@ -138,7 +140,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
             maximumMetadataBytes: 4 << 20,
             maximumICCBytes: 4 << 20,
             maximumNestingDepth: 16,
-            maximumWorkers: 1,
+            maximumWorkers: defaultWorkers,
             deadlineSeconds: 120.0,
             maximumMemoryBytes: maxMemory
         )) ?? SwiftJ2KProviderOptions.default.resourceLimits

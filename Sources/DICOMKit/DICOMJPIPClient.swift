@@ -175,13 +175,13 @@ extension J2KImage {
 
 /// A high-level client for retrieving DICOM images from a JPIP server (`SwiftJ2KJPIP` Contract **API-13**).
 ///
-/// ``DICOMJPIPClient`` wraps `SwiftJ2KJPIP`'s ``JPIPStreamingSession`` (`SwiftJ2K` 12.2.0+) and maps
+/// ``DICOMJPIPClient`` wraps `SwiftJ2KJPIP`'s ``JPIPStreamingSession`` (`SwiftJ2K` 12.3.1+) and maps
 /// all four standard DICOM JPIP reference transfer syntaxes (`1.2.840.10008.1.2.4.94`, `.95`, `.204`,
 /// and `.205` per PS3.6 2026a Table A-1 and PS3.5 A.6, A.7, A.11, A.12) to progressive image,
 /// spatial ROI, quality-layer, and resolution-level JPIP streaming requests over HTTP/HTTPS or WebSocket.
 public actor DICOMJPIPClient {
     public static let engineName = "SwiftJ2KJPIP"
-    public static let engineVersion = "12.2.0"
+    public static let engineVersion = "12.3.1"
 
     /// The JPIP server base URL.
     public nonisolated let serverURL: URL

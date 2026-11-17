@@ -9,12 +9,12 @@ public struct PixelDecodeLimits: Sendable {
     public let maximumDecodedBytes: Int
     /// Maximum pixels in one frame (bounds decoder intermediate planes as well).
     public let maximumPixels: Int
-    /// Default per-frame limits: 64 MiB encoded/output and 16 million pixels.
+    /// Default per-frame limits: 64 MiB encoded, 256 MiB decoded output, and 64 million pixels.
     public static var `default`: PixelDecodeLimits { PixelDecodeLimits() }
 
     /// Creates per-frame resource bounds. Nonpositive limits refuse every frame.
-    public init(maximumEncodedBytes: Int = 64 << 20, maximumDecodedBytes: Int = 64 << 20,
-                maximumPixels: Int = 16 << 20) {
+    public init(maximumEncodedBytes: Int = 64 << 20, maximumDecodedBytes: Int = 256 << 20,
+                maximumPixels: Int = 64 << 20) {
         self.maximumEncodedBytes = maximumEncodedBytes
         self.maximumDecodedBytes = maximumDecodedBytes
         self.maximumPixels = maximumPixels

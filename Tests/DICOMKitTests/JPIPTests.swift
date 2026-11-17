@@ -429,10 +429,10 @@ struct ProgressiveVolumeAPISurfaceTests {
         return (codestream, raw)
     }
 
-    @Test("DICOMJPIPClient exposes SwiftJ2KJPIP 12.2.0 engine constants and HTJ2K coding preference")
+    @Test("DICOMJPIPClient exposes SwiftJ2KJPIP 12.3.1 engine constants and HTJ2K coding preference")
     func engineVersion_and_htj2kCodingPreference() {
         #expect(DICOMJPIPClient.engineName == "SwiftJ2KJPIP")
-        #expect(DICOMJPIPClient.engineVersion == "12.2.0")
+        #expect(DICOMJPIPClient.engineVersion == "12.3.1")
         #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipHTJ2KReferenced.uid) == .htj2k)
         #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipHTJ2KReferencedDeflate.uid) == .htj2k)
         #expect(DICOMJPIPClient.codingPreference(forTransferSyntaxUID: TransferSyntax.jpipReferenced.uid) == .none)

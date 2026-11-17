@@ -121,6 +121,109 @@ public enum J2KCodestreamInspector {
         return irreversible
     }
 
+    /// Returns the minimum effective wavelet decomposition levels (`NL`) across all tiles and
+    /// components after resolving per-tile and per-component `COD`/`COC` overrides against the
+    /// main-header `COD`/`COC` defaults, or `nil` when no `COD` is present.
+    package static func minimumDecompositionLevels(in data: Data) -> Int? {
+        guard let codestream = locateCodestream(in: data) else { return nil }
+        var componentCount = 0
+        var totalTiles = 1
+        var mainCODNL: Int?
+        var mainCOCNL: [Int: Int] = [:]
+        var currentTileIndex: Int?
+        var tileCODNL: [Int: Int] = [:]
+        var tileCOCNL: [Int: [Int: Int]] = [:]
+        var observedTiles: Set<Int> = []
+
+        forEachHeaderSegment(in: codestream) { marker, offset, length in
+            switch marker {
+            case siz:
+                if length >= 38,
+                   let xsiz = readUInt32(codestream, at: offset + 6),
+                   let ysiz = readUInt32(codestream, at: offset + 10),
+                   let xtsiz = readUInt32(codestream, at: offset + 22),
+                   let ytsiz = readUInt32(codestream, at: offset + 26),
+                   let xtosiz = readUInt32(codestream, at: offset + 30),
+                   let ytosiz = readUInt32(codestream, at: offset + 34),
+                   let csiz = readUInt16(codestream, at: offset + 38) {
+                    componentCount = Int(csiz)
+                    if xtsiz > 0, ytsiz > 0, xsiz > xtosiz, ysiz > ytosiz {
+                        let tw = Int((UInt64(xsiz - xtosiz) + UInt64(xtsiz) - 1) / UInt64(xtsiz))
+                        let th = Int((UInt64(ysiz - ytosiz) + UInt64(ytsiz) - 1) / UInt64(ytsiz))
+                        totalTiles = max(1, min(65_535, tw * th))
+                    }
+                }
+            case sot:
+                if length >= 10, let isot = readUInt16(codestream, at: offset + 4) {
+                    let t = Int(isot)
+                    currentTileIndex = t
+                    observedTiles.insert(t)
+                }
+            case cod:
+                if length >= 12, let nl = readUInt8(codestream, at: offset + 9) {
+                    let v = Int(nl)
+                    if let t = currentTileIndex {
+                        tileCODNL[t] = v
+                    } else {
+                        mainCODNL = v
+                    }
+                }
+            case coc:
+                let componentIndexWidth = componentCount < 257 ? 1 : 2
+                if length >= 8 + componentIndexWidth,
+                   let nl = readUInt8(codestream, at: offset + 5 + componentIndexWidth) {
+                    let compIdx: Int?
+                    if componentIndexWidth == 1 {
+                        compIdx = readUInt8(codestream, at: offset + 4).map(Int.init)
+                    } else {
+                        compIdx = readUInt16(codestream, at: offset + 4).map(Int.init)
+                    }
+                    if let c = compIdx {
+                        let v = Int(nl)
+                        if let t = currentTileIndex {
+                            tileCOCNL[t, default: [:]][c] = v
+                        } else {
+                            mainCOCNL[c] = v
+                        }
+                    }
+                }
+            default:
+                break
+            }
+        }
+
+        guard mainCODNL != nil || !tileCODNL.isEmpty else { return nil }
+        let nComps = max(1, min(componentCount > 0 ? componentCount : 1, 16_384))
+        let tilesToEvaluate: [Int]
+        if tileCODNL.isEmpty && tileCOCNL.isEmpty {
+            tilesToEvaluate = [0]
+        } else if totalTiles <= 4096 {
+            tilesToEvaluate = Array(0..<totalTiles)
+        } else {
+            var set = observedTiles
+            set.insert(-1) // Represents any un-overridden tile inheriting main header
+            tilesToEvaluate = Array(set)
+        }
+
+        var minNL: Int?
+        for t in tilesToEvaluate {
+            let tCOD = tileCODNL[t]
+            let tCOCMap = tileCOCNL[t]
+            if mainCOCNL.isEmpty && (tCOCMap == nil || tCOCMap!.isEmpty) {
+                if let eff = tCOD ?? mainCODNL {
+                    minNL = minNL.map { min($0, eff) } ?? eff
+                }
+            } else {
+                for c in 0..<nComps {
+                    if let eff = tCOCMap?[c] ?? tCOD ?? mainCOCNL[c] ?? mainCODNL {
+                        minNL = minNL.map { min($0, eff) } ?? eff
+                    }
+                }
+            }
+        }
+        return minNL
+    }
+
     // MARK: - Pre-Decode Image Header Inspection (SIZ + CAP)
 
     /// Per-component SIZ descriptor fields (`Ssiz_i`, `XRsiz_i`, `YRsiz_i`).
@@ -382,7 +485,11 @@ public enum J2KCodestreamInspector {
                    let mct = readUInt8(codestream, at: offset + 8),
                    let levels = readUInt8(codestream, at: offset + 9),
                    let transformation = readUInt8(codestream, at: offset + 13) {
-                    cod = (scod, prog, Int(layers), mct, Int(levels), transformation == 1)
+                    if cod != nil {
+                        override = true
+                    } else {
+                        cod = (scod, prog, Int(layers), mct, Int(levels), transformation == 1)
+                    }
                 }
             case Self.coc:
                 override = true
@@ -435,53 +542,119 @@ public enum J2KCodestreamInspector {
     /// possible without re-encoding, and returns it unchanged otherwise:
     ///
     /// - **Progression order.** When the packet sequence of the declared order is provably the
-    ///   same as RPCL's, SGcod is set to RPCL (2). That holds for one quality layer, the default
-    ///   (maximal, 2^15) precincts with a reference grid of at most 32768 × 32768 or a single
-    ///   component, and no POC / COC / tile-part COD: each tile then has one precinct per
-    ///   component and resolution, so every order emits the packets resolution by resolution,
-    ///   component by component (ISO/IEC 15444-1 B.12.1). The codestream bytes after the main
-    ///   header are not touched.
+    ///   same as RPCL's, SGcod is set to RPCL (2) without touching packet bytes after the main
+    ///   header (ISO/IEC 15444-1 B.12.1, requiring one quality layer and no POC / COC / tile COD):
+    ///   - For `LRCP` (0) and `RLCP` (1), `R -> C -> P` matches `RPCL`'s `R -> P -> C` iff either
+    ///     `componentCount == 1` or default maximal (`2^15`) precincts cover the reference grid
+    ///     (`gridWidth <= 32768 && gridHeight <= 32768`, giving one precinct per band).
+    ///   - For `PCRL` (3, `P -> C -> R -> L`) and `CPRL` (4, `C -> P -> R -> L`), `P` and `C` are
+    ///     outer to `R`: when `decompositionLevels >= 1`, packet order matches `RPCL` iff **both**
+    ///     `componentCount == 1` **and** one precinct covers the grid (`<= 32768 × 32768`); when
+    ///     `decompositionLevels == 0` (`|R| == 1`), either `componentCount == 1` or one precinct suffices.
     /// - **TLM.** A TLM marker segment (ISO/IEC 15444-1 A.7.1) listing every tile-part's
     ///   index and length is inserted at the end of the main header.
     public static func conformingToHTJ2KRPCL(_ data: Data) -> Data {
         guard readUInt16(data, at: 0) == soc, let style = codingStyle(in: data) else { return data }
-        var bytes = [UInt8](data)
+        return data.withUnsafeBytes { rawBuf -> Data in
+            guard let base = rawBuf.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return data }
+            let buf = UnsafeBufferPointer(start: base, count: rawBuf.count)
 
-        // 1. Relabel the progression order when the packet order is unchanged by it.
-        let onePrecinctPerBand = !style.userDefinedPrecincts
-            && (style.componentCount == 1 || (style.gridWidth <= 32768 && style.gridHeight <= 32768))
-        if style.progressionOrder != 2, style.qualityLayers == 1, onePrecinctPerBand,
-           !style.hasPOC, !style.hasCodingStyleOverride,
-           let codOffset = mainHeaderSegmentOffset(bytes, marker: cod) {
-            bytes[codOffset + 5] = 2
-        }
-
-        // 2. Insert TLM before the first SOT.
-        guard !style.hasTLM, let tileParts = tilePartLengths(bytes), !tileParts.parts.isEmpty else {
-            return Data(bytes)
-        }
-        let wideIndex = tileParts.parts.contains { $0.index > 0xFF }
-        let entrySize = (wideIndex ? 2 : 1) + 4
-        let perSegment = (0xFFFF - 4) / entrySize
-        let chunks = stride(from: 0, to: tileParts.parts.count, by: perSegment).map {
-            Array(tileParts.parts[$0..<min($0 + perSegment, tileParts.parts.count)])
-        }
-        guard chunks.count <= 256 else { return Data(bytes) }
-        var tlmBytes: [UInt8] = []
-        for (z, chunk) in chunks.enumerated() {
-            let length = 4 + chunk.count * entrySize
-            // Stlm: ST (bits 4-5) = 1 for 8-bit, 2 for 16-bit Ttlm; SP (bit 6) = 1 for 32-bit Ptlm.
-            let stlm: UInt8 = (wideIndex ? 0x20 : 0x10) | 0x40
-            tlmBytes += [0xFF, 0x55, UInt8(length >> 8), UInt8(length & 0xFF), UInt8(z), stlm]
-            for part in chunk {
-                if wideIndex { tlmBytes += [UInt8(part.index >> 8), UInt8(part.index & 0xFF)] }
-                else { tlmBytes.append(UInt8(part.index)) }
-                let l = UInt32(part.length)
-                tlmBytes += [UInt8(l >> 24), UInt8((l >> 16) & 0xFF), UInt8((l >> 8) & 0xFF), UInt8(l & 0xFF)]
+            let singlePrecinct = !style.userDefinedPrecincts
+                && style.gridWidth >= 1 && style.gridWidth <= 32768
+                && style.gridHeight >= 1 && style.gridHeight <= 32768
+            let canPatchProgressionToRPCL: Bool
+            if style.qualityLayers == 1, style.componentCount >= 1,
+               !style.hasPOC, !style.hasCodingStyleOverride {
+                switch style.progressionOrder {
+                case 0, 1:
+                    canPatchProgressionToRPCL = (style.componentCount == 1) || singlePrecinct
+                case 3, 4:
+                    if style.decompositionLevels == 0 {
+                        canPatchProgressionToRPCL = (style.componentCount == 1) || singlePrecinct
+                    } else {
+                        canPatchProgressionToRPCL = (style.componentCount == 1) && singlePrecinct
+                    }
+                default:
+                    canPatchProgressionToRPCL = false
+                }
+            } else {
+                canPatchProgressionToRPCL = false
             }
+
+            let patchCODOffset: Int?
+            if canPatchProgressionToRPCL,
+               let codOffset = mainHeaderSegmentOffset(buf, marker: cod, minLength: 12),
+               codOffset + 6 <= buf.count {
+                patchCODOffset = codOffset
+            } else {
+                patchCODOffset = nil
+            }
+
+            guard let tileParts = tilePartLengths(buf), !tileParts.parts.isEmpty else {
+                return data
+            }
+
+            if style.hasTLM {
+                if let codOff = patchCODOffset, codOff + 5 < tileParts.firstSOT {
+                    var patched = Data(data)
+                    patched[patched.startIndex + codOff + 5] = 2
+                    return patched
+                }
+                return data
+            }
+
+            let wideIndex = tileParts.parts.contains { $0.index > 0xFF }
+            let entrySize = (wideIndex ? 2 : 1) + 4
+            let perSegment = (0xFFFF - 4) / entrySize
+            let chunks = stride(from: 0, to: tileParts.parts.count, by: perSegment).map {
+                Array(tileParts.parts[$0..<min($0 + perSegment, tileParts.parts.count)])
+            }
+            guard chunks.count <= 256 else {
+                if let codOff = patchCODOffset {
+                    var patched = Data(data)
+                    patched[patched.startIndex + codOff + 5] = 2
+                    return patched
+                }
+                return data
+            }
+
+            var tlmBytes: [UInt8] = []
+            tlmBytes.reserveCapacity(chunks.count * 6 + tileParts.parts.count * entrySize)
+            for (z, chunk) in chunks.enumerated() {
+                let length = 4 + chunk.count * entrySize
+                let stlm: UInt8 = (wideIndex ? 0x20 : 0x10) | 0x40
+                tlmBytes += [0xFF, 0x55, UInt8(length >> 8), UInt8(length & 0xFF), UInt8(z), stlm]
+                for part in chunk {
+                    if wideIndex { tlmBytes += [UInt8(part.index >> 8), UInt8(part.index & 0xFF)] }
+                    else { tlmBytes.append(UInt8(part.index)) }
+                    guard let l = UInt32(exactly: part.length) else { return data }
+                    tlmBytes += [UInt8(l >> 24), UInt8((l >> 16) & 0xFF), UInt8((l >> 8) & 0xFF), UInt8(l & 0xFF)]
+                }
+            }
+
+            let totalCount = buf.count + tlmBytes.count
+            var out = Data(count: totalCount)
+            out.withUnsafeMutableBytes { outRaw in
+                guard let dst = outRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
+                let firstSOT = tileParts.firstSOT
+                if firstSOT > 0 {
+                    dst.update(from: base, count: firstSOT)
+                }
+                if let codOff = patchCODOffset, codOff + 5 < firstSOT {
+                    dst[codOff + 5] = 2
+                }
+                tlmBytes.withUnsafeBufferPointer { tlmBuf in
+                    if let tlmBase = tlmBuf.baseAddress, !tlmBuf.isEmpty {
+                        dst.advanced(by: firstSOT).update(from: tlmBase, count: tlmBuf.count)
+                    }
+                }
+                let rem = buf.count - firstSOT
+                if rem > 0 {
+                    dst.advanced(by: firstSOT + tlmBytes.count).update(from: base.advanced(by: firstSOT), count: rem)
+                }
+            }
+            return out
         }
-        bytes.insert(contentsOf: tlmBytes, at: tileParts.firstSOT)
-        return Data(bytes)
     }
 
     private static let tlm: UInt16 = 0xFF55  // Tile-part lengths
@@ -533,43 +706,70 @@ public enum J2KCodestreamInspector {
         return Data(bytes)
     }
 
-    /// Offset of a main-header marker segment (before the first SOT).
-    private static func mainHeaderSegmentOffset(_ bytes: [UInt8], marker: UInt16) -> Int? {
+    /// Offset of a main-header marker segment (before the first SOT) meeting `minLength`.
+    private static func mainHeaderSegmentOffset<C: RandomAccessCollection>(
+        _ bytes: C,
+        marker: UInt16,
+        minLength: Int = 2
+    ) -> Int? where C.Element == UInt8, C.Index == Int {
+        let base = bytes.startIndex
+        let count = bytes.count
         var offset = 2
-        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
-            let m = UInt16(bytes[offset]) << 8 | UInt16(bytes[offset + 1])
+        while offset + 4 <= count, bytes[base + offset] == 0xFF {
+            let m = UInt16(bytes[base + offset]) << 8 | UInt16(bytes[base + offset + 1])
             if m == sot || m == sod || m == eoc { return nil }
-            if m == marker { return offset }
-            let length = Int(bytes[offset + 2]) << 8 | Int(bytes[offset + 3])
-            guard length >= 2 else { return nil }
+            let length = Int(bytes[base + offset + 2]) << 8 | Int(bytes[base + offset + 3])
+            guard length >= 2, offset + 2 + length <= count else { return nil }
+            if m == marker, length >= minLength { return offset }
             offset += 2 + length
         }
         return nil
     }
 
     /// The offset of the first SOT and each tile-part's (Isot, length from SOT to its end).
-    /// `nil` when the tile-part chain is malformed.
-    private static func tilePartLengths(_ bytes: [UInt8]) -> (firstSOT: Int, parts: [(index: Int, length: Int)])? {
+    /// `nil` when the tile-part chain or any tile-part header before `SOD` is malformed.
+    static func tilePartLengths<C: RandomAccessCollection>(_ bytes: C) -> (firstSOT: Int, parts: [(index: Int, length: Int)])? where C.Element == UInt8, C.Index == Int {
+        let base = bytes.startIndex
+        let count = bytes.count
         var offset = 2
-        while offset + 4 <= bytes.count, bytes[offset] == 0xFF {
-            let m = UInt16(bytes[offset]) << 8 | UInt16(bytes[offset + 1])
+        while offset + 4 <= count, bytes[base + offset] == 0xFF {
+            let m = UInt16(bytes[base + offset]) << 8 | UInt16(bytes[base + offset + 1])
             if m == sot { break }
             if m == sod || m == eoc { return nil }
-            let length = Int(bytes[offset + 2]) << 8 | Int(bytes[offset + 3])
-            guard length >= 2 else { return nil }
+            let length = Int(bytes[base + offset + 2]) << 8 | Int(bytes[base + offset + 3])
+            guard length >= 2, offset + 2 + length <= count else { return nil }
             offset += 2 + length
         }
         let firstSOT = offset
         var parts: [(index: Int, length: Int)] = []
         // The codestream ends with EOC; a Psot of 0 runs to it.
-        let end = bytes.count >= 2 && bytes[bytes.count - 2] == 0xFF && bytes[bytes.count - 1] == 0xD9
-            ? bytes.count - 2 : bytes.count
-        while offset + 12 <= end, bytes[offset] == 0xFF, bytes[offset + 1] == 0x90 {
-            let isot = Int(bytes[offset + 4]) << 8 | Int(bytes[offset + 5])
+        let end = count >= 2 && bytes[base + count - 2] == 0xFF && bytes[base + count - 1] == 0xD9
+            ? count - 2 : count
+        while offset + 12 <= end, bytes[base + offset] == 0xFF, bytes[base + offset + 1] == 0x90 {
+            let lsot = Int(bytes[base + offset + 2]) << 8 | Int(bytes[base + offset + 3])
+            guard lsot == 10 else { return nil }
+            let isot = Int(bytes[base + offset + 4]) << 8 | Int(bytes[base + offset + 5])
             var psot = 0
-            for k in 0..<4 { psot = psot << 8 | Int(bytes[offset + 6 + k]) }
+            for k in 0..<4 { psot = psot << 8 | Int(bytes[base + offset + 6 + k]) }
             if psot == 0 { psot = end - offset }
-            guard psot >= 14, offset + psot <= end else { return nil }
+            guard psot >= 14, psot <= Int(UInt32.max), offset + psot <= end else { return nil }
+            let partEnd = offset + psot
+            var hdrOffset = offset + 12
+            var foundSOD = false
+            while hdrOffset + 2 <= partEnd, bytes[base + hdrOffset] == 0xFF {
+                let hm = UInt16(bytes[base + hdrOffset]) << 8 | UInt16(bytes[base + hdrOffset + 1])
+                if hm == sod {
+                    foundSOD = true
+                    break
+                }
+                if hm == sot || hm == eoc || hdrOffset + 4 > partEnd {
+                    return nil
+                }
+                let hLen = Int(bytes[base + hdrOffset + 2]) << 8 | Int(bytes[base + hdrOffset + 3])
+                guard hLen >= 2, hdrOffset + 2 + hLen <= partEnd else { return nil }
+                hdrOffset += 2 + hLen
+            }
+            guard foundSOD else { return nil }
             parts.append((isot, psot))
             offset += psot
         }

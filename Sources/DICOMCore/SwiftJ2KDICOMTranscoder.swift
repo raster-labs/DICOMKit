@@ -156,18 +156,37 @@ public struct SwiftJ2KDICOMTranscoder: J2KCompressedDomainTranscoder, Sendable {
             )
         }
 
+        try Task.checkCancellation()
         let target: TranscodeTarget = Self.htj2kTargetUIDs.contains(targetTransferSyntaxUID) ? .htj2k : .jpeg2000
         let execution = SwiftJ2KDICOMCodec.resolveExecution(for: options.defaultBackend)
-        let transcoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
-            let transcoder = try Transcoder()
-            let transcodeOptions = TranscodeOptions(
-                resourceLimits: options.resourceLimits,
-                executionPolicy: execution.policy,
-                acceleratedEnginePreference: execution.enginePreference,
-                copyPolicy: .requireSharedStorage,
-                metadataPolicy: .preserve
-            )
-            return try await transcoder.transcode(cleaned, to: target, options: transcodeOptions)
+        let transcoded: EncodedImage
+        if options.resourceLimits.deadlineSeconds >= 5.0 {
+            do {
+                let transcoder = try Transcoder()
+                let transcodeOptions = TranscodeOptions(
+                    resourceLimits: options.resourceLimits,
+                    executionPolicy: execution.policy,
+                    acceleratedEnginePreference: execution.enginePreference,
+                    copyPolicy: .requireSharedStorage,
+                    metadataPolicy: .preserve
+                )
+                transcoded = try transcoder.transcodeSynchronously(cleaned, to: target, options: transcodeOptions)
+            } catch {
+                throw SwiftJ2KSyncBridge.translateError(error)
+            }
+            try Task.checkCancellation()
+        } else {
+            transcoded = try SwiftJ2KSyncBridge.run(options: options) { [options] in
+                let transcoder = try Transcoder()
+                let transcodeOptions = TranscodeOptions(
+                    resourceLimits: options.resourceLimits,
+                    executionPolicy: execution.policy,
+                    acceleratedEnginePreference: execution.enginePreference,
+                    copyPolicy: .requireSharedStorage,
+                    metadataPolicy: .preserve
+                )
+                return try await transcoder.transcode(cleaned, to: target, options: transcodeOptions)
+            }
         }
 
         try SwiftJ2KDICOMCodec.verifyExecutedBackend(report: transcoded.report, requested: options.defaultBackend)

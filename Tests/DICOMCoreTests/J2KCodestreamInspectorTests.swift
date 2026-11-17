@@ -1,4 +1,5 @@
 import XCTest
+import SwiftJ2K
 @testable import DICOMCore
 
 /// Covers the Part-2 multi-component transform decode guard.
@@ -241,5 +242,377 @@ extension J2KCodestreamInspectorTests {
                                      mainHeaderExtras: Self.segment(0xFF74, payload: [0x00, 0x00]))
         XCTAssertEqual(J2KCodestreamInspector.part2MultiComponentMarkers(in: stream), [.mct])
         XCTAssertFalse(J2KCodestreamInspector.usesIrreversibleWavelet(in: stream))
+    }
+
+    func testMinimumDecompositionLevelsResolvesTileOverrides() {
+        // Single-tile stream where Tile 0 overrides main COD NL=2 upward to NL=5:
+        // effective minimum NL across active tiles must be 5, not 2.
+        let mainCOD2: [UInt8] = Self.segment(0xFF52, payload: [
+            0x00,             // Scod
+            0x00, 0x00, 0x01, 0x00, // SGcod
+            0x02, 0x04, 0x04, 0x00, 0x01 // SPcod: NL=2
+        ])
+        let tileCOD5: [UInt8] = Self.segment(0xFF52, payload: [
+            0x00,
+            0x00, 0x00, 0x01, 0x00,
+            0x05, 0x04, 0x04, 0x00, 0x01 // SPcod: NL=5
+        ])
+        let singleTileStream = Self.codestream(
+            siz: Self.siz(components: 1),
+            cod: mainCOD2,
+            tileHeaderExtras: tileCOD5
+        )
+        XCTAssertEqual(J2KCodestreamInspector.minimumDecompositionLevels(in: singleTileStream), 5)
+    }
+
+    func testDecodeFrameAtResolutionHandlesNonZeroOriginCanvas() async throws {
+        let descriptor = PixelDataDescriptor(
+            rows: 3,
+            columns: 3,
+            numberOfFrames: 1,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2,
+            planarConfiguration: 0
+        )
+        let codec = SwiftJ2KDICOMCodec(
+            encodingTransferSyntaxUID: TransferSyntax.jpeg2000Lossless.uid,
+            decodingTransferSyntaxUID: TransferSyntax.jpeg2000Lossless.uid
+        )
+        // Pure ISO/IEC 15444-1 Annex A lossless 5/3 (NL=1) 8-bit codestream on canvas [1, 4) x [1, 4) (3x3 full,
+        // reducing to [ceil(1/2), ceil(4/2)) = [1, 2) -> 1x1 at level 1 rather than ceil(3/2)=2x2), sample value 128.
+        let shiftedStream = Data([
+            0xFF, 0x4F,
+            0xFF, 0x51, 0x00, 0x29, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03,
+            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+            0x00, 0x01, 0x07, 0x01, 0x01,
+            0xFF, 0x52, 0x00, 0x0C, 0x00,
+            0x00, 0x00, 0x01, 0x00,
+            0x01, 0x04, 0x04, 0x00, 0x01,
+            0xFF, 0x5C, 0x00, 0x07, 0x20, 0x48, 0x48, 0x48, 0x50,
+            0xFF, 0x90, 0x00, 0x0A, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x10, 0x00, 0x01,
+            0xFF, 0x93, 0x80, 0x80,
+            0xFF, 0xD9
+        ])
+
+        let preview = try await codec.decodeFrameAtResolution(
+            shiftedStream,
+            descriptor: descriptor,
+            level: 1
+        )
+        XCTAssertEqual(preview.rows, 1)
+        XCTAssertEqual(preview.columns, 1)
+        XCTAssertEqual(preview.data, Data([128]))
+    }
+
+    func testConformingToHTJ2KRPCLHandlesWideTileIndicesDataSlicesAndShortCOD() {
+        // 1. > 255 tile-parts (260 tiles) + non-zero Data slice (`startIndex == 37`):
+        //    must emit wide 16-bit Ttlm + 32-bit Ptlm (`Stlm == 0x60`), patch LRCP -> RPCL (2),
+        //    and preserve zero RPCL violations.
+        let validSiz = Self.segment(0xFF51, payload:
+            Self.be16(0x4000) + Self.be32(64) + Self.be32(64) + Self.be32(0) + Self.be32(0) +
+            Self.be32(4) + Self.be32(4) + Self.be32(0) + Self.be32(0) + Self.be16(1) + [0x07, 0x01, 0x01]
+        )
+        let lrcpCod = Self.segment(0xFF52, payload: [
+            0x00,                   // Scod = 0 (default precincts)
+            0x00, 0x00, 0x01, 0x00, // SGcod: LRCP (0), 1 layer, MCT=0
+            0x01, 0x04, 0x04, 0x40, 0x01 // SPcod: NL=1, 64x64, HT, 5/3
+        ])
+        var multiTileBytes: [UInt8] = Self.be16(0xFF4F) + validSiz + lrcpCod + Self.qcd
+        for isot in 0..<260 {
+            // Each tile-part: SOT (12 bytes) + SOD (2 bytes) + 1-byte body = 15 bytes (`Psot = 15`)
+            multiTileBytes += Self.be16(0xFF90) + Self.be16(10) + Self.be16(UInt16(isot)) + Self.be32(15) + [0x00, 0x01]
+            multiTileBytes += Self.be16(0xFF93) + [0x80]
+        }
+        multiTileBytes += Self.be16(0xFFD9)
+
+        var padded = Data(repeating: 0xAA, count: 37)
+        padded.append(contentsOf: multiTileBytes)
+        padded.append(contentsOf: [0xBB, 0xCC, 0xDD])
+        let slice = padded[37..<(37 + multiTileBytes.count)]
+        XCTAssertEqual(slice.startIndex, 37)
+
+        let conformedWide = J2KCodestreamInspector.conformingToHTJ2KRPCL(slice)
+        XCTAssertEqual(J2KCodestreamInspector.htj2kRPCLViolations(in: conformedWide, rows: 64, columns: 64), [])
+        // Verify TLM segment carries Stlm = 0x60 (16-bit Ttlm | 32-bit Ptlm) and 260 * 6 + 4 = 1564 length:
+        let wideBytes = [UInt8](conformedWide)
+        let firstHeaderEnd = 2 + validSiz.count + lrcpCod.count + Self.qcd.count
+        XCTAssertEqual(wideBytes[firstHeaderEnd], 0xFF)
+        XCTAssertEqual(wideBytes[firstHeaderEnd + 1], 0x55)
+        XCTAssertEqual(Int(wideBytes[firstHeaderEnd + 2]) << 8 | Int(wideBytes[firstHeaderEnd + 3]), 4 + 260 * 6)
+        XCTAssertEqual(wideBytes[firstHeaderEnd + 5], 0x60)
+
+        // 2. Truncated dummy COD (`Lcod = 4 < 12`) preceding valid LRCP COD:
+        //    must patch the valid COD's progression byte rather than corrupting the marker after the short COD.
+        let dummyShortCod = Self.segment(0xFF52, payload: [0x00, 0x00])
+        var shortPlusValidBytes: [UInt8] = Self.be16(0xFF4F) + validSiz + dummyShortCod + lrcpCod + Self.qcd
+        shortPlusValidBytes += Self.be16(0xFF90) + Self.be16(10) + Self.be16(0) + Self.be32(15) + [0x00, 0x01]
+        shortPlusValidBytes += Self.be16(0xFF93) + [0x80]
+        shortPlusValidBytes += Self.be16(0xFFD9)
+
+        let conformedShort = J2KCodestreamInspector.conformingToHTJ2KRPCL(Data(shortPlusValidBytes))
+        let outShort = [UInt8](conformedShort)
+        let validCodStart = 2 + validSiz.count + dummyShortCod.count
+        XCTAssertEqual(outShort[validCodStart], 0xFF)
+        XCTAssertEqual(outShort[validCodStart + 1], 0x52, "Valid COD marker code must not be overwritten")
+        XCTAssertEqual(outShort[validCodStart + 5], 0x02, "Valid COD progression order must be patched to RPCL (2)")
+        XCTAssertEqual(J2KCodestreamInspector.htj2kRPCLViolations(in: conformedShort, rows: 64, columns: 64), [])
+    }
+
+    func testConformingToHTJ2KRPCLPreservesPCRLAndCPRLPacketOrderAndValidatesSOT() throws {
+        func makeStream(
+            width: UInt32,
+            height: UInt32,
+            components: UInt16,
+            progression: UInt8,
+            levels: UInt8,
+            lsot: UInt16 = 10,
+            extraMainHeader: [UInt8] = []
+        ) -> Data {
+            var compSpecs: [UInt8] = []
+            for _ in 0..<components {
+                compSpecs += [0x07, 0x01, 0x01]
+            }
+            let sizSeg = Self.segment(
+                0xFF51,
+                payload: Self.be16(0x4000)
+                    + Self.be32(width) + Self.be32(height)
+                    + Self.be32(0) + Self.be32(0)
+                    + Self.be32(width) + Self.be32(height)
+                    + Self.be32(0) + Self.be32(0)
+                    + Self.be16(components) + compSpecs
+            )
+            let codSeg = Self.segment(0xFF52, payload: [
+                0x00,                               // Scod = 0 (default 2^15 precincts)
+                progression, 0x00, 0x01, components >= 3 ? 0x01 : 0x00,
+                levels, 0x04, 0x04, 0x40, 0x01      // SPcod: NL=levels, 64x64, HT, 5/3
+            ])
+            var bytes: [UInt8] = Self.be16(0xFF4F) + sizSeg + codSeg + Self.qcd + extraMainHeader
+            bytes += Self.be16(0xFF90) + Self.be16(lsot) + Self.be16(0) + Self.be32(15) + [0x00, 0x01]
+            bytes += Self.be16(0xFF93) + [0x80]
+            bytes += Self.be16(0xFFD9)
+            return Data(bytes)
+        }
+
+        // 1. Multi-component (Csiz = 3) with NL = 1 on 64x64 grid:
+        //    PCRL (3) and CPRL (4) put C outer to R, so patching COD to RPCL (2) would corrupt packet assignment.
+        for prog: UInt8 in [3, 4] {
+            let stream = makeStream(width: 64, height: 64, components: 3, progression: prog, levels: 1)
+            let out = J2KCodestreamInspector.conformingToHTJ2KRPCL(stream)
+            let style = try XCTUnwrap(J2KCodestreamInspector.codingStyle(in: out))
+            XCTAssertEqual(style.progressionOrder, prog, "Multi-component PCRL/CPRL with NL>=1 must not be relabelled to RPCL")
+            XCTAssertTrue(style.hasTLM)
+            XCTAssertTrue(
+                J2KCodestreamInspector.htj2kRPCLViolations(in: out, rows: 64, columns: 64)
+                    .contains("progression order is not RPCL")
+            )
+        }
+
+        // 2. Single-component (Csiz = 1) with NL = 1 on > 32768 grid (40000 x 64 => P > 1):
+        //    PCRL (3) and CPRL (4) put P outer to R and must NOT be relabelled,
+        //    whereas LRCP (0) and RLCP (1) have R -> (1) -> P == RPCL and DO relabel safely.
+        for prog: UInt8 in [3, 4] {
+            let wideGrid = makeStream(width: 40_000, height: 64, components: 1, progression: prog, levels: 1)
+            let out = J2KCodestreamInspector.conformingToHTJ2KRPCL(wideGrid)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: out)?.progressionOrder, prog)
+        }
+        for prog: UInt8 in [0, 1] {
+            let wideMono = makeStream(width: 40_000, height: 64, components: 1, progression: prog, levels: 1)
+            let outMono = J2KCodestreamInspector.conformingToHTJ2KRPCL(wideMono)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: outMono)?.progressionOrder, 2)
+
+            let wideRGB = makeStream(width: 40_000, height: 64, components: 3, progression: prog, levels: 1)
+            let outRGB = J2KCodestreamInspector.conformingToHTJ2KRPCL(wideRGB)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: outRGB)?.progressionOrder, prog)
+        }
+
+        // 3. Safe PCRL/CPRL cases: (Csiz == 1 && grid <= 32768) with NL >= 1, and (NL == 0 && grid <= 32768) with Csiz == 3:
+        for prog: UInt8 in [3, 4] {
+            let safeMono = makeStream(width: 64, height: 64, components: 1, progression: prog, levels: 1)
+            XCTAssertEqual(
+                J2KCodestreamInspector.codingStyle(in: J2KCodestreamInspector.conformingToHTJ2KRPCL(safeMono))?.progressionOrder,
+                2
+            )
+            let safeNL0 = makeStream(width: 64, height: 64, components: 3, progression: prog, levels: 0)
+            XCTAssertEqual(
+                J2KCodestreamInspector.codingStyle(in: J2KCodestreamInspector.conformingToHTJ2KRPCL(safeNL0))?.progressionOrder,
+                2
+            )
+        }
+
+        // 4. End-to-end real 3-component RGB HTJ2K codestream encoded with PCRL and CPRL (NL = 2):
+        //    conformingToHTJ2KRPCL must preserve progressionOrder so decoding remains bit-exact.
+        let rgbWidth = 32
+        let rgbHeight = 32
+        let limits = ResourceLimits.default
+        let imgDesc = try ImageDescriptor.rgbInterleaved(
+            width: rgbWidth,
+            height: rgbHeight,
+            storageBits: 8,
+            meaningfulBits: 8,
+            signed: false,
+            byteOrder: .littleEndian,
+            limits: limits
+        )
+        let imgDest = try ImageDestination.allocate(descriptor: imgDesc, limits: limits)
+        let rgbImg = try imgDest.writeSamples { c, x, y in
+            (x * (13 + c * 17) + y * (29 - c * 7) + c * 83) & 0xFF
+        }
+        let origRGB = try rgbImg.storage.withUnsafeBytes { Data($0) }
+        let dicomDesc = PixelDataDescriptor(
+            rows: rgbHeight,
+            columns: rgbWidth,
+            numberOfFrames: 1,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 3,
+            photometricInterpretation: .rgb,
+            planarConfiguration: 0
+        )
+        let dicomCodec = SwiftJ2KDICOMCodec(
+            encodingTransferSyntaxUID: TransferSyntax.htj2kLossless.uid,
+            decodingTransferSyntaxUID: TransferSyntax.htj2kLossless.uid
+        )
+
+        for (progOpt, expectedCode): (CodecOptions.ProgressionOrder, UInt8) in [(.pcrl, 3), (.cprl, 4)] {
+            let opts = try CodecOptions(
+                decompositionLevels: 2,
+                blockCoding: .htj2k,
+                wavelet: .reversible53,
+                colourTransform: .rct,
+                progressionOrder: progOpt,
+                containerFormat: .codestream
+            )
+            let encoded = try SwiftJ2K.Encoder(configuration: .init(mode: .lossless, codecOptions: opts))
+                .encodeSynchronously(rgbImg, options: .init(resourceLimits: limits))
+            let conformed = J2KCodestreamInspector.conformingToHTJ2KRPCL(encoded.data)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: conformed)?.progressionOrder, expectedCode)
+            let decoded = try dicomCodec.decodeFrame(conformed, descriptor: dicomDesc, frameIndex: 0)
+            XCTAssertEqual(decoded, origRGB)
+        }
+
+        // 5. Malformed SOT (`Lsot != 10`), corrupt tile-part header before a hidden COC/POC,
+        //    duplicate main-header COD, user-defined precincts (`Scod = 0x01`), multi-tile tile-part
+        //    COD/COC/POC overrides on `PCRL`/`CPRL`, and > 4 GiB `Psot == 0` overflow guard:
+        let badLsot = makeStream(width: 64, height: 64, components: 1, progression: 0, levels: 1, lsot: 8)
+        let badLsotOut = J2KCodestreamInspector.conformingToHTJ2KRPCL(badLsot)
+        XCTAssertEqual(badLsotOut, badLsot, "Malformed SOT (Lsot != 10) must leave the entire codestream untouched")
+        XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: badLsotOut)?.progressionOrder, 0)
+        XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: badLsotOut)?.hasTLM, false)
+
+        // Corrupt sync bytes inside tile-part header preceding a COC + SOD must NOT allow COD patching:
+        let hiddenCocPayload = Self.coc(componentIndexWidth: 1, transformation: 1)
+        let validMonoSiz = Self.segment(
+            0xFF51,
+            payload: Self.be16(0x4000)
+                + Self.be32(64) + Self.be32(64)
+                + Self.be32(0) + Self.be32(0)
+                + Self.be32(32) + Self.be32(64)
+                + Self.be32(0) + Self.be32(0)
+                + Self.be16(1) + [0x07, 0x01, 0x01]
+        )
+        let pcrlMonoCod = Self.segment(0xFF52, payload: [
+            0x00, 0x03, 0x00, 0x01, 0x00,
+            0x01, 0x04, 0x04, 0x40, 0x01
+        ])
+        let corruptTileHdrPsot = UInt32(12 + 2 + hiddenCocPayload.count + 2 + 1)
+        let corruptTileHdrStream = Data(
+            Self.be16(0xFF4F) + validMonoSiz + pcrlMonoCod + Self.qcd
+            + Self.be16(0xFF90) + Self.be16(10) + Self.be16(0) + Self.be32(corruptTileHdrPsot) + [0x00, 0x01]
+            + [0x00, 0x00] + hiddenCocPayload
+            + Self.be16(0xFF93) + [0x80]
+            + Self.be16(0xFFD9)
+        )
+        XCTAssertEqual(
+            J2KCodestreamInspector.conformingToHTJ2KRPCL(corruptTileHdrStream),
+            corruptTileHdrStream,
+            "Corrupt tile-part header hiding a COC before SOD must not be mutated"
+        )
+
+        // Scod bit 0 (`userDefinedPrecincts == true`) on 64x64 Csiz=1 NL=1 PCRL/CPRL must block COD patching:
+        for prog: UInt8 in [3, 4] {
+            let customPrecinctCod = Self.segment(0xFF52, payload: [
+                0x01,                               // Scod = 1 (user-defined precincts)
+                prog, 0x00, 0x01, 0x00,
+                0x01, 0x04, 0x04, 0x40, 0x01,
+                0x44, 0x44                          // PPx=4, PPy=4 (16x16 precincts)
+            ])
+            let customPrecinctStream = Data(
+                Self.be16(0xFF4F) + validMonoSiz + customPrecinctCod + Self.qcd
+                + Self.be16(0xFF90) + Self.be16(10) + Self.be16(0) + Self.be32(15) + [0x00, 0x01]
+                + Self.be16(0xFF93) + [0x80]
+                + Self.be16(0xFFD9)
+            )
+            let customOut = J2KCodestreamInspector.conformingToHTJ2KRPCL(customPrecinctStream)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: customOut)?.progressionOrder, prog)
+            XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: customOut)?.hasTLM, true)
+
+            // Multi-tile stream where Tile 0 uses main-header PCRL/CPRL and Tile 1 overrides via tile-part COD, COC, or POC:
+            let tileCodOverride = Self.segment(0xFF52, payload: [
+                0x01, prog, 0x00, 0x01, 0x00, 0x01, 0x04, 0x04, 0x40, 0x01, 0x44, 0x44
+            ])
+            let tileCocOverride = Self.coc(componentIndexWidth: 1, transformation: 1)
+            let tilePocOverride = Self.segment(0xFF5F, payload: [0x00, 0x00, 0x00, 0x01, 0x02, 0x01, 0x02])
+            for overrideSeg in [tileCodOverride, tileCocOverride, tilePocOverride] {
+                let mainCod = Self.segment(0xFF52, payload: [
+                    0x00, prog, 0x00, 0x01, 0x00,
+                    0x01, 0x04, 0x04, 0x40, 0x01
+                ])
+                let tile1Psot = UInt32(12 + overrideSeg.count + 2 + 1)
+                let twoTileBytes: [UInt8] = Self.be16(0xFF4F) + validMonoSiz + mainCod + Self.qcd
+                    + Self.be16(0xFF90) + Self.be16(10) + Self.be16(0) + Self.be32(15) + [0x00, 0x01]
+                    + Self.be16(0xFF93) + [0x80]
+                    + Self.be16(0xFF90) + Self.be16(10) + Self.be16(1) + Self.be32(tile1Psot) + [0x00, 0x01]
+                    + overrideSeg + Self.be16(0xFF93) + [0x80]
+                    + Self.be16(0xFFD9)
+                let twoTileOut = J2KCodestreamInspector.conformingToHTJ2KRPCL(Data(twoTileBytes))
+                XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: twoTileOut)?.progressionOrder, prog)
+                XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: twoTileOut)?.hasTLM, true)
+            }
+        }
+
+        let secondCod = Self.segment(0xFF52, payload: [
+            0x00, 0x03, 0x00, 0x01, 0x00, 0x01, 0x04, 0x04, 0x40, 0x01
+        ])
+        let dupCod = makeStream(width: 64, height: 64, components: 3, progression: 0, levels: 1, extraMainHeader: secondCod)
+        XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: dupCod)?.hasCodingStyleOverride, true)
+        let dupCodOut = J2KCodestreamInspector.conformingToHTJ2KRPCL(dupCod)
+        XCTAssertEqual(J2KCodestreamInspector.codingStyle(in: dupCodOut)?.progressionOrder, 0)
+
+        // Zero-allocation virtual RandomAccessCollection exercising `Psot == 0` -> `end - offset > UInt32.max` at runtime:
+        struct VirtualPsotZeroStream: RandomAccessCollection {
+            let prefixBytes: [UInt8]
+            let totalCount: Int
+            var startIndex: Int { 0 }
+            var endIndex: Int { totalCount }
+            subscript(position: Int) -> UInt8 {
+                if position < prefixBytes.count { return prefixBytes[position] }
+                if position == totalCount - 2 { return 0xFF }
+                if position == totalCount - 1 { return 0xD9 }
+                return 0x80
+            }
+        }
+        let psotZeroPrefix: [UInt8] = Self.be16(0xFF4F) + validMonoSiz + pcrlMonoCod + Self.qcd
+            + Self.be16(0xFF90) + Self.be16(10) + Self.be16(0) + Self.be32(0) + [0x00, 0x01]
+            + Self.be16(0xFF93)
+        let validPsotZero = VirtualPsotZeroStream(prefixBytes: psotZeroPrefix, totalCount: psotZeroPrefix.count + 32)
+        XCTAssertEqual(J2KCodestreamInspector.tilePartLengths(validPsotZero)?.parts.count, 1)
+        let over4GiBPsotZero = VirtualPsotZeroStream(
+            prefixBytes: psotZeroPrefix,
+            totalCount: psotZeroPrefix.count + Int(UInt32.max) + 64
+        )
+        XCTAssertNil(
+            J2KCodestreamInspector.tilePartLengths(over4GiBPsotZero),
+            "Psot == 0 expanding past UInt32.max must be rejected rather than overflowing 32-bit TLM Ptlm"
+        )
     }
 }

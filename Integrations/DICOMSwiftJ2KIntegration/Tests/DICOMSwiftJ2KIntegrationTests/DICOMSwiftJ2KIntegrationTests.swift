@@ -1794,12 +1794,12 @@ final class DICOMSwiftJ2KIntegrationTests: XCTestCase {
         return mse == 0 ? 99.0 : (10.0 * log10((255.0 * 255.0) / mse))
     }
 
-    // MARK: - SwiftJ2K 12.2.0 JP3D & JPIP Re-export Smoke Verification
+    // MARK: - SwiftJ2K 12.3.1 JP3D & JPIP Re-export Smoke Verification
 
     func testSwiftJ2K12_2_0_EngineVersionsAndJP3DJPIPLoopback() async throws {
-        XCTAssertEqual(SwiftJ2KDICOMCodec.engineVersion, "12.2.0")
-        XCTAssertEqual(JP3DCodec.engineVersion, "12.2.0")
-        XCTAssertEqual(DICOMJPIPClient.engineVersion, "12.2.0")
+        XCTAssertEqual(SwiftJ2KDICOMCodec.engineVersion, "12.3.1")
+        XCTAssertEqual(JP3DCodec.engineVersion, "12.3.1")
+        XCTAssertEqual(DICOMJPIPClient.engineVersion, "12.3.1")
 
         // 1. JP3D lossless round-trip + wavelet-domain J2K -> HTJ2K transcode
         let volDesc = PixelDataDescriptor(

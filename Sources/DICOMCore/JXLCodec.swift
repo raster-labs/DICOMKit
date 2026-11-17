@@ -1,5 +1,96 @@
 import Foundation
+import Synchronization
 import SwiftJXL
+
+private final class JXLBorrowedReadOnlyStorage: SwiftJXL.ReadOnlyImageStorage, Sendable {
+    let data: Data
+    let allocationID = UUID()
+    var byteCount: Int { data.count }
+    init(data: Data) { self.data = data }
+    func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) throws -> R {
+        try data.withUnsafeBytes(body)
+    }
+}
+
+private final class JXLDataBackedWritableStorage: SwiftJXL.WritableImageStorage, Sendable {
+    let byteCount: Int
+    let allocationID = UUID()
+    private enum Phase { case available, writing, sealed, invalid }
+    private struct State: Sendable {
+        var data: Data
+        var phase: Phase = .available
+        var lease: SwiftJXL.StorageWriteLease?
+    }
+    private let state: Mutex<State>
+    private let engaged = Atomic<Bool>(false)
+
+    init(byteCount: Int) {
+        self.byteCount = byteCount
+        self.state = Mutex(State(data: Data(count: byteCount)))
+    }
+
+    func reserveWrite() throws -> SwiftJXL.StorageWriteLease {
+        try locked { state in
+            guard state.phase == .available else {
+                throw SwiftJXL.CodecError(.storageUnavailable, "Storage unavailable.")
+            }
+            let lease = SwiftJXL.StorageWriteLease()
+            state.lease = lease
+            state.phase = .writing
+            return lease
+        }
+    }
+
+    func withUnsafeMutableBytes<R>(
+        lease: SwiftJXL.StorageWriteLease,
+        _ body: (UnsafeMutableRawBufferPointer) throws -> R
+    ) throws -> R {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJXL.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            return try state.data.withUnsafeMutableBytes(body)
+        }
+    }
+
+    func finishAndSeal(lease: SwiftJXL.StorageWriteLease) throws -> any SwiftJXL.ReadOnlyImageStorage {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJXL.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            let sealed = JXLBorrowedReadOnlyStorage(data: state.data)
+            state.data = Data()
+            state.lease = nil
+            state.phase = .sealed
+            return sealed
+        }
+    }
+
+    func abortAndInvalidate(lease: SwiftJXL.StorageWriteLease) throws {
+        try locked { state in
+            guard state.phase == .writing, state.lease == lease else {
+                throw SwiftJXL.CodecError(.storageUnavailable, "Invalid write lease.")
+            }
+            state.data = Data()
+            state.lease = nil
+            state.phase = .invalid
+        }
+    }
+
+    private func locked<R>(_ body: (inout State) throws -> R) throws -> R {
+        guard !engaged.load(ordering: .acquiring) else {
+            throw SwiftJXL.CodecError(.storageUnavailable, "Reentrant storage borrow.")
+        }
+        guard let result = try state.withLockIfAvailable({ state -> R in
+            engaged.store(true, ordering: .releasing)
+            defer { engaged.store(false, ordering: .releasing) }
+            return try body(&state)
+        }) else {
+            throw SwiftJXL.CodecError(.storageUnavailable, "Concurrent storage borrow.")
+        }
+        return result
+    }
+}
 
 /// JPEG XL codec backed by the `SwiftJXL` pure-Swift package (ISO/IEC 18181).
 ///
@@ -45,9 +136,9 @@ import SwiftJXL
 /// two's-complement `Int16` (`word ^ 0x8000`) to unsigned offset-binary for the JPEG XL
 /// codestream and un-shifted on decode. JPEG XL has no signed 8-bit sample type, so
 /// signed 8-bit is rejected rather than silently mis-encoded.
-public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
+public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec, Sendable {
     public static let engineName = "SwiftJXL"
-    public static let engineVersion = "2.0.1"
+    public static let engineVersion = "2.1.1"
 
     /// Finite decode policy that does not construct or retain transfer-syntax Strings.
     public enum DecodingSyntax: UInt8, Sendable {
@@ -89,6 +180,27 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     private let explicitEncodingTransferSyntaxUID: String?
     private let syntaxRestriction: SyntaxRestriction
     private let decodingLimits: PixelDecodeLimits
+    public let decodeBackend: CodecBackend?
+    public let maximumWorkers: Int?
+    public let allowExtendedVarDCT: Bool
+
+    private init(
+        explicitDecodingTransferSyntaxUID: String?,
+        explicitEncodingTransferSyntaxUID: String?,
+        syntaxRestriction: SyntaxRestriction,
+        decodingLimits: PixelDecodeLimits,
+        decodeBackend: CodecBackend?,
+        maximumWorkers: Int?,
+        allowExtendedVarDCT: Bool
+    ) {
+        self.explicitDecodingTransferSyntaxUID = explicitDecodingTransferSyntaxUID
+        self.explicitEncodingTransferSyntaxUID = explicitEncodingTransferSyntaxUID
+        self.syntaxRestriction = syntaxRestriction
+        self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.allowExtendedVarDCT = allowExtendedVarDCT
+    }
 
     /// The transfer syntax this instance is decoding, when known (set per-UID at registry
     /// wiring time).
@@ -113,7 +225,10 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
     public init(decodingTransferSyntaxUID: String? = nil,
                 encodingTransferSyntaxUID: String = TransferSyntax.jpegXLLossless.uid,
-                decodingLimits: PixelDecodeLimits = .default) {
+                decodingLimits: PixelDecodeLimits = .default,
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                allowExtendedVarDCT: Bool = false) {
         self.explicitDecodingTransferSyntaxUID = decodingTransferSyntaxUID
         self.explicitEncodingTransferSyntaxUID = encodingTransferSyntaxUID
         switch decodingTransferSyntaxUID {
@@ -124,10 +239,17 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         default: self.syntaxRestriction = .unsupported
         }
         self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.allowExtendedVarDCT = allowExtendedVarDCT
     }
 
     /// Create a JPEG XL decoder from finite scalar policy without initializing UID Strings.
-    public init(decodingSyntax: DecodingSyntax, decodingLimits: PixelDecodeLimits = .init()) {
+    public init(decodingSyntax: DecodingSyntax,
+                decodingLimits: PixelDecodeLimits = .init(),
+                decodeBackend: CodecBackend? = nil,
+                maximumWorkers: Int? = nil,
+                allowExtendedVarDCT: Bool = false) {
         self.explicitDecodingTransferSyntaxUID = nil
         self.explicitEncodingTransferSyntaxUID = nil
         switch decodingSyntax {
@@ -137,6 +259,74 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         case .general: self.syntaxRestriction = .general
         }
         self.decodingLimits = decodingLimits
+        self.decodeBackend = decodeBackend
+        self.maximumWorkers = maximumWorkers
+        self.allowExtendedVarDCT = allowExtendedVarDCT
+    }
+
+    public func withDecodeBackend(_ decodeBackend: CodecBackend?) -> any ImageCodec {
+        JXLCodec(
+            explicitDecodingTransferSyntaxUID: explicitDecodingTransferSyntaxUID,
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            allowExtendedVarDCT: allowExtendedVarDCT
+        )
+    }
+
+    public func withMaximumWorkers(_ maximumWorkers: Int?) -> JXLCodec {
+        JXLCodec(
+            explicitDecodingTransferSyntaxUID: explicitDecodingTransferSyntaxUID,
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            allowExtendedVarDCT: allowExtendedVarDCT
+        )
+    }
+
+    public func withExtendedVarDCT(_ allowExtendedVarDCT: Bool = true) -> JXLCodec {
+        JXLCodec(
+            explicitDecodingTransferSyntaxUID: explicitDecodingTransferSyntaxUID,
+            explicitEncodingTransferSyntaxUID: explicitEncodingTransferSyntaxUID,
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            allowExtendedVarDCT: allowExtendedVarDCT
+        )
+    }
+
+    /// Checks whether the requested `CodecBackend` is natively supported (`SwiftJXL` executes on CPU SIMD / multi-worker CPU or scalar CPU, never Metal GPU).
+    public static func supportsBackend(_ backend: CodecBackend?) -> Bool {
+        guard let backend else { return true }
+        switch backend {
+        case .scalar, .accelerate:
+            return true
+        case .metal:
+            return false
+        }
+    }
+
+    internal static func resolveExecutionPolicy(for backend: CodecBackend?) -> SwiftJXL.ExecutionPolicy {
+        guard let backend else { return .automatic }
+        switch backend {
+        case .scalar:
+            return .required(.scalarCPU)
+        case .accelerate, .metal:
+            return .preferred(.accelerated)
+        }
+    }
+
+    @inline(__always)
+    private static func clampWorkers(_ workers: Int?) -> Int {
+        guard let workers else {
+            return SwiftJXL.ResourceLimits.default.maximumWorkers
+        }
+        return max(1, min(workers, 8))
     }
 
     /// Whether the target UID *forces* reversible encoding. True for JPEG XL Lossless
@@ -192,53 +382,75 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             storageBits = 16
         }
         let bps = storageBits / 8
-        let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
 
         // …4.110 forces lossless. The general …4.112 UID honours `configuration.preferLossless`
         // (we deliberately do not flip to lossless on `quality.isLossless`, so lossy-intent
         // encodes at maximum quality remain VarDCT codestreams with truthful lossy provenance).
-        // Frames exceeding VarDCT's 4096-axis / 4-megapixel bound transparently fall back to
+        // Frames exceeding VarDCT's 16384-axis / 64-megapixel bound transparently fall back to
         // lossless Modular, which remains a conformant …4.112 codestream.
         let (pixels, pixOver) = width.multipliedReportingOverflow(by: height)
         guard !pixOver, pixels > 0 else {
             throw DICOMError.parsingFailed("SwiftJXL: frame dimensions overflow")
         }
-        let fitsVarDCT = width <= 4096 && height <= 4096 && pixels <= (4 * 1024 * 1024)
+        let fitsVarDCT: Bool
+        if allowExtendedVarDCT {
+            fitsVarDCT = width <= 16384 && height <= 16384 && pixels <= (64 * 1024 * 1024)
+        } else {
+            fitsVarDCT = width <= 4096 && height <= 4096 && pixels <= (4 * 1024 * 1024)
+        }
         let useLossless = encodesLossless || configuration.preferLossless || !fitsVarDCT
+        let isSigned16 = descriptor.isSigned && storageBits == 16
+        let requiredBytes = pixels * spp * bps
+        let canBorrowDirect = (spp == 1 || descriptor.planarConfiguration == 0)
+            && !isSigned16
+            && frameData.count >= requiredBytes
 
         do {
+            try Task.checkCancellation()
+            let effectiveWorkers = Self.effectiveWorkers(for: configuration.forcedBackend ?? decodeBackend, configured: maximumWorkers)
             let limits = try Self.makeEncodeResourceLimits(
                 width: width,
                 height: height,
                 spp: spp,
-                bps: bps
+                bps: bps,
+                maximumWorkers: effectiveWorkers
             )
-            let image = try Self.buildEncodeImage(
-                interleaved: interleaved,
-                width: width,
-                height: height,
-                spp: spp,
-                storageBits: storageBits,
-                isSigned16: descriptor.isSigned && storageBits == 16,
-                limits: limits
-            )
+            let image: SwiftJXL.Image
+            if canBorrowDirect {
+                image = try Self.buildZeroCopyEncodeImage(
+                    frameData: frameData,
+                    width: width,
+                    height: height,
+                    spp: spp,
+                    storageBits: storageBits,
+                    limits: limits
+                )
+            } else {
+                let interleaved = interleavedFrameBytes(from: frameData, descriptor: descriptor)
+                image = try Self.buildEncodeImage(
+                    interleaved: interleaved,
+                    width: width,
+                    height: height,
+                    spp: spp,
+                    storageBits: storageBits,
+                    isSigned16: isSigned16,
+                    limits: limits
+                )
+            }
             let encoderConfig = try Self.makeEncoderConfiguration(
                 useLossless: useLossless,
-                quality: configuration.quality
+                quality: configuration.quality,
+                speed: configuration.speed
             )
             let encoder = try SwiftJXL.Encoder(configuration: encoderConfig)
+            let executionPolicy = Self.resolveExecutionPolicy(for: configuration.forcedBackend ?? decodeBackend)
             let encodeOptions = SwiftJXL.EncodeOptions(
                 resourceLimits: limits,
+                executionPolicy: executionPolicy,
                 copyPolicy: .requireSharedStorage,
                 metadataPolicy: .discardAncillary
             )
-            let encoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJXL"
-            ) {
-                try await encoder.encode(image, options: encodeOptions)
-            }
+            let encoded = try encoder.encodeSynchronously(image, options: encodeOptions)
             guard encoded.report.copyEvents.isEmpty else {
                 throw DICOMError.parsingFailed("SwiftJXL encode violated requireSharedStorage copy policy")
             }
@@ -285,14 +497,30 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         return min(25.0, max(0.05, scaled))
     }
 
+    @inline(__always)
+    internal static func effectiveWorkers(for backend: CodecBackend?, configured: Int?) -> Int {
+        if let configured {
+            return clampWorkers(configured)
+        }
+        if backend == .scalar {
+            return 1
+        }
+        return SwiftJXL.ResourceLimits.default.maximumWorkers
+    }
+
     private static func makeEncoderConfiguration(
         useLossless: Bool,
-        quality: CompressionQuality
+        quality: CompressionQuality,
+        speed: CompressionSpeed = .balanced
     ) throws -> SwiftJXL.EncoderConfiguration {
         if useLossless {
             return .default
         }
-        let varDCT = try SwiftJXL.VarDCTEncodingOptions(distance: varDCTDistance(from: quality))
+        let search: SwiftJXL.VarDCTStrategySearch = (speed == .fast) ? .fixedDCT8 : .hierarchical
+        let varDCT = try SwiftJXL.VarDCTEncodingOptions(
+            distance: varDCTDistance(from: quality),
+            strategySearch: search
+        )
         return try SwiftJXL.EncoderConfiguration(
             mode: .lossy,
             codecOptions: SwiftJXL.CodecOptions(varDCT: varDCT, container: .codestream)
@@ -303,7 +531,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         width: Int,
         height: Int,
         spp: Int,
-        bps: Int
+        bps: Int,
+        maximumWorkers: Int = SwiftJXL.ResourceLimits.default.maximumWorkers
     ) throws -> SwiftJXL.ResourceLimits {
         let (pixels, pOver) = width.multipliedReportingOverflow(by: height)
         let (samples, sOver) = pixels.multipliedReportingOverflow(by: spp)
@@ -319,8 +548,53 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: max(64_000_000, pixels),
             maximumDimension: max(1_000_000, max(width, height)),
-            deadlineSeconds: 30.0,
+            maximumWorkers: clampWorkers(maximumWorkers),
+            deadlineSeconds: 300.0,
             maximumMemoryBytes: Int.max
+        )
+    }
+
+    private static func buildZeroCopyEncodeImage(
+        frameData: Data,
+        width: Int,
+        height: Int,
+        spp: Int,
+        storageBits: Int,
+        limits: SwiftJXL.ResourceLimits
+    ) throws -> SwiftJXL.Image {
+        let bps = storageBits / 8
+        let pixelStride = spp * bps
+        let rowBytes = width * pixelStride
+        let byteCount = rowBytes * height
+        let plane = try SwiftJXL.PlaneDescriptor(
+            width: width,
+            height: height,
+            components: Array(0..<spp),
+            offset: 0,
+            sampleStride: bps,
+            pixelStride: pixelStride,
+            rowBytes: rowBytes,
+            byteCount: byteCount
+        )
+        let descriptor = try SwiftJXL.ImageDescriptor(
+            width: width,
+            height: height,
+            sampleType: .unsignedInteger,
+            storageBits: storageBits,
+            meaningfulBits: storageBits,
+            byteOrder: .littleEndian,
+            components: spp == 1 ? [.grey] : [.red, .green, .blue],
+            colour: spp == 1 ? .greyscale : .rgb,
+            alpha: .absent,
+            planes: [plane],
+            iccProfile: nil,
+            limits: limits
+        )
+        let slice = frameData.count == byteCount ? frameData : frameData.prefix(byteCount)
+        return try SwiftJXL.Image(
+            descriptor: descriptor,
+            storage: JXLBorrowedReadOnlyStorage(data: slice),
+            limits: limits
         )
     }
 
@@ -382,11 +656,23 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                 // Shift little-endian Int16 two's-complement words to unsigned offset-binary
                 // (`word ^ 0x8000`, i.e. flip bit 7 of the high byte).
                 let sampleCount = byteCount / 2
-                interleaved.withUnsafeBufferPointer { srcBuf in
-                    guard let src = srcBuf.baseAddress else { return }
-                    for idx in 0..<sampleCount {
-                        dst[idx * 2] = src[idx * 2]
-                        dst[idx * 2 + 1] = src[idx * 2 + 1] ^ 0x80
+                interleaved.withUnsafeBytes { srcRaw in
+                    guard let src16 = srcRaw.baseAddress?.assumingMemoryBound(to: UInt16.self) else { return }
+                    let dst16 = UnsafeMutableRawPointer(dst).assumingMemoryBound(to: UInt16.self)
+                    let signMask = SIMD8<UInt16>(repeating: UInt16(0x8000).littleEndian)
+                    var idx = 0
+                    while idx + 8 <= sampleCount {
+                        let v = SIMD8<UInt16>(
+                            src16[idx], src16[idx + 1], src16[idx + 2], src16[idx + 3],
+                            src16[idx + 4], src16[idx + 5], src16[idx + 6], src16[idx + 7]
+                        ) ^ signMask
+                        dst16[idx] = v[0]; dst16[idx + 1] = v[1]; dst16[idx + 2] = v[2]; dst16[idx + 3] = v[3]
+                        dst16[idx + 4] = v[4]; dst16[idx + 5] = v[5]; dst16[idx + 6] = v[6]; dst16[idx + 7] = v[7]
+                        idx += 8
+                    }
+                    while idx < sampleCount {
+                        dst16[idx] = src16[idx] ^ UInt16(0x8000).littleEndian
+                        idx += 1
                     }
                 }
             } else {
@@ -738,10 +1024,11 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             let decoder = try SwiftJXL.Decoder()
             let options = SwiftJXL.DecodeOptions(
                 resourceLimits: inspectLimits,
+                executionPolicy: Self.resolveExecutionPolicy(for: decodeBackend),
                 copyPolicy: .requireSharedStorage,
                 metadataPolicy: .discardAncillary
             )
-            return try decoder.inspect(view, options: options)
+            return try decoder.inspectSynchronously(view, options: options)
         }
 
         let info: SwiftJXL.ImageInfo
@@ -808,13 +1095,15 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         let maxPixels = max(1, max(decodingLimits.maximumPixels, pixels))
         let maxDecoded = max(1, max(decodingLimits.maximumDecodedBytes * 2, quadRaw))
         let maxDim = max(16384, max(width, height))
+        let workers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
         return try SwiftJXL.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
             maximumDecodedBytes: maxDecoded,
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
             maximumDimension: maxDim,
-            deadlineSeconds: 30.0,
+            maximumWorkers: workers,
+            deadlineSeconds: 300.0,
             maximumMemoryBytes: Int.max
         )
     }
@@ -826,8 +1115,9 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         spp: Int,
         bitsPerSample: Int,
         iccProfile: Data?,
-        limits: SwiftJXL.ResourceLimits
-    ) async throws -> SwiftJXL.DecodedImage {
+        limits: SwiftJXL.ResourceLimits,
+        executionPolicy: SwiftJXL.ExecutionPolicy
+    ) throws -> SwiftJXL.DecodedImage {
         let storageBits = bitsPerSample <= 8 ? 8 : 16
         let bps = storageBits / 8
         let pixelStride = spp * bps
@@ -857,17 +1147,20 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             iccProfile: iccProfile,
             limits: limits
         )
-        let destination = try SwiftJXL.ImageDestination.allocate(
+        let writableStorage = JXLDataBackedWritableStorage(byteCount: byteCount)
+        let destination = try SwiftJXL.ImageDestination(
             descriptor: dstDescriptor,
+            storage: writableStorage,
             limits: limits
         )
         let decoder = try SwiftJXL.Decoder()
         let decodeOptions = SwiftJXL.DecodeOptions(
             resourceLimits: limits,
+            executionPolicy: executionPolicy,
             copyPolicy: .requireSharedStorage,
             metadataPolicy: .discardAncillary
         )
-        let decoded = try await decoder.decode(cleanData, into: destination, options: decodeOptions)
+        let decoded = try decoder.decodeSynchronously(cleanData, into: destination, options: decodeOptions)
         guard decoded.report.copyEvents.isEmpty else {
             throw DICOMError.parsingFailed("SwiftJXL decode violated requireSharedStorage copy policy")
         }
@@ -903,9 +1196,13 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
         if validated.isJPEGRecompression {
             do {
-                let reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData)
-                return try JLICodec(decodingLimits: decodingLimits)
-                    .decodeFrame(reconstructedJPEG, descriptor: descriptor, frameIndex: frameIndex)
+                let effectiveWorkers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
+                let reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData, maximumWorkers: effectiveWorkers)
+                return try JLICodec(
+                    decodingLimits: decodingLimits,
+                    decodeBackend: decodeBackend,
+                    maximumWorkers: effectiveWorkers
+                ).decodeFrame(reconstructedJPEG, descriptor: descriptor, frameIndex: frameIndex)
             } catch {
                 if syntaxRestriction == .any {
                     // Fall through only if an unpinned instance encountered a non-reconstructible jbrd container.
@@ -921,6 +1218,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
         let decoded: SwiftJXL.DecodedImage
         do {
+            try Task.checkCancellation()
             let limits = try makeDecodeResourceLimits(
                 encodedByteCount: cleanData.count,
                 width: descriptor.columns,
@@ -932,21 +1230,17 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             let height = descriptor.rows
             let spp = descriptor.samplesPerPixel
             let iccProfile = validated.iccProfile
-            decoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJXL"
-            ) {
-                try await Self.decodeWithSwiftJXL(
-                    cleanData,
-                    width: width,
-                    height: height,
-                    spp: spp,
-                    bitsPerSample: b,
-                    iccProfile: iccProfile,
-                    limits: limits
-                )
-            }
+            let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
+            decoded = try Self.decodeWithSwiftJXL(
+                cleanData,
+                width: width,
+                height: height,
+                spp: spp,
+                bitsPerSample: b,
+                iccProfile: iccProfile,
+                limits: limits,
+                executionPolicy: executionPolicy
+            )
         } catch let error as CancellationError {
             throw error
         } catch let error as DICOMError {
@@ -974,6 +1268,36 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
         }
 
         if rawBytesPerSample == descriptor.bytesPerSample && !(descriptor.isSigned && b < 16) {
+            if (descriptor.samplesPerPixel == 1 || descriptor.planarConfiguration == 0),
+               let zeroCopy = decoded.image.storage as? JXLBorrowedReadOnlyStorage,
+               zeroCopy.data.count >= expectedRawBytes {
+                var outData = zeroCopy.data.count == expectedRawBytes
+                    ? zeroCopy.data
+                    : zeroCopy.data.prefix(expectedRawBytes)
+                if descriptor.isSigned && b == 16 {
+                    let sampleCount = expectedRawBytes / 2
+                    outData.withUnsafeMutableBytes { raw in
+                        guard let ptr16 = raw.baseAddress?.assumingMemoryBound(to: UInt16.self) else { return }
+                        let signMask = SIMD8<UInt16>(repeating: UInt16(0x8000).littleEndian)
+                        var idx = 0
+                        while idx + 8 <= sampleCount {
+                            let v = SIMD8<UInt16>(
+                                ptr16[idx], ptr16[idx + 1], ptr16[idx + 2], ptr16[idx + 3],
+                                ptr16[idx + 4], ptr16[idx + 5], ptr16[idx + 6], ptr16[idx + 7]
+                            ) ^ signMask
+                            ptr16[idx] = v[0]; ptr16[idx + 1] = v[1]; ptr16[idx + 2] = v[2]; ptr16[idx + 3] = v[3]
+                            ptr16[idx + 4] = v[4]; ptr16[idx + 5] = v[5]; ptr16[idx + 6] = v[6]; ptr16[idx + 7] = v[7]
+                            idx += 8
+                        }
+                        while idx < sampleCount {
+                            ptr16[idx] ^= UInt16(0x8000).littleEndian
+                            idx += 1
+                        }
+                    }
+                }
+                return outData
+            }
+
             let interleaved: [UInt8] = try decoded.image.storage.withUnsafeBytes { raw in
                 guard raw.count >= expectedRawBytes,
                       let src = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
@@ -1049,14 +1373,23 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             let cleanData = validated.trimmedLength == frameData.count
                 ? Data(frameData)
                 : Data(frameData.prefix(validated.trimmedLength))
+            let effectiveWorkers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
             if syntaxRestriction == .recompression {
-                let reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData)
-                return try JLICodec(decodingLimits: decodingLimits).decodePixelFrame(
+                let reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData, maximumWorkers: effectiveWorkers)
+                return try JLICodec(
+                    decodingLimits: decodingLimits,
+                    decodeBackend: decodeBackend,
+                    maximumWorkers: maximumWorkers
+                ).decodePixelFrame(
                     reconstructedJPEG, descriptor: descriptor, frameIndex: frameIndex
                 )
             }
-            if let reconstructedJPEG = try? Self.reconstructJPEGFragment(cleanData) {
-                return try JLICodec(decodingLimits: decodingLimits).decodePixelFrame(
+            if let reconstructedJPEG = try? Self.reconstructJPEGFragment(cleanData, maximumWorkers: effectiveWorkers) {
+                return try JLICodec(
+                    decodingLimits: decodingLimits,
+                    decodeBackend: decodeBackend,
+                    maximumWorkers: maximumWorkers
+                ).decodePixelFrame(
                     reconstructedJPEG, descriptor: descriptor, frameIndex: frameIndex
                 )
             }
@@ -1184,7 +1517,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
                     let cleanData = Data(bytes: encodedBase, count: validated.trimmedLength)
                     do {
-                        reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData)
+                        let effectiveWorkers = Self.effectiveWorkers(for: decodeBackend, configured: maximumWorkers)
+                        reconstructedJPEG = try Self.reconstructJPEGFragment(cleanData, maximumWorkers: effectiveWorkers)
                         jbrdStaging.keepAlive()
                     } catch {
                         jbrdStaging.keepAlive()
@@ -1243,20 +1577,20 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
                 let height = descriptor.rows
                 let spp = descriptor.samplesPerPixel
                 let iccProfile = validated.iccProfile
-                let bridgeOutcome = CompressionSuiteSyncBridge.runManaged(
-                    deadlineSeconds: 30.0,
-                    joinGraceSeconds: 1.0,
+                let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
+                let bridgeOutcome = Self.runManagedSynchronous(
                     domain: 0x0500,
                     cancellation: cancellation
                 ) {
-                    try await Self.decodeWithSwiftJXL(
+                    try Self.decodeWithSwiftJXL(
                         cleanData,
                         width: width,
                         height: height,
                         spp: spp,
                         bitsPerSample: b,
                         iccProfile: iccProfile,
-                        limits: limits
+                        limits: limits,
+                        executionPolicy: executionPolicy
                     )
                 }
                 staging.keepAlive()
@@ -1416,14 +1750,50 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             }
         }
         jpegStaging.keepAlive()
-        return JLICodec(decodingSyntax: .any, decodingLimits: decodingLimits)
-            .decodeManagedPixelFrameOutcome(
+        return JLICodec(
+            decodingSyntax: .any,
+            decodingLimits: decodingLimits,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers
+        ).decodeManagedPixelFrameOutcome(
                 jpegStaging,
                 descriptor: descriptor,
                 frameIndex: frameIndex,
                 budget: budget,
                 cancellation: cancellation
             )
+    }
+
+    private static func runManagedSynchronous<T>(
+        domain: UInt16,
+        cancellation: DICOMCancellation,
+        operation: () throws -> T
+    ) -> DICOMManagedOutcome<T> {
+        if let failure = cancellation.failure { return .failure(failure) }
+        if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+        do {
+            let value = try operation()
+            if let failure = cancellation.failure { return .failure(failure) }
+            if Task.isCancelled { return .failure(DICOMManagedFailure(.cancelled)) }
+            return .success(value)
+        } catch is CancellationError {
+            return .failure(DICOMManagedFailure(.cancelled))
+        } catch let managed as DICOMManagedFailure {
+            return .failure(managed)
+        } catch let dicomError as DICOMError {
+            switch dicomError {
+            case .limitExceeded:
+                return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+            case .unsupportedTransferSyntax:
+                return .failure(DICOMManagedFailure(.invalidTransferSyntax, 9, domain: domain))
+            default:
+                return .failure(DICOMManagedFailure(.malformed, 10, domain: domain))
+            }
+        } catch let codecError as SwiftJXL.CodecError where codecError.category == .resourceLimitExceeded {
+            return .failure(DICOMManagedFailure(.limitExceeded, 8, domain: domain))
+        } catch {
+            return .failure(DICOMManagedFailure(.codecFailure, 107, domain: domain))
+        }
     }
 
     private static func outputDescriptor(for descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
@@ -1447,7 +1817,11 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
     // MARK: - JPEG Recompression (TS …4.111 — bitstream level, not pixel level)
 
-    private static func makeTranscodeOptions(inputByteCount: Int) throws -> SwiftJXL.TranscodeOptions {
+    private static func makeTranscodeOptions(
+        inputByteCount: Int,
+        maximumWorkers: Int? = nil,
+        executionPolicy: SwiftJXL.ExecutionPolicy = .automatic
+    ) throws -> SwiftJXL.TranscodeOptions {
         let maxCompressed = max(256 * 1024 * 1024, inputByteCount + 4 * 1024 * 1024)
         let limits = try SwiftJXL.ResourceLimits(
             maximumCompressedBytes: maxCompressed,
@@ -1457,11 +1831,13 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
             maximumDimension: 65_535,
             maximumMetadataBytes: 16 * 1024 * 1024,
             maximumICCBytes: 4 * 1024 * 1024,
-            deadlineSeconds: 30.0,
+            maximumWorkers: clampWorkers(maximumWorkers),
+            deadlineSeconds: 300.0,
             maximumMemoryBytes: Int.max
         )
         return SwiftJXL.TranscodeOptions(
             resourceLimits: limits,
+            executionPolicy: executionPolicy,
             copyPolicy: .allowCopy,
             metadataPolicy: .preserve
         )
@@ -1471,18 +1847,16 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
     /// losslessly wraps an existing JPEG bitstream in a JPEG XL ISOBMFF container
     /// (with the `jbrd` reconstruction box) from which the original JPEG can be
     /// recovered **byte-for-byte**.
-    public static func recompressJPEGFragment(_ jpegBytes: Data) throws -> Data {
+    public static func recompressJPEGFragment(
+        _ jpegBytes: Data,
+        maximumWorkers: Int? = nil
+    ) throws -> Data {
         let clean = trimmedToJPEGEOI(jpegBytes)
         do {
+            try Task.checkCancellation()
             let transcoder = try SwiftJXL.Transcoder()
-            let options = try makeTranscodeOptions(inputByteCount: clean.count)
-            let transcoded = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJXL"
-            ) {
-                try await transcoder.transcode(clean, to: .jpegXL, options: options)
-            }
+            let options = try makeTranscodeOptions(inputByteCount: clean.count, maximumWorkers: maximumWorkers)
+            let transcoded = try transcoder.transcodeSynchronously(clean, to: .jpegXL, options: options)
             guard transcoded.report.fidelity == .originalBitstream else {
                 throw DICOMError.parsingFailed(
                     "SwiftJXL JPEG recompression reported unexpected fidelity: \(transcoded.report.fidelity)"
@@ -1505,17 +1879,15 @@ public struct JXLCodec: ImageCodec, ImageEncoder, Sendable {
 
     /// Reverse JPEG recompression: reconstructs the **byte-identical** original JPEG
     /// bitstream from a JPEG XL recompression fragment (…4.111).
-    public static func reconstructJPEGFragment(_ jxlBytes: Data) throws -> Data {
+    public static func reconstructJPEGFragment(
+        _ jxlBytes: Data,
+        maximumWorkers: Int? = nil
+    ) throws -> Data {
         func reverse(_ data: Data) throws -> Data {
+            try Task.checkCancellation()
             let transcoder = try SwiftJXL.Transcoder()
-            let options = try makeTranscodeOptions(inputByteCount: data.count)
-            let reconstructed = try CompressionSuiteSyncBridge.run(
-                deadlineSeconds: 30.0,
-                joinGraceSeconds: 1.0,
-                codecName: "SwiftJXL"
-            ) {
-                try await transcoder.transcode(data, to: .jpeg, options: options)
-            }
+            let options = try makeTranscodeOptions(inputByteCount: data.count, maximumWorkers: maximumWorkers)
+            let reconstructed = try transcoder.transcodeSynchronously(data, to: .jpeg, options: options)
             guard reconstructed.report.fidelity == .originalBitstream else {
                 throw DICOMError.parsingFailed(
                     "SwiftJXL JPEG reconstruction reported unexpected fidelity: \(reconstructed.report.fidelity)"
