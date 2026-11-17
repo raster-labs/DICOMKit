@@ -74,12 +74,14 @@ struct SavedViewPickerView: View {
                 // plainly typed in the box. `commitSave` drops an empty name
                 // instead, which is the same guard in the one place that does
                 // re-run when the reader actually clicks.
-                Button("Save for This Image") { commitSave(scope: .currentImage) }
+                Button("Save for This Image") { commitSave(scope: .currentImage, includeSR: false) }
+                Button("Save for This Image + SR Report") { commitSave(scope: .currentImage, includeSR: true) }
                 // The series scope appears only where it would cover more than
                 // the image save does — a lone image offering "save for the
                 // series" would be a choice without a difference.
                 if viewModel.canSaveViewForSeries {
-                    Button("Save for This Series") { commitSave(scope: .currentSeries) }
+                    Button("Save for This Series") { commitSave(scope: .currentSeries, includeSR: false) }
+                    Button("Save for This Series + SR Report") { commitSave(scope: .currentSeries, includeSR: true) }
                 }
             } message: {
                 Text("Saved views keep the window, zoom, pan and orientation "
@@ -87,17 +89,29 @@ struct SavedViewPickerView: View {
                      + "the same view onto every image of the series. Saving "
                      + "over a name replaces it."
                      + "\n\nThe view is added to the study as a presentation "
-                     + "state series, with a reference ID you can quote.")
+                     + "state series (and optionally a TID 1500 Structured Report series), "
+                     + "with a reference ID you can quote.")
             }
             .alert(
                 "Added to the study",
                 isPresented: Binding(
-                    get: { viewModel.publishedPresentationSeries != nil },
+                    get: {
+                        viewModel.publishedPresentationSeries != nil
+                            || viewModel.publishedStructuredReportSeries != nil
+                    },
                     set: { if !$0 { viewModel.dismissPublishedSeriesConfirmation() } })
             ) {
                 Button("OK") { viewModel.dismissPublishedSeriesConfirmation() }
             } message: {
-                if let published = viewModel.publishedPresentationSeries {
+                if let published = viewModel.publishedPresentationSeries,
+                   let publishedSR = viewModel.publishedStructuredReportSeries {
+                    Text("“\(published.label)” is now series "
+                         + "\(published.seriesNumber) (\(published.modality)) and series "
+                         + "\(publishedSR.seriesNumber) (\(publishedSR.modality)) "
+                         + "of this study.\n\n"
+                         + "PR Reference ID: \(published.referenceID)\n"
+                         + "SR Reference ID: \(publishedSR.referenceID)")
+                } else if let published = viewModel.publishedPresentationSeries {
                     // The reference ID is the point of the message: the series
                     // itself appears in the pane on its own, but the ID is what
                     // a reader writes into a report, and it exists nowhere they
@@ -105,6 +119,10 @@ struct SavedViewPickerView: View {
                     Text("“\(published.label)” is now series "
                          + "\(published.seriesNumber) (\(published.modality)) "
                          + "of this study.\n\nReference ID: \(published.referenceID)")
+                } else if let publishedSR = viewModel.publishedStructuredReportSeries {
+                    Text("“\(publishedSR.label)” is now series "
+                         + "\(publishedSR.seriesNumber) (\(publishedSR.modality)) "
+                         + "of this study.\n\nReference ID: \(publishedSR.referenceID)")
                 }
             }
             .alert(
@@ -151,6 +169,9 @@ struct SavedViewPickerView: View {
                 ForEach(savedViews) { view in
                     Menu {
                         Button("Apply") { viewModel.applySavedView(view) }
+                        Button("Save SR Report to Study") {
+                            viewModel.addStructuredReportToStudy(label: view.label)
+                        }
                         Divider()
                         Button("Delete…", role: .destructive) {
                             pendingDeletion = view
@@ -307,16 +328,22 @@ struct SavedViewPickerView: View {
         draftLabel.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func commitSave(scope: ImageViewerViewModel.SavedViewScope) {
+    private func commitSave(scope: ImageViewerViewModel.SavedViewScope, includeSR: Bool = false) {
         let label = trimmedDraft
         guard !label.isEmpty else { return }
         if scope == .currentImage {
             // Synchronous, as it always was: the image's identity is in memory.
-            viewModel.saveCurrentView(label: label)
+            viewModel.saveCurrentView(label: label, includeStructuredReport: includeSR)
         } else {
             // The series scopes read the covered images' headers, so the save
             // runs async and reports through the view model's own error state.
-            Task { await viewModel.saveCurrentView(label: label, scope: scope) }
+            Task {
+                await viewModel.saveCurrentView(
+                    label: label,
+                    scope: scope,
+                    includeStructuredReport: includeSR
+                )
+            }
         }
         draftLabel = ""
     }

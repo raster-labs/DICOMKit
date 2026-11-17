@@ -339,12 +339,14 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
 
     /// Whether this encoder can compress the given pixel data: 8-bit unsigned or
     /// 16-bit (unsigned, or signed via two's-complement offset-binary level shift)
-    /// greyscale or RGB within `SwiftJXL`'s `16384 x 16384` dimension bound.
+    /// greyscale or RGB with `8...16` stored bits within `SwiftJXL`'s `16384 x 16384`
+    /// dimension bound.
     public func canEncode(with configuration: CompressionConfiguration, descriptor: PixelDataDescriptor) -> Bool {
         guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
             return false
         }
-        guard descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3 else {
+        guard (8...descriptor.bitsAllocated).contains(descriptor.bitsStored),
+              descriptor.highBit == descriptor.bitsStored - 1 else {
             return false
         }
         guard (1...16384).contains(descriptor.columns),
@@ -354,7 +356,30 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         if descriptor.isSigned && descriptor.bitsAllocated != 16 {
             return false
         }
-        return true
+        let isLosslessIntent = encodesLossless || configuration.preferLossless
+        switch descriptor.samplesPerPixel {
+        case 1:
+            switch descriptor.photometricInterpretation {
+            case .monochrome1, .monochrome2:
+                return true
+            case .paletteColor:
+                return isLosslessIntent
+            default:
+                return false
+            }
+        case 3:
+            guard descriptor.planarConfiguration == 0 || descriptor.planarConfiguration == 1 else {
+                return false
+            }
+            switch descriptor.photometricInterpretation {
+            case .rgb, .xyb:
+                return true
+            default:
+                return false
+            }
+        default:
+            return false
+        }
     }
 
     // MARK: - Encoding
@@ -370,17 +395,21 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         guard (1...16384).contains(width), (1...16384).contains(height) else {
             throw DICOMError.parsingFailed("SwiftJXL: invalid frame dimensions \(width)x\(height)")
         }
-        let storageBits: Int
-        if descriptor.bitsAllocated <= 8 {
-            guard !descriptor.isSigned else {
-                throw DICOMError.parsingFailed(
-                    "SwiftJXL: signed 8-bit pixel data not supported (no signed 8-bit JPEG XL sample type)"
-                )
-            }
-            storageBits = 8
-        } else {
-            storageBits = 16
+        guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
+            throw DICOMError.parsingFailed("SwiftJXL: unsupported bitsAllocated \(descriptor.bitsAllocated)")
         }
+        guard (8...descriptor.bitsAllocated).contains(descriptor.bitsStored),
+              descriptor.highBit == descriptor.bitsStored - 1 else {
+            throw DICOMError.parsingFailed(
+                "SwiftJXL: unsupported precision bitsStored=\(descriptor.bitsStored), highBit=\(descriptor.highBit) for bitsAllocated=\(descriptor.bitsAllocated)"
+            )
+        }
+        guard canEncode(with: configuration, descriptor: descriptor) else {
+            throw DICOMError.parsingFailed(
+                "SwiftJXL: unsupported pixel descriptor (samplesPerPixel=\(spp), photometric=\(descriptor.photometricInterpretation.rawValue), planarConfiguration=\(descriptor.planarConfiguration), isSigned=\(descriptor.isSigned), bitsAllocated=\(descriptor.bitsAllocated), bitsStored=\(descriptor.bitsStored))"
+            )
+        }
+        let storageBits = descriptor.bitsAllocated == 8 ? 8 : 16
         let bps = storageBits / 8
 
         // …4.110 forces lossless. The general …4.112 UID honours `configuration.preferLossless`
@@ -400,9 +429,11 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         }
         let useLossless = encodesLossless || configuration.preferLossless || !fitsVarDCT
         let isSigned16 = descriptor.isSigned && storageBits == 16
+        let needsSubwordMask = descriptor.bitsStored < storageBits
         let requiredBytes = pixels * spp * bps
         let canBorrowDirect = (spp == 1 || descriptor.planarConfiguration == 0)
             && !isSigned16
+            && !needsSubwordMask
             && frameData.count >= requiredBytes
 
         do {
@@ -433,7 +464,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                     height: height,
                     spp: spp,
                     storageBits: storageBits,
-                    isSigned16: isSigned16,
+                    bitsStored: descriptor.bitsStored,
+                    isSigned: descriptor.isSigned,
                     limits: limits
                 )
             }
@@ -516,7 +548,15 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         if useLossless {
             return .default
         }
-        let search: SwiftJXL.VarDCTStrategySearch = (speed == .fast) ? .fixedDCT8 : .hierarchical
+        let search: SwiftJXL.VarDCTStrategySearch
+        switch speed {
+        case .fast:
+            search = .fixedDCT8
+        case .balanced:
+            search = .singleCell
+        case .optimal:
+            search = .hierarchical
+        }
         let varDCT = try SwiftJXL.VarDCTEncodingOptions(
             distance: varDCTDistance(from: quality),
             strategySearch: search
@@ -604,7 +644,8 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         height: Int,
         spp: Int,
         storageBits: Int,
-        isSigned16: Bool,
+        bitsStored: Int,
+        isSigned: Bool,
         limits: SwiftJXL.ResourceLimits
     ) throws -> SwiftJXL.Image {
         let bps = storageBits / 8
@@ -626,15 +667,16 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             rowBytes: rowBytes,
             byteCount: byteCount
         )
-        // Encode the full 8- or 16-bit cell width so unsigned sub-16-bit frames (e.g. 12-in-16)
-        // interoperate with external PNM/PGM decoders (`djxl` MAXVAL 65535 without rescaling)
-        // and signed 16-bit CT words preserve sign-extended upper bits bit-for-bit.
+        // Encode at `bitsStored` (`8...16`) meaningful precision so lossy VarDCT normalises
+        // sub-word samples (e.g. 12-in-16 CT/MR/CR) across their true `[0, 2^bitsStored - 1]`
+        // dynamic range without >4095 ringing wrap-around, while lossless Modular and external
+        // PNM/PGM decoders (`djxl` MAXVAL = 2^bitsStored - 1) preserve samples bit-for-bit.
         let descriptor = try SwiftJXL.ImageDescriptor(
             width: width,
             height: height,
             sampleType: .unsignedInteger,
             storageBits: storageBits,
-            meaningfulBits: storageBits,
+            meaningfulBits: bitsStored,
             byteOrder: .littleEndian,
             components: spp == 1 ? [.grey] : [.red, .green, .blue],
             colour: spp == 1 ? .greyscale : .rgb,
@@ -652,33 +694,62 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                   dstRaw.count >= byteCount else {
                 throw DICOMError.parsingFailed("SwiftJXL: destination buffer unavailable")
             }
-            if isSigned16 {
-                // Shift little-endian Int16 two's-complement words to unsigned offset-binary
-                // (`word ^ 0x8000`, i.e. flip bit 7 of the high byte).
+            if isSigned && storageBits == 16 {
+                // Normalise sub-word signed cells (PS3.5 §8.1.1) and level-shift two's-complement
+                // `[-2^(b-1), 2^(b-1)-1]` words into unsigned offset-binary `[0, 2^b - 1]`.
                 let sampleCount = byteCount / 2
-                interleaved.withUnsafeBytes { srcRaw in
-                    guard let src16 = srcRaw.baseAddress?.assumingMemoryBound(to: UInt16.self) else { return }
-                    let dst16 = UnsafeMutableRawPointer(dst).assumingMemoryBound(to: UInt16.self)
-                    let signMask = SIMD8<UInt16>(repeating: UInt16(0x8000).littleEndian)
-                    var idx = 0
-                    while idx + 8 <= sampleCount {
-                        let v = SIMD8<UInt16>(
-                            src16[idx], src16[idx + 1], src16[idx + 2], src16[idx + 3],
-                            src16[idx + 4], src16[idx + 5], src16[idx + 6], src16[idx + 7]
-                        ) ^ signMask
-                        dst16[idx] = v[0]; dst16[idx + 1] = v[1]; dst16[idx + 2] = v[2]; dst16[idx + 3] = v[3]
-                        dst16[idx + 4] = v[4]; dst16[idx + 5] = v[5]; dst16[idx + 6] = v[6]; dst16[idx + 7] = v[7]
-                        idx += 8
+                if bitsStored < 16 {
+                    interleaved.withUnsafeBufferPointer { srcBuf in
+                        guard let src = srcBuf.baseAddress else { return }
+                        let storedMask = UInt16((1 << bitsStored) - 1)
+                        let signBit = UInt16(1 << (bitsStored - 1))
+                        for idx in 0..<sampleCount {
+                            let rawWord = UInt16(src[idx * 2]) | (UInt16(src[idx * 2 + 1]) << 8)
+                            let shifted = (rawWord & storedMask) ^ signBit
+                            dst[idx * 2] = UInt8(shifted & 0xFF)
+                            dst[idx * 2 + 1] = UInt8((shifted >> 8) & 0xFF)
+                        }
                     }
-                    while idx < sampleCount {
-                        dst16[idx] = src16[idx] ^ UInt16(0x8000).littleEndian
-                        idx += 1
+                } else {
+                    interleaved.withUnsafeBytes { srcRaw in
+                        guard let src16 = srcRaw.baseAddress?.assumingMemoryBound(to: UInt16.self) else { return }
+                        let dst16 = UnsafeMutableRawPointer(dst).assumingMemoryBound(to: UInt16.self)
+                        let signMask = SIMD8<UInt16>(repeating: UInt16(0x8000).littleEndian)
+                        var idx = 0
+                        while idx + 8 <= sampleCount {
+                            let v = SIMD8<UInt16>(
+                                src16[idx], src16[idx + 1], src16[idx + 2], src16[idx + 3],
+                                src16[idx + 4], src16[idx + 5], src16[idx + 6], src16[idx + 7]
+                            ) ^ signMask
+                            dst16[idx] = v[0]; dst16[idx + 1] = v[1]; dst16[idx + 2] = v[2]; dst16[idx + 3] = v[3]
+                            dst16[idx + 4] = v[4]; dst16[idx + 5] = v[5]; dst16[idx + 6] = v[6]; dst16[idx + 7] = v[7]
+                            idx += 8
+                        }
+                        while idx < sampleCount {
+                            dst16[idx] = src16[idx] ^ UInt16(0x8000).littleEndian
+                            idx += 1
+                        }
                     }
                 }
             } else {
                 interleaved.withUnsafeBufferPointer { srcBuf in
                     if let src = srcBuf.baseAddress {
                         dst.update(from: src, count: byteCount)
+                    }
+                }
+                if !isSigned && bitsStored < storageBits {
+                    // Mask unused high bits / overlay bits above `highBit` (PS3.5 §8.1.1).
+                    let totalCells = byteCount / bps
+                    let storedMask = UInt16((1 << bitsStored) - 1)
+                    for i in 0..<totalCells {
+                        if bps == 1 {
+                            dst[i] = UInt8(truncatingIfNeeded: UInt16(dst[i]) & storedMask)
+                        } else {
+                            let word = UInt16(dst[i * 2]) | (UInt16(dst[i * 2 + 1]) << 8)
+                            let masked = word & storedMask
+                            dst[i * 2] = UInt8(masked & 0xFF)
+                            dst[i * 2 + 1] = UInt8((masked >> 8) & 0xFF)
+                        }
                     }
                 }
             }
@@ -698,6 +769,27 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         let xsize: UInt32
         let ysize: UInt32
         let hasJBRD: Bool
+        let xybEncoded: Bool
+    }
+
+    /// Returns `true` when `frameData` is a JPEG XL pixel codestream whose `ImageMetadata`
+    /// header sets `xyb_encoded = 1` (ISO/IEC 18181-1 §C.3.3 — emitted by lossy VarDCT,
+    /// `false` for lossless Modular and `jbrd` JPEG recompression containers).
+    public static func isXYBEncoded(_ frameData: Data) -> Bool {
+        frameData.withUnsafeBytes { raw in
+            guard let base = raw.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                  raw.count >= 2 else {
+                return false
+            }
+            if let parsed = parseZeroCopyEnvelope(base: base, length: raw.count) {
+                return !parsed.hasJBRD && parsed.xybEncoded
+            }
+            if raw.count % 2 == 0, base[raw.count - 1] == 0,
+               let trimmed = parseZeroCopyEnvelope(base: base, length: raw.count - 1) {
+                return !trimmed.hasJBRD && trimmed.xybEncoded
+            }
+            return false
+        }
     }
 
     /// Parses the JXL naked codestream or ISOBMFF container box structure and `SizeHeader`
@@ -714,7 +806,12 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             guard let dims = parseSizeHeader(codestreamAfterSig: base.advanced(by: 2), count: length - 2) else {
                 return nil
             }
-            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: false)
+            return ZeroCopyJXLEnvelope(
+                xsize: dims.xsize,
+                ysize: dims.ysize,
+                hasJBRD: false,
+                xybEncoded: dims.xybEncoded
+            )
         }
 
         // Case 2: ISOBMFF container (`00 00 00 0C 4A 58 4C 20 0D 0A 87 0A`).
@@ -808,21 +905,31 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                   ) else {
                 return nil
             }
-            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: hasJBRD)
+            return ZeroCopyJXLEnvelope(
+                xsize: dims.xsize,
+                ysize: dims.ysize,
+                hasJBRD: hasJBRD,
+                xybEncoded: dims.xybEncoded
+            )
         }
 
         guard sawJXLP else { return nil }
-        // Gather the first 16 bytes of the concatenated partial codestream (`jxlp` seq 0, 1, ...)
-        // into a fixed-size stack tuple (`SizeHeader` requires at most 11 bytes including `FF 0A`).
+        // Gather the first 32 bytes of the concatenated partial codestream (`jxlp` seq 0, 1, ...)
+        // into a fixed-size stack tuple (`SizeHeader` + `ImageMetadata` prefix up to `xyb_encoded`).
         var head: (
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
             UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
-        ) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        ) = (
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        )
         var headCount = 0
         var nextSeq: UInt32 = 0
         var reachedLast = false
 
-        while headCount < 16 && !reachedLast {
+        while headCount < 32 && !reachedLast {
             var foundSeq = false
             var scan = 12
             while scan < length {
@@ -845,7 +952,7 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                         let chunkStart = payloadStart + 4
                         var idx = chunkStart
                         withUnsafeMutableBytes(of: &head) { headBuf in
-                            while idx < boxEnd && headCount < 16 {
+                            while idx < boxEnd && headCount < 32 {
                                 headBuf[headCount] = base[idx]
                                 headCount += 1
                                 idx += 1
@@ -867,15 +974,21 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                   let dims = parseSizeHeader(codestreamAfterSig: ptr.advanced(by: 2), count: headCount - 2) else {
                 return nil
             }
-            return ZeroCopyJXLEnvelope(xsize: dims.xsize, ysize: dims.ysize, hasJBRD: hasJBRD)
+            return ZeroCopyJXLEnvelope(
+                xsize: dims.xsize,
+                ysize: dims.ysize,
+                hasJBRD: hasJBRD,
+                xybEncoded: dims.xybEncoded
+            )
         }
     }
 
-    /// Parses ISO/IEC 18181-1 §C.3.2 `SizeHeader` (LSB-first bit stream positioned right after `FF 0A`).
+    /// Parses ISO/IEC 18181-1 §C.3.2 `SizeHeader` and §C.3.3 `ImageMetadata.xyb_encoded`
+    /// (LSB-first bit stream positioned right after `FF 0A`).
     private static func parseSizeHeader(
         codestreamAfterSig ptr: UnsafePointer<UInt8>,
         count: Int
-    ) -> (xsize: UInt32, ysize: UInt32)? {
+    ) -> (xsize: UInt32, ysize: UInt32, xybEncoded: Bool)? {
         let totalBits = count * 8
         var bitPos = 0
 
@@ -892,18 +1005,27 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             return result
         }
 
-        func readSizeField() -> UInt32? {
+        func readU32(
+            _ d0: (UInt32, Int),
+            _ d1: (UInt32, Int),
+            _ d2: (UInt32, Int),
+            _ d3: (UInt32, Int)
+        ) -> UInt32? {
             guard let selector = readBits(2) else { return nil }
-            let extraBits: Int
+            let dist: (UInt32, Int)
             switch selector {
-            case 0: extraBits = 9
-            case 1: extraBits = 13
-            case 2: extraBits = 18
-            case 3: extraBits = 30
+            case 0: dist = d0
+            case 1: dist = d1
+            case 2: dist = d2
+            case 3: dist = d3
             default: return nil
             }
-            guard let extra = readBits(extraBits) else { return nil }
-            return 1 &+ extra
+            guard let extra = readBits(dist.1) else { return nil }
+            return dist.0 &+ extra
+        }
+
+        func readSizeField() -> UInt32? {
+            readU32((1, 9), (1, 13), (1, 18), (1, 30))
         }
 
         func aspectXsize(ysize: UInt32, ratio: UInt32) -> UInt32? {
@@ -922,32 +1044,81 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             return UInt32((UInt64(ysize) &* num) / den)
         }
 
-        guard let smallBit = readBits(1) else { return nil }
-        let ysize: UInt32
-        let xsize: UInt32
-        if smallBit == 1 {
-            guard let yDiv8 = readBits(5), let ratio = readBits(3) else { return nil }
-            ysize = (yDiv8 + 1) &* 8
-            if ratio == 0 {
-                guard let xDiv8 = readBits(5) else { return nil }
-                xsize = (xDiv8 + 1) &* 8
+        func readDimensions() -> (xsize: UInt32, ysize: UInt32)? {
+            guard let smallBit = readBits(1) else { return nil }
+            let ysize: UInt32
+            let xsize: UInt32
+            if smallBit == 1 {
+                guard let yDiv8 = readBits(5), let ratio = readBits(3) else { return nil }
+                ysize = (yDiv8 + 1) &* 8
+                if ratio == 0 {
+                    guard let xDiv8 = readBits(5) else { return nil }
+                    xsize = (xDiv8 + 1) &* 8
+                } else {
+                    guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
+                    xsize = derived
+                }
             } else {
-                guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
-                xsize = derived
+                guard let y = readSizeField(), let ratio = readBits(3) else { return nil }
+                ysize = y
+                if ratio == 0 {
+                    guard let x = readSizeField() else { return nil }
+                    xsize = x
+                } else {
+                    guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
+                    xsize = derived
+                }
             }
-        } else {
-            guard let y = readSizeField(), let ratio = readBits(3) else { return nil }
-            ysize = y
-            if ratio == 0 {
-                guard let x = readSizeField() else { return nil }
-                xsize = x
-            } else {
-                guard let derived = aspectXsize(ysize: ysize, ratio: ratio) else { return nil }
-                xsize = derived
-            }
+            guard xsize > 0, ysize > 0 else { return nil }
+            return (xsize, ysize)
         }
-        guard xsize > 0, ysize > 0 else { return nil }
-        return (xsize, ysize)
+
+        func readXYBEncoded() -> Bool? {
+            guard let allDefault = readBits(1) else { return nil }
+            if allDefault == 1 {
+                return true
+            }
+            guard let extraFields = readBits(1) else { return nil }
+            if extraFields == 1 {
+                guard readBits(3) != nil else { return nil } // orientation
+                guard let hasIntrinsic = readBits(1) else { return nil }
+                if hasIntrinsic == 1, readDimensions() == nil { return nil }
+                guard let hasPreview = readBits(1) else { return nil }
+                if hasPreview == 1, readDimensions() == nil { return nil }
+                guard let hasAnim = readBits(1) else { return nil }
+                if hasAnim == 1 {
+                    guard readU32((100, 0), (1000, 0), (1, 10), (1, 30)) != nil,
+                          readU32((1, 0), (1001, 0), (1, 8), (1, 10)) != nil,
+                          readU32((0, 0), (0, 3), (0, 16), (0, 32)) != nil,
+                          readBits(1) != nil else {
+                        return nil
+                    }
+                }
+            }
+            // BitDepth (ISO/IEC 18181-1 §C.3.5)
+            guard let isFloat = readBits(1) else { return nil }
+            if isFloat == 1 {
+                guard readU32((32, 0), (16, 0), (24, 0), (1, 6)) != nil,
+                      readBits(4) != nil else {
+                    return nil
+                }
+            } else {
+                guard readU32((8, 0), (10, 0), (12, 0), (1, 6)) != nil else {
+                    return nil
+                }
+            }
+            guard readBits(1) != nil else { return nil } // modular_16bit_buffer_sufficient
+            guard let numExtra = readU32((0, 0), (1, 0), (2, 4), (1, 12)),
+                  numExtra == 0 else {
+                return nil
+            }
+            guard let xybBit = readBits(1) else { return nil }
+            return xybBit == 1
+        }
+
+        guard let dims = readDimensions() else { return nil }
+        let xybEncoded = readXYBEncoded() ?? false
+        return (dims.xsize, dims.ysize, xybEncoded)
     }
 
     private func inspectAndValidateJXLOutcome(

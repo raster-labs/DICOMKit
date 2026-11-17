@@ -323,4 +323,81 @@ struct SwiftJLSIntegrationTests {
         let bytes = try result.image.storage.withUnsafeBytes { Data($0) }
         #expect(bytes == raw)
     }
+
+    @Test("SPIFF APP8 directory-end inner SOI, LSE Id=1 zero-defaults, LSE Id=4 Ye/Xe, and sub-word cells work across standard and managed paths")
+    func spiffAndStandardLSEExtensionsAndSubwordCells() throws {
+        let codec = JPEGLSCodec(decodingSyntax: .lossless)
+        let budget = try DICOMAllocationBudget()
+
+        let desc12 = PixelDataDescriptor(
+            rows: 4,
+            columns: 6,
+            numberOfFrames: 1,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var cleanRaw = Data()
+        var overlayRaw = Data()
+        for i in 0..<(4 * 6) {
+            let sample = UInt16((i * 137) & 0x0FFF)
+            var cleanLE = sample.littleEndian
+            var overlayLE = (sample | 0x9000).littleEndian
+            withUnsafeBytes(of: &cleanLE) { cleanRaw.append(contentsOf: $0) }
+            withUnsafeBytes(of: &overlayLE) { overlayRaw.append(contentsOf: $0) }
+        }
+
+        // 1. Sub-word unsigned overlay bits stripped on encode
+        let baseStream = try codec.encodeFrame(overlayRaw, descriptor: desc12, frameIndex: 0, configuration: .lossless)
+        #expect(try codec.decodeFrame(baseStream, descriptor: desc12, frameIndex: 0) == cleanRaw)
+
+        // 2. SPIFF APP8 header + directory-end with inner SOI (0xFF 0xD8) before SOF55
+        let spiffPrefix: [UInt8] = [
+            0xFF, 0xD8,
+            0xFF, 0xE8, 0x00, 0x08, 0x53, 0x50, 0x49, 0x46, 0x46, 0x00,
+            0xFF, 0xE8, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        ]
+        var spiffWrapped = Data(spiffPrefix) + baseStream
+        if spiffWrapped.count % 2 == 1 { spiffWrapped.append(0x00) }
+        #expect(try codec.decodeFrame(spiffWrapped, descriptor: desc12, frameIndex: 0) == cleanRaw)
+        do {
+            let buf = try DICOMByteBuffer(count: spiffWrapped.count, budget: budget, resource: .encoded)
+            spiffWrapped.withUnsafeBytes { buf.unsafeMutableBytes.copyMemory(from: $0) }
+            let managed = try codec.decodeManagedPixelFrame(buf, descriptor: desc12, frameIndex: 0, budget: budget)
+            #expect(managed.data.withUnsafeBytes { Data($0) } == cleanRaw)
+            #expect(budget.receipt.current.staging == 0)
+        }
+
+        // 3. LSE Id=1 with 0 default threshold/reset fields and LSE Id=4 with ITU-T T.87 (Ye=height=4, Xe=width=6)
+        let sofRange = try #require(baseStream.range(of: Data([0xFF, 0xF7])))
+        let sosRange = try #require(baseStream.range(of: Data([0xFF, 0xDA])))
+        let lse4 = Data([0xFF, 0xF8, 0x00, 0x08, 0x04, 0x02, 0x00, 0x04, 0x00, 0x06])
+        let lse1ZeroDefaults = Data([
+            0xFF, 0xF8, 0x00, 0x0D, 0x01,
+            0x0F, 0xFF, // MAXVAL = 4095
+            0x00, 0x00, // T1 = 0 (use Table C.2 default)
+            0x00, 0x00, // T2 = 0 (use Table C.2 default)
+            0x00, 0x00, // T3 = 0 (use Table C.2 default)
+            0x00, 0x00  // RESET = 0 (use Table C.2 default = 64)
+        ])
+        var sofZeroDim = Data(baseStream[sofRange.lowerBound..<sosRange.lowerBound])
+        // Zero out Y and X in SOF55 so dimensions come from LSE Id=4 (Ye=4, Xe=6)
+        sofZeroDim[5] = 0x00
+        sofZeroDim[6] = 0x00
+        sofZeroDim[7] = 0x00
+        sofZeroDim[8] = 0x00
+        var lseStream = Data([0xFF, 0xD8]) + lse4 + sofZeroDim + lse1ZeroDefaults + Data(baseStream[sosRange.lowerBound...])
+        if lseStream.count % 2 == 1 { lseStream.append(0x00) }
+        #expect(try codec.decodeFrame(lseStream, descriptor: desc12, frameIndex: 0) == cleanRaw)
+        do {
+            let buf = try DICOMByteBuffer(count: lseStream.count, budget: budget, resource: .encoded)
+            lseStream.withUnsafeBytes { buf.unsafeMutableBytes.copyMemory(from: $0) }
+            let managed = try codec.decodeManagedPixelFrame(buf, descriptor: desc12, frameIndex: 0, budget: budget)
+            #expect(managed.data.withUnsafeBytes { Data($0) } == cleanRaw)
+            #expect(budget.receipt.current.staging == 0)
+        }
+    }
 }

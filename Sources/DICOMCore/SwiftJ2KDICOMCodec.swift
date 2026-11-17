@@ -106,8 +106,19 @@ package protocol ProgressiveResolutionDecodableCodec: ImageCodec {
     func decodeFrameAtResolution(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
+        frameIndex: Int,
         level: Int
     ) async throws -> (data: Data, rows: Int, columns: Int)
+}
+
+extension ProgressiveResolutionDecodableCodec {
+    package func decodeFrameAtResolution(
+        _ frameData: Data,
+        descriptor: PixelDataDescriptor,
+        level: Int
+    ) async throws -> (data: Data, rows: Int, columns: Int) {
+        try await decodeFrameAtResolution(frameData, descriptor: descriptor, frameIndex: 0, level: level)
+    }
 }
 
 /// 2D JPEG 2000 Part 1 (`.90`/`.91`), Part 2 Multi-component (`.92`/`.93`), and Part 15 HTJ2K
@@ -270,9 +281,10 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         case 1:
             return descriptor.photometricInterpretation == .monochrome1
                 || descriptor.photometricInterpretation == .monochrome2
+                || descriptor.photometricInterpretation == .paletteColor
         case 3:
             switch descriptor.photometricInterpretation {
-            case .rgb, .ybrRCT:
+            case .rgb, .ybrRCT, .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420:
                 return true
             case .ybrICT:
                 return !isLosslessOnly
@@ -443,6 +455,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
     public func decodeFrameAtResolution(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
+        frameIndex: Int = 0,
         level: Int
     ) async throws -> (data: Data, rows: Int, columns: Int) {
         try Task.checkCancellation()
@@ -450,11 +463,11 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             throw DICOMError.parsingFailed("Resolution level (\(level)) must be non-negative")
         }
         guard level > 0 else {
-            let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: 0)
+            let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: frameIndex)
             return (fullBytes, descriptor.rows, descriptor.columns)
         }
 
-        let prepared = try prepareDecode(frameData, descriptor: descriptor, frameIndex: 0)
+        let prepared = try prepareDecode(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let minNL = J2KCodestreamInspector.minimumDecompositionLevels(in: prepared.codestream) ?? 0
         let nativeLevel = min(level, min(32, max(0, minNL)))
 
@@ -509,7 +522,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
                 kind: .decode,
                 transferSyntaxUID: prepared.transferSyntaxUID ?? "unknown",
                 targetTransferSyntaxUID: nil,
-                frameIndex: 0,
+                frameIndex: frameIndex,
                 report: decoded.report
             ))
             let nativeExpectedBytes = nativeDescriptor.bytesPerFrame
@@ -530,7 +543,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             return (downsampled, newRows, newCols)
         }
 
-        let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: 0)
+        let fullBytes = try await decodeFrameAsync(frameData, descriptor: descriptor, frameIndex: frameIndex)
         let factor = 1 << min(30, level)
         let newRows = max(1, (descriptor.rows + factor - 1) / factor)
         let newCols = max(1, (descriptor.columns + factor - 1) / factor)
@@ -739,7 +752,9 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
                 }
 
                 let rawCodestream = Data(bytes: encodedBase, count: resolvedCount)
-                let codestream = Self.unwrapJP2IfWidened8In16(rawCodestream, descriptor: descriptor)
+                let codestream = J2KCodestreamInspector.conformingToReversibleHTJ2KCAP(
+                    Self.unwrapJP2IfWidened8In16(rawCodestream, descriptor: descriptor)
+                )
                 let prepared = PreparedDecode(
                     codestream: codestream,
                     swiftDescriptor: swiftDescriptor,
@@ -1014,7 +1029,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
               d.numberOfFrames >= 1,
               (d.samplesPerPixel == 1 || d.samplesPerPixel == 3),
               (d.bitsAllocated == 8 || d.bitsAllocated == 16),
-              (2...d.bitsAllocated).contains(d.bitsStored),
+              (1...d.bitsAllocated).contains(d.bitsStored),
+              (!d.isSigned || d.bitsStored >= 2),
               d.highBit == d.bitsStored - 1,
               (d.planarConfiguration == 0 || d.planarConfiguration == 1) else {
             return nil
@@ -1227,7 +1243,8 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             if descriptor.rows <= 0 || descriptor.columns <= 0
                 || !(descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3)
                 || !(descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16)
-                || !(2...descriptor.bitsAllocated).contains(descriptor.bitsStored)
+                || !(1...descriptor.bitsAllocated).contains(descriptor.bitsStored)
+                || (descriptor.isSigned && descriptor.bitsStored < 2)
                 || descriptor.highBit != descriptor.bitsStored - 1
                 || !(descriptor.planarConfiguration == 0 || descriptor.planarConfiguration == 1) {
                 throw DICOMError.parsingFailed("Invalid or unsupported JPEG 2000 pixel descriptor")
@@ -1256,7 +1273,9 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             transferSyntaxUID: decodingTransferSyntaxUID,
             requiresHTJ2KCAPWhenUIDNil: requiresHTJ2KCAPWhenUIDNil
         )
-        let codestream = Self.unwrapJP2IfWidened8In16(stripped, descriptor: descriptor)
+        let codestream = J2KCodestreamInspector.conformingToReversibleHTJ2KCAP(
+            Self.unwrapJP2IfWidened8In16(stripped, descriptor: descriptor)
+        )
 
         let swiftDescriptor: ImageDescriptor
         do {
@@ -1573,7 +1592,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
             if descriptor.rows > 0, descriptor.columns > 0,
                (descriptor.samplesPerPixel == 1 || descriptor.samplesPerPixel == 3),
                (descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16),
-               (2...descriptor.bitsAllocated).contains(descriptor.bitsStored),
+               (1...descriptor.bitsAllocated).contains(descriptor.bitsStored),
                descriptor.highBit == descriptor.bitsStored - 1,
                (pOv || sOv || bOv
                 || descriptor.rows > options.resourceLimits.maximumDimension

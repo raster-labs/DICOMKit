@@ -165,6 +165,11 @@ private struct PresentationSeriesLibrarySync: ViewModifier {
                     viewModel.imageViewerViewModel.publishedPresentationSeries else { return }
                 viewModel.registerPublishedPresentationSeries(published)
             }
+            .onChange(of: viewModel.imageViewerViewModel.structuredReportPublishRequests) { _, _ in
+                guard let publishedSR =
+                    viewModel.imageViewerViewModel.publishedStructuredReportSeries else { return }
+                viewModel.registerPublishedPresentationSeries(publishedSR)
+            }
             .onChange(of: viewModel.imageViewerViewModel.presentationSeriesRemovalRequests) { _, _ in
                 viewModel.unregisterPresentationStates(
                     sopInstanceUIDs:

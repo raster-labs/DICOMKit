@@ -140,7 +140,11 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
             )
             let encoder = try VolumeEncoder(configuration: config)
             let options = VolumeEncodeOptions(
-                resourceLimits: effectiveResourceLimits(forByteCount: data.count),
+                resourceLimits: effectiveResourceLimits(
+                    forByteCount: data.count,
+                    frameCount: descriptor.numberOfFrames,
+                    pixelCount: volume.width * volume.height * volume.depth
+                ),
                 executionPolicy: Self.executionPolicy(for: forcedBackend ?? decodeBackend),
                 copyPolicy: .allowCopy,
                 metadataPolicy: .preserve
@@ -158,9 +162,19 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
     ) async throws -> Data {
         do {
             let decoder = try VolumeDecoder(configuration: VolumeDecoderConfiguration())
-            let expectedDecoded = descriptor.bytesPerFrame * max(1, descriptor.numberOfFrames)
+            let (slicePixels, pOv) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+            let frames = max(1, descriptor.numberOfFrames)
+            let (totalVoxels, vOv) = slicePixels.multipliedReportingOverflow(by: frames)
+            let (expectedDecoded, bOv) = descriptor.bytesPerFrame.multipliedReportingOverflow(by: frames)
+            guard !pOv, !vOv, !bOv else {
+                throw DICOMError.limitExceeded("JP3D volume geometry overflows addressable range")
+            }
             let options = VolumeDecodeOptions(
-                resourceLimits: effectiveResourceLimits(forByteCount: max(data.count, expectedDecoded)),
+                resourceLimits: effectiveResourceLimits(
+                    forByteCount: max(data.count, expectedDecoded),
+                    frameCount: frames,
+                    pixelCount: totalVoxels
+                ),
                 executionPolicy: Self.executionPolicy(for: decodeBackend),
                 copyPolicy: .allowCopy,
                 metadataPolicy: .preserve
@@ -196,9 +210,16 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
                 tolerateTruncation: false
             )
             let decoder = try VolumeDecoder(configuration: config)
+            let (slicePixels, pOv) = descriptor.rows.multipliedReportingOverflow(by: descriptor.columns)
+            let frames = max(1, descriptor.numberOfFrames)
+            let (totalVoxels, vOv) = slicePixels.multipliedReportingOverflow(by: frames)
             let expectedDecoded = region.voxelCount * max(1, descriptor.bitsAllocated / 8)
             let options = VolumeDecodeOptions(
-                resourceLimits: effectiveResourceLimits(forByteCount: max(data.count, expectedDecoded)),
+                resourceLimits: effectiveResourceLimits(
+                    forByteCount: max(data.count, expectedDecoded),
+                    frameCount: frames,
+                    pixelCount: (pOv || vOv) ? region.voxelCount : max(totalVoxels, region.voxelCount)
+                ),
                 executionPolicy: Self.executionPolicy(for: decodeBackend),
                 copyPolicy: .allowCopy,
                 metadataPolicy: .preserve,
@@ -305,6 +326,12 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         guard descriptor.samplesPerPixel == 1 else { return false }
         guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else { return false }
         guard descriptor.bitsStored >= 1 && descriptor.bitsStored <= descriptor.bitsAllocated else { return false }
+        guard !descriptor.isSigned || descriptor.bitsStored >= 2 else { return false }
+        guard descriptor.highBit == descriptor.bitsStored - 1 else { return false }
+        guard descriptor.photometricInterpretation != .paletteColor
+                || configuration.preferLossless || compressionMode.isLossless else {
+            return false
+        }
         guard descriptor.numberOfFrames > 1 else { return false }
         guard descriptor.rows > 0 && descriptor.columns > 0 else { return false }
         return true
@@ -325,7 +352,20 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         if configuration.preferLossless && !compressionMode.isLossless {
             effectiveMode = compressionMode.isHTJ2K ? .losslessHTJ2K : .lossless
         } else {
-            effectiveMode = compressionMode
+            switch compressionMode {
+            case .lossless, .losslessHTJ2K:
+                effectiveMode = compressionMode
+            case .lossy(let configuredPSNR):
+                let targetPSNR = configuration.quality == .medium
+                    ? configuredPSNR
+                    : (configuration.quality.expectedMinPSNRDb + 5.0)
+                effectiveMode = .lossy(psnr: targetPSNR)
+            case .lossyHTJ2K(let configuredPSNR):
+                let targetPSNR = configuration.quality == .medium
+                    ? configuredPSNR
+                    : (configuration.quality.expectedMinPSNRDb + 5.0)
+                effectiveMode = .lossyHTJ2K(psnr: targetPSNR)
+            }
         }
         let encoder = JP3DCodec(
             compressionMode: effectiveMode,
@@ -343,21 +383,17 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         return [codestream]
     }
 
-    /// Encodes a single frame (returns the raw frame data unchanged because JP3D is inherently volumetric;
-    /// use `encodeVolume(_:descriptor:)` or `encode(_:descriptor:configuration:)` for volumetric compression).
+    /// JP3D is inherently volumetric (ISO/IEC 15444-10) and encodes an entire multi-frame volume into a
+    /// single codestream; single-frame 2D `encodeFrame` calls are rejected rather than returning raw bytes.
     public func encodeFrame(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
         frameIndex: Int,
         configuration: DICOMCore.CompressionConfiguration
     ) throws -> Data {
-        guard descriptor.samplesPerPixel == 1,
-              (descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16) else {
-            throw DICOMError.unsupportedTransferSyntax(
-                "JP3D requires 8-bit or 16-bit single-component pixel data"
-            )
-        }
-        return frameData
+        throw DICOMError.unsupportedTransferSyntax(
+            "JP3D is a volumetric codec and cannot encode individual 2D frames via encodeFrame; use encode(_:descriptor:configuration:) or encodeVolume(_:descriptor:)"
+        )
     }
 
     // MARK: - Private Helpers
@@ -372,23 +408,31 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         }
     }
 
-    private func effectiveResourceLimits(forByteCount byteCount: Int) -> ResourceLimits {
+    private func effectiveResourceLimits(
+        forByteCount byteCount: Int,
+        frameCount: Int = 1,
+        pixelCount: Int = 1
+    ) -> ResourceLimits {
         let base = resourceLimits
         let neededDecoded = max(base.maximumDecodedBytes, byteCount * 2)
         let neededWorkspace = max(base.maximumWorkspaceBytes, byteCount * 4)
         let neededMemory = max(base.maximumMemoryBytes, neededDecoded + neededWorkspace)
+        let neededFrames = max(base.maximumFrames, max(1, frameCount))
+        let neededPixels = max(base.maximumPixels, max(1, pixelCount))
         if neededDecoded == base.maximumDecodedBytes
             && neededWorkspace == base.maximumWorkspaceBytes
-            && neededMemory == base.maximumMemoryBytes {
+            && neededMemory == base.maximumMemoryBytes
+            && neededFrames == base.maximumFrames
+            && neededPixels == base.maximumPixels {
             return base
         }
         return (try? ResourceLimits(
             maximumCompressedBytes: max(base.maximumCompressedBytes, byteCount * 2),
             maximumDecodedBytes: neededDecoded,
             maximumWorkspaceBytes: neededWorkspace,
-            maximumPixels: base.maximumPixels,
+            maximumPixels: neededPixels,
             maximumDimension: base.maximumDimension,
-            maximumFrames: base.maximumFrames,
+            maximumFrames: neededFrames,
             maximumMetadataBytes: base.maximumMetadataBytes,
             maximumICCBytes: base.maximumICCBytes,
             maximumNestingDepth: base.maximumNestingDepth,
@@ -419,10 +463,17 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
                 "JP3D supports 8-bit or 16-bit allocated voxels, got \(descriptor.bitsAllocated)"
             )
         }
+        guard !descriptor.isSigned || descriptor.bitsStored >= 2 else {
+            throw DICOMError.parsingFailed("JP3D cannot encode 1-bit signed voxels")
+        }
 
-        let voxelCount = descriptor.columns * descriptor.rows * descriptor.numberOfFrames
+        let (sliceVoxels, pOv) = descriptor.columns.multipliedReportingOverflow(by: descriptor.rows)
+        let (voxelCount, vOv) = sliceVoxels.multipliedReportingOverflow(by: descriptor.numberOfFrames)
         let dicomBytesPerSample = descriptor.bitsAllocated / 8
-        let expectedDICOMBytes = voxelCount * dicomBytesPerSample
+        let (expectedDICOMBytes, bOv) = voxelCount.multipliedReportingOverflow(by: dicomBytesPerSample)
+        guard !pOv, !vOv, !bOv, voxelCount > 0, expectedDICOMBytes > 0 else {
+            throw DICOMError.limitExceeded("JP3D volume geometry overflows addressable range")
+        }
         guard data.count >= expectedDICOMBytes else {
             throw DICOMError.parsingFailed(
                 "JP3D input pixel data too short: expected \(expectedDICOMBytes) bytes, got \(data.count)"
@@ -433,18 +484,58 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         let componentBytesPerSample = (bitDepth + 7) / 8
         let componentData: Data
         if dicomBytesPerSample == 2 && componentBytesPerSample == 1 {
-            // Narrow 16-bit DICOM words carrying <=8-bit samples into 1-byte component storage.
+            // Narrow 16-bit DICOM words carrying <=8-bit samples into 1-byte component storage,
+            // normalising sub-8-bit unsigned overlay bits and signed sign-extension (PS3.5 §8.1.1).
             var narrowed = Data(count: voxelCount)
+            let mask8 = UInt8(truncatingIfNeeded: (1 << bitDepth) - 1)
+            let signBit8 = UInt8(1 << max(0, bitDepth - 1))
+            let upper8: UInt8 = 0xFF ^ mask8
             data.withUnsafeBytes { src in
                 narrowed.withUnsafeMutableBytes { dst in
                     guard let s = src.baseAddress?.assumingMemoryBound(to: UInt8.self),
                           let d = dst.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
                     for i in 0..<voxelCount {
-                        d[i] = s[i * 2]
+                        let low = s[i * 2] & mask8
+                        if descriptor.isSigned && bitDepth < 8 && (low & signBit8) != 0 {
+                            d[i] = low | upper8
+                        } else {
+                            d[i] = low
+                        }
                     }
                 }
             }
             componentData = narrowed
+        } else if bitDepth < descriptor.bitsAllocated {
+            // Normalise sub-word cells (PS3.5 §8.1.1): mask overlay bits above `highBit` for unsigned
+            // voxels and sign-extend `bitDepth`-bit negative values for signed voxels.
+            var normalized = Data(count: expectedDICOMBytes)
+            data.withUnsafeBytes { src in
+                normalized.withUnsafeMutableBytes { dst in
+                    guard let s = src.baseAddress?.assumingMemoryBound(to: UInt8.self),
+                          let d = dst.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
+                    if dicomBytesPerSample == 1 {
+                        let mask8 = UInt8((1 << bitDepth) - 1)
+                        let signBit8 = UInt8(1 << max(0, bitDepth - 1))
+                        let upper8: UInt8 = 0xFF ^ mask8
+                        for i in 0..<voxelCount {
+                            let low = s[i] & mask8
+                            d[i] = (descriptor.isSigned && (low & signBit8) != 0) ? (low | upper8) : low
+                        }
+                    } else {
+                        let mask16 = UInt16((1 << bitDepth) - 1)
+                        let signBit16 = UInt16(1 << max(0, bitDepth - 1))
+                        let upper16: UInt16 = 0xFFFF ^ mask16
+                        for i in 0..<voxelCount {
+                            let raw = UInt16(s[i * 2]) | (UInt16(s[i * 2 + 1]) << 8)
+                            let low = raw & mask16
+                            let cooked = (descriptor.isSigned && (low & signBit16) != 0) ? (low | upper16) : low
+                            d[i * 2] = UInt8(cooked & 0xFF)
+                            d[i * 2 + 1] = UInt8(cooked >> 8)
+                        }
+                    }
+                }
+            }
+            componentData = normalized
         } else if data.count == expectedDICOMBytes {
             componentData = data
         } else {

@@ -653,6 +653,12 @@ public final class ImageViewerViewModel {
     /// index, the other takes them out.
     public internal(set) var presentationSeriesRemovalRequests: Int = 0
 
+    /// The companion Structured Report series (`Series 9002 (SR)`) just written into the study, if any.
+    public internal(set) var publishedStructuredReportSeries: PresentationStateStore.PublishedSeries?
+
+    /// Bumped whenever a Structured Report series has been published into the study.
+    public internal(set) var structuredReportPublishRequests: Int = 0
+
     // MARK: - Study download
 
     /// The question asked before the open study leaves the app as a ZIP.

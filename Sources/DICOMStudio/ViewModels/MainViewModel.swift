@@ -433,7 +433,9 @@ public final class MainViewModel {
         let fileManager = FileManager.default
         for series in library.seriesForStudy(studyUID) {
             let instances = library.instancesForSeries(series.seriesInstanceUID)
-            guard instances.allSatisfy({ Self.isPresentationState($0.sopClassUID) })
+            let isPublishedSRSeries = series.modality == "SR"
+                && series.seriesNumber == PresentationStateStore.structuredReportSeriesNumber
+            guard instances.allSatisfy({ Self.isPresentationState($0.sopClassUID) }) || isPublishedSRSeries
             else { continue }
             let missing = instances.filter { !fileManager.fileExists(atPath: $0.filePath) }
             for instance in missing {

@@ -335,7 +335,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
     private struct DecodePlan: Sendable {
         let expectedBytes: Int
         let sourceColourModel: SwiftJLI.JPEGSourceColourModel?
-        let normalizeLosslessRGBIDs: Bool
+        let normalizedComponentIDs: (UInt8, UInt8, UInt8)?
     }
 
     /// Decodes a supported JPEG frame to DICOM pixel bytes.
@@ -363,9 +363,11 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         let expectedBytes = plan.expectedBytes
         let lossless = header.process == 0xC3
         let strippedData = JPEGInterchangeFormat.removingAncillaryMetadataSegments(frameData)
-        let inputData = plan.normalizeLosslessRGBIDs
-            ? JPEGInterchangeFormat.normalizingLosslessRGBComponentIDs(strippedData)
-            : strippedData
+        let inputData = if let targetIDs = plan.normalizedComponentIDs {
+            JPEGInterchangeFormat.normalizingThreeComponentIDs(strippedData, targetIDs: targetIDs)
+        } else {
+            strippedData
+        }
 
         do {
             try Task.checkCancellation()
@@ -563,13 +565,22 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         } else {
             sourceColourModel = .rgb
         }
-        let normalizeLosslessRGBIDs = lossless
-            && descriptor.samplesPerPixel == 3
-            && !header.components.hasRGBIdentifiers
+        let normalizedComponentIDs: (UInt8, UInt8, UInt8)?
+        if descriptor.samplesPerPixel == 3 {
+            if lossless {
+                normalizedComponentIDs = header.components.hasRGBIdentifiers ? nil : (0x52, 0x47, 0x42)
+            } else if !header.components.hasRGBIdentifiers && !header.components.hasYCbCrIdentifiers {
+                normalizedComponentIDs = (sourceColourModel == .rgb) ? (0x52, 0x47, 0x42) : (1, 2, 3)
+            } else {
+                normalizedComponentIDs = nil
+            }
+        } else {
+            normalizedComponentIDs = nil
+        }
         return .success(DecodePlan(
             expectedBytes: expectedBytes,
             sourceColourModel: sourceColourModel,
-            normalizeLosslessRGBIDs: normalizeLosslessRGBIDs
+            normalizedComponentIDs: normalizedComponentIDs
         ))
     }
 
@@ -761,9 +772,11 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                 }
                 let rawEncoded = Data(bytes: encodedBase, count: encoded.count)
                 let strippedData = JPEGInterchangeFormat.removingAncillaryMetadataSegments(rawEncoded)
-                let inputData = plan.normalizeLosslessRGBIDs
-                    ? JPEGInterchangeFormat.normalizingLosslessRGBComponentIDs(strippedData)
-                    : strippedData
+                let inputData = if let targetIDs = plan.normalizedComponentIDs {
+                    JPEGInterchangeFormat.normalizingThreeComponentIDs(strippedData, targetIDs: targetIDs)
+                } else {
+                    strippedData
+                }
 
                 let jliLimits: SwiftJLI.ResourceLimits
                 do {
@@ -1081,9 +1094,9 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
         }
 
         let requiredBytes = width * height * spp * bps
-        let needsSignedSubwordMask = lossless && descriptor.isSigned && meaningfulBits < storageBits
+        let needsSubwordMask = meaningfulBits < storageBits
         let canBorrowDirect = (spp == 1 || descriptor.planarConfiguration == 0)
-            && !needsSignedSubwordMask
+            && !needsSubwordMask
             && frameData.count >= requiredBytes
 
         do {
@@ -1327,7 +1340,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             descriptor: imageDescriptor,
             limits: limits
         )
-        let needsSignedSubwordMask = lossless && isSigned && meaningfulBits < storageBits
+        let needsSubwordMask = meaningfulBits < storageBits
 
         return try destination.write { dstRaw in
             guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
@@ -1338,26 +1351,18 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                     dst.update(from: base, count: requiredBytes)
                 }
             }
-            if needsSignedSubwordMask {
+            if needsSubwordMask {
+                // Normalise every sub-word DICOM Pixel Cell to its low `meaningfulBits` bits
+                // (PS3.5 §8.1.1) so sign-extended negative cells, zero-cleared negative cells,
+                // and unused high bits / overlay bits above `highBit` encode consistently.
                 let totalCells = requiredBytes / bps
                 let storedMask = UInt16((1 << meaningfulBits) - 1)
-                let signBit = UInt16(1 << (meaningfulBits - 1))
-                let containerMask: UInt16 = storageBits == 8 ? 0x00FF : 0xFFFF
-                let upperMask = containerMask ^ storedMask
                 for i in 0..<totalCells {
                     if bps == 1 {
                         let word = UInt16(dst[i])
-                        let upper = word & upperMask
-                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
-                            throw DICOMError.parsingFailed("Signed 8-bit sample exceeds \(meaningfulBits)-bit precision")
-                        }
                         dst[i] = UInt8(truncatingIfNeeded: word & storedMask)
                     } else {
                         let word = UInt16(dst[i * 2]) | (UInt16(dst[i * 2 + 1]) << 8)
-                        let upper = word & upperMask
-                        guard upper == 0 || (upper == upperMask && (word & signBit) != 0) else {
-                            throw DICOMError.parsingFailed("Signed 16-bit sample exceeds \(meaningfulBits)-bit precision")
-                        }
                         let masked = word & storedMask
                         dst[i * 2] = UInt8(masked & 0xFF)
                         dst[i * 2 + 1] = UInt8((masked >> 8) & 0xFF)

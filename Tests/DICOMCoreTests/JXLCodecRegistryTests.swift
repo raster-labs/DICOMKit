@@ -268,4 +268,115 @@ struct JXLCodecRegistryTests {
         let decoded = try decoder.decodeFrame(fragment, descriptor: d, frameIndex: 0)
         #expect(decoded == original, "padded decode \(w)x\(h) ba=\(ba) spp=\(spp) failed")
     }
+
+    @Test("Lossy VarDCT encodes and decodes across fast, balanced (singleCell), and optimal (hierarchical) speeds",
+          arguments: [CompressionSpeed.fast, CompressionSpeed.balanced, CompressionSpeed.optimal])
+    func lossyVarDCTAcrossCompressionSpeeds(speed: CompressionSpeed) throws {
+        let reg = CodecRegistry.shared
+        let w = 64, h = 64
+        let d = descriptor(w, h, bitsAllocated: 8, bitsStored: 8, spp: 1)
+        let original = Data((0..<(w * h)).map { idx in
+            let x = idx % w, y = idx / w
+            return UInt8(((x * 4 + y * 4) / 2) & 0xFF)
+        })
+
+        let encoder = try #require(reg.encoder(for: general))
+        let decoder = try #require(reg.codec(for: general))
+        let config = CompressionConfiguration(quality: .high, speed: speed, progressive: false, preferLossless: false)
+        let encoded = try encoder.encodeFrame(original, descriptor: d, frameIndex: 0, configuration: config)
+        #expect(JXLCodec.isXYBEncoded(encoded))
+        let decoded = try decoder.decodeFrame(encoded, descriptor: d, frameIndex: 0)
+        #expect(decoded.count == original.count)
+        let mse = zip(original, decoded).reduce(0.0) { acc, pair in
+            let diff = Double(pair.0) - Double(pair.1)
+            return acc + diff * diff
+        } / Double(original.count)
+        let psnr = mse == 0 ? 99.0 : 10.0 * log10((255.0 * 255.0) / mse)
+        #expect(psnr >= CompressionQuality.high.expectedMinPSNRDb)
+    }
+
+    @Test("C-1: 12-in-16 unsigned and signed lossy VarDCT (.112) preserve full 12-bit dynamic range")
+    func lossy12In16PreservesDynamicRange() throws {
+        let w = 64, h = 64
+        let enc = JXLCodec(encodingTransferSyntaxUID: general)
+        let dec = JXLCodec(decodingTransferSyntaxUID: general)
+        let highCfg = CompressionConfiguration(quality: .high, speed: .balanced, preferLossless: false)
+
+        // 1. Unsigned 12-in-16 smooth ramp [0...4095]
+        let uDesc = descriptor(w, h, bitsAllocated: 16, bitsStored: 12, spp: 1, isSigned: false)
+        var uRaw = Data(capacity: w * h * 2)
+        for i in 0..<(w * h) {
+            let v = UInt16((i * 4095) / (w * h - 1))
+            uRaw.append(UInt8(v & 0xFF))
+            uRaw.append(UInt8((v >> 8) & 0xFF))
+        }
+        let uEnc = try enc.encodeFrame(uRaw, descriptor: uDesc, frameIndex: 0, configuration: highCfg)
+        #expect(JXLCodec.isXYBEncoded(uEnc))
+        let uDec = try dec.decodeFrame(uEnc, descriptor: uDesc, frameIndex: 0)
+        var uSqErr = 0.0
+        var uMaxSample: UInt16 = 0
+        for i in 0..<(w * h) {
+            let orig = UInt16(uRaw[i * 2]) | (UInt16(uRaw[i * 2 + 1]) << 8)
+            let got = UInt16(uDec[i * 2]) | (UInt16(uDec[i * 2 + 1]) << 8)
+            #expect(got <= 4095, "12-bit decoded sample \(got) must not exceed 4095")
+            uMaxSample = max(uMaxSample, got)
+            let diff = Double(Int(orig) - Int(got))
+            uSqErr += diff * diff
+        }
+        let uMSE = uSqErr / Double(w * h)
+        let uPSNR = uMSE == 0 ? 99.0 : 10.0 * log10((4095.0 * 4095.0) / uMSE)
+        #expect(uPSNR >= CompressionQuality.high.expectedMinPSNRDb, "Expected >=42 dB, got \(uPSNR) dB")
+        #expect(uMaxSample >= 4050)
+
+        // 2. Signed 12-in-16 smooth ramp [-2048...+2047]
+        let sDesc = descriptor(w, h, bitsAllocated: 16, bitsStored: 12, spp: 1, isSigned: true)
+        var sRaw = Data(capacity: w * h * 2)
+        for i in 0..<(w * h) {
+            let v = Int16(-2048 + (i * 4095) / (w * h - 1))
+            let bits = UInt16(bitPattern: v)
+            sRaw.append(UInt8(bits & 0xFF))
+            sRaw.append(UInt8((bits >> 8) & 0xFF))
+        }
+        let sEnc = try enc.encodeFrame(sRaw, descriptor: sDesc, frameIndex: 0, configuration: highCfg)
+        #expect(JXLCodec.isXYBEncoded(sEnc))
+        let sDec = try dec.decodeFrame(sEnc, descriptor: sDesc, frameIndex: 0)
+        var sSqErr = 0.0
+        for i in 0..<(w * h) {
+            let orig = Int16(bitPattern: UInt16(sRaw[i * 2]) | (UInt16(sRaw[i * 2 + 1]) << 8))
+            let got = Int16(bitPattern: UInt16(sDec[i * 2]) | (UInt16(sDec[i * 2 + 1]) << 8))
+            #expect((-2048...2047).contains(Int(got)))
+            let diff = Double(Int(orig) - Int(got))
+            sSqErr += diff * diff
+        }
+        let sMSE = sSqErr / Double(w * h)
+        let sPSNR = sMSE == 0 ? 99.0 : 10.0 * log10((4095.0 * 4095.0) / sMSE)
+        #expect(sPSNR >= CompressionQuality.high.expectedMinPSNRDb, "Expected >=42 dB, got \(sPSNR) dB")
+    }
+
+    @Test("C-3: JXLCodec.canEncode rejects <8-bit stored precision, YBR colour, and lossy PALETTE COLOR")
+    func canEncodeRejectsUnsupportedPrecisionAndPhotometrics() {
+        let losslessEnc = JXLCodec(encodingTransferSyntaxUID: lossless)
+        let lossyEnc = JXLCodec(encodingTransferSyntaxUID: general)
+
+        let fourBit = PixelDataDescriptor(
+            rows: 8, columns: 8, bitsAllocated: 8, bitsStored: 4, highBit: 3,
+            isSigned: false, samplesPerPixel: 1, photometricInterpretation: .monochrome2
+        )
+        #expect(!losslessEnc.canEncode(with: .lossless, descriptor: fourBit))
+        #expect(!lossyEnc.canEncode(with: .default, descriptor: fourBit))
+
+        let ybrFull = PixelDataDescriptor(
+            rows: 8, columns: 8, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 3, photometricInterpretation: .ybrFull, planarConfiguration: 0
+        )
+        #expect(!losslessEnc.canEncode(with: .lossless, descriptor: ybrFull))
+        #expect(!lossyEnc.canEncode(with: .default, descriptor: ybrFull))
+
+        let palette = PixelDataDescriptor(
+            rows: 8, columns: 8, bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1, photometricInterpretation: .paletteColor
+        )
+        #expect(losslessEnc.canEncode(with: .lossless, descriptor: palette))
+        #expect(!lossyEnc.canEncode(with: CompressionConfiguration(quality: .high, preferLossless: false), descriptor: palette))
+    }
 }

@@ -210,4 +210,36 @@ final class ConversionDiagnosticsTests: XCTestCase {
         let f = try XCTUnwrap(failure(makeFile(signed: true), .jpegBaseline))
         XCTAssertFalse(ConvertConsole.failureSummary(for: f).contains("\n"))
     }
+
+    func testC3_preflightRejectsUnsupported1BitJPEGLS_Sub8BitJXL_YBRFullJXL_AndLossyPaletteColor() throws {
+        // 1-bit -> JPEG-LS Lossless (SwiftJLS requires 2...16 bits)
+        let f1BitJLS = try XCTUnwrap(failure(makeFile(bitsAllocated: 8, bitsStored: 1), .jpegLSLossless))
+        XCTAssertEqual(f1BitJLS.category, .pixelFormatNotSupported)
+        XCTAssertTrue(f1BitJLS.reason.contains("Bits Stored 2 to 16"), f1BitJLS.reason)
+
+        // 4-bit -> JPEG XL Lossless (SwiftJXL pixel encoder requires 8...16 bits)
+        let f4BitJXL = try XCTUnwrap(failure(makeFile(bitsAllocated: 8, bitsStored: 4), .jpegXLLossless))
+        XCTAssertEqual(f4BitJXL.category, .pixelFormatNotSupported)
+        XCTAssertTrue(f4BitJXL.reason.contains("Bits Stored 8 to 16"), f4BitJXL.reason)
+
+        // YBR_FULL -> JPEG XL (.112) rejected cleanly
+        let fYBRJXL = try XCTUnwrap(failure(makeFile(samples: 3, photometric: "YBR_FULL"), .jpegXL, intent: .lossy))
+        XCTAssertEqual(fYBRJXL.category, .pixelFormatNotSupported)
+        XCTAssertTrue(fYBRJXL.reason.contains("RGB"), fYBRJXL.reason)
+
+        // PALETTE COLOR -> lossy JPEG XL (.112) and JPEG-LS Near-Lossless (.81) rejected; lossless (.110, .80) accepted
+        let palette = makeFile(photometric: "PALETTE COLOR")
+        assertAccepted(palette, .jpegXLLossless)
+        assertAccepted(palette, .jpegLSLossless)
+        let fLossyPalJXL = try XCTUnwrap(failure(palette, .jpegXL, intent: .lossy))
+        XCTAssertEqual(fLossyPalJXL.category, .pixelFormatNotSupported)
+        XCTAssertTrue(fLossyPalJXL.reason.contains("PALETTE COLOR"), fLossyPalJXL.reason)
+        let fNearPalJLS = try XCTUnwrap(failure(palette, .jpegLSNearLossless, intent: .lossy))
+        XCTAssertEqual(fNearPalJLS.category, .pixelFormatNotSupported)
+
+        // Unsigned 1-bit -> JPEG 2000 Lossless accepted; signed 1-bit rejected
+        assertAccepted(makeFile(bitsAllocated: 8, bitsStored: 1, signed: false), .jpeg2000Lossless)
+        let fSigned1Bit = try XCTUnwrap(failure(makeFile(bitsAllocated: 8, bitsStored: 1, signed: true), .jpeg2000Lossless))
+        XCTAssertEqual(fSigned1Bit.category, .pixelFormatNotSupported)
+    }
 }

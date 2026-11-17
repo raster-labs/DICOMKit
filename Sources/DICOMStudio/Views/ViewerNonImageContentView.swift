@@ -282,7 +282,12 @@ struct StructuredReportNarrativeView: View {
         if let name = item.asPersonName {
             return DICOMValueParser.formatPersonName(name.personName)
         }
-        if item.asImage != nil { return "(referenced image)" }
+        if let image = item.asImage {
+            if let pr = image.imageReference.presentationStateReference {
+                return "(referenced image \(image.imageReference.sopReference.sopInstanceUID), presentation state \(pr.sopInstanceUID))"
+            }
+            return "(referenced image)"
+        }
         if item.asWaveform != nil { return "(referenced waveform)" }
         if item.isCoordinate { return "(coordinates)" }
         if item.asComposite != nil { return "(referenced object)" }

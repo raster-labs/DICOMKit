@@ -38,6 +38,8 @@ public enum DICOMJPIPQuality: Sendable, Equatable {
     case layers(Int)
     /// Retrieve up to a specified resolution level (0 = full, higher = lower res).
     case resolutionLevel(Int)
+    /// Retrieve up to both a quality-layer bound and a resolution reduction level simultaneously.
+    case layersAndResolution(layers: Int, resolutionLevel: Int)
 }
 
 // MARK: - DICOMJPIPError
@@ -132,13 +134,17 @@ extension J2KImage {
         let componentCount = components.count
         let bitDepth = components.first?.bitDepth ?? 8
         let bytesPerSample = max(1, (bitDepth + 7) / 8)
-        let pixelCount = width * height
+        let (pixelCount, pOv) = max(0, width).multipliedReportingOverflow(by: max(0, height))
+        let (sampleCount, sOv) = pixelCount.multipliedReportingOverflow(by: max(1, componentCount))
+        let (totalBytes, bOv) = sampleCount.multipliedReportingOverflow(by: bytesPerSample)
         let pixelData: Data
 
         if componentCount <= 1 {
             pixelData = components.first?.data ?? Data()
+        } else if pOv || sOv || bOv {
+            pixelData = Data()
         } else {
-            var buffer = Data(count: pixelCount * componentCount * bytesPerSample)
+            var buffer = Data(count: totalBytes)
             buffer.withUnsafeMutableBytes { dstRaw in
                 guard let dst = dstRaw.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return }
                 for (compIdx, component) in components.enumerated() {
@@ -203,11 +209,14 @@ public actor DICOMJPIPClient {
         self.serverURL = serverURL
         self.codingPreference = codingPreference
         self.resourceLimits = resourceLimits
-        let config = (try? JPIPSessionConfiguration(
+        if let config = try? JPIPSessionConfiguration(
             codingPreference: codingPreference,
             deliveryMode: deliveryMode
-        )) ?? (try! JPIPSessionConfiguration())
-        self.session = JPIPStreamingSession(serverURL: normalizedURL, configuration: config)
+        ) {
+            self.session = JPIPStreamingSession(serverURL: normalizedURL, configuration: config)
+        } else {
+            self.session = JPIPStreamingSession(serverURL: normalizedURL)
+        }
     }
 
     /// Creates a new DICOM JPIP client configured for a specific DICOM JPIP transfer syntax UID,
@@ -234,15 +243,22 @@ public actor DICOMJPIPClient {
         deliveryMode: JPIPDeliveryMode = .incremental,
         resourceLimits: ResourceLimits = .default
     ) {
-        let url = URL(string: "http://localhost:\(port)")!
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "localhost"
+        components.port = max(1, min(65535, port))
+        let url = components.url ?? URL(filePath: "/")
         self.serverURL = url
         self.codingPreference = codingPreference
         self.resourceLimits = resourceLimits
-        let config = (try? JPIPSessionConfiguration(
+        if let config = try? JPIPSessionConfiguration(
             codingPreference: codingPreference,
             deliveryMode: deliveryMode
-        )) ?? (try! JPIPSessionConfiguration())
-        self.session = JPIPStreamingSession(server: server, port: port, configuration: config)
+        ) {
+            self.session = JPIPStreamingSession(server: server, port: port, configuration: config)
+        } else {
+            self.session = JPIPStreamingSession(server: server, port: port)
+        }
     }
 
     // MARK: - Image Retrieval
@@ -272,6 +288,9 @@ public actor DICOMJPIPClient {
             resolutionLevel = nil
         case .resolutionLevel(let lvl):
             layers = nil
+            resolutionLevel = max(0, lvl)
+        case .layersAndResolution(let n, let lvl):
+            layers = max(1, n)
             resolutionLevel = max(0, lvl)
         }
         let window: JPIPViewWindow

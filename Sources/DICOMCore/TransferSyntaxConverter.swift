@@ -1250,12 +1250,6 @@ public struct TransferSyntaxConverter: Sendable {
                     in: outputElements, when: ["YBR_RCT", "YBR_ICT"],
                     with: "RGB")
             }
-            outputElements = outputElements.map { element in
-                guard element.tag == .planarConfiguration else { return element }
-                var zero = UInt16(0).littleEndian
-                let value = Data(bytes: &zero, count: 2)
-                return DataElement(tag: element.tag, vr: .US, length: 2, valueData: value)
-            }
         }
 
         // JPEG lossy colour: the encoder writes YCbCr with chrominance at half the horizontal
@@ -1266,6 +1260,27 @@ public struct TransferSyntaxConverter: Sendable {
            let codestream = firstCodestream, JPEGInterchangeFormat.isHorizontally422(codestream) {
             outputElements = Self.replacingPhotometricInterpretation(
                 in: outputElements, when: nil, with: "YBR_FULL_422")
+        }
+
+        // JPEG XL (.112): lossy VarDCT sets ImageMetadata.xyb_encoded = 1 (XYB colour transform,
+        // PS3.5 2026a Table 8.2.15-1), whereas lossless Modular sets xyb_encoded = 0 (RGB).
+        if target.uid == TransferSyntax.jpegXL.uid, descriptor.samplesPerPixel == 3,
+           let codestream = firstCodestream {
+            if JXLCodec.isXYBEncoded(codestream) {
+                outputElements = Self.replacingPhotometricInterpretation(
+                    in: outputElements, when: ["RGB", "XYB"], with: "XYB")
+            } else {
+                outputElements = Self.replacingPhotometricInterpretation(
+                    in: outputElements, when: ["XYB"], with: "RGB")
+            }
+        } else if target.uid == TransferSyntax.jpegXLLossless.uid, descriptor.samplesPerPixel == 3 {
+            outputElements = Self.replacingPhotometricInterpretation(
+                in: outputElements, when: ["XYB"], with: "RGB")
+        }
+
+        // PS3.5 2026a §8.2.1, §8.2.3, §8.2.4, §8.2.14, and Table 8.2.15-1 require Planar
+        // Configuration (0028,0006) = 0 for encapsulated JPEG, JPEG-LS, JPEG 2000 / HTJ2K, and JPEG XL.
+        if target.isJPEG || target.isJPEGLS || target.isJPEG2000 || target.isJPEGXL {
             outputElements = outputElements.map { element in
                 guard element.tag == .planarConfiguration else { return element }
                 var zero = UInt16(0).littleEndian

@@ -310,4 +310,41 @@ struct JP3DCodecTests {
         let expectedSlice2 = src.subdata(in: (2 * 64)..<(3 * 64))
         #expect(slice2 == expectedSlice2)
     }
+
+    @Test("C-5: JP3DCodec encodeFrame throws instead of returning raw bytes, scales >256-slice limits, and normalizes 12-in-16 voxels")
+    func test_C5_encodeFrameThrows_300Slices_andSubwordNormalization() throws {
+        let codec = JP3DCodec(compressionMode: .lossless)
+        let smallDesc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 4)
+        #expect(throws: DICOMError.self) {
+            _ = try codec.encodeFrame(Data(repeating: 7, count: 64), descriptor: smallDesc, frameIndex: 0, configuration: .lossless)
+        }
+
+        // >256 slices (300 frames) scales ResourceLimits.maximumFrames automatically
+        let deepDesc = grayscale8VolumeDescriptor(rows: 8, columns: 8, frames: 300)
+        let deepSrc = makeGradientVolume(descriptor: deepDesc)
+        let deepEncoded = try codec.encode(deepSrc, descriptor: deepDesc, configuration: .lossless)
+        #expect(deepEncoded.count == 1)
+        let deepDecoded = try codec.decode(deepEncoded[0], descriptor: deepDesc)
+        #expect(deepDecoded == deepSrc)
+
+        // 12-in-16 unsigned overlay bits are masked on encode
+        let desc12 = PixelDataDescriptor(
+            rows: 4, columns: 4, numberOfFrames: 2,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var overlayVol = Data()
+        var cleanVol = Data()
+        for i in 0..<(4 * 4 * 2) {
+            let sample = UInt16((i * 113) & 0x0FFF)
+            var ow = (sample | 0xA000).littleEndian
+            var cw = sample.littleEndian
+            withUnsafeBytes(of: &ow) { overlayVol.append(contentsOf: $0) }
+            withUnsafeBytes(of: &cw) { cleanVol.append(contentsOf: $0) }
+        }
+        let enc12 = try codec.encode(overlayVol, descriptor: desc12, configuration: .lossless)
+        let dec12 = try codec.decode(enc12[0], descriptor: desc12)
+        #expect(dec12 == cleanVol)
+    }
 }

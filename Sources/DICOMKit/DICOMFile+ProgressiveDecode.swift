@@ -81,7 +81,7 @@ extension DICOMFile {
                         for level in coarseLevels where level > 0 && level <= style.decompositionLevels {
                             try Task.checkCancellation()
                             let (data, rows, columns) = try await progressive.decodeFrameAtResolution(
-                                bytes, descriptor: descriptor, level: level)
+                                bytes, descriptor: descriptor, frameIndex: frame, level: level)
                             let reduced = PixelDataDescriptor(
                                 rows: rows, columns: columns, numberOfFrames: 1,
                                 bitsAllocated: descriptor.bitsAllocated, bitsStored: descriptor.bitsStored,

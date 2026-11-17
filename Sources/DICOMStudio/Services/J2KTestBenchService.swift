@@ -69,20 +69,23 @@ public enum J2KTestBenchService {
 
         case .jpeg:
             return timedEncode(warmups: warmups, runs: runs) {
-                try JLICodec().encodeFrame(frame, descriptor: descriptor,
-                                           frameIndex: 0, configuration: configuration)
+                try JLICodec(encodingTransferSyntaxUID: syntax.uid)
+                    .encodeFrame(frame, descriptor: descriptor,
+                                 frameIndex: 0, configuration: configuration)
             }.map { (codestream: $0.data, encodeMs: $0.ms) }
 
         case .jpegLS:
             return timedEncode(warmups: warmups, runs: runs) {
-                try JPEGLSCodec().encodeFrame(frame, descriptor: descriptor,
-                                              frameIndex: 0, configuration: configuration)
+                try JPEGLSCodec()
+                    .encodeFrame(frame, descriptor: descriptor,
+                                 frameIndex: 0, configuration: configuration)
             }.map { (codestream: $0.data, encodeMs: $0.ms) }
 
         case .jpegXL:
             return timedEncode(warmups: warmups, runs: runs) {
-                try JXLCodec().encodeFrame(frame, descriptor: descriptor,
-                                           frameIndex: 0, configuration: configuration)
+                try JXLCodec(encodingTransferSyntaxUID: syntax.uid)
+                    .encodeFrame(frame, descriptor: descriptor,
+                                 frameIndex: 0, configuration: configuration)
             }.map { (codestream: $0.data, encodeMs: $0.ms) }
         }
     }

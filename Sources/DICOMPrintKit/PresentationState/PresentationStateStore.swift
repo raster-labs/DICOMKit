@@ -87,6 +87,17 @@ public struct SavedView: Sendable, Equatable, Identifiable {
         return "PR-" + String(digits.suffix(8))
     }
 
+    /// Reference ID for a companion Structured Report (`SR-XXXXXXXX`) generated from this view.
+    public static func srReferenceID(seriesInstanceUID: String, label: String) -> String {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in Array("SR|\(seriesInstanceUID)|\(label)".utf8) {
+            hash ^= UInt64(byte)
+            hash &*= 0x0000_0100_0000_01b3
+        }
+        let digits = String(hash, radix: 36, uppercase: true)
+        return "SR-" + String(digits.suffix(8))
+    }
+
     /// Whether this view came out of the study's own files rather than being
     /// saved here — shown as such, so a reader knows whose reading it is.
     public var isImported: Bool { states.contains(where: \.isImported) }
@@ -1338,6 +1349,11 @@ public struct PresentationStateStore: Sendable {
 
     static let seriesDescription = "Presentation States"
 
+    /// Series Number and Description for companion Structured Reports (`Series 9002 (SR)`).
+    public static let structuredReportSeriesNumber = 9002
+
+    public static let structuredReportSeriesDescription = "Structured Reports"
+
     /// Explicit VR Little Endian — what a GSPS is normally stored as, and what
     /// keeps the files readable by anything else.
     public static let transferSyntaxUID = "1.2.840.10008.1.2.1"
@@ -1348,6 +1364,178 @@ public struct PresentationStateStore: Sendable {
     /// (`.grayscale`, `.color`, `.pseudoColor`, or `.blending`).
     public func document(forState stored: StoredPresentationState) -> PresentationStateDocument? {
         try? PresentationStateParser(allowScopedVOILUT: true).parse(contentsOf: stored.url)
+    }
+
+    /// Publishes a saved view as a **TID 1500 Measurement Report (`Comprehensive SR`, Series 9002)**
+    /// series of the study in `destination`, referencing the view's Presentation State instances
+    /// per PS3.3 Table C.18.4-1.
+    @discardableResult
+    public func publishStructuredReport(
+        label: String,
+        studyInstanceUID: String,
+        into destination: URL,
+        imageWidth: Int = 512,
+        imageHeight: Int = 512
+    ) throws -> PublishedSeries? {
+        guard let view = views(forStudy: studyInstanceUID)
+            .first(where: { $0.label == label }),
+              !view.states.isEmpty else { return nil }
+
+        try fileManager.createDirectory(
+            at: destination, withIntermediateDirectories: true)
+
+        let srSeriesUID = structuredReportSeriesUID(in: destination)
+        let superseded = publishedStructuredReportObjects(ofView: view.label, in: destination)
+        var instances: [PublishedInstance] = []
+
+        for (index, stored) in view.states.enumerated() {
+            guard let prFile = try? DICOMFile.read(from: stored.url),
+                  let loaded = try? PresentationStateManager.load(
+                      from: prFile.dataSet,
+                      imageWidth: max(1, imageWidth),
+                      imageHeight: max(1, imageHeight)
+                  ) else { continue }
+
+            var patient = PresentationStatePatientContext.make(from: prFile.dataSet)
+            if patient.studyInstanceUID.isEmpty {
+                patient.studyInstanceUID = studyInstanceUID
+            }
+
+            // Combine native PR GraphicAnnotationSequence items with any sidecar-only drawings
+            var resolvedAnnotations = loaded.annotations
+            if resolvedAnnotations.isEmpty && !stored.annotationsByFrame.isEmpty {
+                if let primaryRef = stored.state.referencedSeries.first?.referencedImages.first {
+                    let gItems = PrintOverlayAnnotationGSPS.graphicAnnotations(
+                        from: stored.annotationsByFrame,
+                        imageWidth: max(1, imageWidth),
+                        imageHeight: max(1, imageHeight),
+                        referencedImage: primaryRef,
+                        isMultiFrame: stored.annotationsByFrame.keys.contains { $0 > 0 }
+                    )
+                    resolvedAnnotations = DICOMAnnotationConverter.annotations(
+                        from: gItems,
+                        layers: stored.state.graphicLayers,
+                        imageWidth: max(1, imageWidth),
+                        imageHeight: max(1, imageHeight),
+                        targetCoordinateSpace: .pixel
+                    )
+                }
+            }
+
+            // If the saved view has no drawn annotations, include a summary comment of the saved view
+            // so the TID 1500 Measurement Report carries the view's window/palette details alongside the Image Library.
+            if resolvedAnnotations.isEmpty {
+                var summaryParts: [String] = ["Saved View: \(view.label)"]
+                if case let .window(center, width, _, _)? = stored.state.voiLUT {
+                    summaryParts.append(String(format: "Window Center %.1f / Width %.1f", center, width))
+                }
+                if let pal = stored.palette {
+                    summaryParts.append("Palette: \(pal.rawValue)")
+                }
+                let primaryRef = stored.state.referencedSeries.first?.referencedImages.first
+                resolvedAnnotations.append(
+                    DICOMAnnotation.text(
+                        summaryParts.joined(separator: " | "),
+                        at: DICOMAnnotationPoint(x: Double(max(1, imageWidth)) * 0.5, y: Double(max(1, imageHeight)) * 0.5),
+                        referencedSOPClassUID: primaryRef?.sopClassUID,
+                        referencedSOPInstanceUID: primaryRef?.sopInstanceUID
+                    )
+                )
+            }
+
+            let srDoc = try PresentationStateSRBridge.buildMeasurementReport(
+                from: loaded.document,
+                annotations: resolvedAnnotations,
+                patient: patient,
+                imageWidth: max(1, imageWidth),
+                imageHeight: max(1, imageHeight),
+                seriesInstanceUID: srSeriesUID,
+                seriesNumber: Self.structuredReportSeriesNumber
+            )
+
+            var srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+            srDataSet.setString(Self.structuredReportSeriesDescription, for: .seriesDescription, vr: .LO)
+            srDataSet.setString(String(index + 1), for: .instanceNumber, vr: .IS)
+            srDataSet.setString(
+                GrayscalePresentationStateBuilder.contentLabel(from: view.label),
+                for: .contentLabel,
+                vr: .CS
+            )
+            srDataSet.setString(view.label, for: .contentDescription, vr: .LO)
+
+            let srFile = DICOMFile.create(
+                dataSet: srDataSet,
+                sopClassUID: srDoc.sopClassUID,
+                sopInstanceUID: srDoc.sopInstanceUID,
+                transferSyntaxUID: Self.transferSyntaxUID
+            )
+            let srURL = destination.appendingPathComponent("SR_\(srDoc.sopInstanceUID).dcm")
+            if fileManager.fileExists(atPath: srURL.path) {
+                try? fileManager.removeItem(at: srURL)
+            }
+            try srFile.write().write(to: srURL, options: [.atomic])
+
+            instances.append(PublishedInstance(
+                sopClassUID: srDoc.sopClassUID,
+                sopInstanceUID: srDoc.sopInstanceUID,
+                url: srURL,
+                instanceNumber: index + 1,
+                referencedImageUIDs: stored.referencedImageUIDs
+            ))
+        }
+
+        guard !instances.isEmpty else { return nil }
+
+        let written = Set(instances.map(\.url.standardizedFileURL))
+        for url in superseded where !written.contains(url.standardizedFileURL) {
+            try? fileManager.removeItem(at: url)
+        }
+
+        return PublishedSeries(
+            studyInstanceUID: studyInstanceUID,
+            seriesInstanceUID: srSeriesUID,
+            seriesNumber: Self.structuredReportSeriesNumber,
+            seriesDescription: Self.structuredReportSeriesDescription,
+            modality: "SR",
+            referenceID: SavedView.srReferenceID(seriesInstanceUID: srSeriesUID, label: view.label),
+            label: view.label,
+            instances: instances
+        )
+    }
+
+    /// Returns the published `SR_*.dcm` files in `destination` that belong to the given view `label`.
+    public func publishedStructuredReportObjects(ofView label: String, in destination: URL) -> [URL] {
+        guard let urls = try? fileManager.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) else { return [] }
+        let codedLabel = GrayscalePresentationStateBuilder.contentLabel(from: label)
+
+        return urls.filter { url in
+            guard url.pathExtension.lowercased() == "dcm",
+                  let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                  file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == "SR"
+            else { return false }
+            let described = file.dataSet.string(for: .contentDescription)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return described == label
+                || file.dataSet.string(for: .contentLabel)?.trimmingCharacters(in: .whitespacesAndNewlines) == codedLabel
+        }
+    }
+
+    /// Returns the shared `SeriesInstanceUID` for `Series 9002 (SR)` in `destination`, or generates one.
+    private func structuredReportSeriesUID(in destination: URL) -> String {
+        if let urls = try? fileManager.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) {
+            for url in urls where url.pathExtension.lowercased() == "dcm" {
+                if let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == "SR",
+                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(Self.structuredReportSeriesNumber),
+                   let uid = file.dataSet.string(for: .seriesInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !uid.isEmpty {
+                    return uid
+                }
+            }
+        }
+        return UIDGenerator.generateSeriesInstanceUID().value
     }
 
     /// Publishes a saved view into a destination folder along with companion DICOM Structured Report

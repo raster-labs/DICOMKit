@@ -153,7 +153,7 @@ public final class NavigationService: Sendable {
     public static let hiddenDestinations: Set<NavigationDestination> = [
         .volumeViewer, .jp3dComparison, .aiAnalysis,
         .cloudIntegration,
-        .reporting, .tools, .validation, .archiveManagement,
+        .tools, .archiveManagement,
     ]
 
     /// Returns all primary navigation destinations (excluding the standalone
