@@ -50,99 +50,100 @@ struct SavedViewPickerView: View {
     private var savedViews: [SavedView] { viewModel.savedViewsForCurrentImage }
 
     var body: some View {
-        // Nothing saved and nothing worth saving: no control at all.
-        if !savedViews.isEmpty || viewModel.canSaveCurrentView {
-            // The pair is one toolbar item, so macOS draws the group's own
-            // boundary immediately after the last thing in it. The save button
-            // is that last thing with nothing after it, which put it hard up
-            // against — and at toolbar scale, apparently *on* — the divider
-            // line. The trailing room is what holds it clear; the centre
-            // alignment keeps the two capsules on one midline.
-            HStack(alignment: .center, spacing: 6) {
-                picker
-                saveButton
-            }
-            .padding(.trailing, Self.groupEdgeInset)
-            .alert("Name this view", isPresented: $isNaming) {
-                TextField("View name", text: $draftLabel)
-                Button("Cancel", role: .cancel) { draftLabel = "" }
-                // No `.disabled(trimmedDraft.isEmpty)` on these. An alert's
-                // buttons are built once when it is presented, not rebuilt as
-                // its text field changes, so a disabled state computed from
-                // the draft sticks at whatever the draft was on open — which
-                // left every save button permanently greyed out with a name
-                // plainly typed in the box. `commitSave` drops an empty name
-                // instead, which is the same guard in the one place that does
-                // re-run when the reader actually clicks.
-                Button("Save for This Image") { commitSave(scope: .currentImage, includeSR: false) }
-                Button("Save for This Image + SR Report") { commitSave(scope: .currentImage, includeSR: true) }
-                // The series scope appears only where it would cover more than
-                // the image save does — a lone image offering "save for the
-                // series" would be a choice without a difference.
-                if viewModel.canSaveViewForSeries {
-                    Button("Save for This Series") { commitSave(scope: .currentSeries, includeSR: false) }
-                    Button("Save for This Series + SR Report") { commitSave(scope: .currentSeries, includeSR: true) }
+        Group {
+            // Nothing saved and nothing worth saving: no PR control at all.
+            if !savedViews.isEmpty || viewModel.canSaveCurrentView {
+                // The pair is one toolbar item, so macOS draws the group's own
+                // boundary immediately after the last thing in it. The save button
+                // is that last thing with nothing after it, which put it hard up
+                // against — and at toolbar scale, apparently *on* — the divider
+                // line. The trailing room is what holds it clear; the centre
+                // alignment keeps the two capsules on one midline.
+                HStack(alignment: .center, spacing: 6) {
+                    picker
+                    saveButton
                 }
-            } message: {
-                Text("Saved views keep the window, zoom, pan and orientation "
-                     + "of the image on screen. Saving for this series writes "
-                     + "the same view onto every image of the series. Saving "
-                     + "over a name replaces it."
-                     + "\n\nThe view is added to the study as a presentation "
-                     + "state series (and optionally a TID 1500 Structured Report series), "
-                     + "with a reference ID you can quote.")
+                .padding(.trailing, Self.groupEdgeInset)
             }
-            .alert(
-                "Added to the study",
-                isPresented: Binding(
-                    get: {
-                        viewModel.publishedPresentationSeries != nil
-                            || viewModel.publishedStructuredReportSeries != nil
-                    },
-                    set: { if !$0 { viewModel.dismissPublishedSeriesConfirmation() } })
-            ) {
-                Button("OK") { viewModel.dismissPublishedSeriesConfirmation() }
-            } message: {
-                if let published = viewModel.publishedPresentationSeries,
-                   let publishedSR = viewModel.publishedStructuredReportSeries {
-                    Text("“\(published.label)” is now series "
-                         + "\(published.seriesNumber) (\(published.modality)) and series "
-                         + "\(publishedSR.seriesNumber) (\(publishedSR.modality)) "
-                         + "of this study.\n\n"
-                         + "PR Reference ID: \(published.referenceID)\n"
-                         + "SR Reference ID: \(publishedSR.referenceID)")
-                } else if let published = viewModel.publishedPresentationSeries {
-                    // The reference ID is the point of the message: the series
-                    // itself appears in the pane on its own, but the ID is what
-                    // a reader writes into a report, and it exists nowhere they
-                    // would otherwise look.
-                    Text("“\(published.label)” is now series "
-                         + "\(published.seriesNumber) (\(published.modality)) "
-                         + "of this study.\n\nReference ID: \(published.referenceID)")
-                } else if let publishedSR = viewModel.publishedStructuredReportSeries {
-                    Text("“\(publishedSR.label)” is now series "
-                         + "\(publishedSR.seriesNumber) (\(publishedSR.modality)) "
-                         + "of this study.\n\nReference ID: \(publishedSR.referenceID)")
+        }
+        .alert("Name this view", isPresented: $isNaming) {
+            TextField("View name", text: $draftLabel)
+            Button("Cancel", role: .cancel) { draftLabel = "" }
+            // No `.disabled(trimmedDraft.isEmpty)` on these. An alert's
+            // buttons are built once when it is presented, not rebuilt as
+            // its text field changes, so a disabled state computed from
+            // the draft sticks at whatever the draft was on open — which
+            // left every save button permanently greyed out with a name
+            // plainly typed in the box. `commitSave` drops an empty name
+            // instead, which is the same guard in the one place that does
+            // re-run when the reader actually clicks.
+            Button("Save for This Image (PR)") { commitSave(scope: .currentImage) }
+            Button("Save View + Write SR Report…") { commitSaveAndAuthorSR(scope: .currentImage) }
+            // The series scope appears only where it would cover more than
+            // the image save does — a lone image offering "save for the
+            // series" would be a choice without a difference.
+            if viewModel.canSaveViewForSeries {
+                Button("Save for This Series (PR)") { commitSave(scope: .currentSeries) }
+                Button("Save Series View + Write SR Report…") { commitSaveAndAuthorSR(scope: .currentSeries) }
+            }
+        } message: {
+            Text("Saved views store the window, zoom, pan, orientation and "
+                 + "drawn graphics as a Softcopy Presentation State series (Series 9001 — PR). "
+                 + "Saving over an existing name updates it."
+                 + "\n\nChoose “Write SR Report…” to enter clinical findings, "
+                 + "diagnosis/impression and measurements in a separate "
+                 + "Structured Report series (Series 9002 — SR).")
+        }
+        .alert(
+            "Added to the study",
+            isPresented: Binding(
+                get: {
+                    !viewModel.isSRComposerPresented
+                        && (viewModel.publishedPresentationSeries != nil
+                            || viewModel.publishedStructuredReportSeries != nil)
+                },
+                set: { if !$0 { viewModel.dismissPublishedSeriesConfirmation() } })
+        ) {
+            Button("OK") { viewModel.dismissPublishedSeriesConfirmation() }
+        } message: {
+            if let published = viewModel.publishedPresentationSeries,
+               let publishedSR = viewModel.publishedStructuredReportSeries {
+                Text("Saved in separate DICOM series of this study:\n"
+                     + "• Presentation State: Series \(published.seriesNumber) (\(published.modality)) — “\(published.label)”\n"
+                     + "• Structured Report: Series \(publishedSR.seriesNumber) (\(publishedSR.modality)) — “\(publishedSR.label)”\n\n"
+                     + "PR Reference ID: \(published.referenceID)\n"
+                     + "SR Reference ID: \(publishedSR.referenceID)")
+            } else if let published = viewModel.publishedPresentationSeries {
+                // The reference ID is the point of the message: the series
+                // itself appears in the pane on its own, but the ID is what
+                // a reader writes into a report, and it exists nowhere they
+                // would otherwise look.
+                Text("“\(published.label)” is now series "
+                     + "\(published.seriesNumber) (\(published.modality)) "
+                     + "of this study.\n\nReference ID: \(published.referenceID)")
+            } else if let publishedSR = viewModel.publishedStructuredReportSeries {
+                Text("“\(publishedSR.label)” is now series "
+                     + "\(publishedSR.seriesNumber) (\(publishedSR.modality)) "
+                     + "of this study.\n\nReference ID: \(publishedSR.referenceID)")
+            }
+        }
+        .alert(
+            "Delete “\(pendingDeletion?.label ?? "")”?",
+            isPresented: Binding(
+                get: { pendingDeletion != nil },
+                set: { if !$0 { pendingDeletion = nil } })
+        ) {
+            Button("Cancel", role: .cancel) { pendingDeletion = nil }
+            Button("Delete", role: .destructive) {
+                if let pendingDeletion {
+                    viewModel.deleteSavedView(label: pendingDeletion.label)
                 }
+                pendingDeletion = nil
             }
-            .alert(
-                "Delete “\(pendingDeletion?.label ?? "")”?",
-                isPresented: Binding(
-                    get: { pendingDeletion != nil },
-                    set: { if !$0 { pendingDeletion = nil } })
-            ) {
-                Button("Cancel", role: .cancel) { pendingDeletion = nil }
-                Button("Delete", role: .destructive) {
-                    if let pendingDeletion {
-                        viewModel.deleteSavedView(label: pendingDeletion.label)
-                    }
-                    pendingDeletion = nil
-                }
-            } message: {
-                Text("The saved view is removed from every image it covers, "
-                     + "along with its presentation states in the study's "
-                     + "series. The images themselves are not changed.")
-            }
+        } message: {
+            Text("The saved view is removed from every image it covers, "
+                 + "along with its presentation states in the study's "
+                 + "series. The images themselves are not changed.")
         }
     }
 
@@ -169,7 +170,10 @@ struct SavedViewPickerView: View {
                 ForEach(savedViews) { view in
                     Menu {
                         Button("Apply") { viewModel.applySavedView(view) }
-                        Button("Save SR Report to Study") {
+                        Button("Write SR Report for This View…") {
+                            viewModel.openSRComposer(linkedViewLabel: view.label)
+                        }
+                        Button("Save ROI Measurements as TID 1500 SR") {
                             viewModel.addStructuredReportToStudy(label: view.label)
                         }
                         Divider()
@@ -346,6 +350,15 @@ struct SavedViewPickerView: View {
             }
         }
         draftLabel = ""
+    }
+
+    private func commitSaveAndAuthorSR(scope: ImageViewerViewModel.SavedViewScope) {
+        let label = trimmedDraft
+        guard !label.isEmpty else { return }
+        draftLabel = ""
+        Task {
+            await viewModel.saveViewAndOpenSRComposer(label: label, scope: scope)
+        }
     }
 }
 #endif

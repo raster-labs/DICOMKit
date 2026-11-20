@@ -651,8 +651,14 @@ public struct MeasurementReportBuilder: Sendable {
             mappingResource: "DCMR"
         )
         
+        // Select Comprehensive 3D SR when any SCOORD3D item is present (PS3.3 Table A.35.3-2 vs A.35.13-2)
+        let has3DCoordinates = Self.containsSCOORD3D(in: rootContentItems)
+        let targetSOPClassUID = has3DCoordinates
+            ? SRDocumentType.comprehensive3DSR.sopClassUID
+            : SRDocumentType.comprehensiveSR.sopClassUID
+
         return SRDocument(
-            sopClassUID: SRDocumentType.comprehensiveSR.sopClassUID,
+            sopClassUID: targetSOPClassUID,
             sopInstanceUID: finalSOPInstanceUID,
             patientID: patientID,
             patientName: patientName,
@@ -673,8 +679,19 @@ public struct MeasurementReportBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
+    }
+
+    private static func containsSCOORD3D(in items: [AnyContentItem]) -> Bool {
+        for item in items {
+            if item.valueType == .scoord3D || containsSCOORD3D(in: item.contentItems) {
+                return true
+            }
+        }
+        return false
     }
     
     // MARK: - Build Helpers

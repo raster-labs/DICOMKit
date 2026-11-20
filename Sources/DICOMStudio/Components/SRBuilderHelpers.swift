@@ -468,10 +468,29 @@ public enum SRBuilderHelpers: Sendable {
             ))
         }
 
-        let measurementConcept = CodedConcept(
-            codeValue: "410668003", codingSchemeDesignator: "SCT",
-            codeMeaning: "Length"
-        )
+        let measurementConcept: CodedConcept
+        switch measurement.unit.codeValue {
+        case "mm2", "cm2":
+            measurementConcept = CodedConcept(
+                codeValue: "42798000", codingSchemeDesignator: "SCT",
+                codeMeaning: "Area"
+            )
+        case "mm3", "cm3", "ml":
+            measurementConcept = CodedConcept(
+                codeValue: "118565006", codingSchemeDesignator: "SCT",
+                codeMeaning: "Volume"
+            )
+        case "[hnsf'U]":
+            measurementConcept = CodedConcept(
+                codeValue: "112031", codingSchemeDesignator: "DCM",
+                codeMeaning: "Attenuation Coefficient"
+            )
+        default:
+            measurementConcept = CodedConcept(
+                codeValue: "410668003", codingSchemeDesignator: "SCT",
+                codeMeaning: "Length"
+            )
+        }
         children.append(numericItem(
             conceptName: measurementConcept,
             value: measurement.value,

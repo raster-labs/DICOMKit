@@ -366,6 +366,39 @@ final class PrintSCPIntegrationTests: XCTestCase {
         XCTAssertTrue(result.success)
         XCTAssertNil(result.printJobUID) // empty UID must not be recorded
     }
+
+    // MARK: - fo-dicom Print SCP interoperability (DICOMPRINTER)
+
+    func testFoDicomStyleNCreateWithDatasetSOPInstanceUIDAndUndefinedLengthImageBoxes() async throws {
+        var behavior = MockPrintSCPBehavior()
+        behavior.foDicomStyleNCreate = true
+        behavior.omitPrintJobUID = true
+        let scp = MockPrintSCP(behavior: behavior)
+        try await scp.start()
+        defer { Task { await scp.stop() } }
+
+        // 4 images on a 2×2 film box: exercises both N-CREATE dataset
+        // (0008,0018) UID extraction and multi-item undefined-length
+        // Referenced Image Box Sequence (2010,0510) parsing across
+        // Item Delimitation Items (FFFE,E00D).
+        let (pixels, descriptor) = makeImage()
+        let result = try await DICOMPrintService.printImages(
+            configuration: makeConfiguration(port: await scp.port),
+            images: [pixels, pixels, pixels, pixels],
+            imageDescriptors: [descriptor, descriptor, descriptor, descriptor],
+            layout: PrintLayout(rows: 2, columns: 2)
+        )
+
+        XCTAssertTrue(result.success)
+        XCTAssertEqual(result.filmSessionUID, "1.2.826.0.1.3680043.9.9001.2.1")
+        XCTAssertEqual(result.filmBoxUIDs, ["1.2.826.0.1.3680043.9.9001.4.1"])
+
+        let log = await scp.commandLog
+        XCTAssertEqual(log.filter { $0 == .nSetRequest }.count, 4,
+                       "All 4 image boxes in the 2×2 undefined-length sequence must be populated")
+        let released = await scp.releasedCleanly
+        XCTAssertTrue(released)
+    }
 }
 
 /// Thread-safe collector for events delivered on the networking task.

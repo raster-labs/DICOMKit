@@ -1384,8 +1384,29 @@ public struct PresentationStateStore: Sendable {
         try fileManager.createDirectory(
             at: destination, withIntermediateDirectories: true)
 
-        let srSeriesUID = structuredReportSeriesUID(in: destination)
+        let srSeriesUID = Self.structuredReportSeriesUID(in: destination)
         let superseded = publishedStructuredReportObjects(ofView: view.label, in: destination)
+        let supersededSet = Set(superseded.map(\.standardizedFileURL))
+        let predecessorRefs: [HierarchicalSOPReference] = superseded.compactMap { url in
+            guard let oldFile = try? DICOMFile.read(from: url, options: .metadataOnly),
+                  let oldSOPClass = oldFile.dataSet.string(for: .sopClassUID),
+                  let oldSOPUID = oldFile.dataSet.string(for: .sopInstanceUID),
+                  !oldSOPClass.isEmpty, !oldSOPUID.isEmpty else { return nil }
+            let oldStudyUID = oldFile.dataSet.string(for: .studyInstanceUID) ?? studyInstanceUID
+            let oldSeriesUID = oldFile.dataSet.string(for: .seriesInstanceUID) ?? srSeriesUID
+            return HierarchicalSOPReference(
+                studyInstanceUID: oldStudyUID,
+                seriesInstanceUID: oldSeriesUID,
+                sopClassUID: oldSOPClass,
+                sopInstanceUID: oldSOPUID
+            )
+        }
+        let baseInstanceNumber = Self.nextSeriesInstanceNumber(
+            in: destination,
+            modality: "SR",
+            seriesNumber: Self.structuredReportSeriesNumber,
+            excluding: supersededSet
+        )
         var instances: [PublishedInstance] = []
 
         for (index, stored) in view.states.enumerated() {
@@ -1443,25 +1464,26 @@ public struct PresentationStateStore: Sendable {
                 )
             }
 
-            let srDoc = try PresentationStateSRBridge.buildMeasurementReport(
+            let prSeriesUID = prFile.dataSet.string(for: .seriesInstanceUID) ?? stored.seriesInstanceUID
+            let assignedInstanceNumber = baseInstanceNumber + index
+            var srDoc = try PresentationStateSRBridge.buildMeasurementReport(
                 from: loaded.document,
                 annotations: resolvedAnnotations,
                 patient: patient,
                 imageWidth: max(1, imageWidth),
                 imageHeight: max(1, imageHeight),
                 seriesInstanceUID: srSeriesUID,
+                presentationStateSeriesUID: prSeriesUID,
                 seriesNumber: Self.structuredReportSeriesNumber
             )
+            .withDescriptions(seriesDescription: Self.structuredReportSeriesDescription)
+
+            if !predecessorRefs.isEmpty {
+                srDoc = srDoc.withPredecessorDocuments(predecessorRefs)
+            }
 
             var srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
-            srDataSet.setString(Self.structuredReportSeriesDescription, for: .seriesDescription, vr: .LO)
-            srDataSet.setString(String(index + 1), for: .instanceNumber, vr: .IS)
-            srDataSet.setString(
-                GrayscalePresentationStateBuilder.contentLabel(from: view.label),
-                for: .contentLabel,
-                vr: .CS
-            )
-            srDataSet.setString(view.label, for: .contentDescription, vr: .LO)
+            srDataSet.setString(String(assignedInstanceNumber), for: .instanceNumber, vr: .IS)
 
             let srFile = DICOMFile.create(
                 dataSet: srDataSet,
@@ -1479,7 +1501,7 @@ public struct PresentationStateStore: Sendable {
                 sopClassUID: srDoc.sopClassUID,
                 sopInstanceUID: srDoc.sopInstanceUID,
                 url: srURL,
-                instanceNumber: index + 1,
+                instanceNumber: assignedInstanceNumber,
                 referencedImageUIDs: stored.referencedImageUIDs
             ))
         }
@@ -1490,6 +1512,12 @@ public struct PresentationStateStore: Sendable {
         for url in superseded where !written.contains(url.standardizedFileURL) {
             try? fileManager.removeItem(at: url)
         }
+
+        recordPublishedSRSOPInstanceUIDs(
+            instances.map(\.sopInstanceUID),
+            forView: view.label,
+            studyInstanceUID: studyInstanceUID
+        )
 
         return PublishedSeries(
             studyInstanceUID: studyInstanceUID,
@@ -1503,32 +1531,188 @@ public struct PresentationStateStore: Sendable {
         )
     }
 
+    /// Publishes an authored `SRDocument` (or Key Object Selection document) into `destination`
+    /// as its own dedicated DICOM series (`Series 9002` `Modality = "SR"`, or `Series 9003` `Modality = "KO"`),
+    /// strictly separated from image series and `Series 9001` (`Modality = "PR"`).
+    @discardableResult
+    public static func publishDocument(
+        _ document: SRDocument,
+        label: String,
+        into destination: URL
+    ) throws -> PublishedSeries {
+        let fm = FileManager.default
+        try fm.createDirectory(at: destination, withIntermediateDirectories: true)
+
+        let isKOS = SRDocumentType.from(sopClassUID: document.sopClassUID) == .keyObjectSelectionDocument
+        let targetModality = isKOS ? "KO" : "SR"
+        let targetSeriesNumber = isKOS ? 9003 : structuredReportSeriesNumber
+        let defaultSeriesDesc = isKOS ? "Key Object Selections" : structuredReportSeriesDescription
+        let targetSeriesUID = sharedSeriesUID(
+            in: destination,
+            modality: targetModality,
+            seriesNumber: targetSeriesNumber
+        )
+        let nextInstNum = nextSeriesInstanceNumber(
+            in: destination,
+            modality: targetModality,
+            seriesNumber: targetSeriesNumber
+        )
+
+        let studyUID = document.studyInstanceUID ?? UIDGenerator.generateStudyInstanceUID().value
+        let preparedDoc = SRDocument(
+            sopClassUID: document.sopClassUID,
+            sopInstanceUID: document.sopInstanceUID,
+            patientID: document.patientID,
+            patientName: document.patientName,
+            studyInstanceUID: studyUID,
+            studyDate: document.studyDate,
+            studyTime: document.studyTime,
+            accessionNumber: document.accessionNumber,
+            seriesInstanceUID: targetSeriesUID,
+            seriesNumber: String(targetSeriesNumber),
+            modality: targetModality,
+            contentDate: document.contentDate,
+            contentTime: document.contentTime,
+            instanceNumber: String(nextInstNum),
+            completionFlag: document.completionFlag,
+            verificationFlag: document.verificationFlag,
+            preliminaryFlag: document.preliminaryFlag,
+            verifyingObservers: document.verifyingObservers,
+            documentTitle: document.documentTitle ?? document.rootContent.conceptName,
+            rootContent: document.rootContent,
+            patientBirthDate: document.patientBirthDate,
+            patientSex: document.patientSex,
+            referringPhysicianName: document.referringPhysicianName,
+            studyID: document.studyID,
+            manufacturer: document.manufacturer,
+            studyDescription: document.studyDescription,
+            seriesDescription: document.seriesDescription ?? defaultSeriesDesc,
+            evidenceReferences: document.evidenceReferences,
+            predecessorDocuments: document.predecessorDocuments
+        )
+
+        let srDataSet = try SRDocumentSerializer().serialize(document: preparedDoc)
+        let dicomFile = DICOMFile.create(
+            dataSet: srDataSet,
+            sopClassUID: preparedDoc.sopClassUID,
+            sopInstanceUID: preparedDoc.sopInstanceUID,
+            transferSyntaxUID: transferSyntaxUID
+        )
+
+        let prefix = isKOS ? "KO" : "SR"
+        let outURL = destination.appendingPathComponent("\(prefix)_\(preparedDoc.sopInstanceUID).dcm")
+        if fm.fileExists(atPath: outURL.path) {
+            try? fm.removeItem(at: outURL)
+        }
+        try dicomFile.write().write(to: outURL, options: [.atomic])
+
+        let refImageUIDs = preparedDoc.findImageItems().map(\.imageReference.sopReference.sopInstanceUID)
+        let instance = PublishedInstance(
+            sopClassUID: preparedDoc.sopClassUID,
+            sopInstanceUID: preparedDoc.sopInstanceUID,
+            url: outURL,
+            instanceNumber: nextInstNum,
+            referencedImageUIDs: refImageUIDs
+        )
+        return PublishedSeries(
+            studyInstanceUID: studyUID,
+            seriesInstanceUID: targetSeriesUID,
+            seriesNumber: targetSeriesNumber,
+            seriesDescription: preparedDoc.seriesDescription ?? defaultSeriesDesc,
+            modality: targetModality,
+            referenceID: SavedView.srReferenceID(
+                seriesInstanceUID: targetSeriesUID,
+                label: "\(label)|\(preparedDoc.sopInstanceUID)"
+            ),
+            label: label,
+            instances: [instance]
+        )
+    }
+
     /// Returns the published `SR_*.dcm` files in `destination` that belong to the given view `label`.
     public func publishedStructuredReportObjects(ofView label: String, in destination: URL) -> [URL] {
         guard let urls = try? fileManager.contentsOfDirectory(
             at: destination, includingPropertiesForKeys: nil) else { return [] }
-        let codedLabel = GrayscalePresentationStateBuilder.contentLabel(from: label)
+
+        var matchingSRSOPUIDs = Set<String>()
+        var matchingPRSOPUIDs = Set<String>()
+
+        if let studyFolders = try? fileManager.contentsOfDirectory(
+            at: root, includingPropertiesForKeys: [.isDirectoryKey]) {
+            for folder in studyFolders {
+                let studyUID = folder.lastPathComponent
+                matchingSRSOPUIDs.formUnion(publishedSRSOPInstanceUIDs(forView: label, studyInstanceUID: studyUID))
+                if let view = views(forStudy: studyUID).first(where: { $0.label == label }) {
+                    matchingPRSOPUIDs.formUnion(view.states.map(\.state.sopInstanceUID))
+                }
+            }
+        }
 
         return urls.filter { url in
             guard url.pathExtension.lowercased() == "dcm",
                   let file = try? DICOMFile.read(from: url, options: .metadataOnly),
                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == "SR"
             else { return false }
+
+            if let sopUID = file.dataSet.string(for: .sopInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               matchingSRSOPUIDs.contains(sopUID) {
+                return true
+            }
+            if !matchingPRSOPUIDs.isEmpty,
+               let fullFile = try? DICOMFile.read(from: url),
+               let srDoc = try? SRDocumentParser().parse(dataSet: fullFile.dataSet) {
+                let prRefs = PresentationStateSRBridge.extract(from: srDoc).presentationStateReferences
+                if prRefs.contains(where: { matchingPRSOPUIDs.contains($0.sopInstanceUID) }) {
+                    return true
+                }
+            }
+            // Legacy fallback for exact full-label match only (no 16-char ContentLabel prefix matching)
             let described = file.dataSet.string(for: .contentDescription)?
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             return described == label
-                || file.dataSet.string(for: .contentLabel)?.trimmingCharacters(in: .whitespacesAndNewlines) == codedLabel
+        }
+    }
+
+    private func publishedSRIndexURL(forStudy studyInstanceUID: String) -> URL {
+        directory(forStudy: studyInstanceUID).appendingPathComponent("published_sr_index.json")
+    }
+
+    private func publishedSRSOPInstanceUIDs(forView label: String, studyInstanceUID: String) -> [String] {
+        let indexURL = publishedSRIndexURL(forStudy: studyInstanceUID)
+        guard let data = try? Data(contentsOf: indexURL),
+              let map = try? JSONDecoder().decode([String: [String]].self, from: data)
+        else { return [] }
+        return map[label] ?? []
+    }
+
+    private func recordPublishedSRSOPInstanceUIDs(
+        _ uids: [String],
+        forView label: String,
+        studyInstanceUID: String
+    ) {
+        let studyDir = directory(forStudy: studyInstanceUID)
+        try? fileManager.createDirectory(at: studyDir, withIntermediateDirectories: true)
+        let indexURL = publishedSRIndexURL(forStudy: studyInstanceUID)
+        var map = (try? Data(contentsOf: indexURL))
+            .flatMap { try? JSONDecoder().decode([String: [String]].self, from: $0) } ?? [:]
+        map[label] = uids
+        if let encoded = try? JSONEncoder().encode(map) {
+            try? encoded.write(to: indexURL, options: [.atomic])
         }
     }
 
     /// Returns the shared `SeriesInstanceUID` for `Series 9002 (SR)` in `destination`, or generates one.
-    private func structuredReportSeriesUID(in destination: URL) -> String {
-        if let urls = try? fileManager.contentsOfDirectory(
+    public static func structuredReportSeriesUID(in destination: URL) -> String {
+        sharedSeriesUID(in: destination, modality: "SR", seriesNumber: structuredReportSeriesNumber)
+    }
+
+    private static func sharedSeriesUID(in destination: URL, modality: String, seriesNumber: Int) -> String {
+        if let urls = try? FileManager.default.contentsOfDirectory(
             at: destination, includingPropertiesForKeys: nil) {
             for url in urls where url.pathExtension.lowercased() == "dcm" {
                 if let file = try? DICOMFile.read(from: url, options: .metadataOnly),
-                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == "SR",
-                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(Self.structuredReportSeriesNumber),
+                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == modality,
+                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(seriesNumber),
                    let uid = file.dataSet.string(for: .seriesInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
                    !uid.isEmpty {
                     return uid
@@ -1536,6 +1720,28 @@ public struct PresentationStateStore: Sendable {
             }
         }
         return UIDGenerator.generateSeriesInstanceUID().value
+    }
+
+    private static func nextSeriesInstanceNumber(
+        in destination: URL,
+        modality: String,
+        seriesNumber: Int,
+        excluding excludedURLs: Set<URL> = []
+    ) -> Int {
+        var maxNum = 0
+        if let urls = try? FileManager.default.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) {
+            for url in urls where url.pathExtension.lowercased() == "dcm" && !excludedURLs.contains(url.standardizedFileURL) {
+                if let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == modality,
+                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(seriesNumber),
+                   let instStr = file.dataSet.string(for: .instanceNumber)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   let num = Int(instStr), num > maxNum {
+                    maxNum = num
+                }
+            }
+        }
+        return maxNum + 1
     }
 
     /// Publishes a saved view into a destination folder along with companion DICOM Structured Report
@@ -1557,8 +1763,14 @@ public struct PresentationStateStore: Sendable {
 
         var mrURLs: [URL] = []
         var kosURLs: [URL] = []
+        let srSeriesNumber = published.seriesNumber + 1
+        let kosSeriesNumber = published.seriesNumber + 2
+        let srSeriesUID = Self.sharedSeriesUID(in: destination, modality: "SR", seriesNumber: srSeriesNumber)
+        let kosSeriesUID = Self.sharedSeriesUID(in: destination, modality: "KO", seriesNumber: kosSeriesNumber)
+        let srBaseInst = Self.nextSeriesInstanceNumber(in: destination, modality: "SR", seriesNumber: srSeriesNumber)
+        let kosBaseInst = Self.nextSeriesInstanceNumber(in: destination, modality: "KO", seriesNumber: kosSeriesNumber)
 
-        for instance in published.instances {
+        for (index, instance) in published.instances.enumerated() {
             guard let loaded = try? PresentationStateManager.load(
                 from: instance.url,
                 imageWidth: imageWidth,
@@ -1566,16 +1778,28 @@ public struct PresentationStateStore: Sendable {
             ) else { continue }
 
             if options.generateMeasurementReport {
+                var anns = loaded.annotations
+                if anns.isEmpty {
+                    let primaryImg = loaded.document.referencedSeries.first?.referencedImages.first
+                    anns.append(DICOMAnnotation.text(
+                        "Saved View: \(published.label)",
+                        at: DICOMAnnotationPoint(x: Double(max(1, imageWidth)) * 0.5, y: Double(max(1, imageHeight)) * 0.5),
+                        referencedSOPClassUID: primaryImg?.sopClassUID,
+                        referencedSOPInstanceUID: primaryImg?.sopInstanceUID
+                    ))
+                }
                 let srDoc = try PresentationStateSRBridge.buildMeasurementReport(
                     from: loaded.document,
-                    annotations: loaded.annotations,
+                    annotations: anns,
                     patient: patient,
                     imageWidth: imageWidth,
                     imageHeight: imageHeight,
-                    seriesNumber: published.seriesNumber + 1,
+                    seriesInstanceUID: srSeriesUID,
+                    seriesNumber: srSeriesNumber,
                     procedureReported: options.procedureReported
                 )
-                let srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+                var srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+                srDataSet.setString(String(srBaseInst + index), for: .instanceNumber, vr: .IS)
                 let srFile = DICOMFile.create(
                     dataSet: srDataSet,
                     sopClassUID: srDoc.sopClassUID,
@@ -1593,9 +1817,11 @@ public struct PresentationStateStore: Sendable {
                     patient: patient,
                     purpose: options.keyObjectSelectionPurpose,
                     description: options.keyObjectDescription ?? published.label,
-                    seriesNumber: published.seriesNumber + 2
+                    seriesInstanceUID: kosSeriesUID,
+                    seriesNumber: kosSeriesNumber
                 )
-                let kosDataSet = try SRDocumentSerializer().serialize(document: kosDoc)
+                var kosDataSet = try SRDocumentSerializer().serialize(document: kosDoc)
+                kosDataSet.setString(String(kosBaseInst + index), for: .instanceNumber, vr: .IS)
                 let kosFile = DICOMFile.create(
                     dataSet: kosDataSet,
                     sopClassUID: kosDoc.sopClassUID,

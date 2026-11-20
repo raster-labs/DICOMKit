@@ -129,6 +129,7 @@ public struct SRDocumentBuilder: Sendable {
     public init(documentType: SRDocumentType = .comprehensiveSR, validateOnBuild: Bool = true) {
         self.documentType = documentType
         self.validateOnBuild = validateOnBuild
+        self.modality = SRDocumentSerializer.defaultModality(forSOPClassUID: documentType.sopClassUID)
     }
     
     // MARK: - Document Identification Setters
@@ -842,7 +843,9 @@ public struct SRDocumentBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
     }
     

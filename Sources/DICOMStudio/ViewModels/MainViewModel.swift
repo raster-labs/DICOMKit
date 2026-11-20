@@ -120,6 +120,9 @@ public final class MainViewModel {
     /// diagnostics) — survives tab switches.
     public var networkUtilityViewModel: NetworkUtilityViewModel
 
+    /// Persistent Structured Report ViewModel — survives tab switches and syncs with the Study Viewer.
+    public var structuredReportViewModel: StructuredReportViewModel
+
     /// Creates the main ViewModel with dependency-injected services.
     public init(
         settingsService: SettingsService = SettingsService(),
@@ -187,6 +190,7 @@ public final class MainViewModel {
         self.archiveManagementViewModel = ArchiveManagementViewModel()
         self.validationViewModel = ValidationViewModel()
         self.networkUtilityViewModel = NetworkUtilityViewModel()
+        self.structuredReportViewModel = StructuredReportViewModel()
         // Share saved server profiles so CLI Workshop can pick from them.
         self.cliWorkshopViewModel.savedServerProfiles = networkingViewModel.serverProfiles
 
@@ -255,6 +259,50 @@ public final class MainViewModel {
             self.imageViewerViewModel.loadSeries(files: files, startIndex: 0)
             self.selectedDestination = .viewer
             self.imageViewerViewModel.isPrintSheetPresented = true
+        }
+
+        // Allow publishing a report from the standalone Structured Reports screen
+        // into the open study's SR (Series 9002) or KO (Series 9003) series.
+        self.structuredReportViewModel.onPublishToStudy = { [weak self] studioDoc in
+            guard let self else { return nil }
+            guard let activeStudyUID = self.imageViewerViewModel.studyInstanceUID,
+                  let destination = self.imageViewerViewModel.studySeriesDirectory else {
+                return "Open an imported study in the Viewer first to publish into its SR series, or use Export .dcm."
+            }
+            var docToPublish = studioDoc
+            if docToPublish.studyInstanceUID.isEmpty {
+                docToPublish = SRDocument(
+                    id: docToPublish.id,
+                    documentType: docToPublish.documentType,
+                    title: docToPublish.title,
+                    patientName: docToPublish.patientName,
+                    patientID: docToPublish.patientID,
+                    studyInstanceUID: activeStudyUID,
+                    seriesInstanceUID: docToPublish.seriesInstanceUID,
+                    sopInstanceUID: docToPublish.sopInstanceUID,
+                    contentDate: docToPublish.contentDate,
+                    contentTime: docToPublish.contentTime,
+                    rootContentItem: docToPublish.rootContentItem,
+                    isComplete: docToPublish.isComplete,
+                    isVerified: docToPublish.isVerified
+                )
+            }
+            let kitDoc = SRSerializationBridge.toDICOMKitDocument(
+                docToPublish,
+                verifyingObserverName: self.structuredReportViewModel.verifyingObserverName,
+                verifyingOrganization: self.structuredReportViewModel.verifyingOrganization
+            )
+            do {
+                let published = try PresentationStateStore.publishDocument(
+                    kitDoc,
+                    label: docToPublish.title.codeMeaning,
+                    into: destination
+                )
+                self.registerPublishedPresentationSeries(published)
+                return "Published “\(published.label)” into Series \(published.seriesNumber) (\(published.modality)) — Ref: \(published.referenceID)"
+            } catch {
+                return "Could not publish Structured Report: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -375,8 +423,9 @@ public final class MainViewModel {
                 transferSyntaxUID: PresentationStateStore.transferSyntaxUID))
         }
 
-        // Publishing twice must not double the count: the series is shared, so
-        // its instance total is whatever the index now holds for it.
+        // Remove any superseded PR/SR files whose `.dcm` was replaced on disk,
+        // then recompute the shared series' live instance total.
+        pruneEmptyPresentationSeries(inStudy: published.studyInstanceUID)
         if var series = library.series[published.seriesInstanceUID] {
             series.numberOfInstances =
                 library.instancesForSeries(published.seriesInstanceUID).count
@@ -433,8 +482,9 @@ public final class MainViewModel {
         let fileManager = FileManager.default
         for series in library.seriesForStudy(studyUID) {
             let instances = library.instancesForSeries(series.seriesInstanceUID)
-            let isPublishedSRSeries = series.modality == "SR"
-                && series.seriesNumber == PresentationStateStore.structuredReportSeriesNumber
+            let isPublishedSRSeries = (series.modality == "SR"
+                && series.seriesNumber == PresentationStateStore.structuredReportSeriesNumber)
+                || (series.modality == "KO" && series.seriesNumber == 9003)
             guard instances.allSatisfy({ Self.isPresentationState($0.sopClassUID) }) || isPublishedSRSeries
             else { continue }
             let missing = instances.filter { !fileManager.fileExists(atPath: $0.filePath) }
@@ -449,8 +499,7 @@ public final class MainViewModel {
 
     /// Whether a SOP Class is one of the presentation-state IODs this app writes.
     static func isPresentationState(_ sopClassUID: String) -> Bool {
-        sopClassUID == GrayscalePresentationStateBuilder.sopClassUID
-            || sopClassUID == PseudoColorPresentationStateBuilder.sopClassUID
+        PresentationStateStore.presentationStateSOPClasses.contains(sopClassUID)
     }
 
     /// Opens the first retrieved file from CLI Workshop in the viewer.

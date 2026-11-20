@@ -52,6 +52,35 @@ public final class StructuredReportViewModel {
     /// Builder validation errors.
     public var validationErrors: [String] = []
 
+    /// Clinical section text keyed by template section heading (e.g. "Findings", "Impression").
+    public var sectionTexts: [String: String] = [:]
+
+    /// Free-form clinical findings / diagnosis narrative when building without a template.
+    public var freeFormText: String = ""
+
+    /// Key Object Selection purpose and description for KOS building.
+    public var keyObjectPurpose: KeyObjectPurpose = .documentation
+    public var keyObjectDescription: String = "Key Object Selection"
+
+    /// Quantitative measurements added in the standalone SR Builder.
+    public var builderMeasurements: [TrackedMeasurement] = []
+
+    /// Patient & study metadata for standalone SR authoring.
+    public var patientName: String = ""
+    public var patientID: String = ""
+    public var studyInstanceUID: String = ""
+    public var observerName: String = ""
+    public var isComplete: Bool = true
+    public var isVerified: Bool = false
+    public var verifyingObserverName: String = ""
+    public var verifyingOrganization: String = "DICOMStudio"
+
+    /// Optional callback invoked when the user publishes an SR document into an imported study.
+    public var onPublishToStudy: ((SRDocument) -> String?)?
+
+    /// Informational or error status message shown in the Structured Reports screen.
+    public var statusMessage: String?
+
     // MARK: - Terminology State
 
     /// Terminology search query.
@@ -198,39 +227,151 @@ public final class StructuredReportViewModel {
 
     /// Creates a new document from the current builder settings.
     public func createDocument() -> SRDocument? {
+        let usesTemplate = selectedTemplate != nil
+            && (builderDocumentType == .basicText
+                || builderDocumentType == .enhanced
+                || builderDocumentType == .comprehensive
+                || builderDocumentType == .comprehensive3D)
+
         let title = SRBuilderHelpers.documentTitle(
             for: builderDocumentType,
-            template: builderDocumentType == .basicText ? selectedTemplate : nil
+            template: usesTemplate ? selectedTemplate : nil
         )
 
         var rootItem: SRContentItem
 
-        if let template = selectedTemplate, builderDocumentType == .basicText {
-            rootItem = SRBuilderHelpers.buildBasicTextSR(template: template)
+        if let template = selectedTemplate, usesTemplate {
+            rootItem = SRBuilderHelpers.buildBasicTextSR(
+                template: template,
+                sectionTexts: sectionTexts
+            )
         } else if builderDocumentType == .keyObjectSelection {
             rootItem = SRBuilderHelpers.buildKeyObjectSelection(
-                purpose: .documentation,
-                description: "Key Object Selection"
+                purpose: keyObjectPurpose,
+                description: keyObjectDescription
             )
         } else if builderDocumentType == .measurementReport {
-            rootItem = SRBuilderHelpers.buildMeasurementReport()
+            rootItem = SRBuilderHelpers.buildMeasurementReport(
+                measurements: builderMeasurements
+            )
         } else {
+            var children: [SRContentItem] = []
+            let trimmedFreeForm = freeFormText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedFreeForm.isEmpty {
+                let findingsConcept = SRBuilderHelpers.sectionHeading(for: "Findings")
+                let textChild = SRBuilderHelpers.textItem(conceptName: findingsConcept, text: trimmedFreeForm)
+                children.append(SRBuilderHelpers.containerItem(
+                    conceptName: findingsConcept,
+                    continuity: .separate,
+                    children: [textChild]
+                ))
+            }
             rootItem = SRContentItem(
                 valueType: .container,
                 conceptName: title,
                 continuityOfContent: .separate,
-                children: []
+                children: children
             )
         }
 
+        let trimmedObserver = observerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedObserver.isEmpty && builderDocumentType != .keyObjectSelection {
+            let obsItem = SRBuilderHelpers.personNameItem(
+                conceptName: CodedConcept(
+                    codeValue: "121008",
+                    codingSchemeDesignator: "DCM",
+                    codeMeaning: "Person Observer Name"
+                ),
+                name: trimmedObserver
+            )
+            rootItem = rootItem.withChildren([obsItem] + rootItem.children)
+        }
+
+        let stamp = SRSerializationBridge.currentDICOMTimestamp()
         let document = SRDocument(
             documentType: builderDocumentType,
             title: title,
-            rootContentItem: rootItem
+            patientName: patientName,
+            patientID: patientID,
+            studyInstanceUID: studyInstanceUID,
+            contentDate: stamp.date,
+            contentTime: stamp.time,
+            rootContentItem: rootItem,
+            isComplete: isComplete,
+            isVerified: isVerified
         )
 
-        validationErrors = SRBuilderHelpers.validateDocument(document)
+        var errors = SRBuilderHelpers.validateDocument(document)
+        if isVerified && builderDocumentType != .keyObjectSelection {
+            if verifyingObserverName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append("Verifying Observer Name is required when Verified is enabled")
+            }
+            if verifyingOrganization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                errors.append("Verifying Organization is required when Verified is enabled")
+            }
+        }
+        validationErrors = errors
         return document
+    }
+
+    /// Creates a document from the builder settings and loads it into the viewer when valid.
+    @discardableResult
+    public func createAndLoadDocument() -> SRDocument? {
+        guard let doc = createDocument() else { return nil }
+        guard validationErrors.isEmpty else { return nil }
+        isBuilderActive = false
+        loadDocument(doc)
+        statusMessage = "Created \(doc.title.codeMeaning)"
+        return doc
+    }
+
+    /// Imports a DICOM Part 10 SR `.dcm` file from disk and loads it into the viewer.
+    @discardableResult
+    public func importDICOMFile(from url: URL) throws -> SRDocument {
+        let doc = try SRSerializationBridge.readDocument(from: url)
+        isBuilderActive = false
+        loadDocument(doc)
+        statusMessage = "Imported \(doc.title.codeMeaning)"
+        return doc
+    }
+
+    /// Imports DICOM Part 10 SR `Data` and loads it into the viewer.
+    @discardableResult
+    public func importDICOMData(_ data: Data) throws -> SRDocument {
+        let doc = try SRSerializationBridge.readDocument(from: data)
+        isBuilderActive = false
+        loadDocument(doc)
+        statusMessage = "Imported \(doc.title.codeMeaning)"
+        return doc
+    }
+
+    /// Serializes the currently selected SR document to DICOM Part 10 `.dcm` `Data`.
+    public func exportSelectedDocumentData() throws -> Data {
+        guard let index = selectedDocumentIndex, index >= 0, index < documents.count else {
+            throw NSError(
+                domain: "DICOMStudio.SR",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Select a Structured Report document to export."]
+            )
+        }
+        return try SRSerializationBridge.serialize(
+            documents[index],
+            verifyingObserverName: verifyingObserverName,
+            verifyingOrganization: verifyingOrganization
+        )
+    }
+
+    /// Publishes the selected document into the currently active study (when available).
+    public func publishSelectedDocumentToStudy() {
+        guard let index = selectedDocumentIndex, index >= 0, index < documents.count else {
+            statusMessage = "Select a Structured Report document first."
+            return
+        }
+        if let callback = onPublishToStudy {
+            statusMessage = callback(documents[index]) ?? "Saved Structured Report to study (Series 9002 — SR)."
+        } else {
+            statusMessage = "Open an imported study in the Viewer to publish directly into Series 9002 (SR), or use Export .dcm."
+        }
     }
 
     /// Validates the current builder settings.

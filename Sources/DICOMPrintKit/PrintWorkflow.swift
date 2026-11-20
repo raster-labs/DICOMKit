@@ -64,6 +64,45 @@ public enum PrintWorkflow {
 
     // MARK: Pre-flight
 
+    /// Verifies connectivity with a Print SCP.
+    ///
+    /// Attempts C-ECHO (Verification SOP Class, 1.2.840.10008.1.1) first. Some
+    /// Print SCPs implement only the Print Management Service Class (PS3.4
+    /// Annex H) — e.g. fo-dicom Print SCPs that implement `IDicomNServiceProvider`
+    /// without `IDicomCEchoProvider` and close the socket on `C-ECHO-RQ`, or
+    /// printers that reject the Verification presentation context. When C-ECHO
+    /// fails in one of those ways, this falls back to an `N-GET` on the
+    /// mandatory Printer SOP Instance (`1.2.840.10008.5.1.1.16` /
+    /// `1.2.840.10008.5.1.1.17`).
+    public static func verify(
+        configuration: PrintConfiguration
+    ) async throws -> Bool {
+        do {
+            let ok = try await DICOMVerificationService.verify(
+                host: configuration.host,
+                port: configuration.port,
+                callingAE: configuration.callingAETitle,
+                calledAE: configuration.calledAETitle,
+                timeout: configuration.timeout
+            )
+            if ok { return true }
+            _ = try await DICOMPrintService.getPrinterStatus(configuration: configuration)
+            return true
+        } catch let error as DICOMNetworkError {
+            switch error {
+            case .connectionClosed, .sopClassNotSupported, .noPresentationContextAccepted:
+                do {
+                    _ = try await DICOMPrintService.getPrinterStatus(configuration: configuration)
+                    return true
+                } catch {
+                    throw error
+                }
+            default:
+                throw error
+            }
+        }
+    }
+
     /// Runs the request's optional pre-flight checks against the printer.
     ///
     /// - C-ECHO verification when ``PrintJobRequest/verifyFirst`` is set.
@@ -75,13 +114,7 @@ public enum PrintWorkflow {
         diagnostics: DiagnosticHandler? = nil
     ) async throws {
         if request.verifyFirst {
-            let ok = try await DICOMVerificationService.verify(
-                host: configuration.host,
-                port: configuration.port,
-                callingAE: configuration.callingAETitle,
-                calledAE: configuration.calledAETitle,
-                timeout: configuration.timeout
-            )
+            let ok = try await verify(configuration: configuration)
             guard ok else {
                 throw PrintRequestError(
                     "C-ECHO verification failed — printer AE is not responding correctly")

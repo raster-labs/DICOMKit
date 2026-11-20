@@ -70,6 +70,16 @@ struct MockPrintSCPBehavior: Sendable {
     /// Push an N-EVENT-REPORT after receiving A-RELEASE-RQ, before sending
     /// A-RELEASE-RP (release-window test, plan P2-7).
     var pushEventDuringRelease: Bool = false
+
+    /// Emulate fo-dicom 5.1.2 Print SCPs (e.g. DICOMPRINTER):
+    /// - N-CREATE responses omit Affected SOP Instance UID (0000,1000) from the
+    ///   command set when the request omitted it, and instead carry SOP Instance
+    ///   UID (0008,0018) in the response data set;
+    /// - Referenced Image Box Sequence (2010,0510) uses undefined-length
+    ///   sequence and item delimiters (FFFE,E00D / FFFE,E0DD);
+    /// - N-ACTION / N-DELETE with an empty Requested SOP Instance UID (0000,1001)
+    ///   drops the TCP connection (NullReferenceException in fo-dicom).
+    var foDicomStyleNCreate: Bool = false
 }
 
 /// Minimal in-process Print SCP. One instance handles any number of
@@ -304,15 +314,27 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             if await owner.shouldPushEvent() {
                 try await pushPrinterEvent(contextID: contextID)
             }
-            let response = NCreateResponse(
-                messageIDBeingRespondedTo: messageID,
-                affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.2.1",
-                status: .success,
-                hasDataSet: false,
-                presentationContextID: contextID
-            )
-            try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            let sessionUID = "1.2.826.0.1.3680043.9.9001.2.1"
+            if behavior.foDicomStyleNCreate {
+                var cmd = CommandSet()
+                cmd.setCommand(.nCreateResponse)
+                cmd.setMessageIDBeingRespondedTo(messageID)
+                cmd.setAffectedSOPClassUID(sopClass)
+                cmd.setStatus(.success)
+                cmd.setHasDataSet(true)
+                let ds = sopInstanceHeaderDataSet(sopClass: sopClass, sopInstance: sessionUID)
+                try await send(commandSet: cmd, dataSet: ds, contextID: contextID)
+            } else {
+                let response = NCreateResponse(
+                    messageIDBeingRespondedTo: messageID,
+                    affectedSOPClassUID: sopClass,
+                    affectedSOPInstanceUID: sessionUID,
+                    status: .success,
+                    hasDataSet: false,
+                    presentationContextID: contextID
+                )
+                try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            }
 
         case .nCreateRequest where sopClass == basicFilmBoxSOPClassUID:
             let boxIndex = await owner.nextFilmBoxIndex()
@@ -321,29 +343,54 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             let uids = (1...imageBoxCount).map {
                 "1.2.826.0.1.3680043.9.9001.3.\(boxIndex).\($0)"
             }
-            let response = NCreateResponse(
-                messageIDBeingRespondedTo: messageID,
-                affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.4.\(boxIndex)",
-                status: .success,
-                hasDataSet: true,
-                presentationContextID: contextID
-            )
-            try await send(commandSet: response.commandSet,
-                           dataSet: referencedImageBoxSequence(uids: uids),
-                           contextID: contextID)
+            let filmBoxUID = "1.2.826.0.1.3680043.9.9001.4.\(boxIndex)"
+            if behavior.foDicomStyleNCreate {
+                var cmd = CommandSet()
+                cmd.setCommand(.nCreateResponse)
+                cmd.setMessageIDBeingRespondedTo(messageID)
+                cmd.setAffectedSOPClassUID(sopClass)
+                cmd.setStatus(.success)
+                cmd.setHasDataSet(true)
+                var ds = sopInstanceHeaderDataSet(sopClass: sopClass, sopInstance: filmBoxUID)
+                ds.append(undefinedLengthReferencedImageBoxSequence(uids: uids))
+                try await send(commandSet: cmd, dataSet: ds, contextID: contextID)
+            } else {
+                let response = NCreateResponse(
+                    messageIDBeingRespondedTo: messageID,
+                    affectedSOPClassUID: sopClass,
+                    affectedSOPInstanceUID: filmBoxUID,
+                    status: .success,
+                    hasDataSet: true,
+                    presentationContextID: contextID
+                )
+                try await send(commandSet: response.commandSet,
+                               dataSet: referencedImageBoxSequence(uids: uids),
+                               contextID: contextID)
+            }
 
         case .nCreateRequest:
             // Presentation LUT or other instances — succeed with a generated UID.
-            let response = NCreateResponse(
-                messageIDBeingRespondedTo: messageID,
-                affectedSOPClassUID: sopClass,
-                affectedSOPInstanceUID: "1.2.826.0.1.3680043.9.9001.5.1",
-                status: .success,
-                hasDataSet: false,
-                presentationContextID: contextID
-            )
-            try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            let lutUID = "1.2.826.0.1.3680043.9.9001.5.1"
+            if behavior.foDicomStyleNCreate {
+                var cmd = CommandSet()
+                cmd.setCommand(.nCreateResponse)
+                cmd.setMessageIDBeingRespondedTo(messageID)
+                cmd.setAffectedSOPClassUID(sopClass)
+                cmd.setStatus(.success)
+                cmd.setHasDataSet(true)
+                let ds = sopInstanceHeaderDataSet(sopClass: sopClass, sopInstance: lutUID)
+                try await send(commandSet: cmd, dataSet: ds, contextID: contextID)
+            } else {
+                let response = NCreateResponse(
+                    messageIDBeingRespondedTo: messageID,
+                    affectedSOPClassUID: sopClass,
+                    affectedSOPInstanceUID: lutUID,
+                    status: .success,
+                    hasDataSet: false,
+                    presentationContextID: contextID
+                )
+                try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+            }
 
         case .nSetRequest:
             let response = NSetResponse(
@@ -357,6 +404,10 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
 
         case .nActionRequest:
+            if behavior.foDicomStyleNCreate && sopInstance.isEmpty {
+                connection.cancel()
+                return
+            }
             // PS3.7 N-ACTION-RSP: Affected SOP Class / Instance are the Film
             // Box (or Film Session) the action was invoked on. The Print Job
             // is named in the data set by Referenced Print Job Sequence
@@ -379,6 +430,10 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
             try await send(commandSet: response.commandSet, dataSet: dataSet, contextID: contextID)
 
         case .nDeleteRequest:
+            if behavior.foDicomStyleNCreate && sopInstance.isEmpty {
+                connection.cancel()
+                return
+            }
             let response = NDeleteResponse(
                 messageIDBeingRespondedTo: messageID,
                 affectedSOPClassUID: sopClass,
@@ -387,6 +442,10 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
                 presentationContextID: contextID
             )
             try await send(commandSet: response.commandSet, dataSet: nil, contextID: contextID)
+
+        case .cEchoRequest:
+            connection.cancel()
+            return
 
         default:
             break
@@ -471,6 +530,53 @@ private final class MockPrintSCPConnection: @unchecked Sendable {
     }
 
     // MARK: Encoding helpers
+
+    /// Encodes SOP Class UID (0008,0016) and SOP Instance UID (0008,0018) as an
+    /// N-CREATE response data set header (matching fo-dicom's FilmSession /
+    /// FilmBox / PresentationLut DicomDataset serialization).
+    private func sopInstanceHeaderDataSet(sopClass: String, sopInstance: String) -> Data {
+        let writer = DICOMWriter(explicitVR: negotiatedExplicitVR)
+        var d = Data()
+        d.append(writer.serializeElement(DataElement.string(tag: .sopClassUID, vr: .UI, value: sopClass)))
+        d.append(writer.serializeElement(DataElement.string(tag: .sopInstanceUID, vr: .UI, value: sopInstance)))
+        return d
+    }
+
+    /// Undefined-length Referenced Image Box Sequence (2010,0510) whose items
+    /// use undefined length + Item Delimitation Item (FFFE,E00D), terminated by
+    /// Sequence Delimitation Item (FFFE,E0DD), matching fo-dicom 5.1.2.
+    private func undefinedLengthReferencedImageBoxSequence(uids: [String]) -> Data {
+        let explicitVR = negotiatedExplicitVR
+        func le16(_ v: UInt16) -> Data { withUnsafeBytes(of: v.littleEndian) { Data($0) } }
+        func le32(_ v: UInt32) -> Data { withUnsafeBytes(of: v.littleEndian) { Data($0) } }
+        func uiElement(group: UInt16, element: UInt16, value: String) -> Data {
+            var v = value.data(using: .ascii)!
+            if v.count % 2 != 0 { v.append(0x00) }
+            var d = le16(group) + le16(element)
+            if explicitVR {
+                d.append(contentsOf: [0x55, 0x49]) // "UI"
+                d += le16(UInt16(v.count))
+            } else {
+                d += le32(UInt32(v.count))
+            }
+            d += v
+            return d
+        }
+        var d = le16(0x2010) + le16(0x0510)
+        if explicitVR {
+            d.append(contentsOf: [0x53, 0x51]) // "SQ"
+            d += le16(0)
+        }
+        d += le32(0xFFFF_FFFF)
+        for uid in uids {
+            d += le16(0xFFFE) + le16(0xE000) + le32(0xFFFF_FFFF)
+            d += uiElement(group: 0x0008, element: 0x1150, value: basicGrayscaleImageBoxSOPClassUID)
+            d += uiElement(group: 0x0008, element: 0x1155, value: uid)
+            d += le16(0xFFFE) + le16(0xE00D) + le32(0)
+        }
+        d += le16(0xFFFE) + le16(0xE0DD) + le32(0)
+        return d
+    }
 
     /// Explicit VR LE Referenced Image Box Sequence (2010,0510) with one item
     /// per UID, each carrying Referenced SOP Instance UID (0008,1155).

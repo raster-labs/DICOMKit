@@ -101,6 +101,9 @@ extension ImageViewerViewModel {
         // A prompt left standing belongs to the study being left, as do the
         // readings its images were being held at.
         savedViewPrompt = nil
+        isSRComposerPresented = false
+        clinicalSRDraft = ClinicalSRDraft()
+        structuredReportComposerError = nil
         appliedViewByImage = [:]
         visitedSeriesUIDs = []
         waveform = nil

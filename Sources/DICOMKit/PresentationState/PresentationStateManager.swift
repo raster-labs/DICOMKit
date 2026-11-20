@@ -60,9 +60,9 @@ public struct CompanionSROptions: Sendable, Equatable {
         generateMeasurementReport: Bool = false,
         generateKeyObjectSelection: Bool = false,
         procedureReported: CodedConcept = CodedConcept(
-            codeValue: "P5-00000",
-            codingSchemeDesignator: "SRT",
-            codeMeaning: "Diagnostic imaging procedure"
+            codeValue: "363679005",
+            codingSchemeDesignator: "SCT",
+            codeMeaning: "Imaging procedure"
         ),
         keyObjectSelectionPurpose: DocumentTitle = .ofInterest,
         keyObjectDescription: String? = nil

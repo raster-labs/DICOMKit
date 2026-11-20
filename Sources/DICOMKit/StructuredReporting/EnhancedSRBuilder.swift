@@ -710,7 +710,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addFindings(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.findings) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.findings)
         }
     }
     
@@ -719,7 +719,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addImpression(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.impression) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.impression)
         }
     }
     
@@ -728,7 +728,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addClinicalHistory(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.clinicalHistory) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.clinicalHistory)
         }
     }
     
@@ -737,7 +737,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addConclusion(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.conclusion) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.conclusion)
         }
     }
     
@@ -746,7 +746,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addRecommendation(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.recommendation) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.recommendation)
         }
     }
     
@@ -755,7 +755,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addProcedureDescription(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.procedureDescription) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.procedureDescription)
         }
     }
     
@@ -764,7 +764,7 @@ public struct EnhancedSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addComparison(_ text: String) -> EnhancedSRBuilder {
         addSection(CodedConcept.comparison) {
-            EnhancedSectionContent.text(text)
+            EnhancedSectionContent.text(text, conceptName: CodedConcept.comparison)
         }
     }
     
@@ -832,7 +832,9 @@ public struct EnhancedSRBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
     }
     

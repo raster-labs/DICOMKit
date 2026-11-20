@@ -803,6 +803,8 @@ let package = Package(
                 "StructuredReporting/VerifyingObserverSequenceTests.swift",
                 // PS3.3 C.18.10 TABLE content item round trip (P8, 2026-09-25).
                 "StructuredReporting/TableContentItemRoundTripTests.swift",
+                // DICOM 2026a SR & PR bridge conformance remediation suite.
+                "StructuredReporting/SRConformanceRemediationTests.swift",
                 // PS3.3 Tables C.18.1-1, C.18.5-1, C.7-1, C.7-3, C.7-8, C.18.8-1; PS3.16 TID 1500/4019/1002 (D194-D196, D198, D199, 2026-10-01).
                 "StructuredReporting/SRDeferredRowsTests.swift",
                 "Waveform/WaveformTests.swift",

@@ -127,6 +127,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
     
     /// Document Title (Purpose of Selection)
     public private(set) var documentTitle: DocumentTitle?
+
+    /// Document-level Key Object Description (PS3.16 TID 2010 Row 7, VM = 1)
+    public private(set) var selectionDescription: String?
     
     /// Completion Flag
     public private(set) var completionFlag: CompletionFlag = .complete
@@ -327,6 +330,15 @@ public struct KeyObjectSelectionBuilder: Sendable {
         copy.documentTitle = .custom(concept)
         return copy
     }
+
+    /// Sets the document-level Key Object Description (PS3.16 TID 2010 Row 7, VM = 1).
+    /// - Parameter description: Narrative rationale for selecting the referenced objects
+    /// - Returns: Updated builder
+    public func withSelectionDescription(_ description: String?) -> KeyObjectSelectionBuilder {
+        var copy = self
+        copy.selectionDescription = description
+        return copy
+    }
     
     /// Sets the Completion Flag
     /// - Parameter flag: The completion flag
@@ -433,7 +445,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
             rootContent: rootContainer,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
         
         return document
@@ -443,11 +457,25 @@ public struct KeyObjectSelectionBuilder: Sendable {
     
     private func buildRootContainer() throws -> ContainerContentItem {
         var contentItems: [AnyContentItem] = []
+
+        // Document-level Key Object Description (TID 2010 Row 7, VM = 1)
+        if let selectionDescription, !selectionDescription.isEmpty {
+            let textItem = TextContentItem(
+                conceptName: CodedConcept(
+                    codeValue: "113012",
+                    codingSchemeDesignator: "DCM",
+                    codeMeaning: "Key Object Description"
+                ),
+                textValue: selectionDescription,
+                relationshipType: .contains
+            )
+            contentItems.append(AnyContentItem(textItem))
+        }
         
         // Add each key object as a reference
         for keyObject in keyObjects {
-            // Add text description if provided
-            if let description = keyObject.description {
+            // Add text description if provided on individual KeyObject
+            if selectionDescription == nil, let description = keyObject.description {
                 let textItem = TextContentItem(
                     conceptName: CodedConcept(
                         codeValue: "113012",
@@ -460,10 +488,21 @@ public struct KeyObjectSelectionBuilder: Sendable {
                 contentItems.append(AnyContentItem(textItem))
             }
             
-            // TID 2010 Rows 4–6: non-image composite objects (e.g. standalone Presentation States
-            // or SR documents) use COMPOSITE value type; images use IMAGE value type (with optional
-            // nested Softcopy Presentation State reference per PS3.3 Table C.18.4-1).
-            if keyObject.isCompositeObject {
+            // TID 2010 Rows 8–10: IMAGE, WAVEFORM, or COMPOSITE without Concept Name.
+            if keyObject.isWaveformObject {
+                let wfRef = WaveformReference(
+                    sopReference: ReferencedSOP(
+                        sopClassUID: keyObject.sopClassUID,
+                        sopInstanceUID: keyObject.sopInstanceUID
+                    )
+                )
+                let wfItem = WaveformContentItem(
+                    conceptName: nil,
+                    waveformReference: wfRef,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(wfItem))
+            } else if keyObject.isCompositeObject {
                 let compositeItem = CompositeContentItem(
                     conceptName: nil,
                     sopClassUID: keyObject.sopClassUID,
@@ -488,7 +527,7 @@ public struct KeyObjectSelectionBuilder: Sendable {
             }
         }
         
-        // Create the root container with the document title as its concept name
+        // Create the root container with TID 2010 template identification (PS3.3 A.35.4.3.1.2 / Table C.18.8-1)
         let title = documentTitle?.concept ?? CodedConcept(
             codeValue: "113000",
             codingSchemeDesignator: "DCM",
@@ -498,7 +537,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
         let rootContainer = ContainerContentItem(
             conceptName: title,
             continuityOfContent: .separate,
-            contentItems: contentItems
+            contentItems: contentItems,
+            templateIdentifier: "2010",
+            mappingResource: "DCMR"
         )
         
         return rootContainer
@@ -549,16 +590,23 @@ public struct KeyObject: Sendable, Equatable {
         self.presentationStateReference = presentationStateReference
     }
 
-    /// Whether the referenced SOP Class is a standalone composite object (Presentation State or SR)
-    /// rather than an image (TID 2010 Row 6 vs Row 4).
+    /// Whether the referenced SOP Class is a Waveform object (TID 2010 Row 9, 1.2.840.10008.5.1.4.1.1.9.*).
+    public var isWaveformObject: Bool {
+        sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.9.")
+    }
+
+    /// Whether the referenced SOP Class is a standalone composite object (Presentation State, SR,
+    /// Encapsulated Document, Raw Data, Real World Value Mapping, Registration, or RT non-image)
+    /// rather than an image or waveform (TID 2010 Row 10 vs Rows 8–9).
     public var isCompositeObject: Bool {
-        let presentationStateClasses: Set<String> = [
-            .grayscaleSoftcopyPresentationStateStorage,
-            .colorSoftcopyPresentationStateStorage,
-            .pseudoColorSoftcopyPresentationStateStorage,
-            .blendingSoftcopyPresentationStateStorage
-        ]
-        if presentationStateClasses.contains(sopClassUID) {
+        if isWaveformObject { return false }
+        if sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.11.")
+            || sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.104.")
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.66"
+            || sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.66.")
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.67"
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.481.3"
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.481.5" {
             return true
         }
         if SRDocumentType.from(sopClassUID: sopClassUID) != nil {

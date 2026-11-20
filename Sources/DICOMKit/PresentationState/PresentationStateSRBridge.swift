@@ -55,11 +55,12 @@ public enum PresentationStateSRBridge {
         imageHeight: Int = 512,
         sopInstanceUID: String? = nil,
         seriesInstanceUID: String? = nil,
+        presentationStateSeriesUID: String? = nil,
         seriesNumber: Int = 9002,
         procedureReported: CodedConcept = CodedConcept(
-            codeValue: "P5-00000",
-            codingSchemeDesignator: "SRT",
-            codeMeaning: "Diagnostic imaging procedure"
+            codeValue: "363679005",
+            codingSchemeDesignator: "SCT",
+            codeMeaning: "Imaging procedure"
         )
     ) throws -> SRDocument {
         let resolvedAnnotations: [DICOMAnnotation]
@@ -79,15 +80,23 @@ public enum PresentationStateSRBridge {
         let prReference = presentationState?.referencedSOP
         let allReferencedImages = presentationState?.referencedSeries.flatMap(\.referencedImages) ?? []
         let fallbackImage = allReferencedImages.first
+        let finalSeriesUID = seriesInstanceUID ?? UIDGenerator.generateUID().value
 
         var builder = MeasurementReportBuilder(validateOnBuild: true)
             .withSOPInstanceUID(sopInstanceUID ?? UIDGenerator.generateUID().value)
             .withStudyInstanceUID(patient.studyInstanceUID)
-            .withSeriesInstanceUID(seriesInstanceUID ?? UIDGenerator.generateUID().value)
+            .withSeriesInstanceUID(finalSeriesUID)
             .withSeriesNumber(String(seriesNumber))
             .withSeriesDescription(presentationState?.presentationDescription ?? "Presentation State Measurements")
             .withImagingMeasurementReportTitle()
             .addProcedureReported(procedureReported)
+
+        // TID 1500 Row 3 (DTID 1001 Observation Context, M): include creator person or device observer
+        if let creator = presentationState?.presentationCreatorsName?.dicomString, !creator.isEmpty {
+            builder = builder.addObserver(.person(name: creator))
+        } else {
+            builder = builder.addObserver(.device(uid: UIDGenerator.defaultRoot, name: "DICOMKit"))
+        }
 
         if let patientID = patient.patientID { builder = builder.withPatientID(patientID) }
         if let patientName = patient.patientName { builder = builder.withPatientName(patientName) }
@@ -137,8 +146,22 @@ public enum PresentationStateSRBridge {
 
             var groupContents: [MeasurementGroupContent] = []
 
-            if !annotation.measurements.isEmpty {
-                for m in annotation.measurements {
+            var effectiveMeasurements = annotation.measurements
+            if annotation.kind == .angle, annotation.points.count == 3, effectiveMeasurements.isEmpty {
+                let v1x = annotation.points[0].x - annotation.points[1].x
+                let v1y = annotation.points[0].y - annotation.points[1].y
+                let v2x = annotation.points[2].x - annotation.points[1].x
+                let v2y = annotation.points[2].y - annotation.points[1].y
+                let denom = hypot(v1x, v1y) * hypot(v2x, v2y)
+                if denom > 1e-9 {
+                    let cosTheta = max(-1.0, min(1.0, (v1x * v2x + v1y * v2y) / denom))
+                    let deg = acos(cosTheta) * 180.0 / .pi
+                    effectiveMeasurements = [.angleDegrees(deg)]
+                }
+            }
+
+            if !effectiveMeasurements.isEmpty {
+                for m in effectiveMeasurements {
                     let source: [MeasurementSource]
                     if !graphicData.isEmpty {
                         source = [
@@ -192,7 +215,48 @@ public enum PresentationStateSRBridge {
             }
         }
 
-        return try builder.build()
+        var srDoc = try builder.build()
+        let evidence = collectEvidenceReferences(
+            from: presentationState,
+            studyInstanceUID: patient.studyInstanceUID,
+            presentationStateSeriesUID: presentationStateSeriesUID,
+            fallbackSeriesUID: finalSeriesUID
+        )
+        if !evidence.isEmpty {
+            srDoc = srDoc.withEvidenceReferences(evidence)
+        }
+        return srDoc
+    }
+
+    private static func collectEvidenceReferences(
+        from presentationState: PresentationStateDocument?,
+        studyInstanceUID: String,
+        presentationStateSeriesUID: String?,
+        fallbackSeriesUID: String
+    ) -> [HierarchicalSOPReference] {
+        guard let presentationState, !studyInstanceUID.isEmpty else { return [] }
+        var refs: [HierarchicalSOPReference] = []
+        for series in presentationState.referencedSeries {
+            let sUID = series.seriesInstanceUID.isEmpty ? fallbackSeriesUID : series.seriesInstanceUID
+            for img in series.referencedImages {
+                refs.append(HierarchicalSOPReference(
+                    studyInstanceUID: studyInstanceUID,
+                    seriesInstanceUID: sUID,
+                    sopClassUID: img.sopClassUID,
+                    sopInstanceUID: img.sopInstanceUID
+                ))
+            }
+        }
+        let prSeriesUID = (presentationStateSeriesUID?.isEmpty == false)
+            ? presentationStateSeriesUID!
+            : fallbackSeriesUID
+        refs.append(HierarchicalSOPReference(
+            studyInstanceUID: studyInstanceUID,
+            seriesInstanceUID: prSeriesUID,
+            sopClassUID: presentationState.sopClassUID,
+            sopInstanceUID: presentationState.sopInstanceUID
+        ))
+        return refs
     }
 
     // MARK: - PR / Annotations -> Key Object Selection (TID 2010)
@@ -208,6 +272,7 @@ public enum PresentationStateSRBridge {
         includeStandalonePresentationStateReference: Bool = false,
         sopInstanceUID: String? = nil,
         seriesInstanceUID: String? = nil,
+        presentationStateSeriesUID: String? = nil,
         seriesNumber: Int = 9003
     ) throws -> SRDocument {
         var builder = KeyObjectSelectionBuilder(validateOnBuild: true)
@@ -228,13 +293,16 @@ public enum PresentationStateSRBridge {
 
         let prRef = presentationState.referencedSOP
         let desc = description ?? presentationState.presentationDescription ?? presentationState.presentationLabel
+        if let desc, !desc.isEmpty {
+            builder = builder.withSelectionDescription(desc)
+        }
 
         for series in presentationState.referencedSeries {
             for image in series.referencedImages {
                 builder = builder.addKeyObject(
                     sopClassUID: image.sopClassUID,
                     sopInstanceUID: image.sopInstanceUID,
-                    description: desc,
+                    description: nil,
                     frames: image.referencedFrameNumbers,
                     presentationStateReference: prRef
                 )
@@ -245,11 +313,21 @@ public enum PresentationStateSRBridge {
             builder = builder.addKeyObject(
                 sopClassUID: presentationState.sopClassUID,
                 sopInstanceUID: presentationState.sopInstanceUID,
-                description: desc
+                description: nil
             )
         }
 
-        return try builder.build()
+        var kosDoc = try builder.build()
+        let evidence = collectEvidenceReferences(
+            from: presentationState,
+            studyInstanceUID: patient.studyInstanceUID,
+            presentationStateSeriesUID: presentationStateSeriesUID,
+            fallbackSeriesUID: kosDoc.seriesInstanceUID ?? patient.studyInstanceUID
+        )
+        if !evidence.isEmpty {
+            kosDoc = kosDoc.withEvidenceReferences(evidence)
+        }
+        return kosDoc
     }
 
     // MARK: - SR -> Annotations & Presentation State References
@@ -303,9 +381,10 @@ public enum PresentationStateSRBridge {
 
                 for child in container.contentItems {
                     if let textItem = child.asText {
-                        if textItem.conceptName?.codeValue == "112039" {
+                        let codeVal = textItem.conceptName?.codeValue
+                        if codeVal == "112039" {
                             trackingID = textItem.textValue
-                        } else {
+                        } else if codeVal == "121106" || (codeVal != "C67447" && codeVal != "C2348792") {
                             textComment = textItem.textValue
                         }
                     } else if let uidItem = child.asUIDRef, uidItem.conceptName?.codeValue == "112040" {
@@ -481,6 +560,7 @@ public enum PresentationStateSRBridge {
         }
 
         let kind: DICOMAnnotationKind
+        var outputPoints = pts
         switch scoord.graphicType {
         case .point, .multipoint:
             kind = .point
@@ -491,8 +571,20 @@ public enum PresentationStateSRBridge {
         case .polyline, .polygon:
             if pts.count == 2, measurements.contains(where: { $0.concept.codeValue == "410668003" || $0.concept.codeMeaning.lowercased().contains("length") }) {
                 kind = .ruler
-            } else if pts.count == 5, pts.first == pts.last {
+            } else if pts.count == 3, measurements.contains(where: {
+                $0.concept.codeValue == "1483009" || $0.concept.codeValue == "364499001" || $0.concept.codeMeaning.lowercased().contains("angle")
+            }) {
+                kind = .angle
+            } else if pts.count == 5, pts.first == pts.last, Self.isAxisAlignedRectangle(pts) {
                 kind = .rectangle
+                let xs = pts.map(\.x)
+                let ys = pts.map(\.y)
+                if let minX = xs.min(), let maxX = xs.max(), let minY = ys.min(), let maxY = ys.max() {
+                    outputPoints = [
+                        DICOMAnnotationPoint(x: minX, y: minY),
+                        DICOMAnnotationPoint(x: maxX, y: maxY)
+                    ]
+                }
             } else {
                 kind = .polyline
             }
@@ -503,7 +595,7 @@ public enum PresentationStateSRBridge {
         return DICOMAnnotation(
             kind: kind,
             coordinateSpace: targetSpace,
-            points: pts,
+            points: outputPoints,
             text: label,
             referencedSOPClassUID: selectedImage?.sopReference.sopClassUID,
             referencedSOPInstanceUID: selectedImage?.sopReference.sopInstanceUID,
@@ -512,5 +604,19 @@ public enum PresentationStateSRBridge {
             trackingIdentifier: trackingID,
             trackingUID: trackingUID
         )
+    }
+
+    private static func isAxisAlignedRectangle(_ pts: [DICOMAnnotationPoint]) -> Bool {
+        guard pts.count == 5 else { return false }
+        let eps = 1e-4
+        let horizontalFirst = abs(pts[0].y - pts[1].y) <= eps
+            && abs(pts[1].x - pts[2].x) <= eps
+            && abs(pts[2].y - pts[3].y) <= eps
+            && abs(pts[3].x - pts[0].x) <= eps
+        let verticalFirst = abs(pts[0].x - pts[1].x) <= eps
+            && abs(pts[1].y - pts[2].y) <= eps
+            && abs(pts[2].x - pts[3].x) <= eps
+            && abs(pts[3].y - pts[0].y) <= eps
+        return horizontalFirst || verticalFirst
     }
 }

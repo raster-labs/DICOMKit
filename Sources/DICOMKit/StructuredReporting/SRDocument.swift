@@ -69,6 +69,9 @@ public struct SRDocument: Sendable, Equatable {
     /// Study ID (0020,0010), Type 2 in the General Study Module (PS3.3 2026a Table C.7-3)
     public let studyID: String?
 
+    /// Study Description (0008,1030), Type 3 in the General Study Module (PS3.3 2026a Table C.7-3)
+    public let studyDescription: String?
+
     // MARK: - Equipment Information
 
     /// Manufacturer (0008,0070), Type 2 in the General Equipment Module (PS3.3 2026a
@@ -85,6 +88,10 @@ public struct SRDocument: Sendable, Equatable {
     
     /// Modality (0008,0060)
     public let modality: String?
+
+    /// Series Description (0008,103E), Type 3 in SR Document Series / Key Object Document Series
+    /// (PS3.3 2026a Tables C.17-1 and C.17.6-1)
+    public let seriesDescription: String?
     
     // MARK: - Document Header
     
@@ -111,6 +118,15 @@ public struct SRDocument: Sendable, Equatable {
     /// Under PS3.5 2026a 7.4.2 a Type 1C element "shall not be included" when its
     /// condition is not met, so it is empty unless the document is VERIFIED.
     public let verifyingObservers: [VerifyingObserver]
+
+    /// Current Requested Procedure Evidence Sequence (0040,A375): Type 1 in the Key Object
+    /// Document Module (PS3.3 2026a Table C.17.6-2) and Type 1C in the SR Document General
+    /// Module (Table C.17-2, Hierarchical SOP Instance Reference Macro Table C.17-3).
+    public let evidenceReferences: [HierarchicalSOPReference]
+
+    /// Predecessor Documents Sequence (0040,A360): Type 1C in the SR Document General Module
+    /// (PS3.3 2026a Table C.17-2) when this document supersedes or includes content from prior reports.
+    public let predecessorDocuments: [HierarchicalSOPReference]
     
     // MARK: - Content Tree
     
@@ -185,13 +201,18 @@ public struct SRDocument: Sendable, Equatable {
         patientSex: String? = nil,
         referringPhysicianName: String? = nil,
         studyID: String? = nil,
-        manufacturer: String? = nil
+        manufacturer: String? = nil,
+        studyDescription: String? = nil,
+        seriesDescription: String? = nil,
+        evidenceReferences: [HierarchicalSOPReference] = [],
+        predecessorDocuments: [HierarchicalSOPReference] = []
     ) {
         self.sopClassUID = sopClassUID
         self.patientBirthDate = patientBirthDate
         self.patientSex = patientSex
         self.referringPhysicianName = referringPhysicianName
         self.studyID = studyID
+        self.studyDescription = studyDescription
         self.manufacturer = manufacturer
         self.sopInstanceUID = sopInstanceUID
         self.patientID = patientID
@@ -203,6 +224,7 @@ public struct SRDocument: Sendable, Equatable {
         self.seriesInstanceUID = seriesInstanceUID
         self.seriesNumber = seriesNumber
         self.modality = modality
+        self.seriesDescription = seriesDescription
         self.contentDate = contentDate
         self.contentTime = contentTime
         self.instanceNumber = instanceNumber
@@ -210,6 +232,8 @@ public struct SRDocument: Sendable, Equatable {
         self.verificationFlag = verificationFlag
         self.preliminaryFlag = preliminaryFlag
         self.verifyingObservers = verifyingObservers
+        self.evidenceReferences = evidenceReferences
+        self.predecessorDocuments = predecessorDocuments
         self.documentTitle = documentTitle
         self.rootContent = rootContent
     }
@@ -223,6 +247,27 @@ public struct SRDocument: Sendable, Equatable {
     /// - Returns: The same document with `verifyingObservers` replaced
     public func withVerifyingObservers(_ observers: [VerifyingObserver]) -> SRDocument {
         replacing(verifyingObservers: observers)
+    }
+
+    /// A copy of this document with the given Current Requested Procedure Evidence Sequence (0040,A375) references.
+    public func withEvidenceReferences(_ references: [HierarchicalSOPReference]) -> SRDocument {
+        replacing(evidenceReferences: references)
+    }
+
+    /// A copy of this document with the given Predecessor Documents Sequence (0040,A360) references.
+    public func withPredecessorDocuments(_ predecessors: [HierarchicalSOPReference]) -> SRDocument {
+        replacing(predecessorDocuments: predecessors)
+    }
+
+    /// A copy of this document with updated Study Description (0008,1030) and/or Series Description (0008,103E).
+    public func withDescriptions(
+        studyDescription: String? = nil,
+        seriesDescription: String? = nil
+    ) -> SRDocument {
+        replacing(
+            studyDescription: studyDescription ?? self.studyDescription,
+            seriesDescription: seriesDescription ?? self.seriesDescription
+        )
     }
 
     /// A copy of this document with the given Type 2 Patient (PS3.3 2026a Table C.7-1),
@@ -255,7 +300,11 @@ public struct SRDocument: Sendable, Equatable {
             patientSex: patientSex ?? self.patientSex,
             referringPhysicianName: referringPhysicianName ?? self.referringPhysicianName,
             studyID: studyID ?? self.studyID,
-            manufacturer: manufacturer ?? self.manufacturer)
+            manufacturer: manufacturer ?? self.manufacturer,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription,
+            evidenceReferences: evidenceReferences,
+            predecessorDocuments: predecessorDocuments)
     }
 
     /// A copy of this document with the given root CONTAINER (same title)
@@ -265,7 +314,11 @@ public struct SRDocument: Sendable, Equatable {
 
     private func replacing(
         verifyingObservers newObservers: [VerifyingObserver]? = nil,
-        rootContent newRoot: ContainerContentItem? = nil
+        rootContent newRoot: ContainerContentItem? = nil,
+        studyDescription newStudyDescription: String? = nil,
+        seriesDescription newSeriesDescription: String? = nil,
+        evidenceReferences newEvidence: [HierarchicalSOPReference]? = nil,
+        predecessorDocuments newPredecessors: [HierarchicalSOPReference]? = nil
     ) -> SRDocument {
         SRDocument(
             sopClassUID: sopClassUID, sopInstanceUID: sopInstanceUID,
@@ -279,7 +332,11 @@ public struct SRDocument: Sendable, Equatable {
             documentTitle: documentTitle, rootContent: newRoot ?? rootContent,
             patientBirthDate: patientBirthDate, patientSex: patientSex,
             referringPhysicianName: referringPhysicianName, studyID: studyID,
-            manufacturer: manufacturer)
+            manufacturer: manufacturer,
+            studyDescription: newStudyDescription ?? studyDescription,
+            seriesDescription: newSeriesDescription ?? seriesDescription,
+            evidenceReferences: newEvidence ?? evidenceReferences,
+            predecessorDocuments: newPredecessors ?? predecessorDocuments)
     }
 
     // MARK: - Content Tree Helpers
@@ -431,6 +488,38 @@ public enum PreliminaryFlag: String, Sendable, Equatable, Hashable {
     
     /// Document is final
     case final = "FINAL"
+}
+
+/// Hierarchical SOP Instance Reference (Study -> Series -> SOP Instance)
+///
+/// Models one referenced SOP Instance within the Hierarchical SOP Instance Reference Macro
+/// (PS3.3 2026a Table C.17-3), used by `CurrentRequestedProcedureEvidenceSequence` (0040,A375),
+/// `PertinentOtherEvidenceSequence` (0040,A385), `PredecessorDocumentsSequence` (0040,A360),
+/// and `IdenticalDocumentsSequence` (0040,A525).
+public struct HierarchicalSOPReference: Sendable, Equatable, Hashable {
+    /// Study Instance UID (0020,000D), Type 1
+    public let studyInstanceUID: String
+
+    /// Series Instance UID (0020,000E), Type 1
+    public let seriesInstanceUID: String
+
+    /// Referenced SOP Class UID (0008,1150), Type 1
+    public let sopClassUID: String
+
+    /// Referenced SOP Instance UID (0008,1155), Type 1
+    public let sopInstanceUID: String
+
+    public init(
+        studyInstanceUID: String,
+        seriesInstanceUID: String,
+        sopClassUID: String,
+        sopInstanceUID: String
+    ) {
+        self.studyInstanceUID = studyInstanceUID
+        self.seriesInstanceUID = seriesInstanceUID
+        self.sopClassUID = sopClassUID
+        self.sopInstanceUID = sopInstanceUID
+    }
 }
 
 // MARK: - CustomStringConvertible

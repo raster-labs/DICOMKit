@@ -2699,6 +2699,43 @@ public enum DICOMPrintService {
         return uid
     }
 
+    /// The SOP Instance UID assigned to a newly created Print instance by an
+    /// N-CREATE response.
+    ///
+    /// PS3.7 Table 10.1-6 places the assigned UID in the command set's
+    /// Affected SOP Instance UID (0000,1000). Some fo-dicom Print SCPs
+    /// construct `DicomNCreateResponse(request, Success)` without copying the
+    /// generated UID back into the command set when the SCU omitted (0000,1000)
+    /// in the request; their `FilmSession`, `FilmBox`, and `PresentationLut`
+    /// data sets return the generated UID in SOP Instance UID (0008,0018) of
+    /// the response data set instead.
+    ///
+    /// `internal` (not private) for unit-test access.
+    static func createdSOPInstanceUID(
+        response: NCreateResponse,
+        dataSet: Data?,
+        explicitVR: Bool
+    ) -> String {
+        let commandUID = response.affectedSOPInstanceUID
+            .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+        if !commandUID.isEmpty {
+            return commandUID
+        }
+        guard let dataSet, !dataSet.isEmpty else { return "" }
+        if let attributes = try? PrintDatasetReader(explicitVR: explicitVR).parse(dataSet),
+           let uid = attributes.string(for: .sopInstanceUID)?
+               .trimmingCharacters(in: CharacterSet(charactersIn: "\0 ")),
+           !uid.isEmpty {
+            return uid
+        }
+        if let uid = extractStringValue(
+            from: dataSet, group: 0x0008, element: 0x0018, explicitVR: explicitVR),
+           !uid.isEmpty {
+            return uid
+        }
+        return ""
+    }
+
     /// Builds a human-readable detail string from a failure response's
     /// Error Comment (0000,0902) and Error ID (0000,0903), when the SCP
     /// supplied them. Returns nil when neither is present.
@@ -2879,8 +2916,13 @@ public enum DICOMPrintService {
                         throw DICOMNetworkError.printOperationFailed(response.status, detail: errorDetail(from: response.commandSet))
                     }
                     
-                    // Extract assigned SOP Instance UID
-                    let filmSessionUID = response.affectedSOPInstanceUID
+                    // Extract assigned SOP Instance UID (command set (0000,1000), or
+                    // data set (0008,0018) for fo-dicom Print SCPs).
+                    let filmSessionUID = createdSOPInstanceUID(
+                        response: response,
+                        dataSet: message.dataSet,
+                        explicitVR: explicitVR
+                    )
                     
                     try await association.release()
                     return filmSessionUID
@@ -3071,8 +3113,13 @@ public enum DICOMPrintService {
                         throw DICOMNetworkError.printOperationFailed(response.status, detail: errorDetail(from: response.commandSet))
                     }
                     
-                    // Extract assigned Film Box SOP Instance UID
-                    let filmBoxUID = response.affectedSOPInstanceUID
+                    // Extract assigned Film Box SOP Instance UID (command set (0000,1000),
+                    // or data set (0008,0018) for fo-dicom Print SCPs).
+                    let filmBoxUID = createdSOPInstanceUID(
+                        response: response,
+                        dataSet: message.dataSet,
+                        explicitVR: explicitVR
+                    )
                     
                     // Parse Image Box UIDs from response data set
                     var imageBoxUIDs: [String] = []
@@ -3119,6 +3166,16 @@ public enum DICOMPrintService {
                                                explicitVR: Bool = true) -> [String] {
         guard data.count >= 8 else { return [] }
 
+        if let attributes = try? PrintDatasetReader(explicitVR: explicitVR).parse(data) {
+            let parsed = attributes.items(for: sequenceTag).compactMap { item in
+                item.string(for: .referencedSOPInstanceUID)?
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "\0 "))
+            }.filter { !$0.isEmpty }
+            if !parsed.isEmpty {
+                return parsed
+            }
+        }
+
         return data.withUnsafeBytes { buffer -> [String] in
             let count = buffer.count
 
@@ -3163,8 +3220,14 @@ public enum DICOMPrintService {
             while scan + 8 <= windowEnd {
                 let group = loadU16(scan)
                 let element = loadU16(scan + 2)
-                // Stop at a Sequence Delimitation Item when length was undefined.
-                if group == 0xFFFE && element == 0xE00D { break }
+                // Stop at a Sequence Delimitation Item (FFFE,E0DD) when length was undefined.
+                // Item Delimitation Items (FFFE,E00D) and Item headers (FFFE,E000) merely
+                // separate individual items within the sequence (PS3.5 Table 7.5-3).
+                if group == 0xFFFE && element == 0xE0DD { break }
+                if group == 0xFFFE && (element == 0xE000 || element == 0xE00D) {
+                    scan += 8
+                    continue
+                }
                 if group == 0x0008 && element == 0x1155 {
                     // Explicit VR UI: 16-bit length at +6, value at +8.
                     // Implicit VR: 32-bit length at +4, value at +8.
@@ -3242,7 +3305,11 @@ public enum DICOMPrintService {
             // Abort/cleanup handled by the workflow catch (P2-3).
             throw DICOMNetworkError.printOperationFailed(rsp.status, detail: errorDetail(from: rsp.commandSet))
         }
-        let uid = rsp.affectedSOPInstanceUID
+        let uid = createdSOPInstanceUID(
+            response: rsp,
+            dataSet: response.dataSet,
+            explicitVR: explicitVR
+        )
         guard !uid.isEmpty else {
             // Abort/cleanup handled by the workflow catch (P2-3).
             throw DICOMNetworkError.unexpectedResponse
@@ -4166,7 +4233,11 @@ public enum DICOMPrintService {
                 // Abort/cleanup handled by the workflow catch (P2-3).
                 throw DICOMNetworkError.printOperationFailed(sessionRsp.status, detail: errorDetail(from: sessionRsp.commandSet))
             }
-            let filmSessionUID = sessionRsp.affectedSOPInstanceUID
+            let filmSessionUID = createdSOPInstanceUID(
+                response: sessionRsp,
+                dataSet: sessionResponse.dataSet,
+                explicitVR: explicitVR
+            )
             sessionCleanup = (negotiated, filmSessionUID, sessionContext)
 
             // ── Step 1b: N-CREATE Presentation LUT (optional) ─────────────
@@ -4331,7 +4402,11 @@ public enum DICOMPrintService {
                     throw DICOMNetworkError.printOperationFailed(filmBoxRsp.status, detail: errorDetail(from: filmBoxRsp.commandSet))
                 }
                 
-                let filmBoxUID = filmBoxRsp.affectedSOPInstanceUID
+                let filmBoxUID = createdSOPInstanceUID(
+                    response: filmBoxRsp,
+                    dataSet: filmBoxResponse.dataSet,
+                    explicitVR: explicitVR
+                )
                 allFilmBoxUIDs.append(filmBoxUID)
                 
                 // Parse Image Box UIDs from response data set

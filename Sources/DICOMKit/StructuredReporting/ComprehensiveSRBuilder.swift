@@ -911,7 +911,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addFindings(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.findings) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.findings)
         }
     }
     
@@ -920,7 +920,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addImpression(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.impression) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.impression)
         }
     }
     
@@ -929,7 +929,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addClinicalHistory(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.clinicalHistory) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.clinicalHistory)
         }
     }
     
@@ -938,7 +938,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addConclusion(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.conclusion) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.conclusion)
         }
     }
     
@@ -947,7 +947,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addRecommendation(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.recommendation) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.recommendation)
         }
     }
     
@@ -956,7 +956,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addProcedureDescription(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.procedureDescription) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.procedureDescription)
         }
     }
     
@@ -965,7 +965,7 @@ public struct ComprehensiveSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addComparison(_ text: String) -> ComprehensiveSRBuilder {
         addSection(CodedConcept.comparison) {
-            ComprehensiveSectionContent.text(text)
+            ComprehensiveSectionContent.text(text, conceptName: CodedConcept.comparison)
         }
     }
     
@@ -1033,7 +1033,9 @@ public struct ComprehensiveSRBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
     }
     

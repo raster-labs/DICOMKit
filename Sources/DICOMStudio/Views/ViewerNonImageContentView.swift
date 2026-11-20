@@ -202,11 +202,18 @@ struct StructuredReportNarrativeView: View {
 
     private var metadata: some View {
         VStack(alignment: .leading, spacing: 2) {
+            if let flag = document.preliminaryFlag {
+                label("Status", flag.rawValue)
+            }
             if let flag = document.completionFlag {
                 label("Completion", flag.rawValue)
             }
             if let flag = document.verificationFlag {
                 label("Verification", flag.rawValue)
+            }
+            ForEach(Array(document.verifyingObservers.enumerated()), id: \.offset) { _, observer in
+                let verifier = DICOMValueParser.formatPersonName(observer.name)
+                label("Verified by", "\(verifier) (\(observer.organization))")
             }
             if let date = document.contentDate {
                 label("Content date", DICOMValueParser.formatDate(date))
@@ -236,22 +243,33 @@ struct StructuredReportNarrativeView: View {
 
     var rows: [Row] {
         var result: [Row] = []
-        append(container: document.rootContent, depth: 0, into: &result)
+        append(items: document.rootContent.contentItems, depth: 0, into: &result)
         return result
     }
 
-    private func append(container: ContainerContentItem, depth: Int, into rows: inout [Row]) {
-        for item in container.contentItems {
-            let name = item.conceptName?.codeMeaning
+    private func append(items: [AnyContentItem], depth: Int, into rows: inout [Row]) {
+        for item in items {
+            let conceptLabel = item.conceptName?.codeMeaning
             if let nested = item.asContainer {
-                rows.append(Row(depth: depth, name: name ?? "Section",
+                rows.append(Row(depth: depth, name: conceptLabel ?? "Section",
                                 value: nil, isContainer: true))
-                append(container: nested, depth: depth + 1, into: &rows)
+                append(items: nested.contentItems, depth: depth + 1, into: &rows)
             } else {
+                let rowName: String?
+                if let conceptLabel {
+                    rowName = "\(conceptLabel):"
+                } else if depth > 0, let rel = item.relationshipType, rel != .contains {
+                    rowName = "\(rel.rawValue.lowercased()):"
+                } else {
+                    rowName = nil
+                }
                 rows.append(Row(depth: depth,
-                                name: name.map { "\($0):" },
+                                name: rowName,
                                 value: Self.value(of: item),
                                 isContainer: false))
+                if !item.contentItems.isEmpty {
+                    append(items: item.contentItems, depth: depth + 1, into: &rows)
+                }
             }
         }
     }
@@ -259,7 +277,7 @@ struct StructuredReportNarrativeView: View {
     /// The item's value as a reader would say it aloud.
     ///
     /// One branch per PS3.3 Table C.17.3-7 Value Type other than CONTAINER (which
-    /// `append(container:)` walks): TEXT, CODE, NUM, DATE, TIME, DATETIME, PNAME,
+    /// `append(items:)` walks): TEXT, CODE, NUM, DATE, TIME, DATETIME, PNAME,
     /// IMAGE, WAVEFORM, SCOORD / SCOORD3D / TCOORD, COMPOSITE, UIDREF, TABLE.
     static func value(of item: AnyContentItem) -> String? {
         if let text = item.asText { return text.textValue }
@@ -286,10 +304,18 @@ struct StructuredReportNarrativeView: View {
             if let pr = image.imageReference.presentationStateReference {
                 return "(referenced image \(image.imageReference.sopReference.sopInstanceUID), presentation state \(pr.sopInstanceUID))"
             }
-            return "(referenced image)"
+            return "(referenced image \(image.imageReference.sopReference.sopInstanceUID))"
         }
         if item.asWaveform != nil { return "(referenced waveform)" }
-        if item.isCoordinate { return "(coordinates)" }
+        if item.isCoordinate {
+            if let sc = item.asSpatialCoordinates {
+                return "(\(sc.graphicType.rawValue.lowercased()) coordinates, \(sc.pointCount) pt)"
+            }
+            if let sc3 = item.asSpatialCoordinates3D {
+                return "(\(sc3.graphicType.rawValue.lowercased()) 3D coordinates, \(sc3.pointCount) pt)"
+            }
+            return "(coordinates)"
+        }
         if item.asComposite != nil { return "(referenced object)" }
         if let uid = item.asUIDRef { return uid.uidValue }
         if let table = item.asTable {

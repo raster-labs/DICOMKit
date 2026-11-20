@@ -376,6 +376,10 @@ public struct ImageViewerView: View {
                             }
                         }
                         Divider()
+                        Button("Write Structured Report…") {
+                            viewModel.openSRComposer()
+                        }
+                        Divider()
                         Button(viewModel.showImageAnnotations
                                ? "Hide Image Annotations" : "Show Image Annotations") {
                             viewModel.showImageAnnotations.toggle()
@@ -631,6 +635,9 @@ public struct ImageViewerView: View {
         // open and close the same way.
         .sheet(isPresented: $viewModel.showMetadataOverlay) {
             ImageMetadataPanelView(viewModel: viewModel)
+        }
+        .sheet(isPresented: $viewModel.isSRComposerPresented) {
+            ViewerStructuredReportComposerView(viewModel: viewModel)
         }
         // The "A saved view exists for this image" sheet is HELD — no longer
         // wired, so it cannot appear over the picture. Opening an image with
@@ -1523,12 +1530,22 @@ public struct ImageViewerView: View {
             }
         }
 
-        // Saved views — the default view and whatever the reader has stored for
-        // the image on screen. Placed beside the series controls because it is
-        // navigation of a kind: which of several readings of this image to show.
+        // Saved views (Presentation States, Series 9001 — PR) and clinical
+        // Structured Report authoring (Series 9002 — SR), kept as distinct
+        // controls because PR is a display state and SR is a clinical document.
         if viewModel.dicomFile != nil {
             ToolbarItem(placement: .automatic) {
                 SavedViewPickerView(viewModel: viewModel)
+            }
+            ToolbarItem(placement: .automatic) {
+                Button {
+                    viewModel.openSRComposer()
+                } label: {
+                    Label("Report…", systemImage: "doc.badge.plus")
+                }
+                .accessibilityLabel("Write Structured Report")
+                .help("Write a clinical DICOM Structured Report (History, Findings, "
+                      + "Diagnosis/Impression, Measurements) saved into Series 9002 (SR)")
             }
         }
 
