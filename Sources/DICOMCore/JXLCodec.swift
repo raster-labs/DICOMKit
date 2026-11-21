@@ -1357,6 +1357,9 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             case .success(let stream):
                 return stream
             case .failure(let failure):
+                if failure.code == .limitExceeded {
+                    throw DICOMError.limitExceeded("SwiftJXL header inspection exceeded resource limits")
+                }
                 throw DICOMError.parsingFailed("JPEG XL header validation failed (\(failure.code), \(failure.operand1))")
             }
         }
@@ -1536,6 +1539,9 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             case .success(let stream):
                 return stream
             case .failure(let failure):
+                if failure.code == .limitExceeded {
+                    throw DICOMError.limitExceeded("SwiftJXL header inspection exceeded resource limits")
+                }
                 throw DICOMError.parsingFailed("JPEG XL header validation failed (\(failure.code), \(failure.operand1))")
             }
         }
@@ -2070,6 +2076,10 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             return try reverse(jxlBytes)
         } catch let error as CancellationError {
             throw error
+        } catch let error as DICOMError {
+            throw error
+        } catch let error as SwiftJXL.CodecError where error.category == .resourceLimitExceeded {
+            throw DICOMError.limitExceeded("SwiftJXL JPEG reconstruction exceeded resource limits: \(error.message)")
         } catch {
             // Retry once with a single trailing DICOM pad byte removed — the SwiftJXL
             // container parser is strict about trailing bytes (mirrors `decodeFrame`).
@@ -2078,6 +2088,10 @@ public struct JXLCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                     return try reverse(Data(jxlBytes.dropLast()))
                 } catch let cancel as CancellationError {
                     throw cancel
+                } catch let error as DICOMError {
+                    throw error
+                } catch let error as SwiftJXL.CodecError where error.category == .resourceLimitExceeded {
+                    throw DICOMError.limitExceeded("SwiftJXL JPEG reconstruction exceeded resource limits: \(error.message)")
                 } catch {
                     throw DICOMError.parsingFailed("SwiftJXL JPEG reconstruction failed: \(error)")
                 }

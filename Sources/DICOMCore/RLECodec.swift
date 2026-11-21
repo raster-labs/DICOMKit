@@ -687,7 +687,8 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
                 }
                 return
             } catch let error as SwiftRLE.CodecError
-                where error.category == .malformedInput || error.category == .resourceLimitExceeded {
+                where error.category == .malformedInput ||
+                    (error.category == .resourceLimitExceeded && !error.message.localizedCaseInsensitiveContains("deadline")) {
                 // Legacy RLE streams in the wild (and conformance unit tests) occasionally emit
                 // PackBits runs that cross row boundaries or carry trailing 0x80 NOP padding;
                 // PS3.5 G.3.2 permits linear segment decoding. Fall through to SwiftRLE.PackBitsDecoder per segment.
@@ -921,7 +922,7 @@ public struct RLECodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             maximumICCBytes: defaults.maximumICCBytes,
             maximumNestingDepth: defaults.maximumNestingDepth,
             maximumWorkers: workers,
-            deadlineSeconds: 30.0,
+            deadlineSeconds: defaults.deadlineSeconds,
             maximumMemoryBytes: maxMemory
         )) ?? defaults
     }

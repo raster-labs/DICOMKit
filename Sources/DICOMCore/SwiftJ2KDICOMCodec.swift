@@ -896,6 +896,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
     struct PreparedEncode: Sendable {
         let image: Image
         let encoderConfiguration: EncoderConfiguration
+        let encodeResourceLimits: ResourceLimits
         let transferSyntaxUID: String
         let isLossless: Bool
         let requestedBackend: CodecBackend?
@@ -1622,17 +1623,23 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         let swiftDescriptor: ImageDescriptor
         let image: Image
         let encoderConfiguration: EncoderConfiguration
+        let encodeLimits = Self.makeEncodeResourceLimits(
+            base: options.resourceLimits,
+            pixels: geometry.pixels,
+            frameBytes: geometry.frameBytes,
+            samplesPerPixel: descriptor.samplesPerPixel
+        )
         do {
             swiftDescriptor = try Self.makeSwiftImageDescriptor(
                 from: descriptor,
-                limits: options.resourceLimits
+                limits: encodeLimits
             )
             image = try Self.makeInputImage(
                 frameData: frameData,
                 descriptor: descriptor,
                 swiftDescriptor: swiftDescriptor,
                 frameBytes: geometry.frameBytes,
-                limits: options.resourceLimits
+                limits: encodeLimits
             )
 
             let isLossless = intent.isLossless
@@ -1683,10 +1690,43 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         return PreparedEncode(
             image: image,
             encoderConfiguration: encoderConfiguration,
+            encodeResourceLimits: encodeLimits,
             transferSyntaxUID: targetUID,
             isLossless: intent.isLossless,
             requestedBackend: effectiveBackend
         )
+    }
+
+    private static func makeEncodeResourceLimits(
+        base: ResourceLimits,
+        pixels: Int,
+        frameBytes: Int,
+        samplesPerPixel: Int
+    ) -> ResourceLimits {
+        let (frame2, f2Ov) = frameBytes.multipliedReportingOverflow(by: 2)
+        let maxCompressed = max(base.maximumCompressedBytes, f2Ov ? (512 << 20) : max(256 << 20, frame2))
+        let maxDecoded = max(base.maximumDecodedBytes, frameBytes)
+        let (samples, sOv) = pixels.multipliedReportingOverflow(by: max(1, samplesPerPixel))
+        let (coeffBytes, cOv) = samples.multipliedReportingOverflow(by: 8)
+        let (wsNeeded, wOv) = coeffBytes.addingReportingOverflow((f2Ov ? (256 << 20) : frame2) + (64 << 20))
+        let maxWorkspace = max(base.maximumWorkspaceBytes, (sOv || cOv || wOv) ? (4 << 30) : wsNeeded)
+        let (memSum1, mOv1) = maxWorkspace.addingReportingOverflow(maxCompressed)
+        let (memSum2, mOv2) = memSum1.addingReportingOverflow(maxDecoded + (64 << 20))
+        let maxMemory = max(base.maximumMemoryBytes, (mOv1 || mOv2) ? (8 << 30) : memSum2)
+        return (try? ResourceLimits(
+            maximumCompressedBytes: maxCompressed,
+            maximumDecodedBytes: maxDecoded,
+            maximumWorkspaceBytes: maxWorkspace,
+            maximumPixels: max(base.maximumPixels, pixels),
+            maximumDimension: base.maximumDimension,
+            maximumFrames: base.maximumFrames,
+            maximumMetadataBytes: base.maximumMetadataBytes,
+            maximumICCBytes: base.maximumICCBytes,
+            maximumNestingDepth: base.maximumNestingDepth,
+            maximumWorkers: base.maximumWorkers,
+            deadlineSeconds: base.deadlineSeconds,
+            maximumMemoryBytes: maxMemory
+        )) ?? base
     }
 
     private static func executeEncode(
@@ -1696,7 +1736,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         let encoder = try Encoder(configuration: prepared.encoderConfiguration)
         let execution = resolveExecution(for: prepared.requestedBackend)
         let encodeOptions = EncodeOptions(
-            resourceLimits: options.resourceLimits,
+            resourceLimits: prepared.encodeResourceLimits,
             executionPolicy: execution.policy,
             acceleratedEnginePreference: execution.enginePreference,
             copyPolicy: .requireSharedStorage,
@@ -1712,7 +1752,7 @@ public struct SwiftJ2KDICOMCodec: ImageCodec, ImageEncoder, DecodeBackendConfigu
         let encoder = try Encoder(configuration: prepared.encoderConfiguration)
         let execution = resolveExecution(for: prepared.requestedBackend)
         let encodeOptions = EncodeOptions(
-            resourceLimits: options.resourceLimits,
+            resourceLimits: prepared.encodeResourceLimits,
             executionPolicy: execution.policy,
             acceleratedEnginePreference: execution.enginePreference,
             copyPolicy: .requireSharedStorage,

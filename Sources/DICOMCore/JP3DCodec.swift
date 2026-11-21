@@ -414,20 +414,20 @@ public final class JP3DCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurabl
         pixelCount: Int = 1
     ) -> ResourceLimits {
         let base = resourceLimits
-        let neededDecoded = max(base.maximumDecodedBytes, byteCount * 2)
-        let neededWorkspace = max(base.maximumWorkspaceBytes, byteCount * 4)
-        let neededMemory = max(base.maximumMemoryBytes, neededDecoded + neededWorkspace)
-        let neededFrames = max(base.maximumFrames, max(1, frameCount))
-        let neededPixels = max(base.maximumPixels, max(1, pixelCount))
-        if neededDecoded == base.maximumDecodedBytes
-            && neededWorkspace == base.maximumWorkspaceBytes
-            && neededMemory == base.maximumMemoryBytes
-            && neededFrames == base.maximumFrames
-            && neededPixels == base.maximumPixels {
+        guard base == .default else {
             return base
         }
+        let (bc2, ov2) = byteCount.multipliedReportingOverflow(by: 2)
+        let (bc16, ov16) = byteCount.multipliedReportingOverflow(by: 16)
+        let neededCompressed = max(base.maximumCompressedBytes, ov2 ? (1 << 30) : bc2)
+        let neededDecoded = max(base.maximumDecodedBytes, ov2 ? (2 << 30) : bc2)
+        let neededWorkspace = max(max(base.maximumWorkspaceBytes, 2 << 30), ov16 ? (4 << 30) : bc16)
+        let (sumMem, ovMem) = neededDecoded.addingReportingOverflow(neededWorkspace)
+        let neededMemory = max(max(base.maximumMemoryBytes, 4 << 30), ovMem ? (8 << 30) : (sumMem + neededCompressed))
+        let neededFrames = max(max(base.maximumFrames, 16_384), max(1, frameCount))
+        let neededPixels = max(max(base.maximumPixels, 256_000_000), max(1, pixelCount))
         return (try? ResourceLimits(
-            maximumCompressedBytes: max(base.maximumCompressedBytes, byteCount * 2),
+            maximumCompressedBytes: neededCompressed,
             maximumDecodedBytes: neededDecoded,
             maximumWorkspaceBytes: neededWorkspace,
             maximumPixels: neededPixels,

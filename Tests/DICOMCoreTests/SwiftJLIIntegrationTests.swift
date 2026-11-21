@@ -437,4 +437,35 @@ struct SwiftJLIIntegrationTests {
         }
         #expect(decodedLogical == [-2048, -1, 0, 2047])
     }
+
+    @Test("JLICodec maps CompressionConfiguration.speed (.fast, .balanced, .optimal) and SwiftJ2KProviderOptions budgets cover 64M-pixel workspace")
+    func speedPresetsAndProviderWorkspaceBudgets() throws {
+        let encoder = JLICodec(encodingTransferSyntaxUID: TransferSyntax.jpegBaseline.uid)
+        let decoder = JLICodec(decodingSyntax: .baseline)
+        let desc = PixelDataDescriptor(
+            rows: 32,
+            columns: 32,
+            numberOfFrames: 1,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let raw = Data((0..<(32 * 32)).map { UInt8((($0 * 73) ^ ($0 >> 3)) & 0xFF) })
+
+        for speed in [CompressionSpeed.fast, .balanced, .optimal] {
+            let cfg = CompressionConfiguration(quality: .high, speed: speed, preferLossless: false)
+            let stream = try encoder.encodeFrame(raw, descriptor: desc, frameIndex: 0, configuration: cfg)
+            let decoded = try decoder.decodeFrame(stream, descriptor: desc, frameIndex: 0)
+            #expect(decoded.count == raw.count)
+        }
+
+        // Verify SwiftJ2KProviderOptions default workspace and memory budgets cover 64M-pixel 3-component wavelet planes
+        let j2kLimits = SwiftJ2KProviderOptions.default.resourceLimits
+        #expect(j2kLimits.deadlineSeconds == 120.0)
+        #expect(j2kLimits.maximumWorkspaceBytes >= (2 << 30))
+        #expect(j2kLimits.maximumMemoryBytes >= (4 << 30))
+    }
 }

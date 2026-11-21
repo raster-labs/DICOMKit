@@ -607,7 +607,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             maximumPixels: maxPixels,
             maximumDimension: maxDim,
             maximumWorkers: workers,
-            deadlineSeconds: 30.0,
+            deadlineSeconds: SwiftJLI.ResourceLimits.default.deadlineSeconds,
             maximumMemoryBytes: Int.max
         )
     }
@@ -1210,7 +1210,7 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
             maximumWorkers: workers,
-            deadlineSeconds: 30.0,
+            deadlineSeconds: SwiftJLI.ResourceLimits.default.deadlineSeconds,
             maximumMemoryBytes: Int.max
         )
     }
@@ -1414,6 +1414,8 @@ public struct JLICodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCodec
             distance: nil,
             chromaSubsampling: descriptor.samplesPerPixel == 3 ? .yuv422 : .yuv444,
             progressiveMode: .sequential,
+            optimiseHuffman: configuration.speed != .fast,
+            adaptiveQuantisation: configuration.speed == .optimal,
             colourSpace: .yCbCr,
             sourceColourSpace: isPreconvertedYBR ? .yCbCr : .fromDescriptor
         )

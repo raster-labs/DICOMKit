@@ -971,7 +971,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             maximumWorkspaceBytes: maxWorkspace,
             maximumPixels: maxPixels,
             maximumWorkers: workers,
-            deadlineSeconds: 30.0,
+            deadlineSeconds: SwiftJLS.ResourceLimits.default.deadlineSeconds,
             maximumMemoryBytes: Int.max
         )
     }
@@ -1008,11 +1008,24 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         let actualDescriptor = info.descriptor
         // Preserve the intermediate sample-plane budget check during header inspection,
         // before allocating samples. Descriptor validation above bounds dimensions.
+        // When `decodingLimits.maximumDecodedBytes` is at least the default 256 MiB ceiling,
+        // scale the plane budget to the allowed pixel/sample ceiling so valid large RGB or
+        // monochrome frames within the 256 MiB decoded-byte budget are not rejected by the
+        // 8-byte `Int.stride` multiplier, while still honoring custom tight caller limits.
         let (pixels, pixelOverflow) = actualDescriptor.rows.multipliedReportingOverflow(by: actualDescriptor.columns)
         let (samples, sampleOverflow) = pixels.multipliedReportingOverflow(by: actualDescriptor.samplesPerPixel)
         let (planeBytes, byteOverflow) = samples.multipliedReportingOverflow(by: MemoryLayout<Int>.stride)
+        let effectivePlaneBudget: Int
+        if decodingLimits.maximumDecodedBytes >= PixelDecodeLimits.default.maximumDecodedBytes {
+            let (maxSamples, msOver) = max(1, decodingLimits.maximumPixels)
+                .multipliedReportingOverflow(by: actualDescriptor.samplesPerPixel)
+            let (maxPlanes, mpOver) = maxSamples.multipliedReportingOverflow(by: MemoryLayout<Int>.stride)
+            effectivePlaneBudget = (msOver || mpOver) ? Int.max : max(decodingLimits.maximumDecodedBytes, maxPlanes)
+        } else {
+            effectivePlaneBudget = decodingLimits.maximumDecodedBytes
+        }
         guard !pixelOverflow, !sampleOverflow, !byteOverflow,
-              planeBytes > 0, planeBytes <= decodingLimits.maximumDecodedBytes else {
+              planeBytes > 0, planeBytes <= effectivePlaneBudget else {
             throw DICOMError.limitExceeded("JPEG-LS intermediate sample planes exceed decoded byte budget")
         }
 
@@ -1139,7 +1152,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             maximumDimension: 1_000_000,
             maximumWorkspaceBytes: workspaceCeiling,
             maximumMemoryBytes: Int.max,
-            deadlineSeconds: 30.0
+            deadlineSeconds: SwiftJLS.ResourceLimits.default.deadlineSeconds
         )
     }
 
@@ -2194,7 +2207,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             maximumWorkspaceBytes: Int.max / 4,
             maximumPixels: maxPixels,
             maximumWorkers: workers,
-            deadlineSeconds: 30.0,
+            deadlineSeconds: SwiftJLS.ResourceLimits.default.deadlineSeconds,
             maximumMemoryBytes: Int.max
         )
     }
