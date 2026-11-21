@@ -177,7 +177,7 @@ public final class StructuredReportService: @unchecked Sendable {
     public func recordRecentTerm(_ entry: TerminologyEntry) {
         lock.lock()
         defer { lock.unlock() }
-        _recentTerms.removeAll { $0.concept == entry.concept }
+        _recentTerms.removeAll { $0.concept.matchesCode(entry.concept) }
         _recentTerms.insert(entry, at: 0)
         if _recentTerms.count > maxRecentTerms {
             _recentTerms = Array(_recentTerms.prefix(maxRecentTerms))
@@ -195,7 +195,7 @@ public final class StructuredReportService: @unchecked Sendable {
     public func toggleFavorite(_ entry: TerminologyEntry) {
         lock.lock()
         defer { lock.unlock() }
-        if let index = _favoriteTerms.firstIndex(where: { $0.concept == entry.concept }) {
+        if let index = _favoriteTerms.firstIndex(where: { $0.concept.matchesCode(entry.concept) }) {
             _favoriteTerms.remove(at: index)
         } else {
             _favoriteTerms.append(entry.withFavorite(true))
@@ -213,7 +213,7 @@ public final class StructuredReportService: @unchecked Sendable {
     public func isFavorite(_ concept: CodedConcept) -> Bool {
         lock.lock()
         defer { lock.unlock() }
-        return _favoriteTerms.contains { $0.concept == concept }
+        return _favoriteTerms.contains { $0.concept.matchesCode(concept) }
     }
 
     // MARK: - CAD Findings Management

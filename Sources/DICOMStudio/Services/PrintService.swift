@@ -242,16 +242,11 @@ public struct PrintService: Sendable {
 
     // MARK: - Printer queries
 
-    /// C-ECHO the printer AE (the "Test Connection" action).
+    /// C-ECHO the printer AE (the "Test Connection" action), falling back to
+    /// Printer N-GET for Print-only SCPs that do not implement C-ECHO.
     public func verify(profile: PrinterProfile) async throws -> Bool {
         let config = profile.printConfiguration(probe: true)
-        return try await DICOMVerificationService.verify(
-            host: config.host,
-            port: config.port,
-            callingAE: config.callingAETitle,
-            calledAE: config.calledAETitle,
-            timeout: config.timeout
-        )
+        return try await PrintWorkflow.verify(configuration: config)
     }
 
     /// Whether this printer can carry film-level annotation text (the patient

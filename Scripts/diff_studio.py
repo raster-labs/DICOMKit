@@ -366,6 +366,7 @@ FILES = {
     'DICOMStudio/Components/ROIHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/RTHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/SRBuilderHelpers.swift': ('G5', 'ST'),
+    'DICOMStudio/Components/SRSerializationBridge.swift': ('G5', 'ST'),
     'DICOMStudio/Components/SRTreeHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/SecurityHelpers.swift': ('G5', 'ST'),
     'DICOMStudio/Components/SegmentationHelpers.swift': ('G5', 'ST'),
@@ -383,6 +384,7 @@ FILES = {
     'DICOMStudio/Services/StructuredReportService.swift': ('G5', 'ST'),
     'DICOMStudio/ViewModels/AIAnalysisViewModel.swift': ('G5', 'ST'),
     'DICOMStudio/ViewModels/HangingProtocolViewModel.swift': ('G5', 'ST'),
+    'DICOMStudio/ViewModels/ImageViewerViewModel+StructuredReports.swift': ('G5', 'ST'),
     'DICOMStudio/ViewModels/SecurityViewModel.swift': ('G5', 'ST'),
     'DICOMStudio/ViewModels/SpecializedModalityViewModel.swift': ('G5', 'ST'),
     'DICOMStudio/ViewModels/StructuredReportViewModel.swift': ('G5', 'ST'),
@@ -391,6 +393,7 @@ FILES = {
     'DICOMStudio/Views/SecurityView.swift': ('G5', 'ST'),
     'DICOMStudio/Views/Settings/PrivacySettingsView.swift': ('G5', 'ST'),
     'DICOMStudio/Views/StructuredReportView.swift': ('G5', 'ST'),
+    'DICOMStudio/Views/ViewerStructuredReportComposerView.swift': ('G5', 'ST'),
     'DICOMStudio/Views/WaveformChartView.swift': ('G5', 'ST'),
     # G6
     'DICOMStudio/Models/PrintSCPModel.swift': ('G6', 'CR'),

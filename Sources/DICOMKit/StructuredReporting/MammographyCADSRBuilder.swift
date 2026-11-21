@@ -564,7 +564,9 @@ public struct MammographyCADSRBuilder: Sendable {
             rootContent: rootContainer,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
 
         return document

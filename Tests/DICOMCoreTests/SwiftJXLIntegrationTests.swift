@@ -248,4 +248,61 @@ struct SwiftJXLIntegrationTests {
         let outBytes = try decoded.image.storage.withUnsafeBytes { Data($0) }
         #expect(inBytes == outBytes)
     }
+
+    @Test("Sub-word 12-in-16 unsigned overlay bits and zero-cleared signed negative cells normalize on encode (PS3.5 §8.1.1)")
+    func subwordUnsignedOverlayAndZeroClearedSignedCellsEncode() throws {
+        let encoder = JXLCodec(encodingTransferSyntaxUID: TransferSyntax.jpegXLLossless.uid)
+        let decoder = JXLCodec(decodingSyntax: .lossless)
+
+        // 1. Unsigned 12-in-16 with overlay bits in bits 12..15
+        let unsigned12 = PixelDataDescriptor(
+            rows: 4,
+            columns: 4,
+            numberOfFrames: 1,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var overlayRaw = Data()
+        var cleanRaw = Data()
+        for i in 0..<16 {
+            let sample = UInt16((i * 211) & 0x0FFF)
+            var ow = (sample | 0xA000).littleEndian
+            var cw = sample.littleEndian
+            withUnsafeBytes(of: &ow) { overlayRaw.append(contentsOf: $0) }
+            withUnsafeBytes(of: &cw) { cleanRaw.append(contentsOf: $0) }
+        }
+        let encodedOverlay = try encoder.encodeFrame(overlayRaw, descriptor: unsigned12, frameIndex: 0, configuration: .lossless)
+        let decodedOverlay = try decoder.decodeFrame(encodedOverlay, descriptor: unsigned12, frameIndex: 0)
+        #expect(decodedOverlay == cleanRaw)
+
+        // 2. Signed 12-in-16 with zero-cleared negative cells (0x0800 = -2048, 0x0FFF = -1)
+        let signed12 = PixelDataDescriptor(
+            rows: 2,
+            columns: 2,
+            numberOfFrames: 1,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let zeroClearedWords: [UInt16] = [0x0800, 0x0FFF, 0x0000, 0x07FF]
+        let signExtendedWords: [UInt16] = [0xF800, 0xFFFF, 0x0000, 0x07FF]
+        var zeroClearedRaw = Data()
+        var signExtendedRaw = Data()
+        for i in 0..<4 {
+            var zw = zeroClearedWords[i].littleEndian
+            var sw = signExtendedWords[i].littleEndian
+            withUnsafeBytes(of: &zw) { zeroClearedRaw.append(contentsOf: $0) }
+            withUnsafeBytes(of: &sw) { signExtendedRaw.append(contentsOf: $0) }
+        }
+        let encodedSigned = try encoder.encodeFrame(zeroClearedRaw, descriptor: signed12, frameIndex: 0, configuration: .lossless)
+        let decodedSigned = try decoder.decodeFrame(encodedSigned, descriptor: signed12, frameIndex: 0)
+        #expect(decodedSigned == signExtendedRaw)
+    }
 }

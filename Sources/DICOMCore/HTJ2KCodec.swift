@@ -188,9 +188,10 @@ public struct HTJ2KCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCod
     public func decodeFrameAtResolution(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
+        frameIndex: Int = 0,
         level: Int
     ) async throws -> (data: Data, rows: Int, columns: Int) {
-        try await backing.decodeFrameAtResolution(frameData, descriptor: descriptor, level: level)
+        try await backing.decodeFrameAtResolution(frameData, descriptor: descriptor, frameIndex: frameIndex, level: level)
     }
 
     // MARK: - Fast-Path Transcoding

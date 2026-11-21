@@ -420,7 +420,8 @@ public struct MeasurementReportBuilder: Sendable {
         frameNumbers: [Int]? = nil,
         modality: CodedConcept? = nil,
         targetRegion: CodedConcept? = nil,
-        laterality: CodedConcept? = nil
+        laterality: CodedConcept? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) -> MeasurementReportBuilder {
         var copy = self
         let entry = ImageLibraryEntry(
@@ -429,7 +430,8 @@ public struct MeasurementReportBuilder: Sendable {
             frameNumbers: frameNumbers,
             modality: modality,
             targetRegion: targetRegion,
-            laterality: laterality
+            laterality: laterality,
+            presentationStateReference: presentationStateReference
         )
         copy.imageLibraryEntries.append(entry)
         return copy
@@ -649,8 +651,14 @@ public struct MeasurementReportBuilder: Sendable {
             mappingResource: "DCMR"
         )
         
+        // Select Comprehensive 3D SR when any SCOORD3D item is present (PS3.3 Table A.35.3-2 vs A.35.13-2)
+        let has3DCoordinates = Self.containsSCOORD3D(in: rootContentItems)
+        let targetSOPClassUID = has3DCoordinates
+            ? SRDocumentType.comprehensive3DSR.sopClassUID
+            : SRDocumentType.comprehensiveSR.sopClassUID
+
         return SRDocument(
-            sopClassUID: SRDocumentType.comprehensiveSR.sopClassUID,
+            sopClassUID: targetSOPClassUID,
             sopInstanceUID: finalSOPInstanceUID,
             patientID: patientID,
             patientName: patientName,
@@ -671,8 +679,19 @@ public struct MeasurementReportBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
+    }
+
+    private static func containsSCOORD3D(in items: [AnyContentItem]) -> Bool {
+        for item in items {
+            if item.valueType == .scoord3D || containsSCOORD3D(in: item.contentItems) {
+                return true
+            }
+        }
+        return false
     }
     
     // MARK: - Build Helpers
@@ -841,7 +860,8 @@ public struct MeasurementReportBuilder: Sendable {
                     imageReference: ImageReference(
                         sopClassUID: entry.sopClassUID,
                         sopInstanceUID: entry.sopInstanceUID,
-                        frameNumbers: entry.frameNumbers
+                        frameNumbers: entry.frameNumbers,
+                        presentationStateReference: entry.presentationStateReference
                     ),
                     relationshipType: .contains
                 )))
@@ -1051,6 +1071,10 @@ public struct ImageLibraryEntry: Sendable, Equatable {
     
     /// Optional laterality code
     public let laterality: CodedConcept?
+
+    /// Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS, or Blending)
+    /// specifying how the referenced image shall be displayed (PS3.3 Table C.18.4-1).
+    public let presentationStateReference: ReferencedSOP?
     
     /// Creates an image library entry
     public init(
@@ -1059,7 +1083,8 @@ public struct ImageLibraryEntry: Sendable, Equatable {
         frameNumbers: [Int]? = nil,
         modality: CodedConcept? = nil,
         targetRegion: CodedConcept? = nil,
-        laterality: CodedConcept? = nil
+        laterality: CodedConcept? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) {
         self.sopClassUID = sopClassUID
         self.sopInstanceUID = sopInstanceUID
@@ -1067,6 +1092,7 @@ public struct ImageLibraryEntry: Sendable, Equatable {
         self.modality = modality
         self.targetRegion = targetRegion
         self.laterality = laterality
+        self.presentationStateReference = presentationStateReference
     }
 }
 

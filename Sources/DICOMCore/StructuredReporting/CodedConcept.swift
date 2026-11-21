@@ -8,7 +8,7 @@
 /// NEMA-verified: 2026a, checked 2026-09-25 — the triplet, the 16/16/64-character limits (Code Value SH, Coding Scheme Designator SH, Code Meaning LO), Coding Scheme Version, Long Code Value (0008,0119) and URN Code Value (0008,0120) match PS3.3 2026a Table 8.8-1a; the designators in `CodingSchemeDesignator` match PS3.16 2026a Table 8-1 except "HL7" (not registered) and "99PVT" (a private scheme by convention). `ICD10CM` carried "I10", which is WHO ICD-10; it is now "I10C" and `ICD10` was added.
 
 /// Common coding scheme designators used in DICOM
-public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseIterable {
+public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseIterable, Codable {
     /// DICOM Controlled Terminology
     case DCM = "DCM"
     /// SNOMED Clinical Terms (SNOMED-CT)
@@ -75,7 +75,7 @@ public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseI
 ///     codeMeaning: "Finding"
 /// )
 /// ```
-public struct CodedConcept: Sendable, Equatable, Hashable {
+public struct CodedConcept: Sendable, Equatable, Hashable, Codable {
     /// The code value (0008,0100) - unique identifier within the coding scheme
     public let codeValue: String
     

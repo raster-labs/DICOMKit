@@ -119,6 +119,7 @@ public struct SRDocumentParser: Sendable {
         let accessionNumber = type2String(dataSet, .accessionNumber)
         let referringPhysicianName = type2String(dataSet, .referringPhysicianName)
         let studyID = type2String(dataSet, .studyID)
+        let studyDescription = dataSet.string(for: .studyDescription)
 
         // General Equipment Module (Table C.7-8): Manufacturer (0008,0070), Type 2
         let manufacturer = type2String(dataSet, .manufacturer)
@@ -127,6 +128,7 @@ public struct SRDocumentParser: Sendable {
         let seriesInstanceUID = dataSet.string(for: .seriesInstanceUID)
         let seriesNumber = dataSet.string(for: .seriesNumber)
         let modality = dataSet.string(for: .modality)
+        let seriesDescription = dataSet.string(for: .seriesDescription)
         
         // Extract document header information
         let contentDate = dataSet.string(for: .contentDate)
@@ -140,6 +142,10 @@ public struct SRDocumentParser: Sendable {
 
         // Verifying Observer Sequence (0040,A073), Type 1C (PS3.3 Table C.17-2)
         let verifyingObservers = parseVerifyingObservers(from: dataSet)
+
+        // Current Requested Procedure Evidence Sequence (0040,A375) and Predecessor Documents Sequence (0040,A360)
+        let evidenceReferences = parseHierarchicalSOPReferences(from: dataSet, tag: .currentRequestedProcedureEvidenceSequence)
+        let predecessorDocuments = parseHierarchicalSOPReferences(from: dataSet, tag: .predecessorDocumentsSequence)
         
         // Parse document title from Concept Name Code Sequence
         let documentTitle = try? parseCodedConcept(from: dataSet, tag: .conceptNameCodeSequence)
@@ -172,8 +178,38 @@ public struct SRDocumentParser: Sendable {
             patientSex: patientSex,
             referringPhysicianName: referringPhysicianName,
             studyID: studyID,
-            manufacturer: manufacturer
+            manufacturer: manufacturer,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription,
+            evidenceReferences: evidenceReferences,
+            predecessorDocuments: predecessorDocuments
         )
+    }
+
+    /// Reads Hierarchical SOP Instance Reference Macro items (`Study -> Series -> Referenced SOP`, PS3.3 Table C.17-3).
+    private func parseHierarchicalSOPReferences(from dataSet: DataSet, tag: Tag) -> [HierarchicalSOPReference] {
+        guard let studyItems = dataSet[tag]?.sequenceItems else { return [] }
+        var refs: [HierarchicalSOPReference] = []
+        for studyItem in studyItems {
+            guard let studyUID = studyItem.string(for: .studyInstanceUID), !studyUID.isEmpty,
+                  let seriesItems = studyItem[.referencedSeriesSequence]?.sequenceItems else { continue }
+            for seriesItem in seriesItems {
+                guard let seriesUID = seriesItem.string(for: .seriesInstanceUID), !seriesUID.isEmpty,
+                      let sopItems = seriesItem[.referencedSOPSequence]?.sequenceItems else { continue }
+                for sopItem in sopItems {
+                    guard let sopClassUID = sopItem.string(for: .referencedSOPClassUID),
+                          let sopInstanceUID = sopItem.string(for: .referencedSOPInstanceUID),
+                          !sopClassUID.isEmpty, !sopInstanceUID.isEmpty else { continue }
+                    refs.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: seriesUID,
+                        sopClassUID: sopClassUID,
+                        sopInstanceUID: sopInstanceUID
+                    ))
+                }
+            }
+        }
+        return refs
     }
 
     /// The value of a Type 2 attribute, or nil when it is absent or zero length
@@ -688,15 +724,32 @@ public struct SRDocumentParser: Sendable {
         
         // Parse purpose of reference if present
         var purposeOfReference: CodedConcept?
+        var presentationStateReference: ReferencedSOP?
+        var realWorldValueMappingReference: ReferencedSOP?
         if let refSOPSeq = item[.referencedSOPSequence]?.sequenceItems?.first {
             purposeOfReference = try? parseCodedConceptFromItem(refSOPSeq, tag: .purposeOfReferenceCodeSequence)
+            // Nested Referenced SOP Sequence (0008,1199) in Image Reference Macro (PS3.3 Table C.18.4-1):
+            // uniquely identifies the Softcopy Presentation State SOP Instance (GSPS, CSPS, Pseudo-CSPS, Blending)
+            presentationStateReference = try? parseReferencedSOPSequence(from: refSOPSeq)
+            // Referenced Real World Value Mapping Instance Sequence (0008,114B) (PS3.3 Table C.18.4-1)
+            if let rwvmItem = refSOPSeq[.referencedRealWorldValueMappingInstanceSequence]?.sequenceItems?.first,
+               let rwvmClass = rwvmItem.string(for: .referencedSOPClassUID)?.trimmingCharacters(in: .whitespaces),
+               let rwvmInstance = rwvmItem.string(for: .referencedSOPInstanceUID)?.trimmingCharacters(in: .whitespaces),
+               !rwvmClass.isEmpty, !rwvmInstance.isEmpty {
+                realWorldValueMappingReference = ReferencedSOP(
+                    sopClassUID: rwvmClass,
+                    sopInstanceUID: rwvmInstance
+                )
+            }
         }
         
         let imageRef = ImageReference(
             sopReference: sopRef,
             frameNumbers: frameNumbers,
             segmentNumbers: segmentNumbers,
-            purposeOfReference: purposeOfReference
+            purposeOfReference: purposeOfReference,
+            presentationStateReference: presentationStateReference,
+            realWorldValueMappingReference: realWorldValueMappingReference
         )
         
         return AnyContentItem(ImageContentItem(

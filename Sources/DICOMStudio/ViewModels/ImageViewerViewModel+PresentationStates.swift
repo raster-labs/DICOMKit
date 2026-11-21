@@ -448,7 +448,7 @@ extension ImageViewerViewModel {
     ///
     /// - Returns: Whether anything was written.
     @discardableResult
-    public func saveCurrentView(label: String) -> Bool {
+    public func saveCurrentView(label: String, includeStructuredReport: Bool = false) -> Bool {
         let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty,
               let studyInstanceUID,
@@ -527,7 +527,11 @@ extension ImageViewerViewModel {
             // but not yet in the study's folder is a recoverable state — saving
             // again publishes it — whereas reporting the whole save as failed
             // would send the reader back to set the window up a second time.
+            publishedStructuredReportSeries = nil
             addSavedViewToStudy(label: trimmed)
+            if includeStructuredReport {
+                addStructuredReportToStudy(label: trimmed)
+            }
             refreshSavedViewSeriesUIDs()
             // The arrangement is a saved view now; the unsaved series cache
             // has nothing left to remember.
@@ -539,32 +543,15 @@ extension ImageViewerViewModel {
         }
     }
 
-    /// Saves the current view under a name, over a chosen scope.
-    ///
-    /// The image scope is ``saveCurrentView(label:)`` unchanged. The series
-    /// scope writes the *same* view — this window, zoom and orientation — onto
-    /// every image of the series: one presentation state per image, all under
-    /// the one label. That shape is what makes the rest free: the store already
-    /// groups by label, so updating (re-saving the name), deleting, applying
-    /// and exporting a series view are the same operations an image view gets.
-    ///
-    /// Each covered image is described against its *own* pixel dimensions —
-    /// Displayed Area is a rectangle of source pixels, and a series whose
-    /// scout is a different size than its slices must not inherit the wrong
-    /// crop. Drawings stay per image: the current image contributes what is on
-    /// screen, other images whatever was drawn on them; a series save does not
-    /// stamp one image's arrows across the rest.
-    ///
-    /// Async because the covered images' identities are read from their files,
-    /// off the main actor — a several-hundred-slice series must not freeze the
-    /// viewer for the read. Files that cannot be read are skipped rather than
-    /// failing the save; the image on screen is taken from memory and is never
-    /// skipped.
-    ///
-    /// - Returns: Whether anything was written.
     @discardableResult
-    public func saveCurrentView(label: String, scope: SavedViewScope) async -> Bool {
-        guard scope != .currentImage else { return saveCurrentView(label: label) }
+    public func saveCurrentView(
+        label: String,
+        scope: SavedViewScope,
+        includeStructuredReport: Bool = false
+    ) async -> Bool {
+        guard scope != .currentImage else {
+            return saveCurrentView(label: label, includeStructuredReport: includeStructuredReport)
+        }
 
         let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty,
@@ -669,7 +656,11 @@ extension ImageViewerViewModel {
             }
             presentationStateError = nil
             // Into the study as a series, exactly as the image save does.
+            publishedStructuredReportSeries = nil
             addSavedViewToStudy(label: trimmed)
+            if includeStructuredReport {
+                addStructuredReportToStudy(label: trimmed)
+            }
             refreshSavedViewSeriesUIDs()
             // Saved as a PR: the unsaved series cache is finished with.
             forgetSeriesToolState()
@@ -837,6 +828,36 @@ extension ImageViewerViewModel {
         }
     }
 
+    /// Files a saved view into the study as a **TID 1500 Measurement Report (`Comprehensive SR`, Series 9002)** series.
+    @discardableResult
+    public func addStructuredReportToStudy(label: String)
+        -> PresentationStateStore.PublishedSeries? {
+        guard let studyInstanceUID,
+              let store = presentationStateStore,
+              let destination = studySeriesDirectory else { return nil }
+
+        do {
+            guard let publishedSR = try store.publishStructuredReport(
+                label: label,
+                studyInstanceUID: studyInstanceUID,
+                into: destination,
+                imageWidth: max(1, imageColumns),
+                imageHeight: max(1, imageRows)) else {
+                presentationStateError =
+                    "There is no saved view called “\(label)” to save as an SR report."
+                return nil
+            }
+            publishedStructuredReportSeries = publishedSR
+            structuredReportPublishRequests += 1
+            presentationStateError = nil
+            return publishedSR
+        } catch {
+            presentationStateError =
+                "Could not save the SR report to the study: \(error.localizedDescription)"
+            return nil
+        }
+    }
+
     /// Removes a view's objects from the study's presentation-state series.
     ///
     /// The published objects carry the same SOP Instance UIDs as the store's,
@@ -865,6 +886,16 @@ extension ImageViewerViewModel {
             removed.append(state.state.sopInstanceUID)
         }
 
+        // Also remove any published companion SR (Series 9002) objects for this view label
+        for srURL in store.publishedStructuredReportObjects(ofView: label, in: directory) {
+            if let file = try? DICOMFile.read(from: srURL, options: .metadataOnly),
+               let srSOPUID = file.dataSet.string(for: .sopInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !srSOPUID.isEmpty {
+                removed.append(srSOPUID)
+            }
+            try? fileManager.removeItem(at: srURL)
+        }
+
         guard !removed.isEmpty else { return }
         // Its own signal, not the publish counter: the shell has to *unfile*
         // these instances, and a delete announced as a publish would have it
@@ -876,6 +907,7 @@ extension ImageViewerViewModel {
     /// Dismisses the confirmation naming the published series.
     public func dismissPublishedSeriesConfirmation() {
         publishedPresentationSeries = nil
+        publishedStructuredReportSeries = nil
     }
 
     /// Removes a saved view from the study.

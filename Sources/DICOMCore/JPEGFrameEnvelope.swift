@@ -20,17 +20,27 @@ struct JPEGFrameEnvelope {
     }
 
     struct Components: Equatable {
-        private var first = Component(), second = Component(), third = Component()
+        private var first = Component(), second = Component(), third = Component(), fourth = Component()
         private(set) var count = 0
 
         subscript(index: Int) -> Component {
             precondition(index >= 0 && index < count)
-            switch index { case 0: return first; case 1: return second; default: return third }
+            switch index {
+            case 0: return first
+            case 1: return second
+            case 2: return third
+            default: return fourth
+            }
         }
 
         mutating func append(_ component: Component) {
-            precondition(count < 3)
-            switch count { case 0: first = component; case 1: second = component; default: third = component }
+            precondition(count < 4)
+            switch count {
+            case 0: first = component
+            case 1: second = component
+            case 2: third = component
+            default: fourth = component
+            }
             count += 1
         }
 
@@ -45,6 +55,8 @@ struct JPEGFrameEnvelope {
         }
 
         var hasRGBIdentifiers: Bool { count == 3 && first.id == 82 && second.id == 71 && third.id == 66 }
+
+        var hasYCbCrIdentifiers: Bool { count == 3 && first.id == 1 && second.id == 2 && third.id == 3 }
     }
 
     struct Scan: Equatable {
@@ -52,17 +64,27 @@ struct JPEGFrameEnvelope {
     }
 
     struct Scans: Equatable {
-        private var first = Scan(), second = Scan(), third = Scan()
+        private var first = Scan(), second = Scan(), third = Scan(), fourth = Scan()
         private(set) var count = 0
 
         subscript(index: Int) -> Scan {
             precondition(index >= 0 && index < count)
-            switch index { case 0: return first; case 1: return second; default: return third }
+            switch index {
+            case 0: return first
+            case 1: return second
+            case 2: return third
+            default: return fourth
+            }
         }
 
         mutating func append(_ scan: Scan) {
-            precondition(count < 3)
-            switch count { case 0: first = scan; case 1: second = scan; default: third = scan }
+            precondition(count < 4)
+            switch count {
+            case 0: first = scan
+            case 1: second = scan
+            case 2: third = scan
+            default: fourth = scan
+            }
             count += 1
         }
 
@@ -172,6 +194,9 @@ struct JPEGFrameEnvelope {
                             components: components, scanParameters: scans,
                             jfif: jfif, adobeTransform: adobe))
             }
+            if jpegLS && marker == 0xd8 && process == nil && scans.count == 0 {
+                continue
+            }
             guard marker != 0xd8, marker != 0, !(0xd0...0xd7).contains(marker), marker != 1,
                   p + 2 <= data.count else { return .failure(DICOMManagedFailure(.malformed, offset: p, 6)) }
             let length = word(p)
@@ -185,7 +210,8 @@ struct JPEGFrameEnvelope {
                       length >= 8 else { return .failure(DICOMManagedFailure(.malformed, offset: p, 8)) }
                 precision = Int(data[begin]); height = word(begin + 1); width = word(begin + 3)
                 let count = Int(data[begin + 5])
-                guard (count == 1 || count == 3), length == 8 + 3 * count else {
+                guard (jpegLS ? (1...4).contains(count) : (count == 1 || count == 3)),
+                      length == 8 + 3 * count else {
                     return .failure(DICOMManagedFailure(.malformed, offset: p, 9))
                 }
                 for index in 0..<count {

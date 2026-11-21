@@ -616,8 +616,18 @@ public struct CompressionManager: Sendable {
         // Photometric Interpretation / Planar Configuration follow what was encoded.
         labelEncodedColour(in: &dataSet, targetSyntax: targetSyntax, firstCodestream: compressedFrames.first)
 
-        // Record DICOM lossy-compression provenance when this encode was irreversible.
-        if !encodeLossless {
+        // Record DICOM lossy-compression provenance when this encode was genuinely irreversible.
+        // Note: JPEG XL (.112) transparently falls back to lossless Modular for >4096-axis frames
+        // when extended VarDCT is disabled; inspect the emitted codestreams before stamping lossy tags.
+        let actuallyLossless: Bool
+        if encodeLossless {
+            actuallyLossless = true
+        } else if targetSyntax.uid == TransferSyntax.jpegXL.uid {
+            actuallyLossless = compressedFrames.allSatisfy { !JXLCodec.isXYBEncoded($0) }
+        } else {
+            actuallyLossless = false
+        }
+        if !actuallyLossless {
             let compressedByteCount = compressedFrames.reduce(0) { $0 + $1.count }
             applyLossyImageCompressionAttributes(
                 to: &dataSet,
@@ -637,33 +647,57 @@ public struct CompressionManager: Sendable {
     ///   8.2.4-1; 8.2.14, Table 8.2.14-1).
     /// - JPEG Baseline / Extended: 3 components sampled H 2,1,1 / V 1,1,1 → YBR_FULL_422 with
     ///   Planar Configuration 0 (Table 8.2.1-1 allows only YBR_FULL_422 or RGB).
+    /// - JPEG XL (.112): 3-component VarDCT (`xyb_encoded = 1`) → XYB; Modular (`xyb_encoded = 0`) → RGB
+    ///   (PS3.5 2026a Table 8.2.15-1).
+    /// - JPEG, JPEG-LS, JPEG 2000 / HTJ2K, and JPEG XL all require Planar Configuration = 0.
     static func labelEncodedColour(in dataSet: inout DataSet, targetSyntax: TransferSyntax,
                                    firstCodestream: Data?) {
         guard let codestream = firstCodestream else { return }
         var newPI: String?
         if targetSyntax.isJPEG2000 {
-            guard let style = J2KCodestreamInspector.codingStyle(in: codestream),
-                  style.componentCount == 3 else { return }
-            if style.multipleComponentTransform == 1 {
-                newPI = style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT"
-            } else {
-                let existingPI = dataSet.string(for: .photometricInterpretation)?
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                if existingPI == "YBR_RCT" || existingPI == "YBR_ICT" {
-                    newPI = "RGB"
+            if let style = J2KCodestreamInspector.codingStyle(in: codestream),
+               style.componentCount == 3 {
+                if style.multipleComponentTransform == 1 {
+                    newPI = style.reversibleWavelet ? "YBR_RCT" : "YBR_ICT"
+                } else {
+                    let existingPI = dataSet.string(for: .photometricInterpretation)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if existingPI == "YBR_RCT" || existingPI == "YBR_ICT" {
+                        newPI = "RGB"
+                    }
                 }
             }
         } else if targetSyntax.uid == TransferSyntax.jpegBaseline.uid
                     || targetSyntax.uid == TransferSyntax.jpegExtended.uid {
-            guard JPEGInterchangeFormat.isHorizontally422(codestream) else { return }
-            newPI = "YBR_FULL_422"
-        } else {
-            return
+            if JPEGInterchangeFormat.isHorizontally422(codestream) {
+                newPI = "YBR_FULL_422"
+            }
+        } else if targetSyntax.uid == TransferSyntax.jpegXL.uid {
+            if (dataSet.uint16(for: .samplesPerPixel) ?? 1) == 3 {
+                if JXLCodec.isXYBEncoded(codestream) {
+                    newPI = "XYB"
+                } else {
+                    let existingPI = dataSet.string(for: .photometricInterpretation)?
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if existingPI == "XYB" {
+                        newPI = "RGB"
+                    }
+                }
+            }
+        } else if targetSyntax.uid == TransferSyntax.jpegXLLossless.uid {
+            if (dataSet.uint16(for: .samplesPerPixel) ?? 1) == 3 {
+                let existingPI = dataSet.string(for: .photometricInterpretation)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                if existingPI == "XYB" {
+                    newPI = "RGB"
+                }
+            }
         }
         if let newPI {
             dataSet.setString(newPI, for: .photometricInterpretation, vr: .CS)
         }
-        if dataSet[.planarConfiguration] != nil {
+        if (targetSyntax.isJPEG || targetSyntax.isJPEGLS || targetSyntax.isJPEG2000 || targetSyntax.isJPEGXL),
+           dataSet[.planarConfiguration] != nil {
             dataSet.setUInt16(0, for: .planarConfiguration)
         }
     }

@@ -146,6 +146,146 @@ public struct PseudoColorPresentationStateBuilder: Sendable {
         return dataSet
     }
 
+    /// Turns a `PseudoColorPresentationState` into a data set ready to be written (PS3.3 A.33.3).
+    ///
+    /// Supports both preset `PseudoColorPalette` states and custom `PaletteColorLUT` tables.
+    public func buildDataSet(
+        from state: PseudoColorPresentationState,
+        pixelDomain: PixelDomain? = nil,
+        patient: PresentationStatePatientContext,
+        seriesInstanceUID: String,
+        seriesNumber: Int,
+        imageSize: (columns: Int, rows: Int)? = nil
+    ) -> DataSet {
+        var dataSet = GrayscalePresentationStateBuilder().buildDataSet(
+            from: Self.grayscaleModel(of: state),
+            patient: patient,
+            seriesInstanceUID: seriesInstanceUID,
+            seriesNumber: seriesNumber,
+            imageSize: imageSize)
+
+        dataSet.setString(Self.sopClassUID, for: .sopClassUID, vr: .UI)
+        dataSet[.presentationLUTShape] = nil
+        dataSet[.presentationLUTSequence] = nil
+
+        GrayscalePresentationStateBuilder.applyShutterPresentationColor(
+            state.shutterPresentationColor, to: &dataSet)
+
+        if let palette = state.palette, pixelDomain != nil {
+            Self.applyPaletteColorLUT(
+                palette, inverted: false, domain: pixelDomain, window: nil,
+                to: &dataSet)
+        } else {
+            Self.applyCustomPaletteColorLUT(
+                state.paletteColorLUT,
+                paletteUID: state.paletteColorLookupTableUID,
+                isSigned: pixelDomain?.isSigned ?? (state.paletteColorLUT.redDescriptor.firstMappedValue < 0),
+                to: &dataSet)
+        }
+
+        let profileData = state.iccProfile?.profileData ?? SRGBICCProfileWriter.profileData
+        dataSet[.iccProfile] = DataElement(
+            tag: .iccProfile, vr: .OB,
+            length: UInt32(profileData.count),
+            valueData: profileData)
+        if let colorSpace = state.colorSpace ?? ColorPresentationStateBuilder.colorSpaceTerm(for: state.iccProfile) {
+            dataSet.setString(colorSpace, for: .colorSpace, vr: .CS)
+        }
+
+        return dataSet
+    }
+
+    /// Validates a `PseudoColorPresentationState` prior to building.
+    public func validate(
+        _ state: PseudoColorPresentationState,
+        imageSize: (columns: Int, rows: Int)? = nil
+    ) throws {
+        try GrayscalePresentationStateBuilder().validate(
+            Self.grayscaleModel(of: state), imageSize: imageSize)
+    }
+
+    static func grayscaleModel(of state: PseudoColorPresentationState) -> GrayscalePresentationState {
+        GrayscalePresentationState(
+            sopInstanceUID: state.sopInstanceUID,
+            sopClassUID: Self.sopClassUID,
+            instanceNumber: state.instanceNumber,
+            presentationLabel: state.presentationLabel,
+            presentationDescription: state.presentationDescription,
+            presentationCreationDate: state.presentationCreationDate,
+            presentationCreationTime: state.presentationCreationTime,
+            presentationCreatorsName: state.presentationCreatorsName,
+            referencedSeries: state.referencedSeries,
+            modalityLUT: state.modalityLUT,
+            voiLUT: state.voiLUT,
+            scopedVOILUTs: state.scopedVOILUTs,
+            spatialTransformation: state.spatialTransformation,
+            displayedArea: state.displayedArea,
+            scopedDisplayedAreas: state.scopedDisplayedAreas,
+            graphicLayers: state.graphicLayers,
+            graphicAnnotations: state.graphicAnnotations,
+            shutters: state.shutters,
+            shutterPresentationColor: state.shutterPresentationColor)
+    }
+
+    static func applyCustomPaletteColorLUT(
+        _ lut: PaletteColorLUT,
+        paletteUID: String?,
+        isSigned: Bool,
+        to dataSet: inout DataSet
+    ) {
+        let descriptorVR: VR = isSigned ? .SS : .US
+        let descriptors: [(Tag, PaletteColorLUT.Descriptor)] = [
+            (.redPaletteColorLookupTableDescriptor, lut.redDescriptor),
+            (.greenPaletteColorLookupTableDescriptor, lut.greenDescriptor),
+            (.bluePaletteColorLookupTableDescriptor, lut.blueDescriptor)
+        ]
+        for (tag, desc) in descriptors {
+            let entryCountField = desc.numberOfEntries >= 65536 ? 0 : (desc.numberOfEntries & 0xFFFF)
+            let firstMappedField = desc.firstMappedValue & 0xFFFF
+            let bitsField = desc.bitsPerEntry & 0xFFFF
+            var raw = Data(capacity: 6)
+            for v in [entryCountField, firstMappedField, bitsField] {
+                raw.append(UInt8(v & 0xFF))
+                raw.append(UInt8((v >> 8) & 0xFF))
+            }
+            dataSet[tag] = DataElement(tag: tag, vr: descriptorVR, length: 6, valueData: raw)
+        }
+
+        func encodeChannel(_ values: [UInt16], bitsPerEntry: Int) -> Data {
+            if bitsPerEntry == 8 {
+                var bytes = Data(capacity: values.count + (values.count % 2))
+                for v in values {
+                    // PaletteColorLUT normalizes 8-bit entries to 16-bit (v << 8 | v)
+                    bytes.append(UInt8((v >> 8) & 0xFF))
+                }
+                if bytes.count % 2 != 0 {
+                    bytes.append(0)
+                }
+                return bytes
+            } else {
+                var bytes = Data(capacity: values.count * 2)
+                for v in values {
+                    bytes.append(UInt8(v & 0xFF))
+                    bytes.append(UInt8((v >> 8) & 0xFF))
+                }
+                return bytes
+            }
+        }
+
+        let channels: [(Tag, Data)] = [
+            (.redPaletteColorLookupTableData, encodeChannel(lut.redLUT, bitsPerEntry: lut.redDescriptor.bitsPerEntry)),
+            (.greenPaletteColorLookupTableData, encodeChannel(lut.greenLUT, bitsPerEntry: lut.greenDescriptor.bitsPerEntry)),
+            (.bluePaletteColorLookupTableData, encodeChannel(lut.blueLUT, bitsPerEntry: lut.blueDescriptor.bitsPerEntry))
+        ]
+        for (tag, bytes) in channels {
+            dataSet[tag] = DataElement(tag: tag, vr: .OW, length: UInt32(bytes.count), valueData: bytes)
+        }
+
+        if let paletteUID {
+            dataSet.setString(paletteUID, for: .paletteColorLookupTableUID, vr: .UI)
+        }
+    }
+
     // MARK: - Palette module
 
     /// The stored-pixel range of the image a palette table must cover.
@@ -182,7 +322,7 @@ public struct PseudoColorPresentationStateBuilder: Sendable {
         var firstMappedValue: Int { isSigned ? -(1 << (bitsStored - 1)) : 0 }
     }
 
-    private static func applyPaletteColorLUT(
+    static func applyPaletteColorLUT(
         _ palette: PseudoColorPalette,
         inverted: Bool,
         domain: PixelDomain?,
@@ -279,5 +419,43 @@ public struct PseudoColorPresentationStateBuilder: Sendable {
         if !inverted, !baked, scale == 1, let uid = palette.wellKnownSOPInstanceUID {
             dataSet.setString(uid, for: .paletteColorLookupTableUID, vr: .UI)
         }
+    }
+}
+
+extension PseudoColorPresentationState {
+    /// Creates a `PseudoColorPresentationState` from a parsed `GrayscalePresentationState` and extracted palette/ICC attributes.
+    public init(
+        parsed: GrayscalePresentationState,
+        paletteColorLUT: PaletteColorLUT,
+        palette: PseudoColorPalette? = nil,
+        paletteColorLookupTableUID: String? = nil,
+        iccProfile: ICCProfile? = nil,
+        colorSpace: String? = nil
+    ) {
+        self.init(
+            sopInstanceUID: parsed.sopInstanceUID,
+            sopClassUID: parsed.sopClassUID,
+            instanceNumber: parsed.instanceNumber,
+            presentationLabel: parsed.presentationLabel,
+            presentationDescription: parsed.presentationDescription,
+            presentationCreationDate: parsed.presentationCreationDate,
+            presentationCreationTime: parsed.presentationCreationTime,
+            presentationCreatorsName: parsed.presentationCreatorsName,
+            referencedSeries: parsed.referencedSeries,
+            modalityLUT: parsed.modalityLUT,
+            voiLUT: parsed.voiLUT,
+            scopedVOILUTs: parsed.scopedVOILUTs,
+            paletteColorLUT: paletteColorLUT,
+            palette: palette,
+            paletteColorLookupTableUID: paletteColorLookupTableUID,
+            iccProfile: iccProfile,
+            colorSpace: colorSpace,
+            spatialTransformation: parsed.spatialTransformation,
+            displayedArea: parsed.displayedArea,
+            scopedDisplayedAreas: parsed.scopedDisplayedAreas,
+            graphicLayers: parsed.graphicLayers,
+            graphicAnnotations: parsed.graphicAnnotations,
+            shutters: parsed.shutters,
+            shutterPresentationColor: parsed.shutterPresentationColor)
     }
 }

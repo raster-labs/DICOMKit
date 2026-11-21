@@ -125,15 +125,20 @@ public enum JPEGInterchangeFormat {
         removingJFIFSegments(stream).count != stream.count
     }
 
-    /// Rewrites 3-component Lossless JPEG (`SOF3`, `0xC3`) frame and scan component
-    /// identifiers to ASCII `'R'`, `'G'`, `'B'` (`0x52`, `0x47`, `0x42`) when an external
-    /// encoder emitted numeric component IDs (such as `1, 2, 3`).
+    /// Rewrites 3-component JPEG (`SOF0` `0xC0`, `SOF1` `0xC1`, or `SOF3` `0xC3`) frame
+    /// and scan component identifiers to `targetIDs` when an external encoder emitted
+    /// non-standard component IDs (such as `0, 1, 2` from Intel JPEG Library on GE
+    /// Ultrasound systems, or numeric `1, 2, 3` on lossless `SOF3` streams).
     ///
-    /// `SwiftJLI` requires explicit `'R','G','B'` component identifiers on 3-component
-    /// `SOF3` streams because `SOF3` applies no colour transform. Segment lengths and
-    /// entropy-coded bytes are never altered; malformed headers return `stream` unchanged
-    /// so the downstream envelope/codec parser rejects them normally.
-    static func normalizingLosslessRGBComponentIDs(_ stream: Data) -> Data {
+    /// `SwiftJLI` requires `[1, 2, 3]` or `'R','G','B'` (`[82, 71, 66]`) component
+    /// identifiers on 3-component DCT streams and explicit `'R','G','B'` identifiers on
+    /// 3-component `SOF3` streams. Segment lengths and entropy-coded bytes are never
+    /// altered; malformed headers return `stream` unchanged so the downstream
+    /// envelope/codec parser rejects them normally.
+    static func normalizingThreeComponentIDs(
+        _ stream: Data,
+        targetIDs: (UInt8, UInt8, UInt8) = (0x52, 0x47, 0x42)
+    ) -> Data {
         guard stream.count >= 20 else { return stream }
         var bytes = [UInt8](stream)
         guard bytes[0] == 0xFF, bytes[1] == 0xD8 else { return stream }
@@ -154,27 +159,27 @@ public enum JPEGInterchangeFormat {
             guard length >= 2, length <= bytes.count - offset else { return stream }
             let payload = offset + 2
 
-            if marker == 0xC3 {
+            if marker == 0xC0 || marker == 0xC1 || marker == 0xC3 {
                 guard idMap == nil, length == 17, bytes[payload + 5] == 3 else { return stream }
                 let c0 = bytes[payload + 6]
                 let c1 = bytes[payload + 9]
                 let c2 = bytes[payload + 12]
-                if c0 == 0x52 && c1 == 0x47 && c2 == 0x42 {
+                if c0 == targetIDs.0 && c1 == targetIDs.1 && c2 == targetIDs.2 {
                     return stream
                 }
                 guard c0 != c1, c1 != c2, c0 != c2 else { return stream }
                 idMap = (c0, c1, c2)
-                bytes[payload + 6] = 0x52
-                bytes[payload + 9] = 0x47
-                bytes[payload + 12] = 0x42
+                bytes[payload + 6] = targetIDs.0
+                bytes[payload + 9] = targetIDs.1
+                bytes[payload + 12] = targetIDs.2
             } else if marker == 0xDA {
                 guard let map = idMap, length == 12, bytes[payload] == 3 else { return stream }
                 for j in 0..<3 {
                     let csIndex = payload + 1 + 2 * j
                     switch bytes[csIndex] {
-                    case map.c0: bytes[csIndex] = 0x52
-                    case map.c1: bytes[csIndex] = 0x47
-                    case map.c2: bytes[csIndex] = 0x42
+                    case map.c0: bytes[csIndex] = targetIDs.0
+                    case map.c1: bytes[csIndex] = targetIDs.1
+                    case map.c2: bytes[csIndex] = targetIDs.2
                     default: return stream
                     }
                 }
@@ -186,6 +191,12 @@ public enum JPEGInterchangeFormat {
             offset += length
         }
         return stream
+    }
+
+    /// Rewrites 3-component Lossless JPEG (`SOF3`, `0xC3`) frame and scan component
+    /// identifiers to ASCII `'R'`, `'G'`, `'B'` (`0x52`, `0x47`, `0x42`).
+    static func normalizingLosslessRGBComponentIDs(_ stream: Data) -> Data {
+        normalizingThreeComponentIDs(stream, targetIDs: (0x52, 0x47, 0x42))
     }
 
     /// Strips ancillary `APPn` (`0xE0...0xEF`) and `COM` (`0xFE`) marker segments from a

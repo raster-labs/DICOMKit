@@ -106,7 +106,7 @@ public struct MainView: View {
         case .gateway:
             GatewayView(viewModel: viewModel.gatewayViewModel)
         case .reporting:
-            StructuredReportView(viewModel: StructuredReportViewModel())
+            StructuredReportView(viewModel: viewModel.structuredReportViewModel)
         case .printing:
             PrintCenterView(viewModel: viewModel.printViewModel)
         case .printSCP:
@@ -164,6 +164,14 @@ private struct PresentationSeriesLibrarySync: ViewModifier {
                 guard let published =
                     viewModel.imageViewerViewModel.publishedPresentationSeries else { return }
                 viewModel.registerPublishedPresentationSeries(published)
+            }
+            .onChange(of: viewModel.imageViewerViewModel.structuredReportPublishRequests) { _, _ in
+                if let publishedSR = viewModel.imageViewerViewModel.publishedStructuredReportSeries {
+                    viewModel.registerPublishedPresentationSeries(publishedSR)
+                }
+                if let authoredDoc = viewModel.imageViewerViewModel.lastAuthoredStudioSRDocument {
+                    viewModel.structuredReportViewModel.loadDocument(authoredDoc)
+                }
             }
             .onChange(of: viewModel.imageViewerViewModel.presentationSeriesRemovalRequests) { _, _ in
                 viewModel.unregisterPresentationStates(

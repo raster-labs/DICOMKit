@@ -66,11 +66,19 @@ public struct SRDocumentSerializer: Sendable {
         // Key Object Selection / Rendition Selection, which carry Table C.17.6-1)
         addSRDocumentSeriesModule(to: &dataSet, document: document)
 
-        // Add SR Document General Module
-        try addSRDocumentGeneralModule(to: &dataSet, document: document)
+        // Add Document General / Key Object Document Module
+        if SRDocumentType.from(sopClassUID: document.sopClassUID) == .keyObjectSelectionDocument {
+            addKeyObjectDocumentModule(to: &dataSet, document: document)
+        } else {
+            try addSRDocumentGeneralModule(to: &dataSet, document: document)
+        }
         
         // Add SR Document Content Module
         try addSRDocumentContentModule(to: &dataSet, document: document)
+
+        // Specific Character Set (0008,0005), Type 1C (PS3.3 Table C.12-1): set ISO_IR 192
+        // whenever any encoded string attribute contains non-ASCII UTF-8 bytes.
+        dataSet.setUTF8SpecificCharacterSetIfNeeded()
         
         return dataSet
     }
@@ -131,6 +139,15 @@ public struct SRDocumentSerializer: Sendable {
         setType2(document.referringPhysicianName, tag: .referringPhysicianName, vr: .PN, in: &dataSet)
         setType2(document.studyID, tag: .studyID, vr: .SH, in: &dataSet)
         setType2(document.accessionNumber, tag: .accessionNumber, vr: .SH, in: &dataSet)
+
+        // Study Description (0008,1030), Type 3
+        if let studyDescription = document.studyDescription, !studyDescription.isEmpty {
+            dataSet[.studyDescription] = DataElement.string(
+                tag: .studyDescription,
+                vr: .LO,
+                value: studyDescription
+            )
+        }
     }
 
     // MARK: - General Equipment Module (PS3.3 Table C.7-8)
@@ -182,11 +199,50 @@ public struct SRDocumentSerializer: Sendable {
             value: document.seriesNumber ?? Self.defaultNumber
         )
 
+        // Series Description (0008,103E), Type 3
+        if let seriesDescription = document.seriesDescription, !seriesDescription.isEmpty {
+            dataSet[.seriesDescription] = DataElement.string(
+                tag: .seriesDescription,
+                vr: .LO,
+                value: seriesDescription
+            )
+        }
+
         // Referenced Performed Procedure Step Sequence (0008,1111), Type 2: "Zero or one
         // Item shall be included". SRDocument does not model the PPS, so it is written empty.
         dataSet[.referencedPerformedProcedureStepSequence] = createSequenceElement(
             tag: .referencedPerformedProcedureStepSequence,
             items: []
+        )
+    }
+
+    // MARK: - Key Object Document Module (PS3.3 Table C.17.6-2)
+
+    private func addKeyObjectDocumentModule(to dataSet: inout DataSet, document: SRDocument) {
+        dataSet[.instanceNumber] = DataElement.string(
+            tag: .instanceNumber,
+            vr: .IS,
+            value: document.instanceNumber ?? Self.defaultNumber
+        )
+
+        let (nowDate, nowTime) = Self.currentDateAndTime()
+        dataSet[.contentDate] = DataElement.string(
+            tag: .contentDate,
+            vr: .DA,
+            value: document.contentDate ?? nowDate
+        )
+        dataSet[.contentTime] = DataElement.string(
+            tag: .contentTime,
+            vr: .TM,
+            value: document.contentTime ?? nowTime
+        )
+
+        // Current Requested Procedure Evidence Sequence (0040,A375), Type 1 in Table C.17.6-2:
+        // "List of all Composite SOP Instances referenced in the Content Sequence (0040,A730)."
+        let effectiveEvidence = resolvedEvidenceReferences(for: document)
+        dataSet[.currentRequestedProcedureEvidenceSequence] = createHierarchicalSOPReferenceElement(
+            tag: .currentRequestedProcedureEvidenceSequence,
+            references: effectiveEvidence
         )
     }
 
@@ -265,6 +321,137 @@ public struct SRDocumentSerializer: Sendable {
                 value: preliminaryFlag.rawValue
             )
         }
+
+        // Predecessor Documents Sequence (0040,A360), Type 1C (PS3.3 Table C.17-2)
+        if !document.predecessorDocuments.isEmpty {
+            dataSet[.predecessorDocumentsSequence] = createHierarchicalSOPReferenceElement(
+                tag: .predecessorDocumentsSequence,
+                references: document.predecessorDocuments
+            )
+        }
+
+        // Current Requested Procedure Evidence Sequence (0040,A375), Type 1C (PS3.3 Table C.17-2):
+        // written whenever explicit evidence references are supplied or instances are referenced in the content tree.
+        let effectiveEvidence = resolvedEvidenceReferences(for: document)
+        if !effectiveEvidence.isEmpty {
+            dataSet[.currentRequestedProcedureEvidenceSequence] = createHierarchicalSOPReferenceElement(
+                tag: .currentRequestedProcedureEvidenceSequence,
+                references: effectiveEvidence
+            )
+        }
+    }
+
+    /// Resolves explicit `evidenceReferences` or synthesizes hierarchical references for content-tree SOP references
+    /// when `studyInstanceUID` is present.
+    private func resolvedEvidenceReferences(for document: SRDocument) -> [HierarchicalSOPReference] {
+        var result = document.evidenceReferences
+        var seenSOPUIDs = Set(result.map(\.sopInstanceUID))
+        guard let studyUID = document.studyInstanceUID, !studyUID.isEmpty else {
+            return result
+        }
+        let fallbackSeriesUID = document.seriesInstanceUID ?? studyUID
+        for item in document.allContentItems {
+            if let img = item.asImage {
+                let sop = img.imageReference.sopReference
+                if !sop.sopInstanceUID.isEmpty, seenSOPUIDs.insert(sop.sopInstanceUID).inserted {
+                    result.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: fallbackSeriesUID,
+                        sopClassUID: sop.sopClassUID,
+                        sopInstanceUID: sop.sopInstanceUID
+                    ))
+                }
+                if let pr = img.imageReference.presentationStateReference,
+                   !pr.sopInstanceUID.isEmpty,
+                   seenSOPUIDs.insert(pr.sopInstanceUID).inserted {
+                    result.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: fallbackSeriesUID,
+                        sopClassUID: pr.sopClassUID,
+                        sopInstanceUID: pr.sopInstanceUID
+                    ))
+                }
+                if let rwvm = img.imageReference.realWorldValueMappingReference,
+                   !rwvm.sopInstanceUID.isEmpty,
+                   seenSOPUIDs.insert(rwvm.sopInstanceUID).inserted {
+                    result.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: fallbackSeriesUID,
+                        sopClassUID: rwvm.sopClassUID,
+                        sopInstanceUID: rwvm.sopInstanceUID
+                    ))
+                }
+            } else if let comp = item.asComposite {
+                let sop = comp.referencedSOPSequence
+                if !sop.sopInstanceUID.isEmpty, seenSOPUIDs.insert(sop.sopInstanceUID).inserted {
+                    result.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: fallbackSeriesUID,
+                        sopClassUID: sop.sopClassUID,
+                        sopInstanceUID: sop.sopInstanceUID
+                    ))
+                }
+            } else if let wf = item.asWaveform {
+                let sop = wf.waveformReference.sopReference
+                if !sop.sopInstanceUID.isEmpty, seenSOPUIDs.insert(sop.sopInstanceUID).inserted {
+                    result.append(HierarchicalSOPReference(
+                        studyInstanceUID: studyUID,
+                        seriesInstanceUID: fallbackSeriesUID,
+                        sopClassUID: sop.sopClassUID,
+                        sopInstanceUID: sop.sopInstanceUID
+                    ))
+                }
+            }
+        }
+        return result
+    }
+
+    /// Encodes PS3.3 Table C.17-3 Hierarchical SOP Instance Reference Macro (`Study -> Series -> Referenced SOP`).
+    private func createHierarchicalSOPReferenceElement(
+        tag: Tag,
+        references: [HierarchicalSOPReference]
+    ) -> DataElement {
+        var studyOrder: [String] = []
+        var byStudy: [String: (seriesOrder: [String], bySeries: [String: [ReferencedSOP]])] = [:]
+
+        for ref in references where !ref.studyInstanceUID.isEmpty && !ref.seriesInstanceUID.isEmpty && !ref.sopInstanceUID.isEmpty {
+            if byStudy[ref.studyInstanceUID] == nil {
+                studyOrder.append(ref.studyInstanceUID)
+                byStudy[ref.studyInstanceUID] = ([], [:])
+            }
+            if byStudy[ref.studyInstanceUID]?.bySeries[ref.seriesInstanceUID] == nil {
+                byStudy[ref.studyInstanceUID]?.seriesOrder.append(ref.seriesInstanceUID)
+                byStudy[ref.studyInstanceUID]?.bySeries[ref.seriesInstanceUID] = []
+            }
+            let sop = ReferencedSOP(sopClassUID: ref.sopClassUID, sopInstanceUID: ref.sopInstanceUID)
+            if !(byStudy[ref.studyInstanceUID]?.bySeries[ref.seriesInstanceUID]?.contains(sop) ?? false) {
+                byStudy[ref.studyInstanceUID]?.bySeries[ref.seriesInstanceUID]?.append(sop)
+            }
+        }
+
+        let studyItems: [SequenceItem] = studyOrder.compactMap { studyUID in
+            guard let studyGroup = byStudy[studyUID] else { return nil }
+            let seriesItems: [SequenceItem] = studyGroup.seriesOrder.compactMap { seriesUID in
+                guard let sops = studyGroup.bySeries[seriesUID], !sops.isEmpty else { return nil }
+                let sopItems: [SequenceItem] = sops.map { sop in
+                    SequenceItem(elements: [
+                        DataElement.string(tag: .referencedSOPClassUID, vr: .UI, value: sop.sopClassUID),
+                        DataElement.string(tag: .referencedSOPInstanceUID, vr: .UI, value: sop.sopInstanceUID)
+                    ])
+                }
+                return SequenceItem(elements: [
+                    DataElement.string(tag: .seriesInstanceUID, vr: .UI, value: seriesUID),
+                    createSequenceElement(tag: .referencedSOPSequence, items: sopItems)
+                ])
+            }
+            guard !seriesItems.isEmpty else { return nil }
+            return SequenceItem(elements: [
+                DataElement.string(tag: .studyInstanceUID, vr: .UI, value: studyUID),
+                createSequenceElement(tag: .referencedSeriesSequence, items: seriesItems)
+            ])
+        }
+
+        return createSequenceElement(tag: tag, items: studyItems)
     }
 
     /// Verifying Observer Sequence (0040,A073) Items, or nil when the sequence is not written
@@ -338,7 +525,7 @@ public struct SRDocumentSerializer: Sendable {
         )
         
         // Concept Name Code Sequence (Document Title)
-        if let documentTitle = document.documentTitle {
+        if let documentTitle = document.documentTitle ?? document.rootContent.conceptName {
             dataSet[.conceptNameCodeSequence] = try createCodeSequenceElement(
                 tag: .conceptNameCodeSequence,
                 code: documentTitle
@@ -633,7 +820,7 @@ public struct SRDocumentSerializer: Sendable {
             
         case .image:
             if let imageItem = item.asImage {
-                elements.append(createImageReferencedSOPSequenceElement(imageItem: imageItem))
+                elements.append(try createImageReferencedSOPSequenceElement(imageItem: imageItem))
             }
             
         case .waveform:
@@ -847,8 +1034,8 @@ public struct SRDocumentSerializer: Sendable {
         return createSequenceElement(tag: .referencedSOPSequence, items: [sequenceItem])
     }
     
-    /// Creates a Referenced SOP Sequence element for an image reference
-    private func createImageReferencedSOPSequenceElement(imageItem: ImageContentItem) -> DataElement {
+    /// Creates a Referenced SOP Sequence element for an image reference (PS3.3 Table C.18.4-1)
+    private func createImageReferencedSOPSequenceElement(imageItem: ImageContentItem) throws -> DataElement {
         var elements: [DataElement] = []
         
         elements.append(DataElement.string(
@@ -883,6 +1070,34 @@ public struct SRDocumentSerializer: Sendable {
                 vr: .US,
                 length: UInt32(segmentData.count),
                 valueData: segmentData
+            ))
+        }
+
+        // Nested Referenced SOP Sequence (0008,1199) for Softcopy Presentation State (PS3.3 Table C.18.4-1)
+        if let prRef = imageItem.imageReference.presentationStateReference {
+            elements.append(createReferencedSOPSequenceElement(
+                sopClassUID: prRef.sopClassUID,
+                sopInstanceUID: prRef.sopInstanceUID
+            ))
+        }
+
+        // Referenced Real World Value Mapping Instance Sequence (0008,114B) (PS3.3 Table C.18.4-1)
+        if let rwvmRef = imageItem.imageReference.realWorldValueMappingReference {
+            let rwvmItem = SequenceItem(elements: [
+                DataElement.string(tag: .referencedSOPClassUID, vr: .UI, value: rwvmRef.sopClassUID),
+                DataElement.string(tag: .referencedSOPInstanceUID, vr: .UI, value: rwvmRef.sopInstanceUID)
+            ])
+            elements.append(createSequenceElement(
+                tag: .referencedRealWorldValueMappingInstanceSequence,
+                items: [rwvmItem]
+            ))
+        }
+
+        // Purpose of Reference Code Sequence (0040,A170)
+        if let purpose = imageItem.imageReference.purposeOfReference {
+            elements.append(try createCodeSequenceElement(
+                tag: .purposeOfReferenceCodeSequence,
+                code: purpose
             ))
         }
         
@@ -1095,4 +1310,12 @@ extension Tag {
     /// Performed Procedure Code Sequence (0040,A372)
     /// VR: SQ, VM: 1 — Type 2 in the SR Document General Module (PS3.3 Table C.17-2)
     public static let performedProcedureCodeSequence = Tag(group: 0x0040, element: 0xA372)
+
+    /// Predecessor Documents Sequence (0040,A360)
+    /// VR: SQ, VM: 1 — Type 1C in the SR Document General Module (PS3.3 Table C.17-2)
+    public static let predecessorDocumentsSequence = Tag(group: 0x0040, element: 0xA360)
+
+    /// Current Requested Procedure Evidence Sequence (0040,A375)
+    /// VR: SQ, VM: 1 — Type 1 in Key Object Document (Table C.17.6-2) / Type 1C in SR Document General (Table C.17-2)
+    public static let currentRequestedProcedureEvidenceSequence = Tag(group: 0x0040, element: 0xA375)
 }

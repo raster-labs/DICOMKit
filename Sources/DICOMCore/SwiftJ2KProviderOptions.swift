@@ -93,7 +93,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
         let limits = (try? ResourceLimits(
             maximumCompressedBytes: 64 << 20,
             maximumDecodedBytes: 256 << 20,
-            maximumWorkspaceBytes: 512 << 20,
+            maximumWorkspaceBytes: 2 << 30,
             maximumPixels: 64 << 20,
             maximumDimension: 65_535,
             maximumFrames: 1,
@@ -102,7 +102,7 @@ public struct SwiftJ2KProviderOptions: Sendable {
             maximumNestingDepth: 16,
             maximumWorkers: defaultWorkers,
             deadlineSeconds: 120.0,
-            maximumMemoryBytes: 1024 << 20
+            maximumMemoryBytes: 4 << 30
         )) ?? .default
         return SwiftJ2KProviderOptions(
             resourceLimits: limits,
@@ -126,10 +126,15 @@ public struct SwiftJ2KProviderOptions: Sendable {
         let maxEncoded = max(1, decodingLimits.maximumEncodedBytes)
         let maxDecoded = max(1, decodingLimits.maximumDecodedBytes)
         let maxPixels = max(1, decodingLimits.maximumPixels)
-        let (ws4, wsOv) = maxDecoded.multipliedReportingOverflow(by: 4)
-        let maxWorkspace = max(512 << 20, wsOv ? (1 << 30) : ws4)
-        let (mem6, memOv) = maxDecoded.multipliedReportingOverflow(by: 6)
-        let maxMemory = max(1024 << 20, max(maxWorkspace, memOv ? (1 << 30) : mem6))
+        let (ws8, wsOv) = maxDecoded.multipliedReportingOverflow(by: 8)
+        let (px24, pxOv) = maxPixels.multipliedReportingOverflow(by: 24)
+        let (pxWorkspace, pxWsOv) = px24.addingReportingOverflow(64 << 20)
+        let maxWorkspace = max(
+            512 << 20,
+            max(wsOv ? (4 << 30) : ws8, (pxOv || pxWsOv) ? (4 << 30) : pxWorkspace)
+        )
+        let (mem2, memOv) = maxWorkspace.multipliedReportingOverflow(by: 2)
+        let maxMemory = max(1024 << 20, max(maxWorkspace, memOv ? (8 << 30) : mem2))
         let limits = (try? ResourceLimits(
             maximumCompressedBytes: maxEncoded,
             maximumDecodedBytes: maxDecoded,

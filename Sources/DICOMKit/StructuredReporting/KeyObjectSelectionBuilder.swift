@@ -127,6 +127,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
     
     /// Document Title (Purpose of Selection)
     public private(set) var documentTitle: DocumentTitle?
+
+    /// Document-level Key Object Description (PS3.16 TID 2010 Row 7, VM = 1)
+    public private(set) var selectionDescription: String?
     
     /// Completion Flag
     public private(set) var completionFlag: CompletionFlag = .complete
@@ -327,6 +330,15 @@ public struct KeyObjectSelectionBuilder: Sendable {
         copy.documentTitle = .custom(concept)
         return copy
     }
+
+    /// Sets the document-level Key Object Description (PS3.16 TID 2010 Row 7, VM = 1).
+    /// - Parameter description: Narrative rationale for selecting the referenced objects
+    /// - Returns: Updated builder
+    public func withSelectionDescription(_ description: String?) -> KeyObjectSelectionBuilder {
+        var copy = self
+        copy.selectionDescription = description
+        return copy
+    }
     
     /// Sets the Completion Flag
     /// - Parameter flag: The completion flag
@@ -354,19 +366,22 @@ public struct KeyObjectSelectionBuilder: Sendable {
     ///   - sopInstanceUID: SOP Instance UID of the referenced instance
     ///   - description: Optional text description of why this object is selected
     ///   - frames: Optional frame numbers for multi-frame images
+    ///   - presentationStateReference: Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS)
     /// - Returns: Updated builder
     public func addKeyObject(
         sopClassUID: String,
         sopInstanceUID: String,
         description: String? = nil,
-        frames: [Int]? = nil
+        frames: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) -> KeyObjectSelectionBuilder {
         var copy = self
         let keyObject = KeyObject(
             sopClassUID: sopClassUID,
             sopInstanceUID: sopInstanceUID,
             description: description,
-            frames: frames
+            frames: frames,
+            presentationStateReference: presentationStateReference
         )
         copy.keyObjects.append(keyObject)
         return copy
@@ -430,7 +445,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
             rootContent: rootContainer,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
         
         return document
@@ -440,11 +457,25 @@ public struct KeyObjectSelectionBuilder: Sendable {
     
     private func buildRootContainer() throws -> ContainerContentItem {
         var contentItems: [AnyContentItem] = []
+
+        // Document-level Key Object Description (TID 2010 Row 7, VM = 1)
+        if let selectionDescription, !selectionDescription.isEmpty {
+            let textItem = TextContentItem(
+                conceptName: CodedConcept(
+                    codeValue: "113012",
+                    codingSchemeDesignator: "DCM",
+                    codeMeaning: "Key Object Description"
+                ),
+                textValue: selectionDescription,
+                relationshipType: .contains
+            )
+            contentItems.append(AnyContentItem(textItem))
+        }
         
         // Add each key object as a reference
         for keyObject in keyObjects {
-            // Add text description if provided
-            if let description = keyObject.description {
+            // Add text description if provided on individual KeyObject
+            if selectionDescription == nil, let description = keyObject.description {
                 let textItem = TextContentItem(
                     conceptName: CodedConcept(
                         codeValue: "113012",
@@ -457,22 +488,46 @@ public struct KeyObjectSelectionBuilder: Sendable {
                 contentItems.append(AnyContentItem(textItem))
             }
             
-            // Add the referenced object using ImageReference
-            let imageRef = ImageReference(
-                sopClassUID: keyObject.sopClassUID,
-                sopInstanceUID: keyObject.sopInstanceUID,
-                frameNumbers: keyObject.frames
-            )
-            
-            let imageItem = ImageContentItem(
-                conceptName: nil,
-                imageReference: imageRef,
-                relationshipType: .contains
-            )
-            contentItems.append(AnyContentItem(imageItem))
+            // TID 2010 Rows 8–10: IMAGE, WAVEFORM, or COMPOSITE without Concept Name.
+            if keyObject.isWaveformObject {
+                let wfRef = WaveformReference(
+                    sopReference: ReferencedSOP(
+                        sopClassUID: keyObject.sopClassUID,
+                        sopInstanceUID: keyObject.sopInstanceUID
+                    )
+                )
+                let wfItem = WaveformContentItem(
+                    conceptName: nil,
+                    waveformReference: wfRef,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(wfItem))
+            } else if keyObject.isCompositeObject {
+                let compositeItem = CompositeContentItem(
+                    conceptName: nil,
+                    sopClassUID: keyObject.sopClassUID,
+                    sopInstanceUID: keyObject.sopInstanceUID,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(compositeItem))
+            } else {
+                let imageRef = ImageReference(
+                    sopClassUID: keyObject.sopClassUID,
+                    sopInstanceUID: keyObject.sopInstanceUID,
+                    frameNumbers: keyObject.frames,
+                    presentationStateReference: keyObject.presentationStateReference
+                )
+                
+                let imageItem = ImageContentItem(
+                    conceptName: nil,
+                    imageReference: imageRef,
+                    relationshipType: .contains
+                )
+                contentItems.append(AnyContentItem(imageItem))
+            }
         }
         
-        // Create the root container with the document title as its concept name
+        // Create the root container with TID 2010 template identification (PS3.3 A.35.4.3.1.2 / Table C.18.8-1)
         let title = documentTitle?.concept ?? CodedConcept(
             codeValue: "113000",
             codingSchemeDesignator: "DCM",
@@ -482,7 +537,9 @@ public struct KeyObjectSelectionBuilder: Sendable {
         let rootContainer = ContainerContentItem(
             conceptName: title,
             continuityOfContent: .separate,
-            contentItems: contentItems
+            contentItems: contentItems,
+            templateIdentifier: "2010",
+            mappingResource: "DCMR"
         )
         
         return rootContainer
@@ -513,18 +570,49 @@ public struct KeyObject: Sendable, Equatable {
     
     /// Optional frame numbers for multi-frame images
     public let frames: [Int]?
+
+    /// Optional Softcopy Presentation State reference (GSPS, CSPS, Pseudo-CSPS, or Blending)
+    /// specifying how the referenced image shall be displayed (PS3.3 Table C.18.4-1).
+    public let presentationStateReference: ReferencedSOP?
     
     /// Creates a new key object
     public init(
         sopClassUID: String,
         sopInstanceUID: String,
         description: String? = nil,
-        frames: [Int]? = nil
+        frames: [Int]? = nil,
+        presentationStateReference: ReferencedSOP? = nil
     ) {
         self.sopClassUID = sopClassUID
         self.sopInstanceUID = sopInstanceUID
         self.description = description
         self.frames = frames
+        self.presentationStateReference = presentationStateReference
+    }
+
+    /// Whether the referenced SOP Class is a Waveform object (TID 2010 Row 9, 1.2.840.10008.5.1.4.1.1.9.*).
+    public var isWaveformObject: Bool {
+        sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.9.")
+    }
+
+    /// Whether the referenced SOP Class is a standalone composite object (Presentation State, SR,
+    /// Encapsulated Document, Raw Data, Real World Value Mapping, Registration, or RT non-image)
+    /// rather than an image or waveform (TID 2010 Row 10 vs Rows 8–9).
+    public var isCompositeObject: Bool {
+        if isWaveformObject { return false }
+        if sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.11.")
+            || sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.104.")
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.66"
+            || sopClassUID.hasPrefix("1.2.840.10008.5.1.4.1.1.66.")
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.67"
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.481.3"
+            || sopClassUID == "1.2.840.10008.5.1.4.1.1.481.5" {
+            return true
+        }
+        if SRDocumentType.from(sopClassUID: sopClassUID) != nil {
+            return true
+        }
+        return false
     }
 }
 

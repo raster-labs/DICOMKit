@@ -324,4 +324,148 @@ struct SwiftJLIIntegrationTests {
         let managed = try codec.decodeManagedPixelFrame(input, descriptor: desc, frameIndex: 0, budget: budget)
         #expect(managed.data.count == raw.count)
     }
+
+    @Test("3-component DCT (SOF0/SOF1) with zero-based [0, 1, 2] component IDs (GE Ultrasound / IJL) decodes cleanly")
+    func zeroBasedThreeComponentDCTComponentIDsDecode() throws {
+        let encoder = JLICodec(encodingTransferSyntaxUID: TransferSyntax.jpegBaseline.uid)
+        let decoder = JLICodec(decodingSyntax: .baseline)
+
+        for photometric in [PhotometricInterpretation.ybrFull422, .rgb] {
+            let desc = PixelDataDescriptor(
+                rows: 16,
+                columns: 16,
+                numberOfFrames: 1,
+                bitsAllocated: 8,
+                bitsStored: 8,
+                highBit: 7,
+                isSigned: false,
+                samplesPerPixel: 3,
+                photometricInterpretation: photometric,
+                planarConfiguration: 0
+            )
+            let raw = Data((0..<768).map { UInt8(($0 * 19) & 0xFF) })
+            let baseStream = try encoder.encodeFrame(raw, descriptor: desc, frameIndex: 0, configuration: .default)
+
+            // Rewrite SOF0 (0xC0) and SOS (0xDA) component IDs from [1, 2, 3] to [0, 1, 2]
+            // (as emitted by Intel JPEG Library on GE Vivid S70 ultrasound studies).
+            var zeroBased = [UInt8](baseStream)
+            var offset = 2
+            while offset + 4 <= zeroBased.count, zeroBased[offset] == 0xFF {
+                let marker = zeroBased[offset + 1]
+                let length = (Int(zeroBased[offset + 2]) << 8) | Int(zeroBased[offset + 3])
+                let payload = offset + 4
+                if marker == 0xC0, length == 17 {
+                    zeroBased[payload + 6] = 0
+                    zeroBased[payload + 9] = 1
+                    zeroBased[payload + 12] = 2
+                } else if marker == 0xDA, length == 12 {
+                    zeroBased[payload + 1] = 0
+                    zeroBased[payload + 3] = 1
+                    zeroBased[payload + 5] = 2
+                    break
+                }
+                offset += 2 + length
+            }
+
+            let expectedDecoded = try decoder.decodePixelFrame(baseStream, descriptor: desc, frameIndex: 0)
+            let actualDecoded = try decoder.decodePixelFrame(Data(zeroBased), descriptor: desc, frameIndex: 0)
+            #expect(actualDecoded.data == expectedDecoded.data)
+            #expect(actualDecoded.descriptor.photometricInterpretation == .rgb)
+
+            let budget = try DICOMAllocationBudget()
+            let input = try DICOMByteBuffer(count: zeroBased.count, budget: budget, resource: .encoded)
+            Data(zeroBased).withUnsafeBytes { input.unsafeMutableBytes.copyMemory(from: $0) }
+            let managed = try decoder.decodeManagedPixelFrame(input, descriptor: desc, frameIndex: 0, budget: budget)
+            #expect(managed.data.withUnsafeBytes { Data($0) } == expectedDecoded.data)
+            #expect(managed.descriptor.photometricInterpretation == .rgb)
+        }
+    }
+
+    @Test("Sub-word 12-in-16 cells with unsigned overlay bits or zero-cleared negative high bits normalize on encode (PS3.5 §8.1.1)")
+    func subwordUnsignedOverlayAndZeroClearedSignedCellsEncode() throws {
+        let codec = JLICodec(encodingTransferSyntaxUID: TransferSyntax.jpegLosslessSV1.uid)
+
+        // 1. Unsigned 12-in-16 with overlay bits in bits 12..15
+        let unsigned12 = PixelDataDescriptor(
+            rows: 2,
+            columns: 2,
+            numberOfFrames: 1,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let overlayWords: [UInt16] = [0x8000 | 0x0123, 0xF000 | 0x0ABC, 0x4000 | 0x0000, 0x1000 | 0x0FFF]
+        let cleanWords: [UInt16] = [0x0123, 0x0ABC, 0x0000, 0x0FFF]
+        var overlayRaw = Data()
+        var cleanRaw = Data()
+        for i in 0..<4 {
+            var ow = overlayWords[i].littleEndian
+            var cw = cleanWords[i].littleEndian
+            withUnsafeBytes(of: &ow) { overlayRaw.append(contentsOf: $0) }
+            withUnsafeBytes(of: &cw) { cleanRaw.append(contentsOf: $0) }
+        }
+        let encodedOverlay = try codec.encodeFrame(overlayRaw, descriptor: unsigned12, frameIndex: 0, configuration: .lossless)
+        let decodedOverlay = try codec.decodeFrame(encodedOverlay, descriptor: unsigned12, frameIndex: 0)
+        #expect(decodedOverlay == cleanRaw)
+
+        // 2. Signed 12-in-16 with zero-cleared upper bits on negative samples (e.g. 0x0800 = -2048, 0x0FFF = -1)
+        let signed12 = PixelDataDescriptor(
+            rows: 2,
+            columns: 2,
+            numberOfFrames: 1,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let zeroClearedWords: [UInt16] = [0x0800, 0x0FFF, 0x0000, 0x07FF]
+        var zeroClearedRaw = Data()
+        for word in zeroClearedWords {
+            var le = word.littleEndian
+            withUnsafeBytes(of: &le) { zeroClearedRaw.append(contentsOf: $0) }
+        }
+        let encodedSigned = try codec.encodeFrame(zeroClearedRaw, descriptor: signed12, frameIndex: 0, configuration: .lossless)
+        let decodedSigned = try codec.decodeFrame(encodedSigned, descriptor: signed12, frameIndex: 0)
+        let decodedLogical: [Int] = (0..<4).map { idx in
+            let cell = UInt16(decodedSigned[idx * 2]) | (UInt16(decodedSigned[idx * 2 + 1]) << 8)
+            return signed12.storedValue(fromCell: Int(cell))
+        }
+        #expect(decodedLogical == [-2048, -1, 0, 2047])
+    }
+
+    @Test("JLICodec maps CompressionConfiguration.speed (.fast, .balanced, .optimal) and SwiftJ2KProviderOptions budgets cover 64M-pixel workspace")
+    func speedPresetsAndProviderWorkspaceBudgets() throws {
+        let encoder = JLICodec(encodingTransferSyntaxUID: TransferSyntax.jpegBaseline.uid)
+        let decoder = JLICodec(decodingSyntax: .baseline)
+        let desc = PixelDataDescriptor(
+            rows: 32,
+            columns: 32,
+            numberOfFrames: 1,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let raw = Data((0..<(32 * 32)).map { UInt8((($0 * 73) ^ ($0 >> 3)) & 0xFF) })
+
+        for speed in [CompressionSpeed.fast, .balanced, .optimal] {
+            let cfg = CompressionConfiguration(quality: .high, speed: speed, preferLossless: false)
+            let stream = try encoder.encodeFrame(raw, descriptor: desc, frameIndex: 0, configuration: cfg)
+            let decoded = try decoder.decodeFrame(stream, descriptor: desc, frameIndex: 0)
+            #expect(decoded.count == raw.count)
+        }
+
+        // Verify SwiftJ2KProviderOptions default workspace and memory budgets cover 64M-pixel 3-component wavelet planes
+        let j2kLimits = SwiftJ2KProviderOptions.default.resourceLimits
+        #expect(j2kLimits.deadlineSeconds == 120.0)
+        #expect(j2kLimits.maximumWorkspaceBytes >= (2 << 30))
+        #expect(j2kLimits.maximumMemoryBytes >= (4 << 30))
+    }
 }

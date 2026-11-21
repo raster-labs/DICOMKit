@@ -65,12 +65,18 @@ struct PreReleaseCodecAuditTests {
         #expect(registry.codec(for: TransferSyntax.rleLossless.uid) is RLECodec)
         #expect(registry.encoder(for: TransferSyntax.rleLossless.uid) is RLECodec)
 
-        // Deferred SwiftJ2K 12.2.0 surfaces must NOT be registered in CodecRegistry.shared.
+        for jp3dUID in [
+            TransferSyntax.jp3dLossless.uid,
+            TransferSyntax.jp3dLossy.uid,
+        ] {
+            #expect(registry.codec(for: jp3dUID) is JP3DCodec)
+            #expect(registry.encoder(for: jp3dUID) is JP3DCodec)
+        }
+
+        // JPIP referenced transfer syntaxes must NOT be registered as frame codecs in CodecRegistry.shared.
         for deferredUID in [
             TransferSyntax.jpipReferenced.uid,
             TransferSyntax.jpipReferencedDeflate.uid,
-            "1.2.826.0.1.3680043.10.511.1",
-            "1.2.826.0.1.3680043.10.511.2",
         ] {
             #expect(registry.codec(for: deferredUID) == nil)
             #expect(registry.encoder(for: deferredUID) == nil)
@@ -182,5 +188,53 @@ struct PreReleaseCodecAuditTests {
             let code = try result.get()
             #expect(code == .cancelled, "Expected .cancelled for \(item.name), got \(String(describing: code))")
         }
+    }
+
+    @Test("Legacy HTJ2K CAP Ccap15=0x0020 reversible codestream and PALETTE COLOR / YBR_FULL decode profiles succeed in SwiftJ2KDICOMCodec")
+    func legacyReversibleHTJ2KCAPAndDecodeProfiles() throws {
+        let descriptor = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 1,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .paletteColor
+        )
+        let monoDescriptor = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 1,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var pixels = Data(capacity: descriptor.bytesPerFrame)
+        for i in 0..<64 {
+            var word = UInt16((i * 59) & 0x0FFF).littleEndian
+            withUnsafeBytes(of: &word) { pixels.append(contentsOf: $0) }
+        }
+
+        let encoder = SwiftJ2KDICOMCodec(encodingTransferSyntaxUID: TransferSyntax.htj2kLossless.uid)
+        let validStream = try encoder.encodeFrame(pixels, descriptor: monoDescriptor, frameIndex: 0, configuration: .lossless)
+
+        // Inject legacy J2KSwift CAP Ccap15 = 0x0020 (bit 5 HTIRV = 1) into reversible 5/3 HTJ2K codestream
+        var legacyCAPStream = [UInt8](validStream)
+        if let capRange = validStream.range(of: Data([0xFF, 0x50, 0x00, 0x08, 0x00, 0x02, 0x00, 0x00])) {
+            legacyCAPStream[capRange.lowerBound + 8] = 0x00
+            legacyCAPStream[capRange.lowerBound + 9] = 0x20
+        }
+        let legacyData = Data(legacyCAPStream)
+
+        let decoder = SwiftJ2KDICOMCodec(decodingTransferSyntaxUID: TransferSyntax.htj2kLossless.uid)
+        #expect(SwiftJ2KDICOMCodec.supportsDecodeProfile(
+            transferSyntaxUID: TransferSyntax.htj2kLossless.uid,
+            descriptor: descriptor,
+            decodeBackend: nil
+        ))
+        let decoded = try decoder.decodeFrame(legacyData, descriptor: descriptor, frameIndex: 0)
+        #expect(decoded == pixels)
+
+        let budget = try DICOMAllocationBudget()
+        let inBuf = try DICOMByteBuffer(count: legacyData.count, budget: budget, resource: .encoded)
+        legacyData.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
+        let managed = try decoder.decodeManagedPixelFrame(inBuf, descriptor: descriptor, frameIndex: 0, budget: budget)
+        #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
+        #expect(budget.receipt.current.staging == 0)
     }
 }

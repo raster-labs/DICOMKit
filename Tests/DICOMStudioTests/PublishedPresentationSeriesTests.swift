@@ -378,4 +378,58 @@ struct PublishedPresentationSeriesTests {
         #expect(!viewModel.seriesHasSavedViews(Self.seriesUID),
                 "and the badge goes with the list")
     }
+
+    @Test("Saving a view with SR Report publishes Series 9002 (SR) alongside Series 9001 (PR) and cleans up on delete")
+    func savingViewWithStructuredReportPublishesAndDeletesSRSeries() throws {
+        let (viewModel, initialLibrary, folder) = try makeStudy()
+        defer { cleanUp(folder) }
+        var library = initialLibrary
+
+        viewModel.zoomLevel = 2.0
+        #expect(viewModel.saveCurrentView(label: "Lesion review", includeStructuredReport: true))
+
+        let publishedPR = try #require(viewModel.publishedPresentationSeries)
+        let publishedSR = try #require(viewModel.publishedStructuredReportSeries)
+        #expect(publishedPR.seriesNumber == 9001)
+        #expect(publishedPR.modality == "PR")
+        #expect(publishedSR.seriesNumber == 9002)
+        #expect(publishedSR.modality == "SR")
+        #expect(publishedSR.referenceID.hasPrefix("SR-"))
+        #expect(publishedSR.instances.count == 1)
+
+        let srURL = try #require(publishedSR.instances.first?.url)
+        #expect(FileManager.default.fileExists(atPath: srURL.path))
+
+        // Register SR series in the library and verify it appears in the Viewer Series Pane catalog
+        library.addSeries(SeriesModel(
+            seriesInstanceUID: publishedSR.seriesInstanceUID,
+            studyInstanceUID: publishedSR.studyInstanceUID,
+            seriesNumber: publishedSR.seriesNumber,
+            modality: publishedSR.modality,
+            seriesDescription: publishedSR.seriesDescription))
+        for instance in publishedSR.instances {
+            library.addInstance(InstanceModel(
+                sopInstanceUID: instance.sopInstanceUID,
+                sopClassUID: instance.sopClassUID,
+                seriesInstanceUID: publishedSR.seriesInstanceUID,
+                instanceNumber: instance.instanceNumber,
+                filePath: instance.url.path))
+        }
+        let entries = ViewerSeriesCatalog.entries(forStudy: Self.studyUID, in: library)
+        #expect(entries.contains { $0.modality == "SR" && $0.seriesNumber == 9002 })
+
+        // Verify the SR file parses as a Comprehensive SR (TID 1500) referencing the PR instance
+        let srFile = try DICOMFile.read(from: srURL)
+        let srDoc = try SRDocumentParser().parse(dataSet: srFile.dataSet)
+        let extracted = PresentationStateSRBridge.extract(from: srDoc)
+        #expect(extracted.presentationStateReferences.contains {
+            $0.sopInstanceUID == publishedPR.instances.first?.sopInstanceUID
+        })
+
+        // Deleting the saved view removes both PR and SR files and reports both UIDs for removal
+        let srInstanceUID = try #require(publishedSR.instances.first?.sopInstanceUID)
+        viewModel.deleteSavedView(label: "Lesion review")
+        #expect(!FileManager.default.fileExists(atPath: srURL.path))
+        #expect(viewModel.unpublishedPresentationStateUIDs.contains(srInstanceUID))
+    }
 }

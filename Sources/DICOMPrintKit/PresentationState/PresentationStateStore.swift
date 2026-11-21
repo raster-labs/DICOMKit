@@ -87,6 +87,17 @@ public struct SavedView: Sendable, Equatable, Identifiable {
         return "PR-" + String(digits.suffix(8))
     }
 
+    /// Reference ID for a companion Structured Report (`SR-XXXXXXXX`) generated from this view.
+    public static func srReferenceID(seriesInstanceUID: String, label: String) -> String {
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in Array("SR|\(seriesInstanceUID)|\(label)".utf8) {
+            hash ^= UInt64(byte)
+            hash &*= 0x0000_0100_0000_01b3
+        }
+        let digits = String(hash, radix: 36, uppercase: true)
+        return "SR-" + String(digits.suffix(8))
+    }
+
     /// Whether this view came out of the study's own files rather than being
     /// saved here — shown as such, so a reader knows whose reading it is.
     public var isImported: Bool { states.contains(where: \.isImported) }
@@ -688,16 +699,35 @@ public struct PresentationStateStore: Sendable {
                 resolvedState = Self.replacingPresentationLUT(resolvedState, with: .inverse)
             }
 
+            // When no sidecar accompanied the file, fall back to the native
+            // DICOM Graphic Annotation Sequence inside the dataset so standard
+            // PR files restore their annotations without requiring a sidecar.
+            var resolvedByFrame = sidecar.annotationsByFrame
+            var resolvedByImage = sidecar.annotationsByFrameByImage
+            if resolvedByFrame.isEmpty && resolvedByImage.isEmpty && !resolvedState.graphicAnnotations.isEmpty {
+                let fallbackCols = resolvedState.displayedArea.map { max(1, $0.bottomRight.column) } ?? 512
+                let fallbackRows = resolvedState.displayedArea.map { max(1, $0.bottomRight.row) } ?? 512
+                let refUIDs = resolvedState.referencedSeries.flatMap { $0.referencedImages.map(\.sopInstanceUID) }
+                let images = refUIDs.map {
+                    AdoptableImage(sopInstanceUID: $0, columns: fallbackCols, rows: fallbackRows, numberOfFrames: 1)
+                }
+                let nativeContents = Self.importedSidecar(for: resolvedState, images: images)
+                resolvedByImage = nativeContents.annotationsByFrameByImage
+                if refUIDs.count == 1, let singleUID = refUIDs.first, let singleMap = resolvedByImage[singleUID] {
+                    resolvedByFrame = singleMap
+                }
+            }
+
             stored.append(StoredPresentationState(
                 state: resolvedState,
                 url: url,
                 displayLabel: (displayLabel?.isEmpty == false) ? displayLabel : nil,
-                annotationsByFrame: sidecar.annotationsByFrame,
+                annotationsByFrame: resolvedByFrame,
                 palette: palette,
                 seriesInstanceUID: file.dataSet.string(for: .seriesInstanceUID) ?? "",
                 seriesNumber: file.dataSet.string(for: .seriesNumber)
                     .flatMap { Int($0.trimmingCharacters(in: .whitespaces)) },
-                annotationsByFrameByImage: sidecar.annotationsByFrameByImage,
+                annotationsByFrameByImage: resolvedByImage,
                 isImported: sidecar.isImported))
         }
 
@@ -1319,7 +1349,491 @@ public struct PresentationStateStore: Sendable {
 
     static let seriesDescription = "Presentation States"
 
+    /// Series Number and Description for companion Structured Reports (`Series 9002 (SR)`).
+    public static let structuredReportSeriesNumber = 9002
+
+    public static let structuredReportSeriesDescription = "Structured Reports"
+
     /// Explicit VR Little Endian — what a GSPS is normally stored as, and what
     /// keeps the files readable by anything else.
     public static let transferSyntaxUID = "1.2.840.10008.1.2.1"
+
+    // MARK: - DICOMKit Unified Document & SR Bridge Integration
+
+    /// Parses a `StoredPresentationState` file into a typed `DICOMKit.PresentationStateDocument`
+    /// (`.grayscale`, `.color`, `.pseudoColor`, or `.blending`).
+    public func document(forState stored: StoredPresentationState) -> PresentationStateDocument? {
+        try? PresentationStateParser(allowScopedVOILUT: true).parse(contentsOf: stored.url)
+    }
+
+    /// Publishes a saved view as a **TID 1500 Measurement Report (`Comprehensive SR`, Series 9002)**
+    /// series of the study in `destination`, referencing the view's Presentation State instances
+    /// per PS3.3 Table C.18.4-1.
+    @discardableResult
+    public func publishStructuredReport(
+        label: String,
+        studyInstanceUID: String,
+        into destination: URL,
+        imageWidth: Int = 512,
+        imageHeight: Int = 512
+    ) throws -> PublishedSeries? {
+        guard let view = views(forStudy: studyInstanceUID)
+            .first(where: { $0.label == label }),
+              !view.states.isEmpty else { return nil }
+
+        try fileManager.createDirectory(
+            at: destination, withIntermediateDirectories: true)
+
+        let srSeriesUID = Self.structuredReportSeriesUID(in: destination)
+        let superseded = publishedStructuredReportObjects(ofView: view.label, in: destination)
+        let supersededSet = Set(superseded.map(\.standardizedFileURL))
+        let predecessorRefs: [HierarchicalSOPReference] = superseded.compactMap { url in
+            guard let oldFile = try? DICOMFile.read(from: url, options: .metadataOnly),
+                  let oldSOPClass = oldFile.dataSet.string(for: .sopClassUID),
+                  let oldSOPUID = oldFile.dataSet.string(for: .sopInstanceUID),
+                  !oldSOPClass.isEmpty, !oldSOPUID.isEmpty else { return nil }
+            let oldStudyUID = oldFile.dataSet.string(for: .studyInstanceUID) ?? studyInstanceUID
+            let oldSeriesUID = oldFile.dataSet.string(for: .seriesInstanceUID) ?? srSeriesUID
+            return HierarchicalSOPReference(
+                studyInstanceUID: oldStudyUID,
+                seriesInstanceUID: oldSeriesUID,
+                sopClassUID: oldSOPClass,
+                sopInstanceUID: oldSOPUID
+            )
+        }
+        let baseInstanceNumber = Self.nextSeriesInstanceNumber(
+            in: destination,
+            modality: "SR",
+            seriesNumber: Self.structuredReportSeriesNumber,
+            excluding: supersededSet
+        )
+        var instances: [PublishedInstance] = []
+
+        for (index, stored) in view.states.enumerated() {
+            guard let prFile = try? DICOMFile.read(from: stored.url),
+                  let loaded = try? PresentationStateManager.load(
+                      from: prFile.dataSet,
+                      imageWidth: max(1, imageWidth),
+                      imageHeight: max(1, imageHeight)
+                  ) else { continue }
+
+            var patient = PresentationStatePatientContext.make(from: prFile.dataSet)
+            if patient.studyInstanceUID.isEmpty {
+                patient.studyInstanceUID = studyInstanceUID
+            }
+
+            // Combine native PR GraphicAnnotationSequence items with any sidecar-only drawings
+            var resolvedAnnotations = loaded.annotations
+            if resolvedAnnotations.isEmpty && !stored.annotationsByFrame.isEmpty {
+                if let primaryRef = stored.state.referencedSeries.first?.referencedImages.first {
+                    let gItems = PrintOverlayAnnotationGSPS.graphicAnnotations(
+                        from: stored.annotationsByFrame,
+                        imageWidth: max(1, imageWidth),
+                        imageHeight: max(1, imageHeight),
+                        referencedImage: primaryRef,
+                        isMultiFrame: stored.annotationsByFrame.keys.contains { $0 > 0 }
+                    )
+                    resolvedAnnotations = DICOMAnnotationConverter.annotations(
+                        from: gItems,
+                        layers: stored.state.graphicLayers,
+                        imageWidth: max(1, imageWidth),
+                        imageHeight: max(1, imageHeight),
+                        targetCoordinateSpace: .pixel
+                    )
+                }
+            }
+
+            // If the saved view has no drawn annotations, include a summary comment of the saved view
+            // so the TID 1500 Measurement Report carries the view's window/palette details alongside the Image Library.
+            if resolvedAnnotations.isEmpty {
+                var summaryParts: [String] = ["Saved View: \(view.label)"]
+                if case let .window(center, width, _, _)? = stored.state.voiLUT {
+                    summaryParts.append(String(format: "Window Center %.1f / Width %.1f", center, width))
+                }
+                if let pal = stored.palette {
+                    summaryParts.append("Palette: \(pal.rawValue)")
+                }
+                let primaryRef = stored.state.referencedSeries.first?.referencedImages.first
+                resolvedAnnotations.append(
+                    DICOMAnnotation.text(
+                        summaryParts.joined(separator: " | "),
+                        at: DICOMAnnotationPoint(x: Double(max(1, imageWidth)) * 0.5, y: Double(max(1, imageHeight)) * 0.5),
+                        referencedSOPClassUID: primaryRef?.sopClassUID,
+                        referencedSOPInstanceUID: primaryRef?.sopInstanceUID
+                    )
+                )
+            }
+
+            let prSeriesUID = prFile.dataSet.string(for: .seriesInstanceUID) ?? stored.seriesInstanceUID
+            let assignedInstanceNumber = baseInstanceNumber + index
+            var srDoc = try PresentationStateSRBridge.buildMeasurementReport(
+                from: loaded.document,
+                annotations: resolvedAnnotations,
+                patient: patient,
+                imageWidth: max(1, imageWidth),
+                imageHeight: max(1, imageHeight),
+                seriesInstanceUID: srSeriesUID,
+                presentationStateSeriesUID: prSeriesUID,
+                seriesNumber: Self.structuredReportSeriesNumber
+            )
+            .withDescriptions(seriesDescription: Self.structuredReportSeriesDescription)
+
+            if !predecessorRefs.isEmpty {
+                srDoc = srDoc.withPredecessorDocuments(predecessorRefs)
+            }
+
+            var srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+            srDataSet.setString(String(assignedInstanceNumber), for: .instanceNumber, vr: .IS)
+
+            let srFile = DICOMFile.create(
+                dataSet: srDataSet,
+                sopClassUID: srDoc.sopClassUID,
+                sopInstanceUID: srDoc.sopInstanceUID,
+                transferSyntaxUID: Self.transferSyntaxUID
+            )
+            let srURL = destination.appendingPathComponent("SR_\(srDoc.sopInstanceUID).dcm")
+            if fileManager.fileExists(atPath: srURL.path) {
+                try? fileManager.removeItem(at: srURL)
+            }
+            try srFile.write().write(to: srURL, options: [.atomic])
+
+            instances.append(PublishedInstance(
+                sopClassUID: srDoc.sopClassUID,
+                sopInstanceUID: srDoc.sopInstanceUID,
+                url: srURL,
+                instanceNumber: assignedInstanceNumber,
+                referencedImageUIDs: stored.referencedImageUIDs
+            ))
+        }
+
+        guard !instances.isEmpty else { return nil }
+
+        let written = Set(instances.map(\.url.standardizedFileURL))
+        for url in superseded where !written.contains(url.standardizedFileURL) {
+            try? fileManager.removeItem(at: url)
+        }
+
+        recordPublishedSRSOPInstanceUIDs(
+            instances.map(\.sopInstanceUID),
+            forView: view.label,
+            studyInstanceUID: studyInstanceUID
+        )
+
+        return PublishedSeries(
+            studyInstanceUID: studyInstanceUID,
+            seriesInstanceUID: srSeriesUID,
+            seriesNumber: Self.structuredReportSeriesNumber,
+            seriesDescription: Self.structuredReportSeriesDescription,
+            modality: "SR",
+            referenceID: SavedView.srReferenceID(seriesInstanceUID: srSeriesUID, label: view.label),
+            label: view.label,
+            instances: instances
+        )
+    }
+
+    /// Publishes an authored `SRDocument` (or Key Object Selection document) into `destination`
+    /// as its own dedicated DICOM series (`Series 9002` `Modality = "SR"`, or `Series 9003` `Modality = "KO"`),
+    /// strictly separated from image series and `Series 9001` (`Modality = "PR"`).
+    @discardableResult
+    public static func publishDocument(
+        _ document: SRDocument,
+        label: String,
+        into destination: URL
+    ) throws -> PublishedSeries {
+        let fm = FileManager.default
+        try fm.createDirectory(at: destination, withIntermediateDirectories: true)
+
+        let isKOS = SRDocumentType.from(sopClassUID: document.sopClassUID) == .keyObjectSelectionDocument
+        let targetModality = isKOS ? "KO" : "SR"
+        let targetSeriesNumber = isKOS ? 9003 : structuredReportSeriesNumber
+        let defaultSeriesDesc = isKOS ? "Key Object Selections" : structuredReportSeriesDescription
+        let targetSeriesUID = sharedSeriesUID(
+            in: destination,
+            modality: targetModality,
+            seriesNumber: targetSeriesNumber
+        )
+        let nextInstNum = nextSeriesInstanceNumber(
+            in: destination,
+            modality: targetModality,
+            seriesNumber: targetSeriesNumber
+        )
+
+        let studyUID = document.studyInstanceUID ?? UIDGenerator.generateStudyInstanceUID().value
+        let preparedDoc = SRDocument(
+            sopClassUID: document.sopClassUID,
+            sopInstanceUID: document.sopInstanceUID,
+            patientID: document.patientID,
+            patientName: document.patientName,
+            studyInstanceUID: studyUID,
+            studyDate: document.studyDate,
+            studyTime: document.studyTime,
+            accessionNumber: document.accessionNumber,
+            seriesInstanceUID: targetSeriesUID,
+            seriesNumber: String(targetSeriesNumber),
+            modality: targetModality,
+            contentDate: document.contentDate,
+            contentTime: document.contentTime,
+            instanceNumber: String(nextInstNum),
+            completionFlag: document.completionFlag,
+            verificationFlag: document.verificationFlag,
+            preliminaryFlag: document.preliminaryFlag,
+            verifyingObservers: document.verifyingObservers,
+            documentTitle: document.documentTitle ?? document.rootContent.conceptName,
+            rootContent: document.rootContent,
+            patientBirthDate: document.patientBirthDate,
+            patientSex: document.patientSex,
+            referringPhysicianName: document.referringPhysicianName,
+            studyID: document.studyID,
+            manufacturer: document.manufacturer,
+            studyDescription: document.studyDescription,
+            seriesDescription: document.seriesDescription ?? defaultSeriesDesc,
+            evidenceReferences: document.evidenceReferences,
+            predecessorDocuments: document.predecessorDocuments
+        )
+
+        let srDataSet = try SRDocumentSerializer().serialize(document: preparedDoc)
+        let dicomFile = DICOMFile.create(
+            dataSet: srDataSet,
+            sopClassUID: preparedDoc.sopClassUID,
+            sopInstanceUID: preparedDoc.sopInstanceUID,
+            transferSyntaxUID: transferSyntaxUID
+        )
+
+        let prefix = isKOS ? "KO" : "SR"
+        let outURL = destination.appendingPathComponent("\(prefix)_\(preparedDoc.sopInstanceUID).dcm")
+        if fm.fileExists(atPath: outURL.path) {
+            try? fm.removeItem(at: outURL)
+        }
+        try dicomFile.write().write(to: outURL, options: [.atomic])
+
+        let refImageUIDs = preparedDoc.findImageItems().map(\.imageReference.sopReference.sopInstanceUID)
+        let instance = PublishedInstance(
+            sopClassUID: preparedDoc.sopClassUID,
+            sopInstanceUID: preparedDoc.sopInstanceUID,
+            url: outURL,
+            instanceNumber: nextInstNum,
+            referencedImageUIDs: refImageUIDs
+        )
+        return PublishedSeries(
+            studyInstanceUID: studyUID,
+            seriesInstanceUID: targetSeriesUID,
+            seriesNumber: targetSeriesNumber,
+            seriesDescription: preparedDoc.seriesDescription ?? defaultSeriesDesc,
+            modality: targetModality,
+            referenceID: SavedView.srReferenceID(
+                seriesInstanceUID: targetSeriesUID,
+                label: "\(label)|\(preparedDoc.sopInstanceUID)"
+            ),
+            label: label,
+            instances: [instance]
+        )
+    }
+
+    /// Returns the published `SR_*.dcm` files in `destination` that belong to the given view `label`.
+    public func publishedStructuredReportObjects(ofView label: String, in destination: URL) -> [URL] {
+        guard let urls = try? fileManager.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) else { return [] }
+
+        var matchingSRSOPUIDs = Set<String>()
+        var matchingPRSOPUIDs = Set<String>()
+
+        if let studyFolders = try? fileManager.contentsOfDirectory(
+            at: root, includingPropertiesForKeys: [.isDirectoryKey]) {
+            for folder in studyFolders {
+                let studyUID = folder.lastPathComponent
+                matchingSRSOPUIDs.formUnion(publishedSRSOPInstanceUIDs(forView: label, studyInstanceUID: studyUID))
+                if let view = views(forStudy: studyUID).first(where: { $0.label == label }) {
+                    matchingPRSOPUIDs.formUnion(view.states.map(\.state.sopInstanceUID))
+                }
+            }
+        }
+
+        return urls.filter { url in
+            guard url.pathExtension.lowercased() == "dcm",
+                  let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                  file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == "SR"
+            else { return false }
+
+            if let sopUID = file.dataSet.string(for: .sopInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
+               matchingSRSOPUIDs.contains(sopUID) {
+                return true
+            }
+            if !matchingPRSOPUIDs.isEmpty,
+               let fullFile = try? DICOMFile.read(from: url),
+               let srDoc = try? SRDocumentParser().parse(dataSet: fullFile.dataSet) {
+                let prRefs = PresentationStateSRBridge.extract(from: srDoc).presentationStateReferences
+                if prRefs.contains(where: { matchingPRSOPUIDs.contains($0.sopInstanceUID) }) {
+                    return true
+                }
+            }
+            // Legacy fallback for exact full-label match only (no 16-char ContentLabel prefix matching)
+            let described = file.dataSet.string(for: .contentDescription)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return described == label
+        }
+    }
+
+    private func publishedSRIndexURL(forStudy studyInstanceUID: String) -> URL {
+        directory(forStudy: studyInstanceUID).appendingPathComponent("published_sr_index.json")
+    }
+
+    private func publishedSRSOPInstanceUIDs(forView label: String, studyInstanceUID: String) -> [String] {
+        let indexURL = publishedSRIndexURL(forStudy: studyInstanceUID)
+        guard let data = try? Data(contentsOf: indexURL),
+              let map = try? JSONDecoder().decode([String: [String]].self, from: data)
+        else { return [] }
+        return map[label] ?? []
+    }
+
+    private func recordPublishedSRSOPInstanceUIDs(
+        _ uids: [String],
+        forView label: String,
+        studyInstanceUID: String
+    ) {
+        let studyDir = directory(forStudy: studyInstanceUID)
+        try? fileManager.createDirectory(at: studyDir, withIntermediateDirectories: true)
+        let indexURL = publishedSRIndexURL(forStudy: studyInstanceUID)
+        var map = (try? Data(contentsOf: indexURL))
+            .flatMap { try? JSONDecoder().decode([String: [String]].self, from: $0) } ?? [:]
+        map[label] = uids
+        if let encoded = try? JSONEncoder().encode(map) {
+            try? encoded.write(to: indexURL, options: [.atomic])
+        }
+    }
+
+    /// Returns the shared `SeriesInstanceUID` for `Series 9002 (SR)` in `destination`, or generates one.
+    public static func structuredReportSeriesUID(in destination: URL) -> String {
+        sharedSeriesUID(in: destination, modality: "SR", seriesNumber: structuredReportSeriesNumber)
+    }
+
+    private static func sharedSeriesUID(in destination: URL, modality: String, seriesNumber: Int) -> String {
+        if let urls = try? FileManager.default.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) {
+            for url in urls where url.pathExtension.lowercased() == "dcm" {
+                if let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == modality,
+                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(seriesNumber),
+                   let uid = file.dataSet.string(for: .seriesInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   !uid.isEmpty {
+                    return uid
+                }
+            }
+        }
+        return UIDGenerator.generateSeriesInstanceUID().value
+    }
+
+    private static func nextSeriesInstanceNumber(
+        in destination: URL,
+        modality: String,
+        seriesNumber: Int,
+        excluding excludedURLs: Set<URL> = []
+    ) -> Int {
+        var maxNum = 0
+        if let urls = try? FileManager.default.contentsOfDirectory(
+            at: destination, includingPropertiesForKeys: nil) {
+            for url in urls where url.pathExtension.lowercased() == "dcm" && !excludedURLs.contains(url.standardizedFileURL) {
+                if let file = try? DICOMFile.read(from: url, options: .metadataOnly),
+                   file.dataSet.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) == modality,
+                   file.dataSet.string(for: .seriesNumber)?.trimmingCharacters(in: .whitespacesAndNewlines) == String(seriesNumber),
+                   let instStr = file.dataSet.string(for: .instanceNumber)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                   let num = Int(instStr), num > maxNum {
+                    maxNum = num
+                }
+            }
+        }
+        return maxNum + 1
+    }
+
+    /// Publishes a saved view into a destination folder along with companion DICOM Structured Report
+    /// files (`TID 1500 Measurement Report` and/or `TID 2010 Key Object Selection`) referencing the
+    /// published Presentation States per PS3.3 Table C.18.4-1.
+    @discardableResult
+    public func publishWithStructuredReport(
+        label: String,
+        studyInstanceUID: String,
+        into destination: URL,
+        patient: PresentationStatePatientContext,
+        imageWidth: Int = 512,
+        imageHeight: Int = 512,
+        options: CompanionSROptions = .both
+    ) throws -> (series: PublishedSeries, measurementReportURLs: [URL], keyObjectSelectionURLs: [URL])? {
+        guard let published = try publish(label: label, studyInstanceUID: studyInstanceUID, into: destination) else {
+            return nil
+        }
+
+        var mrURLs: [URL] = []
+        var kosURLs: [URL] = []
+        let srSeriesNumber = published.seriesNumber + 1
+        let kosSeriesNumber = published.seriesNumber + 2
+        let srSeriesUID = Self.sharedSeriesUID(in: destination, modality: "SR", seriesNumber: srSeriesNumber)
+        let kosSeriesUID = Self.sharedSeriesUID(in: destination, modality: "KO", seriesNumber: kosSeriesNumber)
+        let srBaseInst = Self.nextSeriesInstanceNumber(in: destination, modality: "SR", seriesNumber: srSeriesNumber)
+        let kosBaseInst = Self.nextSeriesInstanceNumber(in: destination, modality: "KO", seriesNumber: kosSeriesNumber)
+
+        for (index, instance) in published.instances.enumerated() {
+            guard let loaded = try? PresentationStateManager.load(
+                from: instance.url,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight
+            ) else { continue }
+
+            if options.generateMeasurementReport {
+                var anns = loaded.annotations
+                if anns.isEmpty {
+                    let primaryImg = loaded.document.referencedSeries.first?.referencedImages.first
+                    anns.append(DICOMAnnotation.text(
+                        "Saved View: \(published.label)",
+                        at: DICOMAnnotationPoint(x: Double(max(1, imageWidth)) * 0.5, y: Double(max(1, imageHeight)) * 0.5),
+                        referencedSOPClassUID: primaryImg?.sopClassUID,
+                        referencedSOPInstanceUID: primaryImg?.sopInstanceUID
+                    ))
+                }
+                let srDoc = try PresentationStateSRBridge.buildMeasurementReport(
+                    from: loaded.document,
+                    annotations: anns,
+                    patient: patient,
+                    imageWidth: imageWidth,
+                    imageHeight: imageHeight,
+                    seriesInstanceUID: srSeriesUID,
+                    seriesNumber: srSeriesNumber,
+                    procedureReported: options.procedureReported
+                )
+                var srDataSet = try SRDocumentSerializer().serialize(document: srDoc)
+                srDataSet.setString(String(srBaseInst + index), for: .instanceNumber, vr: .IS)
+                let srFile = DICOMFile.create(
+                    dataSet: srDataSet,
+                    sopClassUID: srDoc.sopClassUID,
+                    sopInstanceUID: srDoc.sopInstanceUID,
+                    transferSyntaxUID: Self.transferSyntaxUID
+                )
+                let srURL = destination.appendingPathComponent("SR_\(srDoc.sopInstanceUID).dcm")
+                try srFile.write().write(to: srURL, options: [.atomic])
+                mrURLs.append(srURL)
+            }
+
+            if options.generateKeyObjectSelection {
+                let kosDoc = try PresentationStateSRBridge.buildKeyObjectSelection(
+                    from: loaded.document,
+                    patient: patient,
+                    purpose: options.keyObjectSelectionPurpose,
+                    description: options.keyObjectDescription ?? published.label,
+                    seriesInstanceUID: kosSeriesUID,
+                    seriesNumber: kosSeriesNumber
+                )
+                var kosDataSet = try SRDocumentSerializer().serialize(document: kosDoc)
+                kosDataSet.setString(String(kosBaseInst + index), for: .instanceNumber, vr: .IS)
+                let kosFile = DICOMFile.create(
+                    dataSet: kosDataSet,
+                    sopClassUID: kosDoc.sopClassUID,
+                    sopInstanceUID: kosDoc.sopInstanceUID,
+                    transferSyntaxUID: Self.transferSyntaxUID
+                )
+                let kosURL = destination.appendingPathComponent("KO_\(kosDoc.sopInstanceUID).dcm")
+                try kosFile.write().write(to: kosURL, options: [.atomic])
+                kosURLs.append(kosURL)
+            }
+        }
+
+        return (published, mrURLs, kosURLs)
+    }
 }

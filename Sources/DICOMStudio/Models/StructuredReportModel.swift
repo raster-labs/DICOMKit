@@ -228,6 +228,13 @@ public struct CodedConcept: Sendable, Equatable, Hashable, Identifiable {
             codingSchemeVersion: codingSchemeVersion
         )
     }
+
+    /// Returns whether two concepts represent the same DICOM coded concept
+    /// (`codeValue` and `codingSchemeDesignator`), ignoring UI `UUID` identity.
+    public func matchesCode(_ other: CodedConcept) -> Bool {
+        codeValue == other.codeValue
+            && codingSchemeDesignator == other.codingSchemeDesignator
+    }
 }
 
 // MARK: - Spatial Coordinate Type

@@ -653,6 +653,24 @@ public final class ImageViewerViewModel {
     /// index, the other takes them out.
     public internal(set) var presentationSeriesRemovalRequests: Int = 0
 
+    /// The companion Structured Report series (`Series 9002 (SR)`) just written into the study, if any.
+    public internal(set) var publishedStructuredReportSeries: PresentationStateStore.PublishedSeries?
+
+    /// Bumped whenever a Structured Report series has been published into the study.
+    public internal(set) var structuredReportPublishRequests: Int = 0
+
+    /// Whether the clinical Structured Report composer sheet is open in the viewer.
+    public var isSRComposerPresented: Bool = false
+
+    /// Draft clinical Structured Report being authored for the current study/image.
+    public var clinicalSRDraft: ClinicalSRDraft = ClinicalSRDraft()
+
+    /// Validation or I/O error surfaced inside the clinical SR composer.
+    public internal(set) var structuredReportComposerError: String?
+
+    /// Most recently authored or exported clinical SR converted for the Studio SR screen.
+    public internal(set) var lastAuthoredStudioSRDocument: SRDocument?
+
     // MARK: - Study download
 
     /// The question asked before the open study leaves the app as a ZIP.

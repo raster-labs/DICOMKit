@@ -370,7 +370,7 @@ extension DICOMConverter {
         }
 
         let rule = PixelRule.forTarget(target)
-        let violations = rule?.violations(of: descriptor, targetName: target.displayName) ?? []
+        let violations = rule?.violations(of: descriptor, targetName: target.displayName, encodeLossless: encodeLossless) ?? []
         if violations.isEmpty,
            CodecRegistry.j2kFamilyTransferSyntaxUIDs.contains(target.uid),
            let sharedResolved = CodecRegistry.shared.resolveEncoder(
@@ -512,8 +512,8 @@ extension DICOMConverter {
                     signed: .any, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.jpegXLLossless.uid, TransferSyntax.jpegXL.uid:
                 return PixelRule(
-                    requirement: "8- or 16-bit data with 1 or 3 samples, and signed data only at 16-bit",
-                    bitsAllocated: [8, 16], bitsStored: nil, samples: [1, 3],
+                    requirement: "8- to 16-bit greyscale or RGB data (Bits Allocated 8 or 16, signed only at 16-bit)",
+                    bitsAllocated: [8, 16], bitsStored: 8...16, samples: [1, 3],
                     signed: .signedNeeds16Bit, minFrames: 1, maxRLESegments: nil)
             case TransferSyntax.rleLossless.uid:
                 return PixelRule(
@@ -523,25 +523,33 @@ extension DICOMConverter {
             case _ where t.isJP3D:
                 return PixelRule(
                     requirement: "8- or 16-bit single-sample volumes with at least 2 frames",
-                    bitsAllocated: [8, 16], bitsStored: nil, samples: [1],
+                    bitsAllocated: [8, 16], bitsStored: 1...16, samples: [1],
                     signed: .any, minFrames: 2, maxRLESegments: nil)
-            case _ where t.isJPEG2000 || t.isHTJ2K || t.isJPEGLS:
+            case _ where t.isJPEGLS:
+                return PixelRule(
+                    requirement: "2- to 16-bit data with 1 or 3 samples",
+                    bitsAllocated: [8, 16], bitsStored: 2...16, samples: [1, 3],
+                    signed: .any, minFrames: 1, maxRLESegments: nil)
+            case _ where t.isJPEG2000 || t.isHTJ2K:
                 return PixelRule(
                     requirement: "8- or 16-bit data with 1 or 3 samples",
-                    bitsAllocated: [8, 16], bitsStored: nil, samples: [1, 3],
+                    bitsAllocated: [8, 16], bitsStored: 1...16, samples: [1, 3],
                     signed: .any, minFrames: 1, maxRLESegments: nil)
             default:
                 return nil
             }
         }
 
-        func violations(of d: PixelDataDescriptor, targetName name: String) -> [String] {
+        func violations(of d: PixelDataDescriptor, targetName name: String, encodeLossless: Bool = true) -> [String] {
             var out: [String] = []
             if !bitsAllocated.contains(d.bitsAllocated) {
                 let allowed = bitsAllocated.sorted().map(String.init).joined(separator: " or ")
                 out.append("\(name) needs Bits Allocated \(allowed), but the source has \(d.bitsAllocated).")
             } else if let range = bitsStored, !range.contains(d.bitsStored) {
-                out.append("\(name) supports at most \(range.upperBound)-bit data (Bits Stored \(range.lowerBound) to \(range.upperBound)), but the source stores \(d.bitsStored) bits.")
+                out.append("\(name) requires Bits Stored \(range.lowerBound) to \(range.upperBound), but the source stores \(d.bitsStored) bits.")
+            }
+            if d.isSigned && d.bitsStored < 2 {
+                out.append("\(name) cannot encode 1-bit signed pixel data (signed two's-complement requires Bits Stored >= 2).")
             }
             if !samples.isEmpty, !samples.contains(d.samplesPerPixel) {
                 let allowed = samples.sorted().map(String.init).joined(separator: " or ")
@@ -564,6 +572,13 @@ extension DICOMConverter {
             if d.samplesPerPixel == 3, d.photometricInterpretation.isYBR, d.bitsAllocated > 8,
                bitsStored?.upperBound == 12 {
                 out.append("\(name) accepts YBR colour data only at 8-bit.")
+            }
+            if bitsStored == (8...16), d.samplesPerPixel == 3,
+               d.photometricInterpretation != .rgb && d.photometricInterpretation != .xyb {
+                out.append("\(name) requires RGB colour data, not \(d.photometricInterpretation.rawValue) (DICOM PS3.5 Table 8.2.15-1).")
+            }
+            if !encodeLossless, d.photometricInterpretation == .paletteColor {
+                out.append("PALETTE COLOR pixel data cannot be compressed with lossy \(name); choose a lossless target instead.")
             }
             return out
         }

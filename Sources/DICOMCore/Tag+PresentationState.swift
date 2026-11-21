@@ -226,4 +226,18 @@ extension Tag {
     // - lutDescriptor (0028,3002)
     // - lutData (0028,3006)
     // - lutExplanation (0028,3003)
+
+    // MARK: - Presentation State Blending Module (C.11.14)
+
+    /// Blending Sequence (0070,0402) — SQ, VM 1 (PS3.3 Table C.11.14-1)
+    public static let blendingSequence = Tag(group: 0x0070, element: 0x0402)
+
+    /// Relative Opacity (0070,0403) — FL, VM 1 (PS3.3 Table C.11.14-1)
+    public static let relativeOpacity = Tag(group: 0x0070, element: 0x0403)
+
+    /// Blending Position (0070,0405) — CS, VM 1 ("UNDERLAY", "OVERLAY") (PS3.3 Table C.11.14-1)
+    public static let blendingPosition = Tag(group: 0x0070, element: 0x0405)
+
+    /// Blending Lookup Table Sequence (0028,1404) — SQ, VM 1
+    public static let blendingLookupTableSequence = Tag(group: 0x0028, element: 0x1404)
 }

@@ -257,4 +257,52 @@ final class J2KTestBenchPart2Tests: XCTestCase {
         XCTAssertNotEqual(vmConvert.commandHistory.first?.exitCode, 0)
         XCTAssertFalse(FileManager.default.fileExists(atPath: badOut.path))
     }
+
+    /// Regression: `J2KTestBenchService.encodeReference` must pass `syntax.uid` into `JLICodec`
+    /// (so `.57` / `.70` emit lossless SOF3 rather than baseline DCT) and `JXLCodec`
+    /// (so `.112` emits genuine lossy VarDCT and preserves 12-in-16 PSNR).
+    func test_testBench_jpegLosslessSOF3AndJXL12BitLossyVarDCT() throws {
+        let w = 64, h = 64
+        let desc12 = PixelDataDescriptor(
+            rows: h, columns: w, numberOfFrames: 1,
+            bitsAllocated: 16, bitsStored: 12, highBit: 11,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        var ramp12 = Data(capacity: w * h * 2)
+        for i in 0..<(w * h) {
+            let v = UInt16((i * 4095) / (w * h - 1))
+            ramp12.append(UInt8(v & 0xFF))
+            ramp12.append(UInt8((v >> 8) & 0xFF))
+        }
+
+        // 1. JPEG Lossless (.70) must encode SOF3 and pass bit-exact in Test Bench
+        let jpegLosslessSyntax = try XCTUnwrap(
+            J2KBenchSyntax.all(for: .jpeg).first { $0.uid == TransferSyntax.jpegLosslessSV1.uid }
+        )
+        let jpegEnc = try J2KTestBenchService.encodeReference(
+            frame: ramp12, descriptor: desc12, syntax: jpegLosslessSyntax, mode: .cpu, warmups: 0, runs: 1
+        ).get()
+        let jpegScored = J2KTestBenchService.decodeAndScore(
+            codestream: jpegEnc.codestream, original: ramp12, descriptor: desc12,
+            syntax: jpegLosslessSyntax, codec: .jliSwift, decodeMode: .cpu,
+            warmups: 0, runs: 1, lossyThresholdDb: J2KTestBenchService.lossyEncodeQuality.expectedMinPSNRDb
+        )
+        XCTAssertEqual(jpegScored.outcome, .pass)
+
+        // 2. JPEG XL Lossy (.112) must emit VarDCT (`isXYBEncoded == true`) and pass `.medium` PSNR (>= 35 dB) on 12-in-16
+        let jxlLossySyntax = try XCTUnwrap(
+            J2KBenchSyntax.all(for: .jpegXL).first { $0.uid == TransferSyntax.jpegXL.uid && !$0.isLossless }
+        )
+        let jxlEnc = try J2KTestBenchService.encodeReference(
+            frame: ramp12, descriptor: desc12, syntax: jxlLossySyntax, mode: .cpu, warmups: 0, runs: 1
+        ).get()
+        XCTAssertTrue(JXLCodec.isXYBEncoded(jxlEnc.codestream))
+        let jxlScored = J2KTestBenchService.decodeAndScore(
+            codestream: jxlEnc.codestream, original: ramp12, descriptor: desc12,
+            syntax: jxlLossySyntax, codec: .jxlSwift, decodeMode: .cpu,
+            warmups: 0, runs: 1, lossyThresholdDb: J2KTestBenchService.lossyEncodeQuality.expectedMinPSNRDb
+        )
+        XCTAssertEqual(jxlScored.outcome, .pass, "12-in-16 JXL lossy bench outcome: \(jxlScored.outcome)")
+    }
 }

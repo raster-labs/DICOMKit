@@ -546,7 +546,8 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         guard descriptor.bitsAllocated == 8 || descriptor.bitsAllocated == 16 else {
             return false
         }
-        guard (2...descriptor.bitsAllocated).contains(descriptor.bitsStored),
+        guard (1...descriptor.bitsAllocated).contains(descriptor.bitsStored),
+              (!descriptor.isSigned || descriptor.bitsStored >= 2),
               descriptor.highBit == descriptor.bitsStored - 1 else {
             return false
         }
@@ -617,13 +618,14 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
     public func decodeFrameAtResolution(
         _ frameData: Data,
         descriptor: PixelDataDescriptor,
+        frameIndex: Int = 0,
         level: Int
     ) async throws -> (data: Data, rows: Int, columns: Int) {
         try Task.checkCancellation()
         guard !frameData.isEmpty else {
             throw DICOMError.parsingFailed("Empty JPEG 2000 data")
         }
-        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: 0)
+        _ = try decodingLimits.validate(frameData, descriptor: descriptor, frameIndex: frameIndex)
         guard syntaxRestriction != .unsupported else {
             throw DICOMError.unsupportedTransferSyntax("Unsupported JPEG 2000 decoding transfer syntax")
         }
@@ -640,6 +642,7 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         return try await delegate.decodeFrameAtResolution(
             frameData,
             descriptor: Self.normalizedDecodeDescriptor(descriptor),
+            frameIndex: frameIndex,
             level: level
         )
     }
@@ -692,7 +695,8 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
     private static func normalizedDecodeDescriptor(_ descriptor: PixelDataDescriptor) -> PixelDataDescriptor {
         if descriptor.samplesPerPixel == 1,
            descriptor.photometricInterpretation != .monochrome1,
-           descriptor.photometricInterpretation != .monochrome2 {
+           descriptor.photometricInterpretation != .monochrome2,
+           descriptor.photometricInterpretation != .paletteColor {
             return PixelDataDescriptor(
                 rows: descriptor.rows,
                 columns: descriptor.columns,
@@ -708,7 +712,7 @@ public struct J2KSwiftCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurable
         }
         if descriptor.samplesPerPixel == 3 {
             switch descriptor.photometricInterpretation {
-            case .rgb, .ybrRCT, .ybrICT, .ybrFull422, .ybrPartial422, .ybrPartial420:
+            case .rgb, .ybrRCT, .ybrICT, .ybrFull, .ybrFull422, .ybrPartial422, .ybrPartial420:
                 return descriptor
             default:
                 return PixelDataDescriptor(

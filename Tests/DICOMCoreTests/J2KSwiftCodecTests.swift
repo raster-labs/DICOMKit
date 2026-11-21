@@ -524,4 +524,109 @@ struct J2KSwiftCodecStrictDecodingTests {
         #expect(throws: DICOMError.self) { try losslessCodec.decodeFrame(encoded, descriptor: descriptor, frameIndex: 0) }
         #expect(try generalCodec.decodeFrame(encoded, descriptor: descriptor, frameIndex: 0).count == 256)
     }
+
+    @Test("1-bit monochrome (bitsStored == 1) round-trips lossless via SwiftJ2KDICOMCodec")
+    func oneBitMonochromeRoundTrip() throws {
+        let rows = 16
+        let columns = 16
+        let pixels = Data((0..<(rows * columns)).map { UInt8(($0 + ($0 / columns)) & 1) })
+        let desc = PixelDataDescriptor(
+            rows: rows,
+            columns: columns,
+            bitsAllocated: 8,
+            bitsStored: 1,
+            highBit: 0,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let codec = SwiftJ2KDICOMCodec(encodingTransferSyntaxUID: Self.lossless, decodingTransferSyntaxUID: Self.lossless)
+        #expect(codec.canEncode(with: .lossless, descriptor: desc))
+        #expect(codec.canDecode(desc))
+        let encoded = try codec.encodeFrame(pixels, descriptor: desc, frameIndex: 0, configuration: .lossless)
+        let decoded = try codec.decodeFrame(encoded, descriptor: desc, frameIndex: 0)
+        #expect(decoded == pixels)
+    }
+
+    @Test("decodeFrameAtResolution forwards frameIndex to telemetry and decodes reduced resolution")
+    func decodeFrameAtResolutionForwardsFrameIndex() async throws {
+        let rows = 32
+        let columns = 32
+        let pixels = Data((0..<(rows * columns)).map { UInt8(($0 * 7) & 0xFF) })
+        let desc = PixelDataDescriptor(
+            rows: rows,
+            columns: columns,
+            numberOfFrames: 3,
+            bitsAllocated: 8,
+            bitsStored: 8,
+            highBit: 7,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let collector = SwiftJ2KTelemetryCollector()
+        let opts = SwiftJ2KProviderOptions(
+            resourceLimits: SwiftJ2KProviderOptions.default.resourceLimits,
+            decodingLimits: SwiftJ2KProviderOptions.default.decodingLimits,
+            joinGraceSeconds: SwiftJ2KProviderOptions.default.joinGraceSeconds,
+            defaultBackend: nil,
+            telemetryHandler: { collector.record($0) }
+        )
+        let codec = SwiftJ2KDICOMCodec(
+            encodingTransferSyntaxUID: Self.lossless,
+            decodingTransferSyntaxUID: Self.lossless,
+            options: opts
+        )
+        let encoded = try codec.encodeFrame(pixels, descriptor: desc, frameIndex: 2, configuration: .lossless)
+        let (reduced, outRows, outCols) = try await codec.decodeFrameAtResolution(
+            encoded,
+            descriptor: desc,
+            frameIndex: 2,
+            level: 1
+        )
+        #expect(outRows == 16)
+        #expect(outCols == 16)
+        #expect(reduced.count == 16 * 16)
+        let decodeRecord = try #require(collector.records.last(where: { $0.kind == .decode }))
+        #expect(decodeRecord.frameIndex == 2)
+
+        // C-4: 0-decomposition-level 1x1 frame falls through to decodeFrameAsync and still forwards frameIndex
+        let tinyDesc = PixelDataDescriptor(
+            rows: 1, columns: 1, numberOfFrames: 4,
+            bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let tinyEncoded = try codec.encodeFrame(Data([42]), descriptor: tinyDesc, frameIndex: 3, configuration: .lossless)
+        let (tinyDec, tinyRows, tinyCols) = try await codec.decodeFrameAtResolution(
+            tinyEncoded, descriptor: tinyDesc, frameIndex: 3, level: 1
+        )
+        #expect(tinyRows == 1 && tinyCols == 1 && tinyDec == Data([42]))
+        let tinyRecord = try #require(collector.records.last(where: { $0.kind == .decode }))
+        #expect(tinyRecord.frameIndex == 3)
+    }
+
+    @Test("C-4: J2KSwiftCodec and SwiftJ2KDICOMCodec accept unsigned 1-bit and reject invalid signed 1-bit")
+    func oneBitUnsignedAcceptedAndSignedRejected() throws {
+        let unsigned1Bit = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 1,
+            bitsAllocated: 8, bitsStored: 1, highBit: 0,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let signed1Bit = PixelDataDescriptor(
+            rows: 8, columns: 8, numberOfFrames: 1,
+            bitsAllocated: 8, bitsStored: 1, highBit: 0,
+            isSigned: true, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let wrapper = J2KSwiftCodec(encodingTransferSyntaxUID: Self.lossless, decodingTransferSyntaxUID: Self.lossless)
+        let provider = SwiftJ2KDICOMCodec(encodingTransferSyntaxUID: Self.lossless, decodingTransferSyntaxUID: Self.lossless)
+
+        #expect(wrapper.canEncode(with: .lossless, descriptor: unsigned1Bit))
+        #expect(provider.canEncode(with: .lossless, descriptor: unsigned1Bit))
+        #expect(!wrapper.canEncode(with: .lossless, descriptor: signed1Bit))
+        #expect(!provider.canEncode(with: .lossless, descriptor: signed1Bit))
+        #expect(!provider.canDecode(signed1Bit))
+    }
 }

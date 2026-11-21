@@ -869,7 +869,7 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addFindings(_ text: String) -> Comprehensive3DSRBuilder {
         addSection(CodedConcept.findings) {
-            Comprehensive3DSectionContent.text(text)
+            Comprehensive3DSectionContent.text(text, conceptName: CodedConcept.findings)
         }
     }
     
@@ -878,7 +878,7 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addImpression(_ text: String) -> Comprehensive3DSRBuilder {
         addSection(CodedConcept.impression) {
-            Comprehensive3DSectionContent.text(text)
+            Comprehensive3DSectionContent.text(text, conceptName: CodedConcept.impression)
         }
     }
     
@@ -887,7 +887,7 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addClinicalHistory(_ text: String) -> Comprehensive3DSRBuilder {
         addSection(CodedConcept.clinicalHistory) {
-            Comprehensive3DSectionContent.text(text)
+            Comprehensive3DSectionContent.text(text, conceptName: CodedConcept.clinicalHistory)
         }
     }
     
@@ -896,7 +896,7 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addConclusion(_ text: String) -> Comprehensive3DSRBuilder {
         addSection(CodedConcept.conclusion) {
-            Comprehensive3DSectionContent.text(text)
+            Comprehensive3DSectionContent.text(text, conceptName: CodedConcept.conclusion)
         }
     }
     
@@ -905,7 +905,7 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// - Returns: Updated builder
     public func addRecommendation(_ text: String) -> Comprehensive3DSRBuilder {
         addSection(CodedConcept.recommendation) {
-            Comprehensive3DSectionContent.text(text)
+            Comprehensive3DSectionContent.text(text, conceptName: CodedConcept.recommendation)
         }
     }
     
@@ -1021,7 +1021,9 @@ public struct Comprehensive3DSRBuilder: Sendable {
             rootContent: rootContent,
             patientBirthDate: patientBirthDate,
             patientSex: patientSex,
-            referringPhysicianName: referringPhysicianName
+            referringPhysicianName: referringPhysicianName,
+            studyDescription: studyDescription,
+            seriesDescription: seriesDescription
         )
     }
     
@@ -1031,12 +1033,17 @@ public struct Comprehensive3DSRBuilder: Sendable {
     public enum BuildError: Error, Sendable, Equatable {
         /// 3D coordinates require a Frame of Reference UID
         case missingFrameOfReferenceUID
+
+        /// Content item uses value type not allowed in Comprehensive 3D SR (e.g. TABLE)
+        case unsupportedValueType(valueType: ContentItemValueType)
         
         /// Description of the error
         public var localizedDescription: String {
             switch self {
             case .missingFrameOfReferenceUID:
                 return "3D spatial coordinates require a Frame of Reference UID. Set it via withFrameOfReferenceUID() or provide it for each 3D coordinate."
+            case .unsupportedValueType(let valueType):
+                return "Value type '\(valueType)' is not supported in Comprehensive 3D SR documents."
             }
         }
     }
@@ -1044,23 +1051,21 @@ public struct Comprehensive3DSRBuilder: Sendable {
     /// Validates the builder configuration
     /// - Throws: `BuildError` if validation fails
     private func validate() throws {
-        // Check that 3D coordinates have a Frame of Reference UID
-        try validateFrameOfReference(items: contentItems)
+        try validateItems(items: contentItems)
     }
     
-    /// Validates that all 3D spatial coordinates have a Frame of Reference UID
-    private func validateFrameOfReference(items: [AnyContentItem]) throws {
+    /// Validates allowed value types and Frame of Reference UIDs on all 3D spatial coordinates
+    private func validateItems(items: [AnyContentItem]) throws {
         for item in items {
-            // Check if this is a 3D coordinate without a Frame of Reference UID
+            if !SRDocumentType.comprehensive3DSR.allows(item.valueType) {
+                throw BuildError.unsupportedValueType(valueType: item.valueType)
+            }
             if let scoord3D = item.asSpatialCoordinates3D {
                 if scoord3D.frameOfReferenceUID == nil && frameOfReferenceUID == nil {
                     throw BuildError.missingFrameOfReferenceUID
                 }
             }
-            
-            // Recursively validate children: a CONTAINER's, and the Content Sequence
-            // any other value type may carry (PS3.3 Table C.17-6)
-            try validateFrameOfReference(items: item.contentItems)
+            try validateItems(items: item.contentItems)
         }
     }
 }

@@ -591,16 +591,23 @@ public enum DICOMConverter {
         outputData.append(try outputFile.fileMetaInformation.writeChecked(using: fmiWriter))
         outputData.append(dataSetPayload)
 
+        var finalIsLossless = isLossless
+
         // Record DICOM Lossy Image Compression provenance for an irreversible encapsulated
         // encode (0028,2110/2112/2114 + Image Type → DERIVED), reusing the exact writer
-        // `dicom-compress` uses. No-op for reversible-only targets (method Defined Term is nil).
+        // `dicom-compress` uses. No-op for reversible-only targets (method Defined Term is nil)
+        // or when a `.112` JPEG XL frame transparently fell back to lossless Modular.
         if !encodeLossless, wasTranscoded, target.isEncapsulated,
            target.lossyImageCompressionMethod != nil, dataSet[.pixelData] != nil {
             let descriptor = try CompressionManager.buildPixelDataDescriptor(from: dataSet)
             let frameBytes = try descriptor.checkedNativeConversionFrameBytes()
             let sourceUncompressedPixelBytes = frameBytes * descriptor.numberOfFrames // product checked above
-            outputData = try applyLossyProvenance(
+            let provenance = try applyLossyProvenance(
                 to: outputData, target: target, uncompressedPixelByteCount: sourceUncompressedPixelBytes)
+            outputData = provenance.data
+            if provenance.fellBackToLossless {
+                finalIsLossless = true
+            }
         }
 
         return Outcome(
@@ -608,7 +615,7 @@ public enum DICOMConverter {
             sourceSyntax: sourceSyntax,
             targetSyntax: target,
             wasTranscoded: wasTranscoded,
-            isLossless: isLossless,
+            isLossless: finalIsLossless,
             strippedPrivateTagCount: strippedCount,
             resolvedDecodeProviderID: resolvedDecodeProviderID,
             resolvedEncodeProviderID: resolvedEncodeProviderID,
@@ -646,19 +653,25 @@ public enum DICOMConverter {
         to fileData: Data,
         target: TransferSyntax,
         uncompressedPixelByteCount: Int
-    ) throws -> Data {
+    ) throws -> (data: Data, fellBackToLossless: Bool) {
         let file = try DICOMFile.read(from: fileData)
         var dataSet = file.dataSet
-        let compressedByteCount = dataSet[.pixelData]?.encapsulatedFragments?
-            .reduce(0) { $0 + $1.count } ?? 0
+        let fragments = dataSet[.pixelData]?.encapsulatedFragments ?? []
+        if target.uid == TransferSyntax.jpegXL.uid,
+           !fragments.isEmpty,
+           fragments.allSatisfy({ !JXLCodec.isXYBEncoded($0) }) {
+            return (fileData, true)
+        }
+        let compressedByteCount = fragments.reduce(0) { $0 + $1.count }
         // Without both byte counts the ratio is meaningless — leave the file as transcoded.
-        guard compressedByteCount > 0, uncompressedPixelByteCount > 0 else { return fileData }
+        guard compressedByteCount > 0, uncompressedPixelByteCount > 0 else { return (fileData, false) }
         CompressionManager.applyLossyImageCompressionAttributes(
             to: &dataSet,
             targetSyntax: target,
             uncompressedByteCount: uncompressedPixelByteCount,
             compressedByteCount: compressedByteCount
         )
-        return try TransferSyntaxHelper().convert(dataSet: dataSet, to: target, preservePixelData: true)
+        let rewritten = try TransferSyntaxHelper().convert(dataSet: dataSet, to: target, preservePixelData: true)
+        return (rewritten, false)
     }
 }

@@ -963,4 +963,63 @@ struct JPEGLSCodecStrictDecodingTests {
                 .decodeFrame(mismatchedExplicitLSE, descriptor: desc, frameIndex: 0)
         }
     }
+
+    @Test("Signed 12-bit CT pixel cells with sign-extended negative values round-trip lossless")
+    func signed12BitCTRoundTrip() throws {
+        let width = 16
+        let height = 16
+        var pixels = Data(capacity: width * height * 2)
+        for i in 0..<(width * height) {
+            // Range -1024...1023 (valid 12-bit signed two's complement), sign-extended to 16 bits.
+            let signed12 = Int16(-1024 + ((i * 257) % 2048))
+            let word = UInt16(bitPattern: signed12)
+            pixels.append(UInt8(word & 0xFF))
+            pixels.append(UInt8((word >> 8) & 0xFF))
+        }
+        let desc = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 12,
+            highBit: 11,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let codec = JPEGLSCodec()
+        #expect(codec.canEncode(with: .lossless, descriptor: desc))
+        let encoded = try codec.encodeFrame(pixels, descriptor: desc, frameIndex: 0, configuration: .lossless)
+        let decoded = try codec.decodeFrame(encoded, descriptor: desc, frameIndex: 0)
+        #expect(decoded.count == pixels.count)
+        for i in 0..<(width * height) {
+            let expectedLow12 = (UInt16(pixels[i * 2]) | (UInt16(pixels[i * 2 + 1]) << 8)) & 0x0FFF
+            let actual = UInt16(decoded[i * 2]) | (UInt16(decoded[i * 2 + 1]) << 8)
+            #expect(actual == expectedLow12)
+        }
+    }
+
+    @Test("C-3: JPEGLSCodec rejects 1-bit stored precision and near-lossless PALETTE COLOR")
+    func rejects1BitAndNearLosslessPaletteColor() {
+        let codec = JPEGLSCodec()
+        let oneBit = PixelDataDescriptor(
+            rows: 8, columns: 8,
+            bitsAllocated: 8, bitsStored: 1, highBit: 0,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        #expect(!codec.canEncode(with: .lossless, descriptor: oneBit))
+        #expect(throws: DICOMError.self) {
+            _ = try codec.encodeFrame(Data(repeating: 1, count: 64), descriptor: oneBit, frameIndex: 0, configuration: .lossless)
+        }
+
+        let palette = PixelDataDescriptor(
+            rows: 8, columns: 8,
+            bitsAllocated: 8, bitsStored: 8, highBit: 7,
+            isSigned: false, samplesPerPixel: 1,
+            photometricInterpretation: .paletteColor
+        )
+        #expect(codec.canEncode(with: .lossless, descriptor: palette))
+        let nearLosslessCfg = CompressionConfiguration(quality: .medium, preferLossless: false)
+        #expect(!codec.canEncode(with: nearLosslessCfg, descriptor: palette))
+    }
 }
