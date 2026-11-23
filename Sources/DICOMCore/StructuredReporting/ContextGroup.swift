@@ -490,6 +490,109 @@ extension ContextGroup {
     )
 }
 
+// MARK: - CID 7000: Diagnostic Imaging Report Document Titles
+
+extension ContextGroup {
+    /// CID 7000 - Diagnostic Imaging Report Document Titles
+    ///
+    /// Document titles for Basic Text, Enhanced, and Comprehensive Diagnostic Imaging Reports (TID 2000).
+    /// PS3.16 2026a Table CID 7000.
+    public static let diagnosticImagingReportDocumentTitles = ContextGroup(
+        cid: 7000,
+        name: "Diagnostic Imaging Report Document Titles",
+        isExtensible: true,
+        version: "20020904",
+        members: [
+            CodedConcept(codeValue: "18748-4", scheme: .LOINC, codeMeaning: "Diagnostic Imaging Report"),
+            CodedConcept(codeValue: "11528-7", scheme: .LOINC, codeMeaning: "Radiology Report"),
+            CodedConcept(codeValue: "11525-3", scheme: .LOINC, codeMeaning: "Ultrasound Obstetric and Gyn Report"),
+            CodedConcept(codeValue: "44136-0", scheme: .LOINC, codeMeaning: "PET Scan Report"),
+        ]
+    )
+
+    /// CID 7001 - Diagnostic Imaging Report Headings
+    ///
+    /// Section headings for Diagnostic Imaging Reports (TID 2000).
+    /// PS3.16 2026a Table CID 7001.
+    public static let diagnosticImagingReportHeadings = ContextGroup(
+        cid: 7001,
+        name: "Diagnostic Imaging Report Headings",
+        isExtensible: true,
+        version: "20110818",
+        members: [
+            CodedConcept(codeValue: "11329-0", scheme: .LOINC, codeMeaning: "History"),
+            CodedConcept(codeValue: "18785-6", scheme: .LOINC, codeMeaning: "Indications for Procedure"),
+            CodedConcept(codeValue: "55111-9", scheme: .LOINC, codeMeaning: "Current Procedure Descriptions"),
+            CodedConcept(codeValue: "18834-2", scheme: .LOINC, codeMeaning: "Previous Findings"),
+            CodedConcept(codeValue: "59776-5", scheme: .LOINC, codeMeaning: "Findings"),
+            CodedConcept(codeValue: "19005-8", scheme: .LOINC, codeMeaning: "Impressions"),
+            CodedConcept(codeValue: "18783-1", scheme: .LOINC, codeMeaning: "Recommendations"),
+            CodedConcept(codeValue: "55112-7", scheme: .LOINC, codeMeaning: "Summary"),
+            CodedConcept(codeValue: "55110-1", scheme: .LOINC, codeMeaning: "Conclusions"),
+            CodedConcept(codeValue: "55107-7", scheme: .LOINC, codeMeaning: "Addendum"),
+            CodedConcept(codeValue: "55109-3", scheme: .LOINC, codeMeaning: "Complications"),
+            CodedConcept(codeValue: "55113-5", scheme: .LOINC, codeMeaning: "Key Images"),
+            CodedConcept(codeValue: "55115-0", scheme: .LOINC, codeMeaning: "Request"),
+        ]
+    )
+
+    /// CID 7003 - Diagnostic Imaging Report Purposes of Reference
+    ///
+    /// Purposes of reference for images in Diagnostic Imaging and Measurement Reports (TID 1501 row 9c).
+    /// PS3.16 2026a Table CID 7003.
+    public static let diagnosticImagingReportPurposesOfReference = ContextGroup(
+        cid: 7003,
+        name: "Diagnostic Imaging Report Purposes of Reference",
+        isExtensible: true,
+        version: "20020904",
+        members: [
+            CodedConcept(codeValue: "121200", scheme: .DCM, codeMeaning: "Illustration of ROI"),
+        ]
+    )
+
+    /// CID 7010 - Key Object Selection Document Title
+    ///
+    /// Document titles / selection purposes for Key Object Selection Documents (TID 2010 row 1).
+    /// PS3.16 2026a Table CID 7010.
+    public static let keyObjectSelectionDocumentTitles = ContextGroup(
+        cid: 7010,
+        name: "Key Object Selection Document Title",
+        isExtensible: true,
+        version: "20200920",
+        members: [
+            CodedConcept(codeValue: "113000", scheme: .DCM, codeMeaning: "Of Interest"),
+            CodedConcept(codeValue: "113001", scheme: .DCM, codeMeaning: "Rejected for Quality Reasons"),
+            CodedConcept(codeValue: "113002", scheme: .DCM, codeMeaning: "For Referring Provider"),
+            CodedConcept(codeValue: "113003", scheme: .DCM, codeMeaning: "For Surgery"),
+            CodedConcept(codeValue: "113004", scheme: .DCM, codeMeaning: "For Teaching"),
+            CodedConcept(codeValue: "113005", scheme: .DCM, codeMeaning: "For Conference"),
+            CodedConcept(codeValue: "113009", scheme: .DCM, codeMeaning: "For Research"),
+            CodedConcept(codeValue: "113010", scheme: .DCM, codeMeaning: "Quality Issue"),
+            CodedConcept(codeValue: "113013", scheme: .DCM, codeMeaning: "Best In Set"),
+            CodedConcept(codeValue: "113018", scheme: .DCM, codeMeaning: "For Printing"),
+            CodedConcept(codeValue: "113020", scheme: .DCM, codeMeaning: "For Report Attachment"),
+        ]
+    )
+
+    /// All standard clinical reporting context groups defined in `DICOMCore`.
+    public static let clinicalReportingGroups: [ContextGroup] = [
+        .diagnosticImagingReportDocumentTitles,
+        .diagnosticImagingReportHeadings,
+        .diagnosticImagingReportPurposesOfReference,
+        .keyObjectSelectionDocumentTitles,
+        .measurementReportDocumentTitles,
+        .linearMeasurementUnit,
+        .areaMeasurementUnit,
+        .volumeMeasurementUnit,
+        .commonAnatomicRegion,
+        .breastImagingFinding,
+        .recistDefinedLesionResponse,
+        .measurementType,
+        .laterality,
+        .relativeTime,
+    ]
+}
+
 // MARK: - Superseded groups
 
 extension ContextGroup {

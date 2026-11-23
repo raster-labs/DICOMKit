@@ -76,12 +76,20 @@ extension DICOMFile {
         guard let resolved = registry.resolveDecoder(for: uid, descriptor: descriptor) else {
             throw PixelDataError.unsupportedTransferSyntax(uid)
         }
+        var selectedCodec = resolved.codec
+        if let jls = selectedCodec as? JPEGLSCodec,
+           jls.missingPresetPolicy == .allowLegacyUnclampedRecovery,
+           JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion(
+               fileMetaInformation.string(for: .implementationVersionName)
+           ) {
+            selectedCodec = jls.withMissingPresetPolicy(.preferLegacyUnclampedParameters)
+        }
         guard let encapsulated = dataSet.encapsulatedPixelData(),
               let index = encapsulated.makeFrameIndex(
                 extendedOffsetTableData: dataSet[.extendedOffsetTable]?.valueData,
                 extendedOffsetTableLengthsData: dataSet[.extendedOffsetTableLengths]?.valueData
               ) else { throw PixelDataError.frameExtractionFailed(frameIndex: frame) }
-        return .encapsulated(encapsulated, index, resolved.codec)
+        return .encapsulated(encapsulated, index, selectedCodec)
     }
 
     func readFrame(_ frame: Int, descriptor: PixelDataDescriptor, source: FrameSource, aligned: Bool) throws -> PixelData {

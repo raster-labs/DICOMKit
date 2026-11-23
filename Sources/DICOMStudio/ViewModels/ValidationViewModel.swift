@@ -196,9 +196,12 @@ public final class ValidationViewModel {
         }
 
         let trimmedIOD = iod.trimmingCharacters(in: .whitespaces)
+        let resolvedIOD = trimmedIOD.isEmpty
+            ? nil
+            : DICOMKit.DICOMValidator.iodName(forIODOption: trimmedIOD)
         let validator = DICOMKit.DICOMValidator(
             level: level,
-            iod: trimmedIOD.isEmpty ? nil : trimmedIOD,
+            iod: resolvedIOD,
             force: force
         )
 

@@ -561,7 +561,8 @@ struct JPEGLSCodecStrictDecodingTests {
         height: Int,
         bitsPerSample: Int,
         samplesPerPixel: Int = 1,
-        near: Int = 0
+        near: Int = 0,
+        interleaveOverride: SwiftJLS.CodecOptions.InterleaveMode? = nil
     ) async throws -> Data {
         let maxVal = (1 << bitsPerSample) - 1
         let factor = (maxVal + 128) / 256
@@ -602,7 +603,7 @@ struct JPEGLSCodecStrictDecodingTests {
                     byteCount: width * height * 2
                 )
             ]
-            interleave = .none
+            interleave = interleaveOverride ?? .none
         } else {
             components = [
                 .uninterpreted("JPEG-LS:1"),
@@ -622,7 +623,7 @@ struct JPEGLSCodecStrictDecodingTests {
                     byteCount: width * height * 6
                 )
             ]
-            interleave = .sample
+            interleave = interleaveOverride ?? .sample
         }
         let imgDesc = try SwiftJLS.ImageDescriptor(
             width: width,
@@ -806,7 +807,7 @@ struct JPEGLSCodecStrictDecodingTests {
         }
     }
 
-    @Test("Legacy 16-bit 3-component unclamped-MAXVAL JPEG-LS stream without LSE recovers bit-exactly")
+    @Test("Legacy 16-bit 3-component unclamped-MAXVAL JPEG-LS streams across ILV 0/1/2 without LSE recover bit-exactly")
     func legacyUnclampedMaxValRecoveryRGB16() async throws {
         let width = 16
         let height = 16
@@ -816,13 +817,6 @@ struct JPEGLSCodecStrictDecodingTests {
             pixels.append(UInt8(word & 0xFF))
             pixels.append(UInt8((word >> 8) & 0xFF))
         }
-        let legacyStream = try await Self.makeLegacyUnclampedCodestream(
-            pixels: pixels,
-            width: width,
-            height: height,
-            bitsPerSample: 16,
-            samplesPerPixel: 3
-        )
         let desc = PixelDataDescriptor(
             rows: height,
             columns: width,
@@ -834,16 +828,83 @@ struct JPEGLSCodecStrictDecodingTests {
             photometricInterpretation: .rgb,
             planarConfiguration: 0
         )
-        let decoded = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
-            .decodeFrame(legacyStream, descriptor: desc, frameIndex: 0)
-        #expect(decoded == pixels)
+        for interleave in [SwiftJLS.CodecOptions.InterleaveMode.none, .line, .sample] {
+            let legacyStream = try await Self.makeLegacyUnclampedCodestream(
+                pixels: pixels,
+                width: width,
+                height: height,
+                bitsPerSample: 16,
+                samplesPerPixel: 3,
+                interleaveOverride: interleave
+            )
+            let decoded = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
+                .decodePixelFrame(legacyStream, descriptor: desc, frameIndex: 0)
+            #expect(decoded.data == pixels)
+            #expect(decoded.diagnostics == [.legacyUnclampedPresetRecovered(encodedPrecision: 16)])
+
+            let budget = try DICOMAllocationBudget()
+            let inBuf = try DICOMByteBuffer(count: legacyStream.count, budget: budget, resource: .encoded)
+            legacyStream.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
+            let managed = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
+                .decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
+            #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
+            #expect(managed.diagnostic == .legacyUnclampedPresetRecovered(encodedPrecision: 16))
+            #expect(budget.receipt.current.staging == 0)
+        }
+    }
+
+    @Test("Silent false-positive standard decode on 1x3 16-bit legacy unclamped stream [20, 15, 10] is prevented by .preferLegacyUnclampedParameters")
+    func legacyUnclampedSilentStandardDecodeCorruptionPreventedByPreferLegacyPolicy() async throws {
+        // 1x3 16-bit lossless image [20, 15, 10]:
+        // - col 0 (P0 = 20): run mode interrupted at col 0.
+        // - col 1 (P1 = 15): d3 = -20 quantizes to Q=1 under legacy T1=258 (updating C[1] -> +1 while k[1] stays 10)
+        //   but quantizes to Q=2 under standard T1=18 (leaving C[1] = 0 and k[1] = 10).
+        // - col 2 (P2 = 10): d3 = -15 quantizes to Q=1 under BOTH standard and legacy, reading the exact same
+        //   k[1] = 10 Golomb code to EOI without throwing an error, but standard uses C[1] = 0 instead of +1
+        //   and silently reconstructs P2 = 11 instead of 10.
+        let samples: [UInt16] = [20, 15, 10]
+        var pixels = Data(capacity: samples.count * 2)
+        for s in samples {
+            pixels.append(UInt8(s & 0xFF))
+            pixels.append(UInt8((s >> 8) & 0xFF))
+        }
+        let desc = PixelDataDescriptor(
+            rows: 1,
+            columns: 3,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: false,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let legacyStream = try await Self.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: 3,
+            height: 1,
+            bitsPerSample: 16
+        )
+
+        // 1. Standard decoding completes WITHOUT throwing an error, but reconstructs [20, 15, 11] != [20, 15, 10].
+        let strictCodec = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .requireStandardDefaults)
+        let silentCorrupt = try strictCodec.decodePixelFrame(legacyStream, descriptor: desc, frameIndex: 0)
+        let expectedCorrupt = Data([20, 0, 15, 0, 11, 0])
+        #expect(silentCorrupt.data == expectedCorrupt)
+        #expect(silentCorrupt.data != pixels)
+        #expect(silentCorrupt.diagnostics.isEmpty)
+
+        // 2. Deterministic .preferLegacyUnclampedParameters applies the unclamped LSE first and recovers [20, 15, 10] bit-exactly.
+        let preferLegacyCodec = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .preferLegacyUnclampedParameters)
+        let recovered = try preferLegacyCodec.decodePixelFrame(legacyStream, descriptor: desc, frameIndex: 0)
+        #expect(recovered.data == pixels)
+        #expect(recovered.diagnostics == [.legacyUnclampedPresetRecovered(encodedPrecision: 16)])
 
         let budget = try DICOMAllocationBudget()
         let inBuf = try DICOMByteBuffer(count: legacyStream.count, budget: budget, resource: .encoded)
         legacyStream.withUnsafeBytes { inBuf.unsafeMutableBytes.copyMemory(from: $0) }
-        let managed = try JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: .allowLegacyUnclampedRecovery)
-            .decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
+        let managed = try preferLegacyCodec.decodeManagedPixelFrame(inBuf, descriptor: desc, frameIndex: 0, budget: budget)
         #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
+        #expect(managed.diagnostic == .legacyUnclampedPresetRecovered(encodedPrecision: 16))
         #expect(budget.receipt.current.staging == 0)
     }
 

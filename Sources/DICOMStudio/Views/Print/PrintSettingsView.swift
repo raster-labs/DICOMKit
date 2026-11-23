@@ -1053,7 +1053,7 @@ public struct PrintSettingsView: View {
         let selected = viewModel.selectedAnnotation
 
         VStack(alignment: .leading, spacing: 8) {
-            if let selected, selected.annotation.kind != .arrow {
+            if let selected, selected.annotation.kind != .arrow, selected.annotation.kind != .length {
                 stackedControl("Text") {
                     TextField("Type the annotation", text: annotationTextBinding(selected))
                         .focused($isAnnotationTextFocused)

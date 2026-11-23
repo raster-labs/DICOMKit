@@ -114,8 +114,10 @@ extension KeyboardShortcutsLegendView {
         KeyboardShortcutGroup("Annotating", [
             KeyboardShortcutHint("A", "Annotation tool — click to place text, or press "
                                  + "on the target and drag the label out, arrow attached"),
+            KeyboardShortcutHint("L", "Length tool — drag between two points to draw a "
+                                 + "ruler and display the distance measurement"),
             KeyboardShortcutHint("Drag", "Move an annotation; a selected one's handles "
-                                 + "re-aim the arrow or move the label alone"),
+                                 + "re-aim the arrow or adjust the measured length"),
             KeyboardShortcutHint("⌫", "Delete the selected annotation"),
         ]),
         KeyboardShortcutGroup("The image", [

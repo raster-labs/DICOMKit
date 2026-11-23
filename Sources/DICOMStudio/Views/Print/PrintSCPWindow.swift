@@ -24,6 +24,12 @@ public enum StudioWindowID: Sendable {
     /// covers exactly that. So the preview is a window: it can sit beside the
     /// viewer, be moved to a second display, or be zoomed to fill one.
     public static let printPreview = "print-preview"
+
+    /// The standalone Structured Reports window.
+    ///
+    /// Opened alongside the Image Viewer so the clinician can inspect images
+    /// and author or review a DICOM Structured Report side-by-side.
+    public static let structuredReports = "structured-reports"
 }
 
 /// What the Printer Emulator navigation entry shows in the main window: a card

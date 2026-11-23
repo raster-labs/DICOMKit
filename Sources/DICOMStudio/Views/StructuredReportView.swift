@@ -7,6 +7,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 import UniformTypeIdentifiers
+import DICOMCore
 
 /// Structured Report view providing SR viewing, building, DICOM Part 10 `.dcm` import/export,
 /// terminology browsing, and CAD findings visualization.
@@ -52,6 +53,8 @@ public struct StructuredReportView: View {
                 viewerContent
             } else if viewModel.isBuilderActive {
                 builderContent
+            } else if viewModel.isValidationActive {
+                validationContent
             } else if viewModel.isTerminologyBrowserActive {
                 terminologyContent
             } else if viewModel.isCADOverlayActive {
@@ -101,24 +104,42 @@ public struct StructuredReportView: View {
             modeButton(title: "Viewer", systemImage: "doc.text.magnifyingglass", isActive: viewModel.isViewerActive) {
                 viewModel.isViewerActive = true
                 viewModel.isBuilderActive = false
+                viewModel.isValidationActive = false
                 viewModel.isTerminologyBrowserActive = false
                 viewModel.isCADOverlayActive = false
             }
             modeButton(title: "Builder", systemImage: "doc.badge.plus", isActive: viewModel.isBuilderActive) {
+                if viewModel.selectedTemplate == nil && viewModel.selectedRegisteredTemplate == nil {
+                    viewModel.selectedTemplate = .radiologyReport
+                }
                 viewModel.isViewerActive = false
                 viewModel.isBuilderActive = true
+                viewModel.isValidationActive = false
                 viewModel.isTerminologyBrowserActive = false
                 viewModel.isCADOverlayActive = false
+            }
+            modeButton(title: "Validation", systemImage: "checkmark.shield", isActive: viewModel.isValidationActive) {
+                if viewModel.selectedTemplate == nil && viewModel.selectedRegisteredTemplate == nil && viewModel.documents.isEmpty {
+                    viewModel.selectedTemplate = .radiologyReport
+                }
+                viewModel.isViewerActive = false
+                viewModel.isBuilderActive = false
+                viewModel.isValidationActive = true
+                viewModel.isTerminologyBrowserActive = false
+                viewModel.isCADOverlayActive = false
+                _ = viewModel.validateCurrentReport()
             }
             modeButton(title: "Terminology", systemImage: "character.book.closed", isActive: viewModel.isTerminologyBrowserActive) {
                 viewModel.isViewerActive = false
                 viewModel.isBuilderActive = false
+                viewModel.isValidationActive = false
                 viewModel.isTerminologyBrowserActive = true
                 viewModel.isCADOverlayActive = false
             }
             modeButton(title: "CAD Findings", systemImage: "target", isActive: viewModel.isCADOverlayActive) {
                 viewModel.isViewerActive = false
                 viewModel.isBuilderActive = false
+                viewModel.isValidationActive = false
                 viewModel.isTerminologyBrowserActive = false
                 viewModel.isCADOverlayActive = true
             }
@@ -195,24 +216,63 @@ public struct StructuredReportView: View {
     // MARK: - Welcome
 
     private var welcomeContent: some View {
+        Group {
+            if !viewModel.hasActiveViewerImage {
+                emptyViewerRestrictionView
+            } else {
+                ContentUnavailableView {
+                    Label("Structured Reports", systemImage: "doc.text")
+                } description: {
+                    Text("View, create, import, and export DICOM Structured Reports (SR) with coded terminology, measurements, and CAD findings.")
+                } actions: {
+                    HStack(spacing: 12) {
+                        Button("Open Viewer") {
+                            viewModel.isViewerActive = true
+                        }
+                        Button("New Report") {
+                            if viewModel.selectedTemplate == nil {
+                                viewModel.selectedTemplate = .radiologyReport
+                            }
+                            viewModel.isBuilderActive = true
+                        }
+                        Button("Import .dcm…") {
+                            isImportingDCM = true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var emptyViewerRestrictionView: some View {
         ContentUnavailableView {
-            Label("Structured Reports", systemImage: "doc.text")
+            Label("Open an Image in the Viewer to Create a Structured Report", systemImage: "photo.badge.exclamationmark")
         } description: {
-            Text("View, create, import, and export DICOM Structured Reports (SR) with coded terminology, measurements, and CAD findings.")
+            Text("The Image Viewer is currently empty. Open an image or study in the Image Viewer first so you can analyze the image alongside the Structured Reports window and inherit the study's Patient ID and DICOM headers.")
         } actions: {
             HStack(spacing: 12) {
-                Button("Open Viewer") {
-                    viewModel.isViewerActive = true
-                }
-                Button("New Report") {
-                    if viewModel.selectedTemplate == nil {
-                        viewModel.selectedTemplate = .radiologyReport
+                if let goLibrary = viewModel.onNavigateToLibrary {
+                    Button {
+                        goLibrary()
+                    } label: {
+                        Label("Open Study Library", systemImage: "folder")
                     }
-                    viewModel.isBuilderActive = true
+                    .buttonStyle(.borderedProminent)
                 }
-                Button("Import .dcm…") {
+                if let goViewer = viewModel.onNavigateToViewer {
+                    Button {
+                        goViewer()
+                    } label: {
+                        Label("Go to Image Viewer", systemImage: "eye")
+                    }
+                    .buttonStyle(.bordered)
+                }
+                Button {
                     isImportingDCM = true
+                } label: {
+                    Label("Import Existing SR (.dcm)…", systemImage: "square.and.arrow.down")
                 }
+                .buttonStyle(.bordered)
             }
         }
     }
@@ -473,71 +533,204 @@ public struct StructuredReportView: View {
                 Button("Validate") {
                     _ = viewModel.validateBuilder()
                 }
+                .disabled(!viewModel.hasActiveViewerImage)
                 .accessibilityLabel("Validate report")
 
                 Button("Create") {
                     _ = viewModel.createAndLoadDocument()
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(!viewModel.hasActiveViewerImage)
                 .accessibilityLabel("Create report")
             }
             .padding()
 
-            Divider()
-
-            if !viewModel.validationErrors.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(viewModel.validationErrors, id: \.self) { error in
-                        Label(error, systemImage: "exclamationmark.triangle")
-                            .font(.caption)
-                            .foregroundStyle(.red)
+            if let ctx = viewModel.activeStudyContext, viewModel.hasActiveViewerImage {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.text.rectangle.fill")
+                        .foregroundStyle(Color.accentColor)
+                    let pName = (ctx.patientName?.isEmpty == false) ? ctx.patientName! : "Unnamed Patient"
+                    let pID = (ctx.patientID?.isEmpty == false) ? ctx.patientID! : "No Patient ID"
+                    let studyDesc = (ctx.studyDescription?.isEmpty == false) ? " • \(ctx.studyDescription!)" : ""
+                    Text("Reporting on Active Viewer Study: \(pName) (ID: \(pID))\(studyDesc)")
+                        .font(.caption.weight(.medium))
+                    Spacer()
+                    Button("Re-sync Metadata") {
+                        if let name = ctx.patientName, !name.isEmpty { viewModel.patientName = name }
+                        if let pid = ctx.patientID, !pid.isEmpty { viewModel.patientID = pid }
+                        if let suid = ctx.studyInstanceUID, !suid.isEmpty { viewModel.studyInstanceUID = suid }
                     }
+                    .font(.caption)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(.red.opacity(0.05))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Color.accentColor.opacity(0.08))
             }
 
-            if viewModel.builderMode == .importExisting {
-                ContentUnavailableView {
-                    Label("Import Existing Structured Report", systemImage: "square.and.arrow.down")
-                } description: {
-                    Text("Open a DICOM Part 10 Structured Report (.dcm) file to inspect, search, or re-export it.")
-                } actions: {
-                    Button("Choose DICOM SR File…") {
-                        isImportingDCM = true
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
+            Divider()
+
+            if !viewModel.hasActiveViewerImage && viewModel.builderMode != .importExisting {
+                emptyViewerRestrictionView
             } else {
-                builderForm
+                if !viewModel.validationErrors.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Label("Report Validation Failed (\(viewModel.validationErrors.count) issue(s))", systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.red)
+                            Spacer()
+                            Button("Open Validation Tab") {
+                                viewModel.isBuilderActive = false
+                                viewModel.isValidationActive = true
+                            }
+                            .font(.caption)
+                        }
+                        ForEach(viewModel.validationErrors, id: \.self) { error in
+                            Label(error, systemImage: "xmark.circle")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(.red.opacity(0.08))
+                } else if let validMsg = viewModel.validationSuccessMessage {
+                    HStack(spacing: 10) {
+                        Label(validMsg, systemImage: "checkmark.seal.fill")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.green)
+                        Spacer()
+                        Button("View Conformance Report") {
+                            viewModel.isBuilderActive = false
+                            viewModel.isValidationActive = true
+                        }
+                        .font(.caption)
+                        Button {
+                            viewModel.validationSuccessMessage = nil
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.caption2)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .background(.green.opacity(0.08))
+                }
+
+                if viewModel.builderMode == .importExisting {
+                    ContentUnavailableView {
+                        Label("Import Existing Structured Report", systemImage: "square.and.arrow.down")
+                    } description: {
+                        Text("Open a DICOM Part 10 Structured Report (.dcm) file to inspect, search, or re-export it.")
+                    } actions: {
+                        Button("Choose DICOM SR File…") {
+                            isImportingDCM = true
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                } else {
+                    builderForm
+                }
             }
         }
     }
 
     private var builderForm: some View {
         Form {
-            Section("Document Type & Template") {
+            Section("Document Type & Template (DICOMCore Registry)") {
                 Picker("SR Document Type", selection: $viewModel.builderDocumentType) {
-                    ForEach(SRBuilderHelpers.supportedDocumentTypes(for: viewModel.builderMode), id: \.self) { docType in
-                        Text(docType.displayName).tag(docType)
+                    let supported = SRBuilderHelpers.supportedDocumentTypes(for: viewModel.builderMode)
+                    let clinical = supported.filter(\.isClinicalImagingReportType)
+                    let specialized = supported.filter { !$0.isClinicalImagingReportType }
+
+                    Section("Clinical Imaging Report IODs (Prioritized)") {
+                        ForEach(clinical, id: \.self) { docType in
+                            Text(docType.displayName).tag(docType)
+                        }
+                    }
+                    if !specialized.isEmpty {
+                        Section("All Other PS3.6 SR Storage SOP Classes") {
+                            ForEach(specialized, id: \.self) { docType in
+                                Text(docType.displayName).tag(docType)
+                            }
+                        }
                     }
                 }
                 .onChange(of: viewModel.builderDocumentType) { _, newType in
                     let templates = SRBuilderHelpers.availableTemplates(for: newType)
                     if let current = viewModel.selectedTemplate, !templates.contains(current) {
                         viewModel.selectedTemplate = templates.first
-                    } else if viewModel.selectedTemplate == nil, viewModel.builderMode == .template {
+                    } else if viewModel.selectedTemplate == nil,
+                              viewModel.selectedRegisteredTemplate == nil,
+                              viewModel.builderMode == .template {
                         viewModel.selectedTemplate = templates.first
+                    }
+                    if let defaultTID = newType.coreDocumentType.defaultRootTemplateIdentifier,
+                       let descriptor = DICOMCore.TemplateRegistry.shared.descriptor(for: defaultTID) {
+                        viewModel.selectedRegisteredTemplate = descriptor
                     }
                 }
 
-                let templates = SRBuilderHelpers.availableTemplates(for: viewModel.builderDocumentType)
-                if viewModel.builderMode == .template && !templates.isEmpty {
-                    Picker("Clinical Template", selection: $viewModel.selectedTemplate) {
-                        Text("Select Template…").tag(Optional<SRTemplate>.none)
-                        ForEach(templates, id: \.self) { tpl in
-                            Text(tpl.displayName).tag(Optional(tpl))
+                LabeledContent("SOP Class UID") {
+                    Text(viewModel.builderDocumentType.sopClassUID)
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(viewModel.builderDocumentType.coreDocumentType.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                if viewModel.builderMode == .template {
+                    let clinicalTemplates = SRBuilderHelpers.availableTemplates(for: viewModel.builderDocumentType)
+                    if !clinicalTemplates.isEmpty {
+                        Picker("Clinical Report Preset (CID 7000 / 7001)", selection: $viewModel.selectedTemplate) {
+                            Text("None (Use PS3.16 TID Template below)").tag(Optional<SRTemplate>.none)
+                            ForEach(clinicalTemplates, id: \.self) { tpl in
+                                Text(tpl.displayName).tag(Optional(tpl))
+                            }
+                        }
+                        .onChange(of: viewModel.selectedTemplate) { _, newPreset in
+                            if newPreset != nil {
+                                viewModel.selectedRegisteredTemplate = nil
+                            }
+                        }
+                    }
+
+                    let registeredTemplates = SRBuilderHelpers.registeredTemplates(for: viewModel.builderDocumentType)
+                    let rootTIDs = registeredTemplates.filter(\.isRoot)
+                    let subTIDs = registeredTemplates.filter { !$0.isRoot }
+
+                    Picker("PS3.16 Registered Template (All \(registeredTemplates.count) TIDs)", selection: $viewModel.selectedRegisteredTemplate) {
+                        Text("None (Use Clinical Preset above)").tag(Optional<DICOMCore.SRRegisteredTemplateDescriptor>.none)
+                        Section("Root Document Templates (PS3.16)") {
+                            ForEach(rootTIDs) { descriptor in
+                                Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                            }
+                        }
+                        Section("All Registered Sub-Templates (PS3.16)") {
+                            ForEach(subTIDs) { descriptor in
+                                Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                            }
+                        }
+                    }
+                    .onChange(of: viewModel.selectedRegisteredTemplate) { _, newTID in
+                        if newTID != nil {
+                            viewModel.selectedTemplate = nil
+                        }
+                    }
+
+                    if let reg = viewModel.selectedRegisteredTemplate {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(reg.formattedDisplayName) • Root VT: \(reg.rootValueType.rawValue) • \(reg.isExtensible ? "Extensible" : "Non-Extensible") • \(reg.rows.count) row(s)")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.secondary)
+                            if !reg.templateDescription.isEmpty {
+                                Text(reg.templateDescription)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }
@@ -547,7 +740,8 @@ public struct StructuredReportView: View {
                 Section("Key Object Selection (TID 2010 — Modality KO)") {
                     Picker("Purpose (CID 7010)", selection: $viewModel.keyObjectPurpose) {
                         ForEach(KeyObjectPurpose.allCases, id: \.self) { purpose in
-                            Text(purpose.displayName).tag(purpose)
+                            Text("\(purpose.displayName) — \(purpose.coreDescriptor.titleConcept.codeMeaning) (\(purpose.coreDescriptor.titleConcept.codeValue))")
+                                .tag(purpose)
                         }
                     }
                     TextField("Selection Description", text: $viewModel.keyObjectDescription, axis: .vertical)
@@ -562,6 +756,33 @@ public struct StructuredReportView: View {
                             Spacer()
                             Text("\(String(format: "%.2f", item.value)) \(item.unit.codeMeaning)")
                                 .foregroundStyle(.secondary)
+                            Picker(
+                                "Unit",
+                                selection: Binding(
+                                    get: { item.unit.codeValue },
+                                    set: { newCode in
+                                        if let match = SRBuilderHelpers.availableMeasurementUnits.first(where: { $0.rawValue == newCode }) {
+                                            viewModel.builderMeasurements[idx] = TrackedMeasurement(
+                                                id: item.id,
+                                                trackingIdentifier: item.trackingIdentifier,
+                                                trackingUID: item.trackingUID,
+                                                value: item.value,
+                                                unit: CodedConcept(coreConcept: match.ucumConcept),
+                                                timePoint: item.timePoint,
+                                                trackingMethod: item.trackingMethod,
+                                                findingSite: item.findingSite
+                                            )
+                                        }
+                                    }
+                                )
+                            ) {
+                                ForEach(SRBuilderHelpers.availableMeasurementUnits) { unitDesc in
+                                    Text(unitDesc.displayName).tag(unitDesc.rawValue)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 145)
+
                             Button(role: .destructive) {
                                 viewModel.builderMeasurements.remove(at: idx)
                             } label: {
@@ -584,11 +805,14 @@ public struct StructuredReportView: View {
                         Label("Add Sample Lesion Measurement", systemImage: "plus.circle")
                     }
                 }
-            } else if let template = viewModel.selectedTemplate, viewModel.builderMode == .template {
-                Section("\(template.displayName) Sections (CID 7001)") {
-                    ForEach(template.sections, id: \.self) { section in
+            } else if viewModel.builderMode == .template,
+                      let templateName = viewModel.activeTemplateDisplayName,
+                      !viewModel.activeTemplateSections.isEmpty {
+                Section("\(templateName) Sections (CID 7001 / PS3.16)") {
+                    ForEach(viewModel.activeTemplateSections, id: \.self) { section in
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(section)
+                            let headingConcept = SRBuilderHelpers.sectionHeading(for: section)
+                            Text("\(section) (\(headingConcept.codingSchemeDesignator) \(headingConcept.codeValue))")
                                 .font(.caption.weight(.medium))
                             TextField(
                                 "Enter \(section.lowercased())…",
@@ -628,6 +852,151 @@ public struct StructuredReportView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    // MARK: - Report Validation Content
+
+    private var validationContent: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Label("SR Conformance & Template Validation", systemImage: "checkmark.shield")
+                    .font(.headline)
+
+                if !viewModel.documents.isEmpty {
+                    Picker(
+                        "Loaded Report",
+                        selection: Binding(
+                            get: { viewModel.selectedDocumentIndex ?? 0 },
+                            set: {
+                                viewModel.selectDocument(at: $0)
+                                _ = viewModel.validateCurrentReport()
+                            }
+                        )
+                    ) {
+                        ForEach(Array(viewModel.documents.enumerated()), id: \.element.id) { idx, doc in
+                            Text("\(idx + 1). \(doc.title.codeMeaning) (\(doc.documentType.displayName))")
+                                .tag(idx)
+                        }
+                    }
+                    .frame(maxWidth: 320)
+                }
+
+                Spacer()
+
+                let registeredTemplates = SRBuilderHelpers.allRegisteredTemplates
+                let rootTIDs = registeredTemplates.filter(\.isRoot)
+                let subTIDs = registeredTemplates.filter { !$0.isRoot }
+                Picker("PS3.16 TID", selection: $viewModel.validationTargetTemplate) {
+                    Text("Auto / Document TID").tag(Optional<DICOMCore.SRRegisteredTemplateDescriptor>.none)
+                    Section("Root Document Templates (PS3.16)") {
+                        ForEach(rootTIDs) { descriptor in
+                            Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                        }
+                    }
+                    Section("Sub-Templates (PS3.16)") {
+                        ForEach(subTIDs) { descriptor in
+                            Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                        }
+                    }
+                }
+                .frame(maxWidth: 280)
+                .onChange(of: viewModel.validationTargetTemplate) { _, _ in
+                    _ = viewModel.validateCurrentReport()
+                }
+
+                Button("Validate Loaded / Draft") {
+                    _ = viewModel.validateCurrentReport()
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityLabel("Run SR validation")
+
+                Button("Validate Builder Draft") {
+                    _ = viewModel.validateBuilder()
+                }
+                .accessibilityLabel("Validate current SR Builder draft")
+            }
+            .padding()
+
+            Divider()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let validMsg = viewModel.validationSuccessMessage, viewModel.validationErrors.isEmpty {
+                        HStack(spacing: 10) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.title3)
+                                .foregroundStyle(.green)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("VALID STRUCTURED REPORT")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.green)
+                                Text(validMsg)
+                                    .font(.callout)
+                            }
+                            Spacer()
+                        }
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(.green.opacity(0.1)))
+                    } else if !viewModel.validationErrors.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.red)
+                                Text("INVALID STRUCTURED REPORT — \(viewModel.validationErrors.count) Error(s)")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.red)
+                            }
+                            ForEach(viewModel.validationErrors, id: \.self) { err in
+                                Label(err, systemImage: "xmark.circle")
+                                    .font(.callout)
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(.red.opacity(0.1)))
+                    }
+
+                    if !viewModel.validationChecks.isEmpty {
+                        GroupBox("DICOM PS3.3 / PS3.16 Conformance Checklist") {
+                            VStack(alignment: .leading, spacing: 10) {
+                                ForEach(viewModel.validationChecks) { check in
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Image(systemName: check.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                            .foregroundStyle(check.passed ? .green : .red)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(check.title)
+                                                .font(.callout.weight(.semibold))
+                                            Text(check.detail)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                                .textSelection(.enabled)
+                                        }
+                                        Spacer()
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+
+                    if !viewModel.validationWarnings.isEmpty {
+                        GroupBox("PS3.16 Template & Dataset Notices (\(viewModel.validationWarnings.count))") {
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(viewModel.validationWarnings, id: \.self) { warn in
+                                    Label(warn, systemImage: "info.circle")
+                                        .font(.caption)
+                                        .foregroundStyle(.orange)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+                .padding()
+            }
+        }
     }
 
     // MARK: - Terminology Content
@@ -787,5 +1156,112 @@ public struct StructuredReportView: View {
     private func contentItemDisplayValue(_ item: SRContentItem) -> String {
         SRTreeHelpers.formatItemValue(item)
     }
+}
+
+/// Sidebar destination view for `.reporting` ("Structured Reports").
+///
+/// - When an image/study is loaded in the Image Viewer (`viewModel.imageViewerViewModel.dicomFile != nil`):
+///   synchronizes study/patient metadata, raises the dedicated `StudioWindowID.structuredReports` window,
+///   and returns the main window to the Image Viewer so both windows are visible side-by-side.
+/// - When the Image Viewer is empty (`viewModel.imageViewerViewModel.dicomFile == nil`):
+///   blocks opening the SR window and displays a restriction message instructing the user to open an
+///   image in the Viewer first.
+@available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+public struct StructuredReportLauncherView: View {
+    @Bindable var viewModel: MainViewModel
+
+    #if os(macOS)
+    @Environment(\.openWindow) private var openWindow
+    #endif
+
+    public init(viewModel: MainViewModel) {
+        self.viewModel = viewModel
+    }
+
+    public var body: some View {
+        #if os(macOS)
+        Group {
+            if viewModel.imageViewerViewModel.dicomFile != nil {
+                ContentUnavailableView {
+                    Label("Structured Reports", systemImage: "doc.text")
+                } description: {
+                    Text("Structured Reports opens in its own window alongside the Image Viewer so you can analyze images while writing your report.")
+                } actions: {
+                    HStack(spacing: 12) {
+                        Button {
+                            launchSRWindowAlongsideViewer()
+                        } label: {
+                            Label("Open Structured Reports Window", systemImage: "macwindow")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Button {
+                            viewModel.selectedDestination = .viewer
+                        } label: {
+                            Label("Return to Image Viewer", systemImage: "eye")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+                }
+                .onAppear {
+                    launchSRWindowAlongsideViewer()
+                }
+            } else {
+                ContentUnavailableView {
+                    Label("Open an Image in the Viewer to Create a Structured Report", systemImage: "photo.badge.exclamationmark")
+                } description: {
+                    Text("The Image Viewer is currently empty. Open an image or study in the Image Viewer first so you can analyze the image alongside the Structured Reports window and inherit the study's Patient ID and DICOM headers.")
+                } actions: {
+                    HStack(spacing: 12) {
+                        Button {
+                            viewModel.selectedDestination = .library
+                        } label: {
+                            Label("Open Study Library", systemImage: "folder")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Button {
+                            viewModel.selectedDestination = .viewer
+                        } label: {
+                            Label("Go to Image Viewer", systemImage: "eye")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+                }
+                .onAppear {
+                    viewModel.syncStructuredReportWithViewer()
+                }
+            }
+        }
+        .navigationTitle("Structured Reports")
+        #else
+        StructuredReportView(viewModel: viewModel.structuredReportViewModel)
+        #endif
+    }
+
+    #if os(macOS)
+    private func launchSRWindowAlongsideViewer() {
+        viewModel.syncStructuredReportWithViewer()
+        let srVM = viewModel.structuredReportViewModel
+        if !srVM.isViewerActive
+            && !srVM.isBuilderActive
+            && !srVM.isValidationActive
+            && !srVM.isTerminologyBrowserActive
+            && !srVM.isCADOverlayActive {
+            if srVM.selectedTemplate == nil && srVM.selectedRegisteredTemplate == nil {
+                srVM.selectedTemplate = .radiologyReport
+            }
+            srVM.isBuilderActive = true
+        }
+        openWindow(id: StudioWindowID.structuredReports)
+        Task { @MainActor in
+            viewModel.selectedDestination = .viewer
+        }
+    }
+    #endif
 }
 #endif

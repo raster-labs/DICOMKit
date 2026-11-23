@@ -234,6 +234,7 @@ public final class MainViewModel {
             self.imageViewerViewModel.prepareForNewStudy()
             self.imageViewerViewModel.loadSeries(files: files, startIndex: startIdx)
             self.populateViewerSeriesPane(forFile: files.first)
+            self.syncStructuredReportWithViewer()
             self.selectedDestination = .viewer
         }
         // Single-file fallback: kept for API consumers that only set onOpenInViewer.
@@ -242,6 +243,7 @@ public final class MainViewModel {
             self.imageViewerViewModel.prepareForNewStudy()
             self.imageViewerViewModel.loadFile(at: filePath)
             self.populateViewerSeriesPane(forFile: filePath)
+            self.syncStructuredReportWithViewer()
             self.selectedDestination = .viewer
         }
         // "Print…" from the library: mark the files, open the first one so the
@@ -257,6 +259,7 @@ public final class MainViewModel {
                 contentsOf: files.map { PrintSelectionItem(filePath: $0) })
             self.imageViewerViewModel.revealPrintTray()
             self.imageViewerViewModel.loadSeries(files: files, startIndex: 0)
+            self.syncStructuredReportWithViewer()
             self.selectedDestination = .viewer
             self.imageViewerViewModel.isPrintSheetPresented = true
         }
@@ -269,28 +272,39 @@ public final class MainViewModel {
                   let destination = self.imageViewerViewModel.studySeriesDirectory else {
                 return "Open an imported study in the Viewer first to publish into its SR series, or use Export .dcm."
             }
-            var docToPublish = studioDoc
-            if docToPublish.studyInstanceUID.isEmpty {
-                docToPublish = SRDocument(
-                    id: docToPublish.id,
-                    documentType: docToPublish.documentType,
-                    title: docToPublish.title,
-                    patientName: docToPublish.patientName,
-                    patientID: docToPublish.patientID,
-                    studyInstanceUID: activeStudyUID,
-                    seriesInstanceUID: docToPublish.seriesInstanceUID,
-                    sopInstanceUID: docToPublish.sopInstanceUID,
-                    contentDate: docToPublish.contentDate,
-                    contentTime: docToPublish.contentTime,
-                    rootContentItem: docToPublish.rootContentItem,
-                    isComplete: docToPublish.isComplete,
-                    isVerified: docToPublish.isVerified
-                )
-            }
+            self.syncStructuredReportWithViewer()
+            let ctx = self.structuredReportViewModel.activeStudyContext
+            let resolvedPatientName = !studioDoc.patientName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? studioDoc.patientName
+                : (ctx?.patientName ?? "")
+            let resolvedPatientID = !studioDoc.patientID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? studioDoc.patientID
+                : (ctx?.patientID ?? "")
+            let resolvedStudyUID = !studioDoc.studyInstanceUID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? studioDoc.studyInstanceUID
+                : activeStudyUID
+
+            let docToPublish = SRDocument(
+                id: studioDoc.id,
+                documentType: studioDoc.documentType,
+                title: studioDoc.title,
+                patientName: resolvedPatientName,
+                patientID: resolvedPatientID,
+                studyInstanceUID: resolvedStudyUID,
+                seriesInstanceUID: studioDoc.seriesInstanceUID,
+                sopInstanceUID: studioDoc.sopInstanceUID,
+                contentDate: studioDoc.contentDate,
+                contentTime: studioDoc.contentTime,
+                rootContentItem: studioDoc.rootContentItem,
+                isComplete: studioDoc.isComplete,
+                isVerified: studioDoc.isVerified,
+                templateIdentifier: studioDoc.templateIdentifier
+            )
             let kitDoc = SRSerializationBridge.toDICOMKitDocument(
                 docToPublish,
                 verifyingObserverName: self.structuredReportViewModel.verifyingObserverName,
-                verifyingOrganization: self.structuredReportViewModel.verifyingOrganization
+                verifyingOrganization: self.structuredReportViewModel.verifyingOrganization,
+                studyContext: ctx
             )
             do {
                 let published = try PresentationStateStore.publishDocument(
@@ -304,6 +318,30 @@ public final class MainViewModel {
                 return "Could not publish Structured Report: \(error.localizedDescription)"
             }
         }
+
+        self.structuredReportViewModel.onNavigateToViewer = { [weak self] in
+            self?.selectedDestination = .viewer
+        }
+        self.structuredReportViewModel.onNavigateToLibrary = { [weak self] in
+            self?.selectedDestination = .library
+        }
+        self.syncStructuredReportWithViewer()
+    }
+
+    /// Synchronizes `structuredReportViewModel` with the active study/image in `imageViewerViewModel`.
+    public func syncStructuredReportWithViewer() {
+        guard let file = imageViewerViewModel.dicomFile else {
+            structuredReportViewModel.syncWithViewerStudyContext(nil)
+            return
+        }
+        let context = SRStudyContext(
+            dataSet: file.dataSet,
+            studyInstanceUID: imageViewerViewModel.studyInstanceUID,
+            currentSeriesInstanceUID: imageViewerViewModel.currentSeriesUID,
+            currentSOPClassUID: file.dataSet.string(for: .sopClassUID),
+            currentSOPInstanceUID: imageViewerViewModel.sopInstanceUID ?? file.dataSet.string(for: .sopInstanceUID)
+        )
+        structuredReportViewModel.syncWithViewerStudyContext(context)
     }
 
     /// Lets go of a study the library no longer holds.
@@ -317,6 +355,7 @@ public final class MainViewModel {
         // deleted some other study should not have their images cleared.
         if imageViewerViewModel.studyInstanceUID == studyUID {
             imageViewerViewModel.closeStudy()
+            syncStructuredReportWithViewer()
             if selectedDestination == .viewer {
                 selectedDestination = .library
             }

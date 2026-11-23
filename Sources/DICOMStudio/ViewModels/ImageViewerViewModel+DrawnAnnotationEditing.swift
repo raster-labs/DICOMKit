@@ -12,6 +12,8 @@
 // itself, marked or not.
 
 import Foundation
+import DICOMCore
+import DICOMKit
 import DICOMPrintKit
 
 extension ImageViewerViewModel {
@@ -48,6 +50,75 @@ extension ImageViewerViewModel {
         let id = printSelection.addArrowAnnotation(forKey: key, from: start, to: end)
         drawnAnnotationsFollowTools()
         return id
+    }
+
+    /// Resolves the physical pixel spacing calibration for the currently loaded
+    /// DICOM file, checking Pixel Spacing (0028,0030), Imager Pixel Spacing
+    /// (0018,1164), and Nominal Scanned Pixel Spacing (0018,2010), with
+    /// Estimated Radiographic Magnification Factor (0018,1114) correction.
+    public var currentImageCalibration: CalibrationModel {
+        guard let ds = dicomFile?.dataSet else { return .uncalibrated }
+        let base = CalibrationHelpers.resolveCalibration(
+            pixelSpacing: ds.string(for: .pixelSpacing),
+            imagerPixelSpacing: ds.string(for: .imagerPixelSpacing),
+            nominalScannedPixelSpacing: ds.string(for: .nominalScannedPixelSpacing))
+        if let magRaw = ds.string(for: Tag(group: 0x0018, element: 0x1114))?
+            .trimmingCharacters(in: .whitespaces),
+           let mag = Double(magRaw), mag > 0 {
+            return CalibrationHelpers.applyMagnificationCorrection(
+                calibration: base, magnificationFactor: mag)
+        }
+        return base
+    }
+
+    /// Computes the linear distance measurement between two normalized points
+    /// on the current image.
+    public func measureDrawnLength(
+        from start: PrintOverlayPoint, to end: PrintOverlayPoint
+    ) -> LinearMeasurementResult {
+        let width = Double(max(0, imageColumns))
+        let height = Double(max(0, imageRows))
+        let startPx = AnnotationPoint(x: start.x * width, y: start.y * height)
+        let endPx = AnnotationPoint(x: end.x * width, y: end.y * height)
+        return MeasurementHelpers.measureLength(
+            from: startPx, to: endPx, calibration: currentImageCalibration)
+    }
+
+    /// Formats the linear distance between two normalized points on the current
+    /// image (e.g. "24.5 mm" when calibrated, or "120.0 px" when uncalibrated).
+    public func formattedDrawnLengthText(
+        from start: PrintOverlayPoint, to end: PrintOverlayPoint
+    ) -> String {
+        let result = measureDrawnLength(from: start, to: end)
+        return MeasurementHelpers.formatLength(
+            pixels: result.lengthPixels, mm: result.lengthMM, unit: .millimeters)
+    }
+
+    /// Puts a length measurement on the image on screen, calculating its
+    /// distance label from the image's pixel spacing, and selects it.
+    @discardableResult
+    public func addDrawnLengthAnnotation(
+        from start: PrintOverlayPoint, to end: PrintOverlayPoint
+    ) -> UUID? {
+        guard let key = currentAnnotationKey else { return nil }
+        let label = formattedDrawnLengthText(from: start, to: end)
+        let id = printSelection.addLengthAnnotation(
+            forKey: key, from: start, to: end, text: label)
+        drawnAnnotationsFollowTools()
+        return id
+    }
+
+    /// Moves one endpoint of a length measurement and updates its distance label.
+    public func moveDrawnLengthEnd(
+        _ id: UUID, isEnd: Bool, to point: PrintOverlayPoint
+    ) {
+        guard let key = currentAnnotationKey else { return }
+        printSelection.moveArrowEnd(id, forKey: key, isHead: isEnd, to: point)
+        if let updated = printSelection.annotations(forKey: key).first(where: { $0.id == id }) {
+            let label = formattedDrawnLengthText(from: updated.start, to: updated.end)
+            printSelection.setAnnotationText(label, id: id, forKey: key)
+        }
+        drawnAnnotationsFollowTools()
     }
 
     /// Moves an annotation bodily by a normalized delta.

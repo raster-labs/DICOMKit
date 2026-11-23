@@ -678,7 +678,15 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "move-dest", flag: "--move-dest", displayName: "Move Destination AET",
                     parameterType: .textField, placeholder: "e.g. MY_STORE_SCP",
-                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)"
+                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-move"])
+                ),
+                CLIParameterDefinition(
+                    id: "output", flag: "--output", displayName: "Output Directory",
+                    parameterType: .outputPath, placeholder: "Choose a folder… (defaults to ~/Downloads/DICOMStudio)",
+                    helpText: "Directory where retrieved files will be saved. Leave empty to use ~/Downloads/DICOMStudio.",
+                    defaultValue: "",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-get"])
                 ),
                 // Query/Retrieve Level (0008,0052) follows the most specific UID given
                 // (PS3.4 2026a Table C.6.1-1: STUDY / SERIES / IMAGE); baseline retrieval
@@ -707,15 +715,10 @@ public enum ToolCatalogHelpers: Sendable {
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
-                    id: "output", flag: "--output", displayName: "Output Directory",
-                    parameterType: .outputPath, placeholder: "Choose a folder… (defaults to ~/Downloads/DICOMStudio)",
-                    helpText: "Directory where retrieved files will be saved. Leave empty to use ~/Downloads/DICOMStudio.",
-                    defaultValue: ""
-                ),
-                CLIParameterDefinition(
                     id: "hierarchical", flag: "--hierarchical", displayName: "Hierarchical Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/<Series Instance UID>/); C-MOVE output is stored by the move destination"
+                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/<Series Instance UID>/); C-MOVE output is stored by the move destination",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-get"])
                 ),
                 CLIParameterDefinition(
                     id: "parallel", flag: "--parallel", displayName: "Parallel Operations",
@@ -808,7 +811,15 @@ public enum ToolCatalogHelpers: Sendable {
                 CLIParameterDefinition(
                     id: "move-dest", flag: "--move-dest", displayName: "Move Destination AET",
                     parameterType: .textField, placeholder: "e.g. MY_STORE_SCP",
-                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)"
+                    helpText: "Move Destination (0000,0600): AE Title of the Storage SCP that receives the C-STORE sub-operations (required for C-MOVE)",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-move"])
+                ),
+                CLIParameterDefinition(
+                    id: "output", flag: "--output", displayName: "Output Directory",
+                    parameterType: .outputPath, placeholder: "Choose a folder… (defaults to ~/Downloads/DICOMStudio)",
+                    helpText: "Directory where retrieved files will be saved. Leave empty to use ~/Downloads/DICOMStudio.",
+                    defaultValue: "",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-get"])
                 ),
                 CLIParameterDefinition(
                     id: "patient-name", flag: "--patient-name", displayName: "Patient Name",
@@ -861,21 +872,17 @@ public enum ToolCatalogHelpers: Sendable {
                     isAdvanced: true
                 ),
                 CLIParameterDefinition(
-                    id: "output", flag: "--output", displayName: "Output Directory",
-                    parameterType: .outputPath, placeholder: "Choose a folder… (defaults to ~/Downloads/DICOMStudio)",
-                    helpText: "Directory where retrieved files will be saved. Leave empty to use ~/Downloads/DICOMStudio.",
-                    defaultValue: ""
-                ),
-                CLIParameterDefinition(
                     id: "hierarchical", flag: "--hierarchical", displayName: "Hierarchical Output",
                     parameterType: .booleanToggle, placeholder: "",
-                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/); C-MOVE output is stored by the move destination"
+                    helpText: "Organize C-GET output hierarchically (<output>/<Study Instance UID>/); C-MOVE output is stored by the move destination",
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-get"])
                 ),
                 CLIParameterDefinition(
                     id: "validate", flag: "--validate", displayName: "Validate Files",
                     parameterType: .booleanToggle, placeholder: "",
                     helpText: "Validate retrieved files",
-                    isAdvanced: true
+                    isAdvanced: true,
+                    visibleWhen: CLIParameterVisibilityCondition(parameterId: "method", values: ["c-get"])
                 ),
                 CLIParameterDefinition(
                     id: "parallel", flag: "--parallel", displayName: "Parallel Operations",

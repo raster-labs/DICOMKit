@@ -689,13 +689,14 @@ struct SRBuilderHelpersTests {
         #expect(errors.contains { $0.contains("no unit") })
     }
 
-    // MARK: - Supported Types
+    // MARK: - Supported Types & DICOMCore Registry Delegation
 
-    @Test("supportedDocumentTypes for template mode")
+    @Test("supportedDocumentTypes for template mode exposes full prioritized DICOMCore list")
     func testSupportedTypesTemplate() {
         let types = SRBuilderHelpers.supportedDocumentTypes(for: .template)
-        #expect(types.count == 4)
+        #expect(types.count == SRDocumentType.allCases.count)
         #expect(types.contains(.basicText))
+        #expect(types.first?.isClinicalImagingReportType == true)
     }
 
     @Test("supportedDocumentTypes for freeForm mode")
@@ -714,6 +715,18 @@ struct SRBuilderHelpersTests {
     func testTemplatesKOS() {
         let templates = SRBuilderHelpers.availableTemplates(for: .keyObjectSelection)
         #expect(templates.isEmpty)
+    }
+
+    @Test("allRegisteredTemplates exposes all 73 PS3.16 TID templates from DICOMCore.TemplateRegistry")
+    func testAllRegisteredTemplatesFromDICOMCore() {
+        let allTIDs = SRBuilderHelpers.allRegisteredTemplates
+        #expect(allTIDs.count == 73)
+        // Root templates (TID 1500, TID 4000, TID 4100) are prioritized first
+        #expect(allTIDs.first?.isRoot == true)
+        #expect(allTIDs.contains { $0.id == "1500" })
+        #expect(allTIDs.contains { $0.id == "4000" })
+        #expect(allTIDs.contains { $0.id == "4100" })
+        #expect(allTIDs.contains { $0.id == "300" })
     }
 }
 

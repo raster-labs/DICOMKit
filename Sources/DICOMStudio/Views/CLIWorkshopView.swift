@@ -617,11 +617,19 @@ public struct CLIWorkshopView: View {
     /// each in a titled rounded section (booleans render as checkbox rows).
     @ViewBuilder
     private func parameterSections(_ params: [CLIParameterDefinition]) -> some View {
+        // Method-dependent output directories (e.g. C-GET's Output Directory in
+        // dicom-retrieve and dicom-qr) render inline in the Parameters card right
+        // under Retrieval Method, replacing Move Destination AET when switching
+        // from c-move to c-get.
+        let isInlineOutput: (CLIParameterDefinition) -> Bool = { param in
+            param.parameterType == .outputPath && param.visibleWhen?.parameterId == "method"
+        }
         let input   = params.filter { $0.parameterType == .filePath }
-        let output  = params.filter { $0.parameterType == .outputPath }
+        let output  = params.filter { $0.parameterType == .outputPath && !isInlineOutput($0) }
         let options = params.filter { $0.parameterType == .booleanToggle }
         let main    = params.filter {
-            $0.parameterType != .filePath && $0.parameterType != .outputPath && $0.parameterType != .booleanToggle
+            ($0.parameterType != .filePath && $0.parameterType != .outputPath && $0.parameterType != .booleanToggle)
+            || isInlineOutput($0)
         }
         VStack(alignment: .leading, spacing: 14) {
             if !input.isEmpty {

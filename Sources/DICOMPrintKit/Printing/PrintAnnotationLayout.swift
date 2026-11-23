@@ -87,4 +87,41 @@ public enum PrintAnnotationLayout {
         guard let exit else { return nil }
         return PrintOverlayPoint(x: exit.x / imageWidth, y: exit.y / imageHeight)
     }
+
+    /// Where a length measurement's text label sits, in image-normalized
+    /// coordinates: centered at the segment's midpoint and offset slightly
+    /// perpendicular to the segment so the text clears the ruler line.
+    public static func lengthLabelOrigin(
+        for annotation: PrintOverlayAnnotation,
+        imageWidth: Double,
+        imageHeight: Double
+    ) -> PrintOverlayPoint {
+        let midX = (annotation.start.x + annotation.end.x) / 2
+        let midY = (annotation.start.y + annotation.end.y) / 2
+        guard imageWidth > 0, imageHeight > 0 else {
+            return PrintOverlayPoint(x: midX, y: midY)
+        }
+        let size = PrintOverlayAnnotationGSPS.measuredTextSize(
+            annotation.text, imageHeight: imageHeight, scale: annotation.scale)
+        let dx = (annotation.end.x - annotation.start.x) * imageWidth
+        let dy = (annotation.end.y - annotation.start.y) * imageHeight
+        let len = (dx * dx + dy * dy).squareRoot()
+        // Perpendicular offset in pixels (preferring above the line, ny <= 0)
+        var nx = 0.0
+        var ny = -1.0
+        if len > 0.001 {
+            nx = -dy / len
+            ny = dx / len
+            if ny > 0 {
+                nx = -nx
+                ny = -ny
+            }
+        }
+        let offsetPx = max(6.0, size.height * 0.75)
+        let centerX = midX * imageWidth + nx * offsetPx
+        let centerY = midY * imageHeight + ny * offsetPx
+        let topLeftX = (centerX - size.width / 2) / imageWidth
+        let topLeftY = (centerY - size.height / 2) / imageHeight
+        return PrintOverlayPoint(x: topLeftX, y: topLeftY)
+    }
 }

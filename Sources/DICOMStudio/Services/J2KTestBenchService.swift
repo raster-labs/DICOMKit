@@ -175,7 +175,8 @@ public enum J2KTestBenchService {
 
         case .jlSwift:
             switch timedDecode(warmups: warmups, runs: runs, {
-                try JPEGLSCodec().decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
+                try JPEGLSCodec(missingPresetPolicy: .allowLegacyUnclampedRecovery)
+                    .decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
             }) {
             case .failure(let message): return (nil, nil, .error(message.message), nil)
             case .success(let timed): decoded = timed.data; decodeMs = timed.ms
@@ -407,7 +408,8 @@ public enum J2KTestBenchService {
         case .jliSwift:
             return try? JLICodec().decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
         case .jlSwift:
-            return try? JPEGLSCodec().decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
+            return try? JPEGLSCodec(missingPresetPolicy: .allowLegacyUnclampedRecovery)
+                .decodeFrame(codestream, descriptor: descriptor, frameIndex: 0)
         case .charls:
             #if os(macOS)
             return try? CharLSCLICodec().decodeFrame(codestream, descriptor: descriptor)

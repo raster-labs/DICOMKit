@@ -17,15 +17,22 @@ struct SRDocumentTypeTests {
         #expect(SRDocumentType.enhanced.rawValue == "ENHANCED")
         #expect(SRDocumentType.comprehensive.rawValue == "COMPREHENSIVE")
         #expect(SRDocumentType.comprehensive3D.rawValue == "COMPREHENSIVE_3D")
+        #expect(SRDocumentType.extensible.rawValue == "EXTENSIBLE")
         #expect(SRDocumentType.measurementReport.rawValue == "MEASUREMENT_REPORT")
         #expect(SRDocumentType.keyObjectSelection.rawValue == "KEY_OBJECT_SELECTION")
         #expect(SRDocumentType.mammographyCAD.rawValue == "MAMMOGRAPHY_CAD")
         #expect(SRDocumentType.chestCAD.rawValue == "CHEST_CAD")
+        #expect(SRDocumentType.colonCAD.rawValue == "COLON_CAD")
     }
 
-    @Test("Document type count is 8")
+    @Test("Document type exposes all 20 DICOMCore.SRDocumentType IODs plus TID 1500 Measurement Report")
     func testAllCasesCount() {
-        #expect(SRDocumentType.allCases.count == 8)
+        #expect(SRDocumentType.allCases.count == 21)
+        #expect(Set(SRDocumentType.allCases.map(\.sopClassUID)).count == 20)
+        // Clinical imaging report IODs are prioritized at the top
+        #expect(SRDocumentType.prioritizedForClinicalAuthoring.first == .basicText)
+        #expect(SRDocumentType.clinicalImagingReportTypes.count == 11)
+        #expect(SRDocumentType.specializedSRTypes.count == 10)
     }
 
     @Test("Display names are non-empty")

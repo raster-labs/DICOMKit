@@ -183,6 +183,29 @@ extension PrintSelectionModel {
         return annotation.id
     }
 
+    /// Puts a linear distance measurement on an image, addressed by image
+    /// identity, and selects it.
+    @discardableResult
+    public func addLengthAnnotation(
+        forKey key: ImageAnnotationKey?,
+        from start: PrintOverlayPoint,
+        to end: PrintOverlayPoint,
+        text: String
+    ) -> UUID {
+        let annotation = PrintOverlayAnnotation(
+            kind: .length,
+            start: start,
+            end: end,
+            text: text,
+            scale: annotationScale,
+            color: annotationColor)
+        if let key {
+            cellAnnotations[key, default: []].append(annotation)
+        }
+        selectAnnotation(annotation.id)
+        return annotation.id
+    }
+
     // MARK: - Editing
 
     /// Selects an annotation, or clears the selection with `nil`.
@@ -207,6 +230,7 @@ extension PrintSelectionModel {
                 switch overlay.kind {
                 case .text:       return !overlay.text.isEmpty
                 case .arrow:      return true
+                case .length:     return !overlay.isBlank
                 case .annotation: return !overlay.isBlank
                 case .polyline, .circle, .ellipse, .point, .shutter:
                     return true

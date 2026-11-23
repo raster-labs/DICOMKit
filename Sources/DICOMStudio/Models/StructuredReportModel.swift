@@ -7,11 +7,14 @@
 // NEMA-verified: 2026a, checked 2026-10-06 — 8 SOP Class UIDs diffed against PS3.6 2026a Table A-1 (8 registered, names match; measurementReport reuses Enhanced SR Storage); ContentItemValueType 16 cases against PS3.3 2026a Table C.17.3-7 (16/16, TABLE added 2026-10-06 — P-STUDIO-SR-TABLE); SRRelationshipType 7 cases against Table C.17.3-8 (7/7); ContinuityOfContent against Table C.18.8-1 (2/2); SpatialCoordGraphicType against C.18.6.1.2 (5/5 active cases; POLYGON is not a 2D SCOORD Graphic Type and is a deprecated case outside allCases, still decoded, written as a closed POLYLINE by SRBuilderHelpers — P-STUDIO-SCOORD-POLYGON); SpatialCoord3DGraphicType against C.18.9.1.2 (6/6); TemporalRangeType against C.18.7.1.1 (6/6); CodingSchemeDesignator 5 designators against PS3.16 2026a Table 8-1 (5/5, DCM's name corrected to "DICOM Controlled Terminology"); CAD/BI-RADS/tracking enums are UI state
 
 import Foundation
+import DICOMCore
 
 // MARK: - SR Document Type
 
-/// DICOM Structured Report document types (SOP Classes).
-public enum SRDocumentType: String, Sendable, Equatable, Hashable, CaseIterable {
+/// DICOM Structured Report document types (SOP Classes), backed by `DICOMCore.SRDocumentType`
+/// (all 20 current PS3.6 Table A-1 SR Storage SOP Classes plus the TID 1500 Measurement Report specialization).
+public enum SRDocumentType: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
+    // MARK: Prioritized Clinical Imaging Report IODs
     /// Basic Text SR — free-text narrative reports.
     case basicText = "BASIC_TEXT"
     /// Enhanced SR — adds numeric measurements and coded findings.
@@ -20,41 +23,140 @@ public enum SRDocumentType: String, Sendable, Equatable, Hashable, CaseIterable 
     case comprehensive = "COMPREHENSIVE"
     /// Comprehensive 3D SR — volumetric spatial coordinates.
     case comprehensive3D = "COMPREHENSIVE_3D"
+    /// Extensible SR — supports all 16 PS3.3 Table C.17.3-7 Value Types including TABLE.
+    case extensible = "EXTENSIBLE"
     /// Measurement Report (TID 1500) — quantitative imaging biomarkers.
     case measurementReport = "MEASUREMENT_REPORT"
-    /// Key Object Selection — flag significant images.
+    /// Key Object Selection — flag significant images (Modality = KO, TID 2010).
     case keyObjectSelection = "KEY_OBJECT_SELECTION"
-    /// Mammography CAD SR — computer-aided detection for mammography.
+    /// Mammography CAD SR — computer-aided detection for mammography (TID 4000).
     case mammographyCAD = "MAMMOGRAPHY_CAD"
-    /// Chest CAD SR — computer-aided detection for chest imaging.
+    /// Chest CAD SR — computer-aided detection for chest imaging (TID 4100).
     case chestCAD = "CHEST_CAD"
+    /// Colon CAD SR — computer-aided detection for colon imaging.
+    case colonCAD = "COLON_CAD"
+    /// Simplified Adult Echo SR — echocardiography structured report.
+    case simplifiedAdultEcho = "SIMPLIFIED_ADULT_ECHO"
 
-    /// Human-readable display name.
-    public var displayName: String {
+    // MARK: All Remaining PS3.6 Table A-1 SR Storage SOP Classes from DICOMCore
+    /// X-Ray Radiation Dose SR.
+    case xRayRadiationDose = "XRAY_RADIATION_DOSE"
+    /// Enhanced X-Ray Radiation Dose SR.
+    case enhancedXRayRadiationDose = "ENHANCED_XRAY_RADIATION_DOSE"
+    /// Radiopharmaceutical Radiation Dose SR.
+    case radiopharmaceuticalRadiationDose = "RADIOPHARMACEUTICAL_RADIATION_DOSE"
+    /// Patient Radiation Dose SR.
+    case patientRadiationDose = "PATIENT_RADIATION_DOSE"
+    /// Acquisition Context SR.
+    case acquisitionContext = "ACQUISITION_CONTEXT"
+    /// Implantation Plan SR.
+    case implantationPlan = "IMPLANTATION_PLAN"
+    /// Planned Imaging Agent Administration SR.
+    case plannedImagingAgentAdministration = "PLANNED_IMAGING_AGENT_ADMINISTRATION"
+    /// Performed Imaging Agent Administration SR.
+    case performedImagingAgentAdministration = "PERFORMED_IMAGING_AGENT_ADMINISTRATION"
+    /// Procedure Log Storage.
+    case procedureLog = "PROCEDURE_LOG"
+    /// Waveform Annotation SR.
+    case waveformAnnotation = "WAVEFORM_ANNOTATION"
+
+    public var id: String { rawValue }
+
+    /// The underlying `DICOMCore.SRDocumentType` IOD from `DICOMCore`.
+    public var coreDocumentType: DICOMCore.SRDocumentType {
         switch self {
-        case .basicText: return "Basic Text SR"
-        case .enhanced: return "Enhanced SR"
-        case .comprehensive: return "Comprehensive SR"
-        case .comprehensive3D: return "Comprehensive 3D SR"
-        case .measurementReport: return "Measurement Report"
-        case .keyObjectSelection: return "Key Object Selection"
-        case .mammographyCAD: return "Mammography CAD SR"
-        case .chestCAD: return "Chest CAD SR"
+        case .basicText: return .basicTextSR
+        case .enhanced, .measurementReport: return .enhancedSR
+        case .comprehensive: return .comprehensiveSR
+        case .comprehensive3D: return .comprehensive3DSR
+        case .extensible: return .extensibleSR
+        case .keyObjectSelection: return .keyObjectSelectionDocument
+        case .mammographyCAD: return .mammographyCADSR
+        case .chestCAD: return .chestCADSR
+        case .colonCAD: return .colonCADSR
+        case .simplifiedAdultEcho: return .simplifiedAdultEchoSR
+        case .xRayRadiationDose: return .xRayRadiationDoseSR
+        case .enhancedXRayRadiationDose: return .enhancedXRayRadiationDoseSR
+        case .radiopharmaceuticalRadiationDose: return .radiopharmaceuticalRadiationDoseSR
+        case .patientRadiationDose: return .patientRadiationDoseSR
+        case .acquisitionContext: return .acquisitionContextSR
+        case .implantationPlan: return .implantationPlanSR
+        case .plannedImagingAgentAdministration: return .plannedImagingAgentAdministrationSR
+        case .performedImagingAgentAdministration: return .performedImagingAgentAdministrationSR
+        case .procedureLog: return .procedureLog
+        case .waveformAnnotation: return .waveformAnnotationSR
         }
     }
 
-    /// DICOM SOP Class UID for each SR type.
-    public var sopClassUID: String {
-        switch self {
-        case .basicText: return "1.2.840.10008.5.1.4.1.1.88.11"
-        case .enhanced: return "1.2.840.10008.5.1.4.1.1.88.22"
-        case .comprehensive: return "1.2.840.10008.5.1.4.1.1.88.33"
-        case .comprehensive3D: return "1.2.840.10008.5.1.4.1.1.88.34"
-        case .measurementReport: return "1.2.840.10008.5.1.4.1.1.88.22"
-        case .keyObjectSelection: return "1.2.840.10008.5.1.4.1.1.88.59"
-        case .mammographyCAD: return "1.2.840.10008.5.1.4.1.1.88.50"
-        case .chestCAD: return "1.2.840.10008.5.1.4.1.1.88.65"
+    /// Creates a `DICOMStudio.SRDocumentType` from a `DICOMCore.SRDocumentType`.
+    public init(coreDocumentType: DICOMCore.SRDocumentType) {
+        switch coreDocumentType {
+        case .basicTextSR: self = .basicText
+        case .enhancedSR: self = .enhanced
+        case .comprehensiveSR: self = .comprehensive
+        case .comprehensive3DSR: self = .comprehensive3D
+        case .extensibleSR: self = .extensible
+        case .keyObjectSelectionDocument: self = .keyObjectSelection
+        case .mammographyCADSR: self = .mammographyCAD
+        case .chestCADSR: self = .chestCAD
+        case .colonCADSR: self = .colonCAD
+        case .simplifiedAdultEchoSR: self = .simplifiedAdultEcho
+        case .xRayRadiationDoseSR: self = .xRayRadiationDose
+        case .enhancedXRayRadiationDoseSR: self = .enhancedXRayRadiationDose
+        case .radiopharmaceuticalRadiationDoseSR: self = .radiopharmaceuticalRadiationDose
+        case .patientRadiationDoseSR: self = .patientRadiationDose
+        case .acquisitionContextSR: self = .acquisitionContext
+        case .implantationPlanSR: self = .implantationPlan
+        case .plannedImagingAgentAdministrationSR: self = .plannedImagingAgentAdministration
+        case .performedImagingAgentAdministrationSR: self = .performedImagingAgentAdministration
+        case .procedureLog: self = .procedureLog
+        case .waveformAnnotationSR: self = .waveformAnnotation
         }
+    }
+
+    /// Clinical imaging report IODs prioritized at the top of pickers, sourced from `DICOMCore.SRDocumentType.clinicalImagingReportIODs`.
+    public static var clinicalImagingReportTypes: [SRDocumentType] {
+        var result: [SRDocumentType] = []
+        for coreType in DICOMCore.SRDocumentType.clinicalImagingReportIODs {
+            let mapped = SRDocumentType(coreDocumentType: coreType)
+            result.append(mapped)
+            if coreType == .enhancedSR {
+                result.append(.measurementReport)
+            }
+        }
+        return result
+    }
+
+    /// Specialized SR Storage IODs sourced from `DICOMCore.SRDocumentType.specializedSRIODs`.
+    public static var specializedSRTypes: [SRDocumentType] {
+        DICOMCore.SRDocumentType.specializedSRIODs.map { SRDocumentType(coreDocumentType: $0) }
+    }
+
+    /// All SR document types ordered with clinical imaging report IODs prioritized at the top,
+    /// followed by all remaining `DICOMCore.SRDocumentType` IODs.
+    public static var prioritizedForClinicalAuthoring: [SRDocumentType] {
+        clinicalImagingReportTypes + specializedSRTypes
+    }
+
+    /// Whether this document type is one of the prioritized clinical imaging report IODs.
+    public var isClinicalImagingReportType: Bool {
+        self == .measurementReport || coreDocumentType.isClinicalImagingReportIOD
+    }
+
+    /// Human-readable display name delegated to `DICOMCore`.
+    public var displayName: String {
+        switch self {
+        case .measurementReport:
+            return DICOMCore.TemplateRegistry.shared.descriptor(for: .measurementReport)?.displayName
+                ?? coreDocumentType.displayName
+        default:
+            return coreDocumentType.displayName
+        }
+    }
+
+    /// DICOM SOP Class UID delegated directly to `DICOMCore.SRDocumentType.sopClassUID`.
+    public var sopClassUID: String {
+        coreDocumentType.sopClassUID
     }
 }
 
@@ -138,17 +240,9 @@ public enum SRRelationshipType: String, Sendable, Equatable, Hashable, CaseItera
     /// Selected from.
     case selectedFrom = "SELECTED FROM"
 
-    /// Human-readable display name.
+    /// Human-readable display name delegated to `DICOMCore.RelationshipType`.
     public var displayName: String {
-        switch self {
-        case .contains: return "Contains"
-        case .hasObsContext: return "Has Observation Context"
-        case .hasAcqContext: return "Has Acquisition Context"
-        case .hasConceptMod: return "Has Concept Modifier"
-        case .hasProperties: return "Has Properties"
-        case .inferredFrom: return "Inferred From"
-        case .selectedFrom: return "Selected From"
-        }
+        DICOMCore.RelationshipType(rawValue: rawValue)?.displayName ?? rawValue
     }
 }
 
@@ -177,15 +271,9 @@ public enum CodingSchemeDesignator: String, Sendable, Equatable, Hashable, CaseI
     /// DICOM Controlled Terminology.
     case dcm = "DCM"
 
-    /// Human-readable display name.
+    /// Human-readable display name delegated to `DICOMCore.SRTerminologyCatalog`.
     public var displayName: String {
-        switch self {
-        case .snomedCT: return "SNOMED CT"
-        case .loinc: return "LOINC"
-        case .radlex: return "RadLex"
-        case .ucum: return "UCUM"
-        case .dcm: return "DICOM Controlled Terminology"
-        }
+        DICOMCore.SRTerminologyCatalog.schemeDisplayName(for: rawValue)
     }
 }
 
@@ -216,6 +304,34 @@ public struct CodedConcept: Sendable, Equatable, Hashable, Identifiable {
         self.codingSchemeDesignator = codingSchemeDesignator
         self.codeMeaning = codeMeaning
         self.codingSchemeVersion = codingSchemeVersion
+    }
+
+    /// Creates a `DICOMStudio.CodedConcept` from a `DICOMCore.CodedConcept`.
+    public init(id: UUID = UUID(), coreConcept: DICOMCore.CodedConcept) {
+        self.id = id
+        self.codeValue = coreConcept.effectiveCodeValue
+        self.codingSchemeDesignator = coreConcept.codingSchemeDesignator
+        self.codeMeaning = coreConcept.codeMeaning
+        self.codingSchemeVersion = coreConcept.codingSchemeVersion
+    }
+
+    /// Converts this UI concept into a `DICOMCore.CodedConcept`.
+    public var coreConcept: DICOMCore.CodedConcept {
+        if codeValue.count > 16 {
+            return DICOMCore.CodedConcept(
+                codeValue: "",
+                codingSchemeDesignator: codingSchemeDesignator,
+                codeMeaning: codeMeaning,
+                codingSchemeVersion: codingSchemeVersion,
+                longCodeValue: codeValue
+            )
+        }
+        return DICOMCore.CodedConcept(
+            codeValue: codeValue,
+            codingSchemeDesignator: codingSchemeDesignator,
+            codeMeaning: codeMeaning,
+            codingSchemeVersion: codingSchemeVersion
+        )
     }
 
     /// Returns a new concept with a different meaning.
@@ -487,6 +603,8 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
     public let isComplete: Bool
     /// Verification flag.
     public let isVerified: Bool
+    /// Optional PS3.16 Template Identifier (`TID`, e.g. `"1500"`, `"4000"`, `"4100"`).
+    public let templateIdentifier: String?
 
     public init(
         id: UUID = UUID(),
@@ -501,7 +619,8 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
         contentTime: String = "",
         rootContentItem: SRContentItem = SRContentItem(valueType: .container, continuityOfContent: .separate, children: []),
         isComplete: Bool = false,
-        isVerified: Bool = false
+        isVerified: Bool = false,
+        templateIdentifier: String? = nil
     ) {
         self.id = id
         self.documentType = documentType
@@ -516,6 +635,7 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
         self.rootContentItem = rootContentItem
         self.isComplete = isComplete
         self.isVerified = isVerified
+        self.templateIdentifier = templateIdentifier
     }
 
     /// Returns a copy with a new root content item.
@@ -528,7 +648,8 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
             sopInstanceUID: sopInstanceUID,
             contentDate: contentDate, contentTime: contentTime,
             rootContentItem: item,
-            isComplete: isComplete, isVerified: isVerified
+            isComplete: isComplete, isVerified: isVerified,
+            templateIdentifier: templateIdentifier
         )
     }
 
@@ -542,7 +663,8 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
             sopInstanceUID: sopInstanceUID,
             contentDate: contentDate, contentTime: contentTime,
             rootContentItem: rootContentItem,
-            isComplete: complete, isVerified: isVerified
+            isComplete: complete, isVerified: isVerified,
+            templateIdentifier: templateIdentifier
         )
     }
 
@@ -556,15 +678,16 @@ public struct SRDocument: Sendable, Equatable, Hashable, Identifiable {
             sopInstanceUID: sopInstanceUID,
             contentDate: contentDate, contentTime: contentTime,
             rootContentItem: rootContentItem,
-            isComplete: isComplete, isVerified: verified
+            isComplete: isComplete, isVerified: verified,
+            templateIdentifier: templateIdentifier
         )
     }
 }
 
 // MARK: - SR Template
 
-/// Templates for common SR document types.
-public enum SRTemplate: String, Sendable, Equatable, Hashable, CaseIterable {
+/// Clinical section templates for SR document authoring, backed by `DICOMCore.SRClinicalCatalog.clinicalTemplatePresets`.
+public enum SRTemplate: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     /// Radiology report (Findings, Impression, Recommendations).
     case radiologyReport = "RADIOLOGY_REPORT"
     /// Pathology report.
@@ -576,33 +699,29 @@ public enum SRTemplate: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Discharge summary.
     case dischargeSummary = "DISCHARGE_SUMMARY"
 
-    /// Display name.
-    public var displayName: String {
-        switch self {
-        case .radiologyReport: return "Radiology Report"
-        case .pathologyReport: return "Pathology Report"
-        case .procedureReport: return "Procedure Report"
-        case .clinicalFindings: return "Clinical Findings"
-        case .dischargeSummary: return "Discharge Summary"
-        }
+    public var id: String { rawValue }
+
+    /// Underlying `DICOMCore` clinical template preset descriptor.
+    public var corePreset: DICOMCore.SRClinicalCatalog.ClinicalTemplatePreset {
+        DICOMCore.SRClinicalCatalog.clinicalTemplatePresets.first { $0.rawValue == rawValue }
+            ?? DICOMCore.SRClinicalCatalog.clinicalTemplatePresets[0]
     }
 
-    /// Default section names for this template.
+    /// Display name delegated to `DICOMCore.SRClinicalCatalog`.
+    public var displayName: String {
+        corePreset.displayName
+    }
+
+    /// Default section names delegated to `DICOMCore.SRClinicalCatalog`.
     public var sections: [String] {
-        switch self {
-        case .radiologyReport: return ["Findings", "Impression", "Recommendations"]
-        case .pathologyReport: return ["Gross Description", "Microscopic Description", "Diagnosis"]
-        case .procedureReport: return ["Indication", "Technique", "Findings", "Impression"]
-        case .clinicalFindings: return ["History", "Examination", "Assessment", "Plan"]
-        case .dischargeSummary: return ["Admission Diagnosis", "Hospital Course", "Discharge Instructions"]
-        }
+        corePreset.sections
     }
 }
 
 // MARK: - Key Object Selection Purpose
 
-/// Purpose of key object selection per PS3.16 CID 7010.
-public enum KeyObjectPurpose: String, Sendable, Equatable, Hashable, CaseIterable {
+/// Purpose of key object selection per PS3.16 CID 7010, backed by `DICOMCore.SRClinicalCatalog.keyObjectPurposes`.
+public enum KeyObjectPurpose: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     /// For teaching purposes.
     case teaching = "TEACHING"
     /// For quality control.
@@ -616,16 +735,17 @@ public enum KeyObjectPurpose: String, Sendable, Equatable, Hashable, CaseIterabl
     /// For report documentation.
     case documentation = "DOCUMENTATION"
 
-    /// Display name.
+    public var id: String { rawValue }
+
+    /// Underlying `DICOMCore` CID 7010 purpose descriptor.
+    public var coreDescriptor: DICOMCore.SRClinicalCatalog.KeyObjectPurposeDescriptor {
+        DICOMCore.SRClinicalCatalog.keyObjectPurposes.first { $0.rawValue == rawValue }
+            ?? DICOMCore.SRClinicalCatalog.keyObjectPurposes[5]
+    }
+
+    /// Display name delegated to `DICOMCore.SRClinicalCatalog`.
     public var displayName: String {
-        switch self {
-        case .teaching: return "Teaching"
-        case .qualityControl: return "Quality Control"
-        case .referral: return "Referral"
-        case .conference: return "Conference"
-        case .research: return "Research"
-        case .documentation: return "Documentation"
-        }
+        coreDescriptor.displayName
     }
 }
 
