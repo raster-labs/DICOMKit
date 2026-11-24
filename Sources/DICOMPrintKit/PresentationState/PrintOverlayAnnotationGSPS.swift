@@ -189,6 +189,16 @@ public enum PrintOverlayAnnotationGSPS {
                 } else {
                     addArrow(annotation)
                 }
+            case .length:
+                let pieces = lengthObjects(
+                    for: annotation, imageWidth: imageWidth, imageHeight: imageHeight,
+                    compoundGraphicID: nextID)
+                if let compound = pieces.compound {
+                    graphicObjects.append(contentsOf: pieces.polylines)
+                    textObjects.append(contentsOf: pieces.texts)
+                    compoundGraphics.append(compound)
+                    nextID += 1
+                }
             case .polyline, .circle, .ellipse, .point:
                 // A shape that came *from* a GSPS goes back out as the same
                 // graphic object it was read from — re-saving a view that
@@ -637,5 +647,71 @@ public enum PrintOverlayAnnotationGSPS {
             data: [head.x, head.y, tail.x, tail.y],
             lineStyle: style)
         return (polylines, compound)
+    }
+
+    /// A length ruler: a RULER compound graphic (PS3.3 Table C.10-5) with its
+    /// fallback polyline and optional distance text object.
+    private static func lengthObjects(
+        for annotation: PrintOverlayAnnotation,
+        imageWidth: Int,
+        imageHeight: Int,
+        compoundGraphicID: Int
+    ) -> (polylines: [GraphicObject], texts: [TextObject], compound: CompoundGraphic?) {
+        let p1 = PrintPlanePoint(
+            x: annotation.start.x * Double(imageWidth),
+            y: annotation.start.y * Double(imageHeight))
+        let p2 = PrintPlanePoint(
+            x: annotation.end.x * Double(imageWidth),
+            y: annotation.end.y * Double(imageHeight))
+        let dx = p2.x - p1.x
+        let dy = p2.y - p1.y
+        let length = (dx * dx + dy * dy).squareRoot()
+        guard length > 0 else { return ([], [], nil) }
+
+        let lStyle = lineStyle(for: annotation, imageHeight: imageHeight)
+        let tStyle = textStyle(for: annotation, imageHeight: imageHeight)
+
+        let polylines = [
+            GraphicObject(
+                type: .polyline,
+                data: [p1.x, p1.y, p2.x, p2.y],
+                filled: false,
+                units: .pixel,
+                lineStyle: lStyle,
+                compoundGraphicInstanceID: compoundGraphicID)
+        ]
+
+        var texts: [TextObject] = []
+        if annotation.hasWords {
+            var labelOverlay = annotation
+            labelOverlay.start = PrintAnnotationLayout.lengthLabelOrigin(
+                for: annotation,
+                imageWidth: Double(imageWidth),
+                imageHeight: Double(imageHeight))
+            let obj = textObject(
+                for: labelOverlay, imageWidth: imageWidth, imageHeight: imageHeight)
+            texts.append(TextObject(
+                text: obj.text,
+                boundingBoxTopLeft: obj.boundingBoxTopLeft,
+                boundingBoxBottomRight: obj.boundingBoxBottomRight,
+                anchorPoint: obj.anchorPoint,
+                anchorPointVisible: obj.anchorPointVisible,
+                boundingBoxUnits: obj.boundingBoxUnits,
+                anchorPointUnits: obj.anchorPointUnits,
+                textStyle: obj.textStyle,
+                compoundGraphicInstanceID: compoundGraphicID))
+        }
+
+        let compound = CompoundGraphic(
+            instanceID: compoundGraphicID,
+            type: .ruler,
+            units: .pixel,
+            data: [p1.x, p1.y, p2.x, p2.y],
+            textStyle: tStyle,
+            lineStyle: lStyle,
+            tickAlignment: .center,
+            tickLabelAlignment: .bottom,
+            showTickLabel: true)
+        return (polylines, texts, compound)
     }
 }

@@ -325,6 +325,126 @@ struct StructuredReportClinicalWorkflowTests {
         #expect(service.recentTerms.count == 1)
     }
 
+    @Test("All DICOMStudio SR pickers (Document Types, Clinical & 73 PS3.16 TID Templates, Titles, Units, Terminology) source directly from DICOMCore")
+    func allStudioSRListsSourceFromDICOMCoreAndBuildRegisteredTIDDocument() throws {
+        // 1. Both Studio SRDocumentType and ClinicalSRReportKind expose all 20 DICOMCore.SRDocumentType SOP Classes
+        //    with clinical imaging report IODs prioritized at the top.
+        let coreSOPUIDs = Set(DICOMCore.SRDocumentType.allSOPClassUIDs)
+        #expect(coreSOPUIDs.count == 20)
+        #expect(Set(DICOMStudio.SRDocumentType.allCases.map(\.sopClassUID)) == coreSOPUIDs)
+        #expect(Set(ClinicalSRReportKind.allCases.map(\.sopClassUID)) == coreSOPUIDs)
+        #expect(ClinicalSRReportKind.clinicalReportKinds.first == .diagnosticComprehensiveSR)
+        #expect(ClinicalSRReportKind.specializedReportKinds.contains(.xRayRadiationDoseSR))
+
+        // 2. All 73 registered PS3.16 TID templates in DICOMCore.TemplateRegistry.shared are exposed in DICOMStudio.
+        let registeredTIDs = SRBuilderHelpers.allRegisteredTemplates
+        #expect(registeredTIDs.count == DICOMCore.TemplateRegistry.shared.registeredTemplates.count)
+        #expect(registeredTIDs.count == 73)
+
+        // 3. Build, serialize, validate, and re-import a document using a registered PS3.16 TID template (TID 4100 Chest CAD Document Root).
+        let tid4100 = try #require(DICOMCore.TemplateRegistry.shared.descriptor(for: .chestCADDocumentRoot))
+        let vm = StructuredReportViewModel()
+        vm.builderDocumentType = .chestCAD
+        vm.selectedTemplate = nil
+        vm.selectedRegisteredTemplate = tid4100
+        vm.patientName = "SEN^MEERA"
+        vm.patientID = "P-4100"
+        for section in vm.activeTemplateSections {
+            vm.sectionTexts[section] = "Populated \(section) observation"
+        }
+
+        let created = try #require(vm.createAndLoadDocument())
+        #expect(created.templateIdentifier == "4100")
+        #expect(created.title.codeValue == "112000")
+
+        let data = try vm.exportSelectedDocumentData()
+        let reimported = try vm.importDICOMData(data)
+        #expect(reimported.documentType == .chestCAD)
+        #expect(reimported.templateIdentifier == "4100")
+
+        // 4. Verify titles, units, and terminology match DICOMCore catalogs.
+        let cid7000Codes = Set(DICOMCore.ContextGroup.diagnosticImagingReportDocumentTitles.members.map(\.codeValue))
+        let cid7021Codes = Set(DICOMCore.ContextGroup.measurementReportDocumentTitles.members.map(\.codeValue))
+        #expect(Set(ClinicalSRTitlePreset.allCases.map(\.rawValue)) == cid7000Codes.union(cid7021Codes))
+        #expect(ClinicalSRMeasurementUnit.allCases.map(\.rawValue) == DICOMCore.SRClinicalCatalog.measurementUnits.map(\.rawValue))
+        #expect(TerminologyHelpers.snomedCTConcepts.count == DICOMCore.SRTerminologyCatalog.snomedCTEntries.count)
+        #expect(TerminologyHelpers.loincConcepts.count == DICOMCore.SRTerminologyCatalog.loincEntries.count)
+        #expect(TerminologyHelpers.radlexConcepts.count == DICOMCore.SRTerminologyCatalog.radlexEntries.count)
+        #expect(TerminologyHelpers.ucumUnits.count == DICOMCore.SRTerminologyCatalog.ucumEntries.count)
+    }
+
+    @Test("Standalone SR Builder restricts report creation when Image Viewer is empty and auto-populates Patient ID & study tags when an image is open")
+    func standaloneBuilderRestrictsWhenViewerEmptyAndBackfillsPatientIDFromStudy() throws {
+        #expect(StudioWindowID.structuredReports == "structured-reports")
+
+        let mainVM = MainViewModel()
+        // Initially no image is loaded in ImageViewerViewModel -> hasActiveViewerImage is false
+        #expect(mainVM.imageViewerViewModel.dicomFile == nil)
+        #expect(!mainVM.structuredReportViewModel.hasActiveViewerImage)
+
+        mainVM.structuredReportViewModel.selectedTemplate = .radiologyReport
+        mainVM.structuredReportViewModel.sectionTexts = ["Findings": "Normal parenchyma."]
+
+        // Attempting to create a report while viewer is empty is blocked with restriction message
+        let blocked = mainVM.structuredReportViewModel.createDocument()
+        #expect(blocked == nil)
+        #expect(mainVM.structuredReportViewModel.validationErrors.contains("Open an image in the Viewer to create a Structured Report."))
+
+        // Now load a study image in ImageViewerViewModel and sync
+        let (_, _, tempDir) = try makeStudy()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let imageURL = tempDir.appendingPathComponent("ct_slice_01.dcm")
+        mainVM.imageViewerViewModel.loadSeries(files: [imageURL.path], startIndex: 0)
+        mainVM.syncStructuredReportWithViewer()
+
+        #expect(mainVM.structuredReportViewModel.hasActiveViewerImage)
+        #expect(mainVM.structuredReportViewModel.patientID == "PAT-2026")
+        #expect(mainVM.structuredReportViewModel.patientName == "PATEL^ARJUN")
+        #expect(mainVM.structuredReportViewModel.studyInstanceUID == Self.studyUID)
+
+        // Even if the user clears patientID in the form, createDocument() and serialize() backfill it from the active study
+        mainVM.structuredReportViewModel.patientID = ""
+        let created = try #require(mainVM.structuredReportViewModel.createAndLoadDocument())
+        #expect(created.patientID == "PAT-2026")
+
+        // Exporting .dcm includes PatientID, StudyDate, StudyTime, AccessionNumber, StudyDescription, and EvidenceSequence
+        let exportedData = try mainVM.structuredReportViewModel.exportSelectedDocumentData()
+        let parsedExport = try DICOMFile.read(from: exportedData)
+        #expect(parsedExport.dataSet.string(for: .patientID) == "PAT-2026")
+        #expect(parsedExport.dataSet.string(for: .patientName) == "PATEL^ARJUN")
+        #expect(parsedExport.dataSet.string(for: .studyDate) == "20261119")
+        #expect(parsedExport.dataSet.string(for: .accessionNumber) == "ACC99100")
+        #expect(parsedExport.dataSet.string(for: .studyDescription) == "CT Chest with Contrast")
+        #expect(parsedExport.dataSet.sequence(for: .currentRequestedProcedureEvidenceSequence)?.isEmpty == false)
+
+        // Publishing a document with missing patientID into a study folder also backfills from sibling study .dcm files
+        let nakedDoc = DICOMKit.SRDocument(
+            sopClassUID: DICOMCore.SRDocumentType.basicTextSR.sopClassUID,
+            sopInstanceUID: UIDGenerator.generateUID().value,
+            patientID: nil,
+            patientName: "PATEL^ARJUN",
+            studyInstanceUID: Self.studyUID,
+            documentTitle: DICOMCore.CodedConcept(codeValue: "18748-4", codingSchemeDesignator: "LN", codeMeaning: "Diagnostic Imaging Report"),
+            rootContent: ContainerContentItem(
+                conceptName: DICOMCore.CodedConcept(codeValue: "18748-4", codingSchemeDesignator: "LN", codeMeaning: "Diagnostic Imaging Report"),
+                continuityOfContent: .separate,
+                contentItems: [
+                    AnyContentItem(TextContentItem(
+                        conceptName: DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Findings"),
+                        textValue: "No acute intracranial abnormality.",
+                        relationshipType: .contains
+                    ))
+                ]
+            )
+        )
+        let published = try PresentationStateStore.publishDocument(nakedDoc, label: "Fallback Test", into: tempDir)
+        let publishedFile = try DICOMFile.read(from: published.instances[0].url)
+        #expect(publishedFile.dataSet.string(for: .patientID) == "PAT-2026")
+        #expect(publishedFile.dataSet.string(for: .accessionNumber) == "ACC99100")
+        #expect(publishedFile.dataSet.string(for: .studyDate) == "20261119")
+    }
+
     // MARK: - Helper
 
     private func assertDSR2XMLPassesIfInstalled(data: Data) throws {

@@ -1052,7 +1052,8 @@ public struct ImageViewerView: View {
                 liveZoom: viewModel.zoomLevel * Double(magnifyBy),
                 livePanX: viewModel.panOffsetX + Double(dragOffset.width),
                 livePanY: viewModel.panOffsetY + Double(dragOffset.height),
-                editingTextID: $editingAnnotationTextID)
+                editingTextID: $editingAnnotationTextID,
+                isToolDragging: $isToolDragging)
         }
     }
 
@@ -1227,7 +1228,7 @@ public struct ImageViewerView: View {
                     rotateByDrag(to: value.location)
                 case .pan:
                     dragOffset = value.translation
-                case .annotation:
+                case .annotation, .length:
                     // The drawing tool's gestures live on the annotation
                     // overlay, which sits above this one and consumes what it
                     // uses. A drag that reaches here (the tool over the
@@ -1249,7 +1250,7 @@ public struct ImageViewerView: View {
                     viewModel.panOffsetX += value.translation.width
                     viewModel.panOffsetY += value.translation.height
                     dragOffset = .zero
-                case .annotation:
+                case .annotation, .length:
                     break
                 }
             }
@@ -1265,7 +1266,7 @@ public struct ImageViewerView: View {
     /// rather than listing every tool that could be armed.
     private var imageAccessibilityHint: String {
         "\(activeTool.displayName) tool armed. \(activeTool.guidance) "
-        + "Press W, Z, E, A or H to change tool; scroll to step through images."
+        + "Press W, Z, E, A, L or H to change tool; scroll to step through images."
     }
 
     /// Sets the pointer's shape over the reading area to match the armed tool.
@@ -1915,13 +1916,17 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
     /// a label out of it, arrow attached.
     case annotation
 
+    /// Linear distance measurement tool: click and drag on the image to draw
+    /// a ruler segment and display the measured length in mm (or px).
+    case length
+
     var id: String { rawValue }
 
     /// Whether this tool draws annotations rather than arranging the picture —
     /// the same distinction the film's `CellTool.isDrawing` makes, and for the
     /// same reason: a drawing tool's clicks belong to the annotation overlay,
     /// not to the image underneath it.
-    var isDrawing: Bool { self == .annotation }
+    var isDrawing: Bool { self == .annotation || self == .length }
 
     var displayName: String {
         switch self {
@@ -1930,6 +1935,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
         case .zoom:       return "Zoom"
         case .rotate:     return "Rotate"
         case .annotation: return "Annotation"
+        case .length:     return "Length"
         }
     }
 
@@ -1950,6 +1956,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
         // The letter A — annotation's initial and its shortcut key, so the
         // button, the pointer and the key all say the same thing.
         case .annotation: return "a.square"
+        case .length:     return "ruler"
         }
     }
 
@@ -1958,7 +1965,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
     /// R is the viewer's reset and T its print tray, so rotate takes E — the
     /// letter is arbitrary either way, and a key that already does something
     /// else is worse than one that has to be learnt. A is annotation, the one
-    /// drawing tool since text and arrow merged into it.
+    /// drawing tool since text and arrow merged into it. L is length.
     var shortcut: Character {
         switch self {
         case .pan:        return "h"
@@ -1966,6 +1973,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
         case .zoom:       return "z"
         case .rotate:     return "e"
         case .annotation: return "a"
+        case .length:     return "l"
         }
     }
 
@@ -1992,6 +2000,10 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
                  + "the thing itself and drag the label out of it, arrow attached. "
                  + "Double-click a label to edit the words; drag the handles of a "
                  + "selected annotation to re-aim the arrow or move the label alone."
+        case .length:
+            return "Drag between two points on the picture to draw a length ruler "
+                 + "and display the distance measurement; drag either endpoint handle "
+                 + "to adjust the measured segment."
         }
     }
 
@@ -2029,17 +2041,31 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
             // The system pair: open before the drag, closed while the image is
             // actually being carried.
             return isDragging ? .closedHand : .openHand
-        case .windowing, .zoom, .rotate, .annotation:
+        case .windowing, .zoom, .rotate, .annotation, .length:
             return ToolSymbolCursor.cursor(
-                symbolName: isDragging ? activeSymbolName : symbolName,
+                symbolName: isDragging ? activeSymbolName : cursorSymbolName,
                 fallback: fallbackCursor)
         }
     }
 
-    /// The glyph shown while the drag runs — the filled counterpart of the
-    /// resting icon, so the pointer visibly commits without becoming a different
-    /// picture. Tools whose symbol has no filled form keep the one they have.
-    private var activeSymbolName: String {
+    /// The resting pointer glyph when the tool is armed over the image.
+    ///
+    /// For `.length`, the toolbar button uses `"ruler"`, but a wide horizontal
+    /// ruler bar over the hotspot obscures the anatomical point being measured;
+    /// `"scope"` provides a high-contrast open crosshair reticle around the
+    /// exact measurement pixel, locking to `"dot.scope"` while dragging.
+    var cursorSymbolName: String {
+        switch self {
+        case .length:
+            return "scope"
+        default:
+            return symbolName
+        }
+    }
+
+    /// The glyph shown while the drag runs — the committed counterpart of the
+    /// resting cursor icon, so the pointer visibly confirms the drag action.
+    var activeSymbolName: String {
         switch self {
         case .pan:        return symbolName
         case .windowing:  return "sun.max.fill"
@@ -2048,6 +2074,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
         // The same letter, filled — the committed counterpart of the
         // resting square, as the other tools' filled forms are.
         case .annotation: return "a.square.fill"
+        case .length:     return "dot.scope"
         }
     }
 
@@ -2060,6 +2087,7 @@ enum ImageViewerDragTool: String, CaseIterable, Identifiable {
         case .windowing:  return .crosshair
         case .rotate:     return .crosshair
         case .annotation: return .crosshair
+        case .length:     return .crosshair
         }
     }
     #endif

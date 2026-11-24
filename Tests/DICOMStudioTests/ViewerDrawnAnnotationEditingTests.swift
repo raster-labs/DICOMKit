@@ -9,6 +9,8 @@
 
 import Testing
 import Foundation
+import DICOMCore
+import DICOMKit
 @testable import DICOMStudio
 import DICOMPrintKit
 
@@ -131,5 +133,56 @@ struct ViewerDrawnAnnotationEditingTests {
         let styled = selection.annotations(forKey: key).first
         #expect(styled?.color == .cyan)
         #expect(abs((styled?.scale ?? 0) - 0.08) < 1e-9)
+    }
+
+    @Test("Length tool appears in ImageViewerDragTool with ruler icon and L shortcut")
+    func testLengthToolInDragTools() {
+        let lengthTool = ImageViewerDragTool.length
+        #expect(lengthTool.displayName == "Length")
+        #expect(lengthTool.symbolName == "ruler")
+        #expect(lengthTool.shortcut == "l")
+        #expect(lengthTool.isDrawing)
+        #expect(ImageViewerDragTool.allCases.contains(.length))
+        #if os(macOS)
+        #expect(lengthTool.cursorSymbolName == "scope")
+        #expect(lengthTool.activeSymbolName == "dot.scope")
+        #expect(lengthTool.cursor(isDragging: false) !== lengthTool.cursor(isDragging: true))
+        #endif
+    }
+
+    @Test("Drawing and adjusting a length measurement computes physical mm or pixel distance")
+    func testLengthAnnotationDrawingAndMeasurement() {
+        let vm = ImageViewerViewModel()
+        vm.filePath = "/study/slice42.dcm"
+        vm.imageColumns = 512
+        vm.imageRows = 512
+
+        // Uncalibrated image -> measures in pixels
+        let start = PrintOverlayPoint(x: 0.25, y: 0.5)
+        let end = PrintOverlayPoint(x: 0.75, y: 0.5)
+        let id = vm.addDrawnLengthAnnotation(from: start, to: end)
+        #expect(id != nil)
+
+        var drawn = vm.printSelection.annotations(forKey: key).first
+        #expect(drawn?.kind == .length)
+        #expect(drawn?.text == "256.0 px")
+
+        // Calibrated image with 0.5 mm x 0.5 mm pixel spacing -> 256 px * 0.5 mm/px = 128.0 mm
+        var ds = DataSet()
+        ds.setString("0.5\\0.5", for: .pixelSpacing, vr: .DS)
+        vm.dicomFile = DICOMFile.create(dataSet: ds)
+
+        if let id {
+            vm.moveDrawnLengthEnd(id, isEnd: true, to: PrintOverlayPoint(x: 0.75, y: 0.5))
+        }
+        drawn = vm.printSelection.annotations(forKey: key).first
+        #expect(drawn?.text == "128.0 mm")
+
+        // Moving endpoint to 0.5, 0.5 (128 px * 0.5 mm/px = 64.0 mm)
+        if let id {
+            vm.moveDrawnLengthEnd(id, isEnd: true, to: PrintOverlayPoint(x: 0.5, y: 0.5))
+        }
+        drawn = vm.printSelection.annotations(forKey: key).first
+        #expect(drawn?.text == "64.0 mm")
     }
 }

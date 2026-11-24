@@ -69,6 +69,9 @@ public struct PixelDecodeLimits: Sendable {
 public enum PixelDecodeDiagnostic: Sendable, Equatable {
     /// The JPEG-LS stream has a wider precision than the source Bits Stored attribute.
     case sourcePrecisionMismatch(sourceBitsStored: Int, encodedPrecision: Int)
+    /// The 13...16-bit lossless JPEG-LS stream omitted an LSE preset segment and was
+    /// decoded using legacy unclamped ITU-T T.87 Table C.2 thresholds.
+    case legacyUnclampedPresetRecovered(encodedPrecision: Int)
 }
 
 /// Decoded bytes and their actual color/layout, retaining the requested source frame identity.

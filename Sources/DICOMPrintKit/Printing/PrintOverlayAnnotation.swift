@@ -107,6 +107,10 @@ public struct PrintOverlayAnnotation: Sendable, Equatable, Identifiable, Codable
         /// kind covers plain text, plain arrow, and both together.
         case annotation
 
+        /// A linear distance ruler between `start` and `end`, displaying the
+        /// measured distance in `text` (e.g. "24.5 mm" or "120.0 px").
+        case length
+
         // MARK: Shapes read from a presentation state
         //
         // The kinds below are not drawn with the app's own tools. They exist
@@ -145,7 +149,7 @@ public struct PrintOverlayAnnotation: Sendable, Equatable, Identifiable, Codable
         /// the reader drew with a tool here.
         public var isShape: Bool {
             switch self {
-            case .text, .arrow, .annotation: return false
+            case .text, .arrow, .annotation, .length: return false
             case .polyline, .circle, .ellipse, .point, .shutter: return true
             }
         }
@@ -284,6 +288,8 @@ public struct PrintOverlayAnnotation: Sendable, Equatable, Identifiable, Codable
         case .text:
             return !hasWords
         case .arrow:
+            return !hasArrow
+        case .length:
             return !hasArrow
         case .annotation:
             // Either half carries it: a label with no arrow is text, an arrow

@@ -11,8 +11,11 @@ import DICOMPrintKit
 
 // MARK: - Clinical SR Authoring Types
 
-/// Clinical Structured Report IOD / template family offered in the Study Viewer composer.
+/// Clinical Structured Report IOD / template family offered in the Study Viewer composer,
+/// backed by `DICOMCore.SRDocumentType` (prioritizing clinical imaging report IODs at the top
+/// while exposing all 20 PS3.6 Table A-1 SR Storage SOP Classes).
 public enum ClinicalSRReportKind: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
+    // MARK: Prioritized Clinical Imaging Report IODs
     /// Comprehensive SR (`1.2.840.10008.5.1.4.1.1.88.33`) — full clinical narrative,
     /// quantitative measurements (`NUM`), spatial coordinates (`SCOORD`), and image/PR references.
     case diagnosticComprehensiveSR = "COMPREHENSIVE_SR"
@@ -20,65 +23,163 @@ public enum ClinicalSRReportKind: String, Sendable, Equatable, Hashable, CaseIte
     case basicTextSR = "BASIC_TEXT_SR"
     /// TID 1500 Imaging Measurement Report on Comprehensive SR (`1.2.840.10008.5.1.4.1.1.88.33`).
     case measurementReportTID1500 = "TID_1500_MEASUREMENT_REPORT"
+    /// Enhanced SR (`1.2.840.10008.5.1.4.1.1.88.22`).
+    case enhancedSR = "ENHANCED_SR"
+    /// Comprehensive 3D SR (`1.2.840.10008.5.1.4.1.1.88.34`).
+    case comprehensive3DSR = "COMPREHENSIVE_3D_SR"
+    /// Extensible SR (`1.2.840.10008.5.1.4.1.1.88.35`).
+    case extensibleSR = "EXTENSIBLE_SR"
+    /// Key Object Selection Document (`1.2.840.10008.5.1.4.1.1.88.59`).
+    case keyObjectSelectionDocument = "KEY_OBJECT_SELECTION_DOCUMENT"
+    /// Mammography CAD SR (`1.2.840.10008.5.1.4.1.1.88.50`).
+    case mammographyCADSR = "MAMMOGRAPHY_CAD_SR"
+    /// Chest CAD SR (`1.2.840.10008.5.1.4.1.1.88.65`).
+    case chestCADSR = "CHEST_CAD_SR"
+    /// Colon CAD SR (`1.2.840.10008.5.1.4.1.1.88.69`).
+    case colonCADSR = "COLON_CAD_SR"
+    /// Simplified Adult Echo SR (`1.2.840.10008.5.1.4.1.1.88.72`).
+    case simplifiedAdultEchoSR = "SIMPLIFIED_ADULT_ECHO_SR"
+
+    // MARK: All Remaining PS3.6 Table A-1 SR Storage SOP Classes from DICOMCore
+    /// X-Ray Radiation Dose SR (`1.2.840.10008.5.1.4.1.1.88.67`).
+    case xRayRadiationDoseSR = "XRAY_RADIATION_DOSE_SR"
+    /// Enhanced X-Ray Radiation Dose SR (`1.2.840.10008.5.1.4.1.1.88.76`).
+    case enhancedXRayRadiationDoseSR = "ENHANCED_XRAY_RADIATION_DOSE_SR"
+    /// Radiopharmaceutical Radiation Dose SR (`1.2.840.10008.5.1.4.1.1.88.68`).
+    case radiopharmaceuticalRadiationDoseSR = "RADIOPHARMACEUTICAL_RADIATION_DOSE_SR"
+    /// Patient Radiation Dose SR (`1.2.840.10008.5.1.4.1.1.88.73`).
+    case patientRadiationDoseSR = "PATIENT_RADIATION_DOSE_SR"
+    /// Acquisition Context SR (`1.2.840.10008.5.1.4.1.1.88.71`).
+    case acquisitionContextSR = "ACQUISITION_CONTEXT_SR"
+    /// Implantation Plan SR (`1.2.840.10008.5.1.4.1.1.88.70`).
+    case implantationPlanSR = "IMPLANTATION_PLAN_SR"
+    /// Planned Imaging Agent Administration SR (`1.2.840.10008.5.1.4.1.1.88.74`).
+    case plannedImagingAgentAdministrationSR = "PLANNED_IMAGING_AGENT_ADMINISTRATION_SR"
+    /// Performed Imaging Agent Administration SR (`1.2.840.10008.5.1.4.1.1.88.75`).
+    case performedImagingAgentAdministrationSR = "PERFORMED_IMAGING_AGENT_ADMINISTRATION_SR"
+    /// Procedure Log Storage (`1.2.840.10008.5.1.4.1.1.88.40`).
+    case procedureLog = "PROCEDURE_LOG"
+    /// Waveform Annotation SR (`1.2.840.10008.5.1.4.1.1.88.77`).
+    case waveformAnnotationSR = "WAVEFORM_ANNOTATION_SR"
 
     public var id: String { rawValue }
 
-    public var displayName: String {
+    /// Underlying `DICOMCore.SRDocumentType` IOD from `DICOMCore`.
+    public var coreDocumentType: DICOMCore.SRDocumentType {
         switch self {
-        case .diagnosticComprehensiveSR: return "Diagnostic Comprehensive SR"
-        case .basicTextSR: return "Basic Text SR (Narrative)"
-        case .measurementReportTID1500: return "Imaging Measurement Report (TID 1500)"
+        case .diagnosticComprehensiveSR, .measurementReportTID1500: return .comprehensiveSR
+        case .basicTextSR: return .basicTextSR
+        case .enhancedSR: return .enhancedSR
+        case .comprehensive3DSR: return .comprehensive3DSR
+        case .extensibleSR: return .extensibleSR
+        case .keyObjectSelectionDocument: return .keyObjectSelectionDocument
+        case .mammographyCADSR: return .mammographyCADSR
+        case .chestCADSR: return .chestCADSR
+        case .colonCADSR: return .colonCADSR
+        case .simplifiedAdultEchoSR: return .simplifiedAdultEchoSR
+        case .xRayRadiationDoseSR: return .xRayRadiationDoseSR
+        case .enhancedXRayRadiationDoseSR: return .enhancedXRayRadiationDoseSR
+        case .radiopharmaceuticalRadiationDoseSR: return .radiopharmaceuticalRadiationDoseSR
+        case .patientRadiationDoseSR: return .patientRadiationDoseSR
+        case .acquisitionContextSR: return .acquisitionContextSR
+        case .implantationPlanSR: return .implantationPlanSR
+        case .plannedImagingAgentAdministrationSR: return .plannedImagingAgentAdministrationSR
+        case .performedImagingAgentAdministrationSR: return .performedImagingAgentAdministrationSR
+        case .procedureLog: return .procedureLog
+        case .waveformAnnotationSR: return .waveformAnnotationSR
         }
     }
 
-    public var subtitle: String {
+    /// Prioritized clinical imaging report kinds sourced from `DICOMCore.SRDocumentType.clinicalImagingReportIODs`.
+    public static var clinicalReportKinds: [ClinicalSRReportKind] {
+        allCases.filter(\.isClinicalImagingReportKind)
+    }
+
+    /// Specialized SR Storage IOD kinds sourced from `DICOMCore.SRDocumentType.specializedSRIODs`.
+    public static var specializedReportKinds: [ClinicalSRReportKind] {
+        allCases.filter { !$0.isClinicalImagingReportKind }
+    }
+
+    /// Whether this report kind is a prioritized clinical imaging report IOD.
+    public var isClinicalImagingReportKind: Bool {
+        self == .measurementReportTID1500 || coreDocumentType.isClinicalImagingReportIOD
+    }
+
+    /// SOP Class UID delegated to `DICOMCore.SRDocumentType`.
+    public var sopClassUID: String {
+        coreDocumentType.sopClassUID
+    }
+
+    /// Display name delegated to `DICOMCore.SRDocumentType` / `DICOMCore.TemplateRegistry`.
+    public var displayName: String {
         switch self {
         case .diagnosticComprehensiveSR:
-            return "Clinical history, findings, diagnosis/impression, measurements, and optional linked PR state"
+            return coreDocumentType.displayName
         case .basicTextSR:
-            return "Structured text sections (History, Findings, Impressions, Recommendations) and image evidence"
+            return coreDocumentType.displayName
         case .measurementReportTID1500:
-            return "Quantitative ROI measurements (TID 1500 / TID 1501) with clinical comments and image library"
+            if let tid1500 = DICOMCore.TemplateRegistry.shared.descriptor(for: .measurementReport) {
+                return "\(tid1500.displayName) (\(tid1500.identifier.description))"
+            }
+            return coreDocumentType.displayName
+        default:
+            return coreDocumentType.displayName
+        }
+    }
+
+    /// Subtitle delegated to `DICOMCore.SRDocumentType`.
+    public var subtitle: String {
+        switch self {
+        case .measurementReportTID1500:
+            return DICOMCore.TemplateRegistry.shared.descriptor(for: .measurementReport)?.templateDescription
+                ?? coreDocumentType.subtitle
+        default:
+            return coreDocumentType.subtitle
         }
     }
 }
 
-/// Standard PS3.16 CID 7000 / CID 7021 document title presets for clinical Structured Reports.
+/// Standard PS3.16 CID 7000 / CID 7021 / CID 7010 document title presets for clinical Structured Reports,
+/// backed directly by `DICOMCore.ContextGroup`.
 public enum ClinicalSRTitlePreset: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
+    // CID 7000 Diagnostic Imaging Report Document Titles
     case diagnosticImagingReport = "18748-4"
     case radiologyReport = "11528-7"
+    case ultrasoundOBGynReport = "11525-3"
+    case petScanReport = "44136-0"
+    // CID 7021 Measurement Report Document Titles
     case imagingMeasurementReport = "126000"
+    case oncologyMeasurementReport = "126001"
+    case dynamicContrastMRMeasurementReport = "126002"
+    case petMeasurementReport = "126003"
 
     public var id: String { rawValue }
 
-    public var displayName: String {
-        switch self {
-        case .diagnosticImagingReport: return "Diagnostic Imaging Report (LN 18748-4)"
-        case .radiologyReport: return "Radiology Report (LN 11528-7)"
-        case .imagingMeasurementReport: return "Imaging Measurement Report (DCM 126000)"
-        }
+    /// The `DICOMCore.CodedConcept` looked up directly from `DICOMCore.ContextGroup` (CID 7000 / CID 7021).
+    public var coreConcept: DICOMCore.CodedConcept {
+        let allStandardTitles = DICOMCore.ContextGroup.diagnosticImagingReportDocumentTitles.members
+            + DICOMCore.ContextGroup.measurementReportDocumentTitles.members
+        return allStandardTitles.first { $0.codeValue == rawValue }
+            ?? DICOMCore.ContextGroup.diagnosticImagingReportDocumentTitles.members[0]
     }
 
-    public var coreConcept: DICOMCore.CodedConcept {
-        switch self {
-        case .diagnosticImagingReport:
-            return DICOMCore.CodedConcept(
-                codeValue: "18748-4",
-                codingSchemeDesignator: "LN",
-                codeMeaning: "Diagnostic Imaging Report"
-            )
-        case .radiologyReport:
-            return DICOMCore.CodedConcept(
-                codeValue: "11528-7",
-                codingSchemeDesignator: "LN",
-                codeMeaning: "Radiology Report"
-            )
-        case .imagingMeasurementReport:
-            return DICOMCore.CodedConcept(
-                codeValue: "126000",
-                codingSchemeDesignator: "DCM",
-                codeMeaning: "Imaging Measurement Report"
-            )
+    /// Human-readable display name formatted from `coreConcept` in `DICOMCore`.
+    public var displayName: String {
+        let c = coreConcept
+        return "\(c.codeMeaning) (\(c.codingSchemeDesignator) \(c.codeValue))"
+    }
+
+    /// Returns the `ClinicalSRTitlePreset` options applicable to the given `ClinicalSRReportKind` from `DICOMCore.ContextGroup`.
+    public static func presets(for kind: ClinicalSRReportKind) -> [ClinicalSRTitlePreset] {
+        switch kind {
+        case .measurementReportTID1500:
+            let cid7021Codes = Set(DICOMCore.ContextGroup.measurementReportDocumentTitles.members.map(\.codeValue))
+            return allCases.filter { cid7021Codes.contains($0.rawValue) }
+        case .basicTextSR:
+            let cid7000Codes = Set(DICOMCore.ContextGroup.diagnosticImagingReportDocumentTitles.members.map(\.codeValue))
+            return allCases.filter { cid7000Codes.contains($0.rawValue) }
+        default:
+            return allCases
         }
     }
 }
@@ -100,7 +201,8 @@ public enum ClinicalSRReferenceScope: String, Sendable, Equatable, Hashable, Cas
     }
 }
 
-/// Standard UCUM measurement units offered in the clinical SR composer.
+/// Standard UCUM measurement units offered in the clinical SR composer,
+/// delegated directly to `DICOMCore.SRClinicalCatalog.measurementUnits`.
 public enum ClinicalSRMeasurementUnit: String, Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     case millimeter = "mm"
     case centimeter = "cm"
@@ -110,42 +212,25 @@ public enum ClinicalSRMeasurementUnit: String, Sendable, Equatable, Hashable, Ca
 
     public var id: String { rawValue }
 
+    /// Underlying `DICOMCore.SRClinicalCatalog.MeasurementUnitDescriptor`.
+    public var coreDescriptor: DICOMCore.SRClinicalCatalog.MeasurementUnitDescriptor {
+        DICOMCore.SRClinicalCatalog.measurementUnits.first { $0.rawValue == rawValue }
+            ?? DICOMCore.SRClinicalCatalog.measurementUnits[0]
+    }
+
+    /// Display name delegated to `DICOMCore.SRClinicalCatalog`.
     public var displayName: String {
-        switch self {
-        case .millimeter: return "mm (Length)"
-        case .centimeter: return "cm (Length)"
-        case .squareMillimeter: return "mm² (Area)"
-        case .milliliter: return "mL (Volume)"
-        case .hounsfieldUnit: return "HU (Attenuation)"
-        }
+        coreDescriptor.displayName
     }
 
+    /// UCUM `CodedConcept` delegated to `DICOMCore.SRClinicalCatalog`.
     public var ucumConcept: DICOMCore.CodedConcept {
-        switch self {
-        case .millimeter:
-            return DICOMCore.CodedConcept(codeValue: "mm", codingSchemeDesignator: "UCUM", codeMeaning: "mm")
-        case .centimeter:
-            return DICOMCore.CodedConcept(codeValue: "cm", codingSchemeDesignator: "UCUM", codeMeaning: "cm")
-        case .squareMillimeter:
-            return DICOMCore.CodedConcept(codeValue: "mm2", codingSchemeDesignator: "UCUM", codeMeaning: "square millimeter")
-        case .milliliter:
-            return DICOMCore.CodedConcept(codeValue: "ml", codingSchemeDesignator: "UCUM", codeMeaning: "milliliter")
-        case .hounsfieldUnit:
-            return DICOMCore.CodedConcept(codeValue: "[hnsf'U]", codingSchemeDesignator: "UCUM", codeMeaning: "Hounsfield unit")
-        }
+        coreDescriptor.ucumConcept
     }
 
+    /// Quantity `CodedConcept` delegated to `DICOMCore.SRClinicalCatalog`.
     public var quantityConcept: DICOMCore.CodedConcept {
-        switch self {
-        case .millimeter, .centimeter:
-            return DICOMCore.CodedConcept(codeValue: "410668003", codingSchemeDesignator: "SCT", codeMeaning: "Length")
-        case .squareMillimeter:
-            return DICOMCore.CodedConcept(codeValue: "42798000", codingSchemeDesignator: "SCT", codeMeaning: "Area")
-        case .milliliter:
-            return DICOMCore.CodedConcept(codeValue: "118565006", codingSchemeDesignator: "SCT", codeMeaning: "Volume")
-        case .hounsfieldUnit:
-            return DICOMCore.CodedConcept(codeValue: "112031", codingSchemeDesignator: "DCM", codeMeaning: "Attenuation Coefficient")
-        }
+        coreDescriptor.quantityConcept
     }
 }
 
@@ -173,6 +258,8 @@ public struct ClinicalSRMeasurementEntry: Sendable, Equatable, Hashable, Identif
 public struct ClinicalSRDraft: Sendable, Equatable {
     public var reportKind: ClinicalSRReportKind = .diagnosticComprehensiveSR
     public var titlePreset: ClinicalSRTitlePreset = .diagnosticImagingReport
+    /// Optional registered PS3.16 TID template selected from `DICOMCore.TemplateRegistry.shared.allTemplateDescriptors`.
+    public var selectedTemplateDescriptor: DICOMCore.SRRegisteredTemplateDescriptor?
 
     /// Clinical history / indication (`(11329-0, LN, "History")` per CID 7001).
     public var clinicalHistory: String = ""
@@ -281,13 +368,13 @@ extension ImageViewerViewModel {
         let hasMeasurements = !clinicalSRDraft.measurements.isEmpty || hasDrawn
 
         switch clinicalSRDraft.reportKind {
-        case .diagnosticComprehensiveSR, .basicTextSR:
-            if !hasFindings && !hasImpression && !hasHistory && !hasRecs {
-                issues.append("Enter Clinical Findings or Diagnosis / Impression so the Structured Report contains clinical content.")
-            }
         case .measurementReportTID1500:
             if !hasMeasurements && !hasNarrative {
                 issues.append("Add at least one quantitative measurement, drawn annotation, or clinical comment for a TID 1500 report.")
+            }
+        default:
+            if !hasFindings && !hasImpression && !hasHistory && !hasRecs && !hasMeasurements {
+                issues.append("Enter Clinical Findings or Diagnosis / Impression so the Structured Report contains clinical content.")
             }
         }
 
@@ -374,20 +461,6 @@ extension ImageViewerViewModel {
                 targetImages: targetImages,
                 prByImage: prByImage
             )
-        case .diagnosticComprehensiveSR:
-            rawDoc = try buildComprehensiveClinicalSR(
-                dataSet: ds,
-                studyUID: studyUID,
-                srSeriesUID: srSeriesUID,
-                stamp: stamp,
-                historyText: historyText,
-                findingsText: findingsText,
-                impressionText: impressionText,
-                recsText: recsText,
-                authorText: authorText,
-                targetImages: targetImages,
-                prByImage: prByImage
-            )
         case .measurementReportTID1500:
             rawDoc = try buildTID1500ClinicalSR(
                 dataSet: ds,
@@ -401,6 +474,21 @@ extension ImageViewerViewModel {
                 authorText: authorText,
                 targetImages: targetImages,
                 prByImage: prByImage
+            )
+        default:
+            rawDoc = try buildComprehensiveClinicalSR(
+                dataSet: ds,
+                studyUID: studyUID,
+                srSeriesUID: srSeriesUID,
+                stamp: stamp,
+                historyText: historyText,
+                findingsText: findingsText,
+                impressionText: impressionText,
+                recsText: recsText,
+                authorText: authorText,
+                targetImages: targetImages,
+                prByImage: prByImage,
+                sopClassUID: clinicalSRDraft.reportKind.sopClassUID
             )
         }
 
@@ -545,12 +633,12 @@ extension ImageViewerViewModel {
             ? ClinicalSRTitlePreset.diagnosticImagingReport.coreConcept
             : clinicalSRDraft.titlePreset.coreConcept
 
-        let historyHeading = DICOMCore.CodedConcept(codeValue: "11329-0", codingSchemeDesignator: "LN", codeMeaning: "History")
-        let findingsHeading = DICOMCore.CodedConcept(codeValue: "59776-5", codingSchemeDesignator: "LN", codeMeaning: "Findings")
-        let impressionsHeading = DICOMCore.CodedConcept(codeValue: "19005-8", codingSchemeDesignator: "LN", codeMeaning: "Impressions")
-        let recsHeading = DICOMCore.CodedConcept(codeValue: "18783-1", codingSchemeDesignator: "LN", codeMeaning: "Recommendations")
-        let observerConcept = DICOMCore.CodedConcept(codeValue: "121008", codingSchemeDesignator: "DCM", codeMeaning: "Person Observer Name")
-        let imageConcept = DICOMCore.CodedConcept(codeValue: "121200", codingSchemeDesignator: "DCM", codeMeaning: "Illustration of ROI")
+        let historyHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "History")
+        let findingsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Findings")
+        let impressionsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Impressions")
+        let recsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Recommendations")
+        let observerConcept = DICOMCore.SRClinicalCatalog.personObserverNameConcept
+        let imageConcept = DICOMCore.SRClinicalCatalog.imageReferenceConcept
 
         var builder = BasicTextSRBuilder()
             .withStudyInstanceUID(studyUID)
@@ -618,21 +706,23 @@ extension ImageViewerViewModel {
         recsText: String,
         authorText: String,
         targetImages: [SeriesImageIdentity],
-        prByImage: [String: (ref: ReferencedSOP, seriesInstanceUID: String)]
+        prByImage: [String: (ref: ReferencedSOP, seriesInstanceUID: String)],
+        sopClassUID: String = DICOMCore.SRDocumentType.comprehensiveSR.sopClassUID
     ) throws -> DICOMKit.SRDocument {
-        let title = clinicalSRDraft.titlePreset.coreConcept
-        let historyHeading = DICOMCore.CodedConcept(codeValue: "11329-0", codingSchemeDesignator: "LN", codeMeaning: "History")
-        let findingsHeading = DICOMCore.CodedConcept(codeValue: "59776-5", codingSchemeDesignator: "LN", codeMeaning: "Findings")
-        let impressionsHeading = DICOMCore.CodedConcept(codeValue: "19005-8", codingSchemeDesignator: "LN", codeMeaning: "Impressions")
-        let recsHeading = DICOMCore.CodedConcept(codeValue: "18783-1", codingSchemeDesignator: "LN", codeMeaning: "Recommendations")
-        let measurementsHeading = DICOMCore.CodedConcept(codeValue: "126010", codingSchemeDesignator: "DCM", codeMeaning: "Imaging Measurements")
-        let groupConcept = DICOMCore.CodedConcept(codeValue: "125007", codingSchemeDesignator: "DCM", codeMeaning: "Measurement Group")
-        let trackingIDConcept = DICOMCore.CodedConcept(codeValue: "112039", codingSchemeDesignator: "DCM", codeMeaning: "Tracking Identifier")
-        let trackingUIDConcept = DICOMCore.CodedConcept(codeValue: "112040", codingSchemeDesignator: "DCM", codeMeaning: "Tracking Unique Identifier")
-        let observerConcept = DICOMCore.CodedConcept(codeValue: "121008", codingSchemeDesignator: "DCM", codeMeaning: "Person Observer Name")
-        let imageConcept = DICOMCore.CodedConcept(codeValue: "121200", codingSchemeDesignator: "DCM", codeMeaning: "Illustration of ROI")
-        let regionConcept = DICOMCore.CodedConcept(codeValue: "111030", codingSchemeDesignator: "DCM", codeMeaning: "Image Region")
-        let commentConcept = DICOMCore.CodedConcept(codeValue: "121106", codingSchemeDesignator: "DCM", codeMeaning: "Comment")
+        let title = clinicalSRDraft.selectedTemplateDescriptor?.defaultDocumentTitle
+            ?? clinicalSRDraft.titlePreset.coreConcept
+        let historyHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "History")
+        let findingsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Findings")
+        let impressionsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Impressions")
+        let recsHeading = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Recommendations")
+        let measurementsHeading = DICOMCore.SRClinicalCatalog.imagingMeasurementsConcept
+        let groupConcept = DICOMCore.SRClinicalCatalog.measurementGroupConcept
+        let trackingIDConcept = DICOMCore.SRClinicalCatalog.trackingIdentifierConcept
+        let trackingUIDConcept = DICOMCore.SRClinicalCatalog.trackingUIDConcept
+        let observerConcept = DICOMCore.SRClinicalCatalog.personObserverNameConcept
+        let imageConcept = DICOMCore.SRClinicalCatalog.imageReferenceConcept
+        let regionConcept = DICOMCore.SRClinicalCatalog.imageRegionConcept
+        let commentConcept = DICOMCore.SRClinicalCatalog.commentConcept
 
         var rootItems: [AnyContentItem] = []
 
@@ -692,7 +782,7 @@ extension ImageViewerViewModel {
             var numChildren: [AnyContentItem] = []
             if let primaryImageRef {
                 numChildren.append(AnyContentItem(ImageContentItem(
-                    conceptName: DICOMCore.CodedConcept(codeValue: "121112", codingSchemeDesignator: "DCM", codeMeaning: "Source of Measurement"),
+                    conceptName: DICOMCore.SRClinicalCatalog.sourceOfMeasurementConcept,
                     imageReference: primaryImageRef,
                     relationshipType: .inferredFrom
                 )))
@@ -788,10 +878,14 @@ extension ImageViewerViewModel {
             )))
         }
 
+        let resolvedTID = clinicalSRDraft.selectedTemplateDescriptor?.identifier.templateID
+            ?? clinicalSRDraft.reportKind.coreDocumentType.defaultRootTemplateIdentifier?.templateID
         let rootContainer = ContainerContentItem(
             conceptName: title,
             continuityOfContent: .separate,
-            contentItems: rootItems
+            contentItems: rootItems,
+            templateIdentifier: resolvedTID,
+            mappingResource: resolvedTID != nil ? "DCMR" : nil
         )
 
         var verifying: [VerifyingObserver] = []
@@ -804,7 +898,7 @@ extension ImageViewerViewModel {
         }
 
         return DICOMKit.SRDocument(
-            sopClassUID: "1.2.840.10008.5.1.4.1.1.88.33",
+            sopClassUID: sopClassUID,
             sopInstanceUID: UIDGenerator.generateUID().value,
             patientID: ds.string(for: .patientID),
             patientName: ds.string(for: .patientName),
@@ -883,7 +977,7 @@ extension ImageViewerViewModel {
         for entry in clinicalSRDraft.measurements {
             let sources: [MeasurementSource] = primaryImageRef.map {
                 [.image(
-                    purpose: DICOMCore.CodedConcept(codeValue: "121112", codingSchemeDesignator: "DCM", codeMeaning: "Source of Measurement"),
+                    purpose: DICOMCore.SRClinicalCatalog.sourceOfMeasurementConcept,
                     image: $0
                 )]
             } ?? []
@@ -915,7 +1009,7 @@ extension ImageViewerViewModel {
                     let coords = drawn.annotation.points.flatMap { [Float($0.x), Float($0.y)] }
                     let gType: DICOMCore.GraphicType = drawn.annotation.points.count == 1 ? .point : .polyline
                     contents.append(.spatialCoordinatesOnImage(
-                        conceptName: DICOMCore.CodedConcept(codeValue: "111030", codingSchemeDesignator: "DCM", codeMeaning: "Image Region"),
+                        conceptName: DICOMCore.SRClinicalCatalog.imageRegionConcept,
                         graphicType: gType,
                         graphicData: coords,
                         sourceImage: imgRef
@@ -923,7 +1017,7 @@ extension ImageViewerViewModel {
                 }
                 if !drawn.annotation.text.isEmpty {
                     contents.append(.text(
-                        conceptName: DICOMCore.CodedConcept(codeValue: "121106", codingSchemeDesignator: "DCM", codeMeaning: "Comment"),
+                        conceptName: DICOMCore.SRClinicalCatalog.commentConcept,
                         value: drawn.annotation.text
                     ))
                 }
@@ -950,7 +1044,7 @@ extension ImageViewerViewModel {
                 trackingUID: UIDGenerator.generateUID().value,
                 contents: [
                     .text(
-                        conceptName: DICOMCore.CodedConcept(codeValue: "121106", codingSchemeDesignator: "DCM", codeMeaning: "Comment"),
+                        conceptName: DICOMCore.SRClinicalCatalog.commentConcept,
                         value: narrativeSummary
                     )
                 ]

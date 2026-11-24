@@ -8,6 +8,90 @@ import Foundation
 import DICOMCore
 import DICOMKit
 
+/// Patient, study, equipment, and image-evidence context extracted from an active study/image
+/// in the Image Viewer so standalone Structured Reports inherit complete study demographics
+/// and referenced evidence.
+public struct SRStudyContext: Sendable, Equatable {
+    public var patientName: String?
+    public var patientID: String?
+    public var patientBirthDate: String?
+    public var patientSex: String?
+    public var studyInstanceUID: String?
+    public var studyDate: String?
+    public var studyTime: String?
+    public var accessionNumber: String?
+    public var studyID: String?
+    public var referringPhysicianName: String?
+    public var manufacturer: String?
+    public var studyDescription: String?
+    public var referencedSOPClassUID: String?
+    public var referencedSOPInstanceUID: String?
+    public var referencedSeriesInstanceUID: String?
+
+    public init(
+        patientName: String? = nil,
+        patientID: String? = nil,
+        patientBirthDate: String? = nil,
+        patientSex: String? = nil,
+        studyInstanceUID: String? = nil,
+        studyDate: String? = nil,
+        studyTime: String? = nil,
+        accessionNumber: String? = nil,
+        studyID: String? = nil,
+        referringPhysicianName: String? = nil,
+        manufacturer: String? = nil,
+        studyDescription: String? = nil,
+        referencedSOPClassUID: String? = nil,
+        referencedSOPInstanceUID: String? = nil,
+        referencedSeriesInstanceUID: String? = nil
+    ) {
+        self.patientName = patientName
+        self.patientID = patientID
+        self.patientBirthDate = patientBirthDate
+        self.patientSex = patientSex
+        self.studyInstanceUID = studyInstanceUID
+        self.studyDate = studyDate
+        self.studyTime = studyTime
+        self.accessionNumber = accessionNumber
+        self.studyID = studyID
+        self.referringPhysicianName = referringPhysicianName
+        self.manufacturer = manufacturer
+        self.studyDescription = studyDescription
+        self.referencedSOPClassUID = referencedSOPClassUID
+        self.referencedSOPInstanceUID = referencedSOPInstanceUID
+        self.referencedSeriesInstanceUID = referencedSeriesInstanceUID
+    }
+
+    /// Creates an `SRStudyContext` from an active DICOM `DataSet` and optional viewer UIDs.
+    public init(
+        dataSet: DataSet,
+        studyInstanceUID: String? = nil,
+        currentSeriesInstanceUID: String? = nil,
+        currentSOPClassUID: String? = nil,
+        currentSOPInstanceUID: String? = nil
+    ) {
+        self.patientName = dataSet.string(for: .patientName)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.patientID = dataSet.string(for: .patientID)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.patientBirthDate = dataSet.string(for: .patientBirthDate)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.patientSex = dataSet.string(for: .patientSex)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.studyInstanceUID = (studyInstanceUID ?? dataSet.string(for: .studyInstanceUID))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        self.studyDate = dataSet.string(for: .studyDate)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.studyTime = dataSet.string(for: .studyTime)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.accessionNumber = dataSet.string(for: .accessionNumber)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.studyID = dataSet.string(for: .studyID)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.referringPhysicianName = dataSet.string(for: .referringPhysicianName)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.manufacturer = dataSet.string(for: .manufacturer)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.studyDescription = dataSet.string(for: .studyDescription)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.referencedSOPClassUID = (currentSOPClassUID ?? dataSet.string(for: .sopClassUID))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        self.referencedSOPInstanceUID = (currentSOPInstanceUID ?? dataSet.string(for: .sopInstanceUID))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        self.referencedSeriesInstanceUID = (currentSeriesInstanceUID ?? dataSet.string(for: .seriesInstanceUID))?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 /// Bridges `DICOMStudio.SRDocument` and `DICOMKit.SRDocument` for Part 10 `.dcm` file I/O
 /// and study series publishing.
 public enum SRSerializationBridge {
@@ -64,23 +148,44 @@ public enum SRSerializationBridge {
         verifyingOrganization: String = "DICOMStudio",
         preliminaryFlag: PreliminaryFlag? = nil,
         studyDescription: String? = nil,
-        seriesDescription: String? = nil
+        seriesDescription: String? = nil,
+        studyContext: SRStudyContext? = nil
     ) -> DICOMKit.SRDocument {
         let sopInstanceUID = studioDoc.sopInstanceUID.isEmpty
             ? UIDGenerator.generateUID().value
             : studioDoc.sopInstanceUID
-        let studyInstanceUID = studioDoc.studyInstanceUID.isEmpty
-            ? UIDGenerator.generateStudyInstanceUID().value
-            : studioDoc.studyInstanceUID
+        let docStudyUID = studioDoc.studyInstanceUID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextStudyUID = studyContext?.studyInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let studyInstanceUID: String
+        if !docStudyUID.isEmpty {
+            studyInstanceUID = docStudyUID
+        } else if !contextStudyUID.isEmpty {
+            studyInstanceUID = contextStudyUID
+        } else {
+            studyInstanceUID = UIDGenerator.generateStudyInstanceUID().value
+        }
         let seriesInstanceUID = studioDoc.seriesInstanceUID.isEmpty
             ? UIDGenerator.generateSeriesInstanceUID().value
             : studioDoc.seriesInstanceUID
 
+        let docPatientID = studioDoc.patientID.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextPatientID = studyContext?.patientID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let resolvedPatientID: String? = !docPatientID.isEmpty
+            ? docPatientID
+            : (!contextPatientID.isEmpty ? contextPatientID : nil)
+
+        let docPatientName = studioDoc.patientName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextPatientName = studyContext?.patientName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let resolvedPatientName: String? = !docPatientName.isEmpty
+            ? docPatientName
+            : (!contextPatientName.isEmpty ? contextPatientName : nil)
+
+        let coreDocType = studioDoc.documentType.coreDocumentType
         let sopClassUID = studioDoc.documentType.sopClassUID
         let isKOS = studioDoc.documentType == .keyObjectSelection
-        let modality = isKOS ? "KO" : "SR"
-        let defaultSeriesNumber = isKOS ? "9003" : "9002"
-        let defaultSeriesDesc = isKOS ? "Key Object Selection" : "Structured Reports"
+        let modality = coreDocType.modality
+        let defaultSeriesNumber = coreDocType.defaultSeriesNumber
+        let defaultSeriesDesc = coreDocType.defaultSeriesDescription
 
         let now = currentDICOMTimestamp()
         let contentDate = studioDoc.contentDate.isEmpty ? now.date : studioDoc.contentDate
@@ -92,12 +197,21 @@ public enum SRSerializationBridge {
             studioDoc.rootContentItem.continuityOfContent == .continuous ? .continuous : .separate
         let rootChildren = studioDoc.rootContentItem.children.map { toCoreItem($0, isKOS: isKOS) }
 
+        let resolvedTemplateID: String?
+        if let customTID = studioDoc.templateIdentifier, !customTID.isEmpty {
+            resolvedTemplateID = customTID
+        } else if studioDoc.documentType == .measurementReport {
+            resolvedTemplateID = DICOMCore.TemplateIdentifier.measurementReport.templateID
+        } else {
+            resolvedTemplateID = coreDocType.defaultRootTemplateIdentifier?.templateID
+        }
+
         let rootContainer = ContainerContentItem(
             conceptName: rootConcept,
             continuityOfContent: rootContinuity,
             contentItems: rootChildren,
-            templateIdentifier: isKOS ? "2010" : (studioDoc.documentType == .measurementReport ? "1500" : nil),
-            mappingResource: (isKOS || studioDoc.documentType == .measurementReport) ? "DCMR" : nil
+            templateIdentifier: resolvedTemplateID,
+            mappingResource: resolvedTemplateID != nil ? "DCMR" : nil
         )
 
         var verifyingObservers: [VerifyingObserver] = []
@@ -113,18 +227,48 @@ public enum SRSerializationBridge {
             )
         }
 
-        let evidence = collectEvidence(
+        let fallbackEvidenceSeriesUID: String
+        if let refSeries = studyContext?.referencedSeriesInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !refSeries.isEmpty {
+            fallbackEvidenceSeriesUID = refSeries
+        } else {
+            fallbackEvidenceSeriesUID = seriesInstanceUID
+        }
+
+        var evidence = collectEvidence(
             from: rootChildren,
             studyInstanceUID: studyInstanceUID,
-            fallbackSeriesUID: seriesInstanceUID
+            fallbackSeriesUID: fallbackEvidenceSeriesUID
         )
+        if evidence.isEmpty,
+           let refClass = studyContext?.referencedSOPClassUID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !refClass.isEmpty,
+           let refInst = studyContext?.referencedSOPInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !refInst.isEmpty {
+            evidence.append(HierarchicalSOPReference(
+                studyInstanceUID: studyInstanceUID,
+                seriesInstanceUID: fallbackEvidenceSeriesUID,
+                sopClassUID: refClass,
+                sopInstanceUID: refInst
+            ))
+        }
+
+        func nonEmpty(_ s: String?) -> String? {
+            guard let trimmed = s?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+                return nil
+            }
+            return trimmed
+        }
 
         return DICOMKit.SRDocument(
             sopClassUID: sopClassUID,
             sopInstanceUID: sopInstanceUID,
-            patientID: studioDoc.patientID.isEmpty ? nil : studioDoc.patientID,
-            patientName: studioDoc.patientName.isEmpty ? nil : studioDoc.patientName,
+            patientID: resolvedPatientID,
+            patientName: resolvedPatientName,
             studyInstanceUID: studyInstanceUID,
+            studyDate: nonEmpty(studyContext?.studyDate),
+            studyTime: nonEmpty(studyContext?.studyTime),
+            accessionNumber: nonEmpty(studyContext?.accessionNumber),
             seriesInstanceUID: seriesInstanceUID,
             seriesNumber: defaultSeriesNumber,
             modality: modality,
@@ -137,7 +281,12 @@ public enum SRSerializationBridge {
             verifyingObservers: verifyingObservers,
             documentTitle: rootConcept,
             rootContent: rootContainer,
-            studyDescription: studyDescription,
+            patientBirthDate: nonEmpty(studyContext?.patientBirthDate),
+            patientSex: nonEmpty(studyContext?.patientSex),
+            referringPhysicianName: nonEmpty(studyContext?.referringPhysicianName),
+            studyID: nonEmpty(studyContext?.studyID),
+            manufacturer: nonEmpty(studyContext?.manufacturer),
+            studyDescription: nonEmpty(studyDescription) ?? nonEmpty(studyContext?.studyDescription),
             seriesDescription: seriesDescription ?? defaultSeriesDesc,
             evidenceReferences: evidence
         )
@@ -148,13 +297,15 @@ public enum SRSerializationBridge {
         _ studioDoc: SRDocument,
         verifyingObserverName: String = "STATELESS^VERIFIER",
         verifyingOrganization: String = "DICOMStudio",
-        preliminaryFlag: PreliminaryFlag? = nil
+        preliminaryFlag: PreliminaryFlag? = nil,
+        studyContext: SRStudyContext? = nil
     ) throws -> Data {
         let kitDoc = toDICOMKitDocument(
             studioDoc,
             verifyingObserverName: verifyingObserverName,
             verifyingOrganization: verifyingOrganization,
-            preliminaryFlag: preliminaryFlag
+            preliminaryFlag: preliminaryFlag,
+            studyContext: studyContext
         )
         let dataSet = try SRDocumentSerializer().serialize(document: kitDoc)
         let dicomFile = DICOMFile.create(
@@ -188,7 +339,8 @@ public enum SRSerializationBridge {
             contentTime: kitDoc.contentTime ?? "",
             rootContentItem: rootItem,
             isComplete: kitDoc.completionFlag == .complete,
-            isVerified: kitDoc.verificationFlag == .verified
+            isVerified: kitDoc.verificationFlag == .verified,
+            templateIdentifier: kitDoc.rootContent.templateIdentifier
         )
     }
 
@@ -231,7 +383,7 @@ public enum SRSerializationBridge {
         } else if item.relationshipType == .selectedFrom || item.relationshipType == .inferredFrom {
             concept = nil
         } else {
-            concept = DICOMCore.CodedConcept(codeValue: "121106", codingSchemeDesignator: "DCM", codeMeaning: "Comment")
+            concept = DICOMCore.SRClinicalCatalog.commentConcept
         }
 
         switch item.valueType {
@@ -252,7 +404,7 @@ public enum SRSerializationBridge {
             ))
         case .code:
             let val = item.codeValue.map(toCoreConcept)
-                ?? DICOMCore.CodedConcept(codeValue: "121071", codingSchemeDesignator: "DCM", codeMeaning: "Finding")
+                ?? DICOMCore.SRClinicalCatalog.findingConcept
             return AnyContentItem(CodeContentItem(
                 conceptName: concept,
                 conceptCode: val,
@@ -262,7 +414,7 @@ public enum SRSerializationBridge {
         case .numeric:
             let val = item.numericValue ?? 0.0
             let unit = item.measurementUnit.map(toCoreConcept)
-                ?? DICOMCore.CodedConcept(codeValue: "1", codingSchemeDesignator: "UCUM", codeMeaning: "no units")
+                ?? DICOMCore.SRClinicalCatalog.ucumNoUnits
             return AnyContentItem(NumericContentItem(
                 conceptName: concept,
                 value: val,
@@ -508,20 +660,14 @@ public enum SRSerializationBridge {
     }
 
     private static func studioDocumentType(for kitDoc: DICOMKit.SRDocument) -> SRDocumentType {
-        if kitDoc.rootContent.templateIdentifier == "1500"
-            || kitDoc.documentTitle?.codeValue == "126000" {
+        if kitDoc.rootContent.templateIdentifier == DICOMCore.TemplateIdentifier.measurementReport.templateID
+            || kitDoc.documentTitle?.codeValue == DICOMCore.DICOMCode.imagingMeasurementReport.codeValue {
             return .measurementReport
         }
-        switch kitDoc.sopClassUID {
-        case "1.2.840.10008.5.1.4.1.1.88.11": return .basicText
-        case "1.2.840.10008.5.1.4.1.1.88.22": return .enhanced
-        case "1.2.840.10008.5.1.4.1.1.88.33": return .comprehensive
-        case "1.2.840.10008.5.1.4.1.1.88.34", "1.2.840.10008.5.1.4.1.1.88.35": return .comprehensive3D
-        case "1.2.840.10008.5.1.4.1.1.88.59": return .keyObjectSelection
-        case "1.2.840.10008.5.1.4.1.1.88.50": return .mammographyCAD
-        case "1.2.840.10008.5.1.4.1.1.88.65": return .chestCAD
-        default: return .comprehensive
+        if let coreType = DICOMCore.SRDocumentType.from(sopClassUID: kitDoc.sopClassUID) {
+            return SRDocumentType(coreDocumentType: coreType)
         }
+        return .comprehensive
     }
 
     private static func collectEvidence(
@@ -588,5 +734,97 @@ public enum SRSerializationBridge {
         let d = String(format: "%04d%02d%02d", c.year ?? 2026, c.month ?? 1, c.day ?? 1)
         let t = String(format: "%02d%02d%02d", c.hour ?? 0, c.minute ?? 0, c.second ?? 0)
         return (d, t)
+    }
+
+    // MARK: - Conformance & PS3.16 Template Validation
+
+    /// Summary of DICOM Part 10 / PS3.3 IOD and PS3.16 template conformance validation for an SR document.
+    public struct ConformanceSummary: Sendable {
+        public let iodValueTypeErrors: [String]
+        public let part10Errors: [String]
+        public let part10Warnings: [String]
+        public let templateResult: DICOMCore.TemplateValidationResult?
+
+        public init(
+            iodValueTypeErrors: [String] = [],
+            part10Errors: [String] = [],
+            part10Warnings: [String] = [],
+            templateResult: DICOMCore.TemplateValidationResult? = nil
+        ) {
+            self.iodValueTypeErrors = iodValueTypeErrors
+            self.part10Errors = part10Errors
+            self.part10Warnings = part10Warnings
+            self.templateResult = templateResult
+        }
+    }
+
+    /// Validates a `DICOMStudio.SRDocument` against:
+    /// 1. `DICOMCore.SRDocumentType.allowedValueTypes` (PS3.3 Annex A.35 Value Type constraints)
+    /// 2. `DICOMKit.DICOMValidator(level: 3)` (PS3.3 IOD Type 1/1C/2/2C & Part 10 dataset conformance)
+    /// 3. `DICOMCore.TemplateValidator` (PS3.16 TID template rows when a registered TID is specified)
+    public static func validateConformance(
+        of document: SRDocument,
+        verifyingObserverName: String = "",
+        verifyingOrganization: String = "DICOMStudio",
+        targetTemplate: DICOMCore.TemplateIdentifier? = nil,
+        studyContext: SRStudyContext? = nil
+    ) -> ConformanceSummary {
+        let coreDocType = document.documentType.coreDocumentType
+        var iodErrors: [String] = []
+
+        func checkValueTypes(_ item: SRContentItem, path: String) {
+            if let coreVT = DICOMCore.ContentItemValueType(rawValue: item.valueType.rawValue),
+               !coreDocType.allows(coreVT) {
+                iodErrors.append(
+                    "\(coreDocType.displayName) does not permit \(coreVT.rawValue) value type at \(path) (PS3.3 Annex A.35)"
+                )
+            }
+            for (idx, child) in item.children.enumerated() {
+                checkValueTypes(child, path: "\(path)/\(idx)")
+            }
+        }
+        checkValueTypes(document.rootContentItem, path: "root")
+
+        var p10Errors: [String] = []
+        var p10Warnings: [String] = []
+        var tplResult: DICOMCore.TemplateValidationResult?
+
+        do {
+            let kitDoc = toDICOMKitDocument(
+                document,
+                verifyingObserverName: verifyingObserverName,
+                verifyingOrganization: verifyingOrganization,
+                studyContext: studyContext
+            )
+            let data = try serialize(
+                document,
+                verifyingObserverName: verifyingObserverName,
+                verifyingOrganization: verifyingOrganization,
+                studyContext: studyContext
+            )
+            let validation = try DICOMKit.DICOMValidator(level: 3, iod: nil, force: false)
+                .validate(data: data, filePath: "SR_\(document.title.codeValue).dcm")
+            p10Errors = validation.errors.map(\.message)
+            p10Warnings = validation.warnings.map(\.message)
+
+            let effectiveTID: DICOMCore.TemplateIdentifier? = targetTemplate
+                ?? document.templateIdentifier.map { DICOMCore.TemplateIdentifier(templateID: $0) }
+                ?? coreDocType.defaultRootTemplateIdentifier
+
+            if let tid = effectiveTID,
+               DICOMCore.TemplateRegistry.shared.template(for: tid) != nil {
+                tplResult = DICOMCore.TemplateValidator(mode: .lenient)
+                    .validate([AnyContentItem(kitDoc.rootContent)], against: tid)
+            }
+        } catch {
+            p10Errors.append("Serialization error: \(error.localizedDescription)")
+        }
+
+        return ConformanceSummary(
+            iodValueTypeErrors: iodErrors,
+            part10Errors: p10Errors,
+            part10Warnings: p10Warnings,
+            templateResult: tplResult
+        )
     }
 }

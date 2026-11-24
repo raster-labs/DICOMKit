@@ -226,6 +226,27 @@ struct StructuredReportViewModelTests {
         vm.builderDocumentType = .comprehensive
         let errors = vm.validateBuilder()
         #expect(!errors.isEmpty)
+        #expect(vm.validationSuccessMessage == nil)
+    }
+
+    @Test("validateBuilder and validateCurrentReport populate validationChecks and validationSuccessMessage when valid")
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    func testValidateBuilderAndCurrentReportSuccess() {
+        let vm = StructuredReportViewModel()
+        vm.builderDocumentType = .basicText
+        vm.selectedTemplate = .radiologyReport
+        // Empty sections in template mode should flag missing section content
+        let emptyErrors = vm.validateBuilder()
+        #expect(!emptyErrors.isEmpty)
+        #expect(vm.validationSuccessMessage == nil)
+
+        // Populate section text and re-validate
+        vm.sectionTexts["Findings"] = "Clear bilateral lung fields."
+        let validErrors = vm.validateBuilder()
+        #expect(validErrors.isEmpty)
+        #expect(vm.validationSuccessMessage?.contains("Document is valid") == true)
+        #expect(vm.validationChecks.count >= 3)
+        #expect(vm.validationChecks.allSatisfy { $0.passed })
     }
 
     // MARK: - Terminology Actions

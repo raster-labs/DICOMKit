@@ -131,7 +131,7 @@ struct ImportedShape: Shape {
                 path.closeSubpath()
             }
 
-        case .text, .arrow, .annotation:
+        case .text, .arrow, .annotation, .length:
             break
         }
         return path

@@ -106,7 +106,9 @@ public struct MainView: View {
         case .gateway:
             GatewayView(viewModel: viewModel.gatewayViewModel)
         case .reporting:
-            StructuredReportView(viewModel: viewModel.structuredReportViewModel)
+            // Structured Reports opens in its own window alongside the Image Viewer
+            // when an image is loaded, or displays a restriction prompt when the viewer is empty.
+            StructuredReportLauncherView(viewModel: viewModel)
         case .printing:
             PrintCenterView(viewModel: viewModel.printViewModel)
         case .printSCP:
@@ -177,6 +179,12 @@ private struct PresentationSeriesLibrarySync: ViewModifier {
                 viewModel.unregisterPresentationStates(
                     sopInstanceUIDs:
                         viewModel.imageViewerViewModel.unpublishedPresentationStateUIDs)
+            }
+            .onChange(of: viewModel.imageViewerViewModel.sopInstanceUID) { _, _ in
+                viewModel.syncStructuredReportWithViewer()
+            }
+            .onChange(of: viewModel.imageViewerViewModel.studyInstanceUID) { _, _ in
+                viewModel.syncStructuredReportWithViewer()
             }
     }
 }

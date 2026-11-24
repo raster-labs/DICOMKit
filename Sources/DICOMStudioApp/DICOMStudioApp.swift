@@ -65,6 +65,18 @@ struct DICOMStudioApp: App {
         .restorationBehavior(.disabled)
         .defaultLaunchBehavior(.suppressed)
 
+        // The standalone Structured Reports window sits alongside the Image Viewer
+        // so the clinician can analyze images and author or validate a report at
+        // the same time.
+        Window("Structured Reports", id: StudioWindowID.structuredReports) {
+            StructuredReportView(viewModel: viewModel.structuredReportViewModel)
+                .frame(minWidth: 780, minHeight: 620)
+        }
+        .defaultSize(width: 980, height: 780)
+        .windowResizability(.contentMinSize)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView(viewModel: SettingsViewModel(settingsService: viewModel.settingsService))
         }

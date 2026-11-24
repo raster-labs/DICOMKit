@@ -14,7 +14,7 @@
 ///
 /// Each SR document type has specific constraints on the content and relationships
 /// that are allowed within the document.
-public enum SRDocumentType: Sendable, Equatable, Hashable {
+public enum SRDocumentType: Sendable, Equatable, Hashable, CaseIterable, Identifiable {
     /// Basic Text SR Storage
     /// SOP Class UID: 1.2.840.10008.5.1.4.1.1.88.11
     /// Simple text-based reports with limited structure
@@ -352,33 +352,160 @@ public enum SRDocumentType: Sendable, Equatable, Hashable {
     }
 }
 
-// MARK: - SOP Class UID Constants
+// MARK: - SOP Class UID Constants & Clinical Authoring Metadata
 
 extension SRDocumentType {
+    /// Stable identifier (SOP Class UID).
+    public var id: String { sopClassUID }
+
+    /// Clinical imaging report IODs prioritized at the top of report authoring pickers.
+    public static let clinicalImagingReportIODs: [SRDocumentType] = [
+        .basicTextSR,
+        .enhancedSR,
+        .comprehensiveSR,
+        .comprehensive3DSR,
+        .extensibleSR,
+        .keyObjectSelectionDocument,
+        .mammographyCADSR,
+        .chestCADSR,
+        .colonCADSR,
+        .simplifiedAdultEchoSR,
+    ]
+
+    /// Specialized / dose / procedure / administration SR Storage IODs from PS3.6 Table A-1.
+    public static let specializedSRIODs: [SRDocumentType] = [
+        .xRayRadiationDoseSR,
+        .enhancedXRayRadiationDoseSR,
+        .radiopharmaceuticalRadiationDoseSR,
+        .patientRadiationDoseSR,
+        .acquisitionContextSR,
+        .implantationPlanSR,
+        .plannedImagingAgentAdministrationSR,
+        .performedImagingAgentAdministrationSR,
+        .procedureLog,
+        .waveformAnnotationSR,
+    ]
+
+    /// All 20 PS3.6 Table A-1 SR Storage SOP Classes ordered with clinical imaging report IODs first.
+    public static let prioritizedForClinicalAuthoring: [SRDocumentType] =
+        clinicalImagingReportIODs + specializedSRIODs
+
+    /// Whether this IOD is one of the primary clinical imaging report IODs.
+    public var isClinicalImagingReportIOD: Bool {
+        Self.clinicalImagingReportIODs.contains(self)
+    }
+
+    /// Series Modality for this SR document type (`"KO"` for Key Object Selection per PS3.3 C.17.6.1, `"SR"` for all other SR IODs per PS3.3 C.17.1).
+    public var modality: String {
+        self == .keyObjectSelectionDocument ? "KO" : "SR"
+    }
+
+    /// Default Series Number used when saving into a study.
+    public var defaultSeriesNumber: String {
+        self == .keyObjectSelectionDocument ? "9003" : "9002"
+    }
+
+    /// Default Series Description used when saving into a study.
+    public var defaultSeriesDescription: String {
+        self == .keyObjectSelectionDocument ? "Key Object Selection" : "Structured Reports"
+    }
+
+    /// Default root PS3.16 Template Identifier (`TID`) associated with this document type, if prescribed.
+    public var defaultRootTemplateIdentifier: TemplateIdentifier? {
+        switch self {
+        case .mammographyCADSR:
+            return .mammographyCADDocumentRoot
+        case .chestCADSR:
+            return .chestCADDocumentRoot
+        case .keyObjectSelectionDocument:
+            return TemplateIdentifier(tid: 2010)
+        default:
+            return nil
+        }
+    }
+
+    /// Default root document title (`ConceptNameCodeSequence` of root `CONTAINER`).
+    public var defaultDocumentTitle: CodedConcept {
+        switch self {
+        case .keyObjectSelectionDocument:
+            return ContextGroup.keyObjectSelectionDocumentTitles.members.first
+                ?? CodedConcept(codeValue: "113000", scheme: .DCM, codeMeaning: "Of Interest")
+        case .mammographyCADSR:
+            return CodedConcept(codeValue: "111036", scheme: .DCM, codeMeaning: "Mammography CAD Report")
+        case .chestCADSR:
+            return CodedConcept(codeValue: "112000", scheme: .DCM, codeMeaning: "Chest CAD Report")
+        default:
+            return ContextGroup.diagnosticImagingReportDocumentTitles.members.first
+                ?? CodedConcept(codeValue: "18748-4", scheme: .LOINC, codeMeaning: "Diagnostic Imaging Report")
+        }
+    }
+
+    /// Standard document titles applicable to this SR document type from `ContextGroup`.
+    public var allowedDocumentTitles: [CodedConcept] {
+        switch self {
+        case .keyObjectSelectionDocument:
+            return ContextGroup.keyObjectSelectionDocumentTitles.members
+        case .mammographyCADSR:
+            return [defaultDocumentTitle]
+        case .chestCADSR:
+            return [defaultDocumentTitle]
+        case .basicTextSR:
+            return ContextGroup.diagnosticImagingReportDocumentTitles.members
+        default:
+            return ContextGroup.diagnosticImagingReportDocumentTitles.members
+                + ContextGroup.measurementReportDocumentTitles.members
+        }
+    }
+
+    /// Concise clinical description of the capabilities and constraints of this SR IOD.
+    public var subtitle: String {
+        switch self {
+        case .basicTextSR:
+            return "Structured text sections (History, Findings, Impressions, Recommendations) and image evidence"
+        case .enhancedSR:
+            return "Structured narrative sections plus numeric measurements (NUM) and 2D/temporal coordinates"
+        case .comprehensiveSR:
+            return "Clinical history, findings, diagnosis/impression, measurements, spatial coordinates, and optional linked PR state"
+        case .comprehensive3DSR:
+            return "Comprehensive SR with 3D volumetric spatial coordinates (SCOORD3D)"
+        case .extensibleSR:
+            return "Extensible SR supporting all 16 PS3.3 Table C.17.3-7 Value Types including TABLE"
+        case .keyObjectSelectionDocument:
+            return "Flag significant images, waveforms, or composite instances with a CID 7010 selection purpose (TID 2010)"
+        case .mammographyCADSR:
+            return "Computer-aided detection findings and BI-RADS assessments for mammography (TID 4000)"
+        case .chestCADSR:
+            return "Computer-aided detection findings and nodule/lesion analysis for chest imaging (TID 4100)"
+        case .colonCADSR:
+            return "Computer-aided detection findings for colon imaging"
+        case .simplifiedAdultEchoSR:
+            return "Structured echocardiography measurements and findings report"
+        case .xRayRadiationDoseSR:
+            return "Radiation dose reporting for projection X-Ray and CT procedures"
+        case .enhancedXRayRadiationDoseSR:
+            return "Enhanced X-Ray radiation dose reporting with 3D coordinates and tables"
+        case .radiopharmaceuticalRadiationDoseSR:
+            return "Radiation dose reporting for nuclear medicine and PET radiopharmaceuticals"
+        case .patientRadiationDoseSR:
+            return "Cumulative patient radiation dose structured report"
+        case .acquisitionContextSR:
+            return "Structured acquisition context parameters and protocol descriptors"
+        case .implantationPlanSR:
+            return "Surgical and orthopedic implantation planning structured report"
+        case .plannedImagingAgentAdministrationSR:
+            return "Planned contrast or imaging agent administration structured report"
+        case .performedImagingAgentAdministrationSR:
+            return "Performed contrast or imaging agent administration structured report"
+        case .procedureLog:
+            return "Time-stamped log of events during an interventional or diagnostic procedure"
+        case .waveformAnnotationSR:
+            return "Structured temporal coordinate annotations over waveform segments"
+        }
+    }
+
     /// All SR SOP Class UIDs
     public static var allSOPClassUIDs: [String] {
-        [
-            SRDocumentType.basicTextSR.sopClassUID,
-            SRDocumentType.enhancedSR.sopClassUID,
-            SRDocumentType.comprehensiveSR.sopClassUID,
-            SRDocumentType.comprehensive3DSR.sopClassUID,
-            SRDocumentType.extensibleSR.sopClassUID,
-            SRDocumentType.keyObjectSelectionDocument.sopClassUID,
-            SRDocumentType.mammographyCADSR.sopClassUID,
-            SRDocumentType.chestCADSR.sopClassUID,
-            SRDocumentType.colonCADSR.sopClassUID,
-            SRDocumentType.xRayRadiationDoseSR.sopClassUID,
-            SRDocumentType.enhancedXRayRadiationDoseSR.sopClassUID,
-            SRDocumentType.radiopharmaceuticalRadiationDoseSR.sopClassUID,
-            SRDocumentType.patientRadiationDoseSR.sopClassUID,
-            SRDocumentType.acquisitionContextSR.sopClassUID,
-            SRDocumentType.simplifiedAdultEchoSR.sopClassUID,
-            SRDocumentType.implantationPlanSR.sopClassUID,
-            SRDocumentType.plannedImagingAgentAdministrationSR.sopClassUID,
-            SRDocumentType.performedImagingAgentAdministrationSR.sopClassUID,
-            SRDocumentType.procedureLog.sopClassUID,
-            SRDocumentType.waveformAnnotationSR.sopClassUID
-        ]
+        allCases.map(\.sopClassUID)
     }
 }
 

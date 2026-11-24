@@ -6,166 +6,133 @@
 // NEMA-verified: 2026a, checked 2026-10-06 — the 13 coded concepts diffed by script against PS3.16 2026a Table D-1 and the CID tables (7003, 7010, 7021, 7181, 7461, 7470, 9000): 7 matched, 6 corrected ((G-C0E3, SRT) -> (363698007, SCT, "Finding Site") per Table O-1 / TID 1501 row 6; 121200 is "Illustration of ROI"; 113000 is "Of Interest"; mm2 "square millimeter" (CID 7461); [hnsf'U] "Hounsfield unit" (CID 83); 1 "no units" (CID 7181)); (ml, UCUM) is in no CID table, its meaning is UCUM's print name (not verifiable from NEMA text); retired (121070, DCM, "Findings") no longer used as a title/heading with an arbitrary meaning — titles come from CID 7000 / 7021 / 7010 / TID 4000 / TID 4100, section headings from CID 7001, with a 99DCMSTUDIO private code (PS3.16 Section 8) for headings the standard has no code for; TID 1500 rows 1, 6 and TID 1501 rows 2, 3, 6 and TID 2010 rows 1, 7, 8 (IMAGE without a concept name) followed; spatialCoordItem writes the deprecated POLYGON as a closed POLYLINE (first point = last point), the 2D Graphic Types being POINT, MULTIPOINT, POLYLINE, CIRCLE, ELLIPSE (PS3.3 2026a C.18.6.1.2, P-STUDIO-SCOORD-POLYGON)
 
 import Foundation
+import DICOMCore
 
 /// Platform-independent helpers for building DICOM SR documents.
 ///
-/// Provides template generation, content item construction, and validation
-/// for all 8 SR document types.
+/// Delegates all coded concepts, UCUM measurement units, document titles, section headings,
+/// Key Object Selection purposes, document type lists, and PS3.16 template lists to `DICOMCore`.
 public enum SRBuilderHelpers: Sendable {
 
-    // MARK: - Common Coded Concepts
+    // MARK: - Common Coded Concepts (Delegated to DICOMCore.SRClinicalCatalog)
 
-    /// Coded concept for a measurement group (TID 1500).
+    /// Coded concept for a measurement group (TID 1500 / TID 1501).
     public static let measurementGroupConcept = CodedConcept(
-        codeValue: "125007", codingSchemeDesignator: "DCM",
-        codeMeaning: "Measurement Group"
+        coreConcept: DICOMCore.SRClinicalCatalog.measurementGroupConcept
     )
 
     /// Coded concept for tracking identifier.
     public static let trackingIdentifierConcept = CodedConcept(
-        codeValue: "112039", codingSchemeDesignator: "DCM",
-        codeMeaning: "Tracking Identifier"
+        coreConcept: DICOMCore.SRClinicalCatalog.trackingIdentifierConcept
     )
 
     /// Coded concept for tracking unique identifier.
     public static let trackingUIDConcept = CodedConcept(
-        codeValue: "112040", codingSchemeDesignator: "DCM",
-        codeMeaning: "Tracking Unique Identifier"
+        coreConcept: DICOMCore.SRClinicalCatalog.trackingUIDConcept
     )
 
     /// Coded concept for finding.
     public static let findingConcept = CodedConcept(
-        codeValue: "121071", codingSchemeDesignator: "DCM",
-        codeMeaning: "Finding"
+        coreConcept: DICOMCore.SRClinicalCatalog.findingConcept
     )
 
-    /// Coded concept for finding site (TID 1501 row 6; PS3.16 2026a uses the SCT concept id,
-    /// Table O-1 maps the SNOMED-RT id G-C0E3 to it).
+    /// Coded concept for finding site (TID 1501 row 6).
     public static let findingSiteConcept = CodedConcept(
-        codeValue: "363698007", codingSchemeDesignator: "SCT",
-        codeMeaning: "Finding Site"
+        coreConcept: DICOMCore.SRClinicalCatalog.findingSiteConcept
     )
 
-    /// Purpose of reference for an image illustrating a region of interest
-    /// (CID 7003, TID 1501 row 9c). The Table D-1 meaning of 121200 is "Illustration of ROI".
+    /// Purpose of reference for an image illustrating a region of interest (CID 7003, TID 1501 row 9c).
     public static let imageReferenceConcept = CodedConcept(
-        codeValue: "121200", codingSchemeDesignator: "DCM",
-        codeMeaning: "Illustration of ROI"
+        coreConcept: DICOMCore.SRClinicalCatalog.imageReferenceConcept
     )
 
-    /// Default Key Object Selection document title: (113000, DCM, "Of Interest") from CID 7010
-    /// (TID 2010 row 1). `keyObjectTitle(for:)` picks the CID 7010 title that matches a purpose.
+    /// Default Key Object Selection document title from CID 7010 (TID 2010 row 1).
     public static let keyObjectSelectionTitle = CodedConcept(
-        codeValue: "113000", codingSchemeDesignator: "DCM",
-        codeMeaning: "Of Interest"
+        coreConcept: DICOMCore.SRClinicalCatalog.defaultKeyObjectSelectionTitle
     )
 
-    // MARK: - UCUM Unit Concepts
+    // MARK: - UCUM Unit Concepts (Delegated to DICOMCore.SRClinicalCatalog)
 
     /// UCUM millimeter unit.
     public static let ucumMillimeter = CodedConcept(
-        codeValue: "mm", codingSchemeDesignator: "UCUM", codeMeaning: "mm"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumMillimeter
     )
 
     /// UCUM centimeter unit.
     public static let ucumCentimeter = CodedConcept(
-        codeValue: "cm", codingSchemeDesignator: "UCUM", codeMeaning: "cm"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumCentimeter
     )
 
     /// UCUM square millimeter unit (CID 7461).
     public static let ucumSquareMillimeter = CodedConcept(
-        codeValue: "mm2", codingSchemeDesignator: "UCUM", codeMeaning: "square millimeter"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumSquareMillimeter
     )
 
-    /// UCUM milliliter unit. PS3.16 lists no `ml` in a volume context group (CID 7462 uses cm3);
-    /// the meaning is UCUM's print name.
+    /// UCUM milliliter unit.
     public static let ucumMilliliter = CodedConcept(
-        codeValue: "ml", codingSchemeDesignator: "UCUM", codeMeaning: "milliliter"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumMilliliter
     )
 
     /// UCUM Hounsfield unit (CID 83).
     public static let ucumHounsfieldUnit = CodedConcept(
-        codeValue: "[hnsf'U]", codingSchemeDesignator: "UCUM", codeMeaning: "Hounsfield unit"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumHounsfieldUnit
     )
 
-    /// UCUM no units (dimensionless; CID 7181). `{ratio}` is a separate UCUM code with the meaning "ratio".
+    /// UCUM no units (dimensionless; CID 7181).
     public static let ucumNoUnits = CodedConcept(
-        codeValue: "1", codingSchemeDesignator: "UCUM", codeMeaning: "no units"
+        coreConcept: DICOMCore.SRClinicalCatalog.ucumNoUnits
     )
 
-    // MARK: - Document Titles and Section Headings (PS3.16 CID 7000 / 7001 / 7010 / 7021)
+    /// All standard measurement unit descriptors from `DICOMCore.SRClinicalCatalog.measurementUnits`.
+    public static var availableMeasurementUnits: [DICOMCore.SRClinicalCatalog.MeasurementUnitDescriptor] {
+        DICOMCore.SRClinicalCatalog.measurementUnits
+    }
 
-    /// Private coding scheme designator (PS3.16 Section 8: "99" prefix) for the app's own section
-    /// headings that PS3.16 has no code for.
-    static let privateCodingScheme = "99DCMSTUDIO"
+    // MARK: - Document Titles and Section Headings (Delegated to DICOMCore)
 
-    /// Document title for a report template: CID 7000 where the standard has a matching title,
-    /// otherwise a private code carrying the template name.
+    /// Private coding scheme designator from `DICOMCore.SRClinicalCatalog`.
+    static var privateCodingScheme: String {
+        DICOMCore.SRClinicalCatalog.privateCodingScheme
+    }
+
+    /// Document title for a clinical report template preset from `DICOMCore`.
     static func documentTitle(for template: SRTemplate) -> CodedConcept {
-        switch template {
-        case .radiologyReport:
-            return CodedConcept(codeValue: "11528-7", codingSchemeDesignator: "LN", codeMeaning: "Radiology Report")
-        case .procedureReport, .pathologyReport, .clinicalFindings, .dischargeSummary:
-            return CodedConcept(codeValue: template.rawValue, codingSchemeDesignator: privateCodingScheme,
-                                codeMeaning: template.displayName)
-        }
+        CodedConcept(coreConcept: template.corePreset.titleConcept)
     }
 
-    /// Document title for an SR document type: the root concept name its template prescribes
-    /// (TID 2000 BCID 7000, TID 1500 DCID 7021, TID 2010 DCID 7010, TID 4000 / TID 4100 row 1).
-    static func documentTitle(for documentType: SRDocumentType, template: SRTemplate? = nil) -> CodedConcept {
-        switch documentType {
-        case .basicText, .enhanced, .comprehensive, .comprehensive3D:
-            if let template { return documentTitle(for: template) }
-            return CodedConcept(codeValue: "18748-4", codingSchemeDesignator: "LN", codeMeaning: "Diagnostic Imaging Report")
-        case .measurementReport:
-            return CodedConcept(codeValue: "126000", codingSchemeDesignator: "DCM", codeMeaning: "Imaging Measurement Report")
-        case .keyObjectSelection:
-            return keyObjectSelectionTitle
-        case .mammographyCAD:
-            return CodedConcept(codeValue: "111036", codingSchemeDesignator: "DCM", codeMeaning: "Mammography CAD Report")
-        case .chestCAD:
-            return CodedConcept(codeValue: "112000", codingSchemeDesignator: "DCM", codeMeaning: "Chest CAD Report")
-        }
+    /// Document title for a registered PS3.16 TID template from `DICOMCore.TemplateRegistry`.
+    public static func documentTitle(for registeredTemplate: DICOMCore.SRRegisteredTemplateDescriptor) -> CodedConcept {
+        CodedConcept(coreConcept: registeredTemplate.defaultDocumentTitle)
     }
 
-    /// CID 7001 "Diagnostic Imaging Report Heading" codes for the template section names.
-    private static let sectionHeadingCodes: [String: (String, String)] = [
-        "findings": ("59776-5", "Findings"),
-        "impression": ("19005-8", "Impressions"),
-        "impressions": ("19005-8", "Impressions"),
-        "recommendations": ("18783-1", "Recommendations"),
-        "history": ("11329-0", "History"),
-        "indication": ("18785-6", "Indications for Procedure"),
-        "indications": ("18785-6", "Indications for Procedure"),
-        "summary": ("55112-7", "Summary"),
-        "conclusions": ("55110-1", "Conclusions"),
-        "addendum": ("55107-7", "Addendum"),
-        "complications": ("55109-3", "Complications"),
-        "key images": ("55113-5", "Key Images"),
-        "request": ("55115-0", "Request"),
-    ]
+    /// Document title for an SR document type, delegated to `DICOMCore`.
+    static func documentTitle(
+        for documentType: SRDocumentType,
+        template: SRTemplate? = nil,
+        registeredTemplate: DICOMCore.SRRegisteredTemplateDescriptor? = nil
+    ) -> CodedConcept {
+        if let registeredTemplate {
+            return documentTitle(for: registeredTemplate)
+        }
+        if documentType == .measurementReport {
+            let coreTitle = DICOMCore.ContextGroup.measurementReportDocumentTitles.members.first
+                ?? DICOMCore.DICOMCode.imagingMeasurementReport.concept
+            return CodedConcept(coreConcept: coreTitle)
+        }
+        if let template {
+            return documentTitle(for: template)
+        }
+        return CodedConcept(coreConcept: documentType.coreDocumentType.defaultDocumentTitle)
+    }
 
-    /// Section heading concept: the CID 7001 code when the standard has one for the heading,
-    /// otherwise a private code carrying the heading text.
+    /// Section heading concept delegated to `DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for:)`.
     static func sectionHeading(for sectionName: String) -> CodedConcept {
-        if let (code, meaning) = sectionHeadingCodes[sectionName.lowercased()] {
-            return CodedConcept(codeValue: code, codingSchemeDesignator: "LN", codeMeaning: meaning)
-        }
-        let code = sectionName.uppercased().replacingOccurrences(of: " ", with: "_")
-        return CodedConcept(codeValue: code, codingSchemeDesignator: privateCodingScheme, codeMeaning: sectionName)
+        CodedConcept(coreConcept: DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: sectionName))
     }
 
-    /// CID 7010 Key Object Selection Document Title for a selection purpose.
+    /// CID 7010 Key Object Selection Document Title for a selection purpose, delegated to `DICOMCore`.
     static func keyObjectTitle(for purpose: KeyObjectPurpose) -> CodedConcept {
-        switch purpose {
-        case .teaching:       return CodedConcept(codeValue: "113004", codingSchemeDesignator: "DCM", codeMeaning: "For Teaching")
-        case .qualityControl: return CodedConcept(codeValue: "113010", codingSchemeDesignator: "DCM", codeMeaning: "Quality Issue")
-        case .referral:       return CodedConcept(codeValue: "113002", codingSchemeDesignator: "DCM", codeMeaning: "For Referring Provider")
-        case .conference:     return CodedConcept(codeValue: "113005", codingSchemeDesignator: "DCM", codeMeaning: "For Conference")
-        case .research:       return CodedConcept(codeValue: "113009", codingSchemeDesignator: "DCM", codeMeaning: "For Research")
-        case .documentation:  return keyObjectSelectionTitle
-        }
+        CodedConcept(coreConcept: purpose.coreDescriptor.titleConcept)
     }
 
     // MARK: - Content Item Builders
@@ -375,6 +342,32 @@ public enum SRBuilderHelpers: Sendable {
         )
     }
 
+    /// Builds an SR document root container from any registered PS3.16 TID template in `DICOMCore.TemplateRegistry`.
+    public static func buildRegisteredTemplateSR(
+        template: DICOMCore.SRRegisteredTemplateDescriptor,
+        sectionTexts: [String: String] = [:]
+    ) -> SRContentItem {
+        let titleConcept = documentTitle(for: template)
+        let sections = template.sectionConcepts.map { coreSection in
+            let sectionConcept = CodedConcept(coreConcept: coreSection)
+            let text = sectionTexts[coreSection.codeMeaning] ?? ""
+            let textChild = textItem(
+                conceptName: sectionConcept,
+                text: text
+            )
+            return containerItem(
+                conceptName: sectionConcept,
+                continuity: .separate,
+                children: text.isEmpty ? [] : [textChild]
+            )
+        }
+        return containerItem(
+            conceptName: titleConcept,
+            continuity: .separate,
+            children: sections
+        )
+    }
+
     /// Builds a Key Object Selection document (TID 2010: the title is the CID 7010 code for the
     /// purpose, row 7 is the Key Object Description TEXT, rows 8 are IMAGE items without a
     /// concept name).
@@ -392,8 +385,7 @@ public enum SRBuilderHelpers: Sendable {
         var children: [SRContentItem] = []
 
         let purposeConcept = CodedConcept(
-            codeValue: "113012", codingSchemeDesignator: "DCM",
-            codeMeaning: "Key Object Description"
+            coreConcept: DICOMCore.SRClinicalCatalog.keyObjectDescriptionConcept
         )
         children.append(textItem(conceptName: purposeConcept, text: description))
 
@@ -414,10 +406,10 @@ public enum SRBuilderHelpers: Sendable {
         )
     }
 
-    /// Concept name of the TID 1500 row 6 CONTAINER that holds the measurement groups.
+    /// Concept name of the TID 1500 row 6 CONTAINER that holds the measurement groups,
+    /// delegated to `DICOMCore.SRClinicalCatalog.imagingMeasurementsConcept`.
     public static let imagingMeasurementsConcept = CodedConcept(
-        codeValue: "126010", codingSchemeDesignator: "DCM",
-        codeMeaning: "Imaging Measurements"
+        coreConcept: DICOMCore.SRClinicalCatalog.imagingMeasurementsConcept
     )
 
     /// Builds a Measurement Report root item (TID 1500 skeleton: row 1 title from CID 7021,
@@ -468,29 +460,9 @@ public enum SRBuilderHelpers: Sendable {
             ))
         }
 
-        let measurementConcept: CodedConcept
-        switch measurement.unit.codeValue {
-        case "mm2", "cm2":
-            measurementConcept = CodedConcept(
-                codeValue: "42798000", codingSchemeDesignator: "SCT",
-                codeMeaning: "Area"
-            )
-        case "mm3", "cm3", "ml":
-            measurementConcept = CodedConcept(
-                codeValue: "118565006", codingSchemeDesignator: "SCT",
-                codeMeaning: "Volume"
-            )
-        case "[hnsf'U]":
-            measurementConcept = CodedConcept(
-                codeValue: "112031", codingSchemeDesignator: "DCM",
-                codeMeaning: "Attenuation Coefficient"
-            )
-        default:
-            measurementConcept = CodedConcept(
-                codeValue: "410668003", codingSchemeDesignator: "SCT",
-                codeMeaning: "Length"
-            )
-        }
+        let measurementConcept = CodedConcept(
+            coreConcept: DICOMCore.SRClinicalCatalog.quantityConcept(forUCUMCode: measurement.unit.codeValue)
+        )
         children.append(numericItem(
             conceptName: measurementConcept,
             value: measurement.value,
@@ -576,35 +548,38 @@ public enum SRBuilderHelpers: Sendable {
         }
     }
 
-    /// Returns the list of supported SR document types for a builder mode.
+    /// Returns the list of supported SR document types for a builder mode, sourced from `DICOMCore.SRDocumentType`
+    /// with clinical imaging report IODs prioritized at the top followed by all remaining PS3.6 SR Storage SOP Classes.
     ///
     /// - Parameter mode: The builder mode.
     /// - Returns: Array of supported document types.
     public static func supportedDocumentTypes(for mode: SRBuilderMode) -> [SRDocumentType] {
-        switch mode {
-        case .template:
-            return [.basicText, .enhanced, .measurementReport, .keyObjectSelection]
-        case .freeForm:
-            return SRDocumentType.allCases
-        case .importExisting:
-            return SRDocumentType.allCases
+        SRDocumentType.prioritizedForClinicalAuthoring
+    }
+
+    /// Returns all clinical report section templates from `DICOMCore.SRClinicalCatalog.clinicalTemplatePresets`
+    /// applicable to a document type.
+    ///
+    /// - Parameter documentType: The SR document type.
+    /// - Returns: Array of available clinical templates.
+    public static func availableTemplates(for documentType: SRDocumentType) -> [SRTemplate] {
+        switch documentType {
+        case .keyObjectSelection:
+            return []
+        default:
+            return SRTemplate.allCases
         }
     }
 
-    /// Returns the available templates for a document type.
-    ///
-    /// - Parameter documentType: The SR document type.
-    /// - Returns: Array of available templates.
-    public static func availableTemplates(for documentType: SRDocumentType) -> [SRTemplate] {
-        switch documentType {
-        case .basicText:
-            return SRTemplate.allCases
-        case .enhanced, .comprehensive, .comprehensive3D:
-            return [.radiologyReport, .procedureReport]
-        case .measurementReport:
-            return [.radiologyReport]
-        case .keyObjectSelection, .mammographyCAD, .chestCAD:
-            return []
-        }
+    /// Returns all registered PS3.16 TID template descriptors from `DICOMCore.TemplateRegistry.shared`
+    /// (all 73 registered templates, ordered with root templates first).
+    public static var allRegisteredTemplates: [DICOMCore.SRRegisteredTemplateDescriptor] {
+        DICOMCore.TemplateRegistry.shared.allTemplateDescriptors
+    }
+
+    /// Returns all registered PS3.16 TID template descriptors from `DICOMCore.TemplateRegistry.shared`
+    /// for a given document type.
+    public static func registeredTemplates(for documentType: SRDocumentType) -> [DICOMCore.SRRegisteredTemplateDescriptor] {
+        DICOMCore.TemplateRegistry.shared.allTemplateDescriptors
     }
 }

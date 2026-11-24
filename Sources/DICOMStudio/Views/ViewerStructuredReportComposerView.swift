@@ -127,44 +127,80 @@ public struct ViewerStructuredReportComposerView: View {
     // MARK: - Sections
 
     private var reportTypeSection: some View {
-        Section("Report Type & Title") {
+        Section("Report Type, Template & Title (DICOMCore Registry)") {
             Picker("SR SOP Class", selection: $viewModel.clinicalSRDraft.reportKind) {
-                ForEach(ClinicalSRReportKind.allCases) { kind in
-                    Text(kind.displayName).tag(kind)
+                Section("Clinical Imaging Report IODs (Prioritized)") {
+                    ForEach(ClinicalSRReportKind.clinicalReportKinds) { kind in
+                        Text(kind.displayName).tag(kind)
+                    }
+                }
+                Section("All Other PS3.6 SR Storage SOP Classes") {
+                    ForEach(ClinicalSRReportKind.specializedReportKinds) { kind in
+                        Text(kind.displayName).tag(kind)
+                    }
                 }
             }
             .onChange(of: viewModel.clinicalSRDraft.reportKind) { _, newKind in
-                if newKind == .measurementReportTID1500 {
-                    viewModel.clinicalSRDraft.titlePreset = .imagingMeasurementReport
-                } else if viewModel.clinicalSRDraft.titlePreset == .imagingMeasurementReport {
-                    viewModel.clinicalSRDraft.titlePreset = .diagnosticImagingReport
+                let validPresets = ClinicalSRTitlePreset.presets(for: newKind)
+                if !validPresets.contains(viewModel.clinicalSRDraft.titlePreset),
+                   let first = validPresets.first {
+                    viewModel.clinicalSRDraft.titlePreset = first
                 }
+                if newKind == .measurementReportTID1500 {
+                    viewModel.clinicalSRDraft.selectedTemplateDescriptor =
+                        DICOMCore.TemplateRegistry.shared.descriptor(for: .measurementReport)
+                } else if let defaultTID = newKind.coreDocumentType.defaultRootTemplateIdentifier {
+                    viewModel.clinicalSRDraft.selectedTemplateDescriptor =
+                        DICOMCore.TemplateRegistry.shared.descriptor(for: defaultTID)
+                }
+            }
+
+            LabeledContent("SOP Class UID") {
+                Text(viewModel.clinicalSRDraft.reportKind.sopClassUID)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(.secondary)
             }
 
             Text(viewModel.clinicalSRDraft.reportKind.subtitle)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            if viewModel.clinicalSRDraft.reportKind != .measurementReportTID1500 {
-                Picker("Document Title (CID 7000)", selection: $viewModel.clinicalSRDraft.titlePreset) {
-                    Text(ClinicalSRTitlePreset.diagnosticImagingReport.displayName)
-                        .tag(ClinicalSRTitlePreset.diagnosticImagingReport)
-                    Text(ClinicalSRTitlePreset.radiologyReport.displayName)
-                        .tag(ClinicalSRTitlePreset.radiologyReport)
+            let allRegisteredTIDs = DICOMCore.TemplateRegistry.shared.allTemplateDescriptors
+            let rootTIDs = allRegisteredTIDs.filter(\.isRoot)
+            let subTIDs = allRegisteredTIDs.filter { !$0.isRoot }
+
+            Picker("PS3.16 Registered Template (All \(allRegisteredTIDs.count) TIDs)", selection: $viewModel.clinicalSRDraft.selectedTemplateDescriptor) {
+                Text("Default for Selected SOP Class").tag(Optional<DICOMCore.SRRegisteredTemplateDescriptor>.none)
+                Section("Root Document Templates (PS3.16)") {
+                    ForEach(rootTIDs) { descriptor in
+                        Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                    }
                 }
-            } else {
-                LabeledContent("Document Title (CID 7021)") {
-                    Text(ClinicalSRTitlePreset.imagingMeasurementReport.displayName)
-                        .foregroundStyle(.secondary)
+                Section("All Registered Sub-Templates (PS3.16)") {
+                    ForEach(subTIDs) { descriptor in
+                        Text(descriptor.formattedDisplayName).tag(Optional(descriptor))
+                    }
+                }
+            }
+
+            let availableTitles = ClinicalSRTitlePreset.presets(for: viewModel.clinicalSRDraft.reportKind)
+            Picker("Document Title (CID 7000 / CID 7021)", selection: $viewModel.clinicalSRDraft.titlePreset) {
+                ForEach(availableTitles) { preset in
+                    Text(preset.displayName).tag(preset)
                 }
             }
         }
     }
 
     private var clinicalNarrativeSection: some View {
-        Section("Clinical Analysis & Diagnosis (LOINC CID 7001)") {
+        let historyConcept = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "History")
+        let findingsConcept = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Findings")
+        let impressionsConcept = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Impressions")
+        let recsConcept = DICOMCore.SRClinicalCatalog.sectionHeadingConcept(for: "Recommendations")
+
+        return Section("Clinical Analysis & Diagnosis (\(DICOMCore.ContextGroup.diagnosticImagingReportHeadings.name) — CID \(DICOMCore.ContextGroup.diagnosticImagingReportHeadings.cid))") {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Clinical History / Indication (LN 11329-0)")
+                Text("\(historyConcept.codeMeaning) (\(historyConcept.codingSchemeDesignator) \(historyConcept.codeValue))")
                     .font(.caption.weight(.medium))
                 TextField(
                     "Reason for exam, symptoms, or clinical background…",
@@ -175,7 +211,7 @@ public struct ViewerStructuredReportComposerView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Findings / Radiological Analysis (LN 59776-5)")
+                Text("\(findingsConcept.codeMeaning) (\(findingsConcept.codingSchemeDesignator) \(findingsConcept.codeValue))")
                     .font(.caption.weight(.medium))
                 TextField(
                     "Describe anatomical observations, lesion characteristics, and imaging analysis…",
@@ -186,7 +222,7 @@ public struct ViewerStructuredReportComposerView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Diagnosis / Impression (LN 19005-8)")
+                Text("\(impressionsConcept.codeMeaning) (\(impressionsConcept.codingSchemeDesignator) \(impressionsConcept.codeValue))")
                     .font(.caption.weight(.medium))
                 TextField(
                     "Primary diagnostic conclusion / impression…",
@@ -197,7 +233,7 @@ public struct ViewerStructuredReportComposerView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Recommendations (LN 18783-1)")
+                Text("\(recsConcept.codeMeaning) (\(recsConcept.codingSchemeDesignator) \(recsConcept.codeValue))")
                     .font(.caption.weight(.medium))
                 TextField(
                     "Optional follow-up imaging or clinical recommendations…",

@@ -887,4 +887,666 @@ public struct TemplateRegistry: Sendable {
     public var registeredTemplates: [TemplateIdentifier] {
         storage.allTemplates().map { $0.identifier }
     }
+
+    /// Returns all registered template types sorted with root templates first, then by numeric TID.
+    public var allTemplateTypesOrdered: [any SRTemplate.Type] {
+        storage.allTemplates().sorted { lhs, rhs in
+            if lhs.isRoot != rhs.isRoot {
+                return lhs.isRoot && !rhs.isRoot
+            }
+            let lNum = Int(lhs.identifier.templateID) ?? Int.max
+            let rNum = Int(rhs.identifier.templateID) ?? Int.max
+            if lNum != rNum {
+                return lNum < rNum
+            }
+            return lhs.identifier.templateID < rhs.identifier.templateID
+        }
+    }
+
+    /// Returns value-type descriptors for all registered templates in `TemplateRegistry` (all 73+ PS3.16 TIDs),
+    /// ordered with root templates at the top followed by all registered templates in numeric TID order.
+    public var allTemplateDescriptors: [SRRegisteredTemplateDescriptor] {
+        allTemplateTypesOrdered.map { SRRegisteredTemplateDescriptor(templateType: $0) }
+    }
+
+    /// Returns descriptors for registered root templates (`isRoot == true`).
+    public var rootTemplateDescriptors: [SRRegisteredTemplateDescriptor] {
+        allTemplateDescriptors.filter(\.isRoot)
+    }
+
+    /// Looks up a template descriptor by `TemplateIdentifier`.
+    public func descriptor(for identifier: TemplateIdentifier) -> SRRegisteredTemplateDescriptor? {
+        guard let type = template(for: identifier) else { return nil }
+        return SRRegisteredTemplateDescriptor(templateType: type)
+    }
+
+    /// Looks up a template descriptor by TID string (e.g. `"1500"`).
+    public func descriptor(tid: String) -> SRRegisteredTemplateDescriptor? {
+        descriptor(for: TemplateIdentifier(templateID: tid))
+    }
+
+    /// Returns all registered template descriptors compatible with the given `SRDocumentType`
+    /// (root templates first, then all registered templates in numeric TID order).
+    public func templateDescriptors(for documentType: SRDocumentType) -> [SRRegisteredTemplateDescriptor] {
+        allTemplateDescriptors.filter { descriptor in
+            documentType.allows(descriptor.rootValueType)
+        }
+    }
+}
+
+// MARK: - Registered Template Value Descriptor
+
+/// Value-type descriptor for a registered PS3.16 `SRTemplate` in `TemplateRegistry`.
+public struct SRRegisteredTemplateDescriptor: Sendable, Equatable, Hashable, Identifiable {
+    /// Template identifier (`TID`).
+    public let identifier: TemplateIdentifier
+    /// PS3.16 TID section title.
+    public let displayName: String
+    /// PS3.16 template description.
+    public let templateDescription: String
+    /// Root value type (e.g. `.container`, `.num`, `.code`).
+    public let rootValueType: ContentItemValueType
+    /// Whether this template is extensible.
+    public let isExtensible: Bool
+    /// Whether the order of content items is significant.
+    public let isOrderSignificant: Bool
+    /// Whether this is a root document template.
+    public let isRoot: Bool
+    /// Template parameters declared in PS3.16.
+    public let parameters: [TemplateParameter]
+    /// Template rows from the PS3.16 TID table.
+    public let rows: [TemplateRow]
+
+    /// Stable identifier (`templateID`, e.g. `"1500"`).
+    public var id: String { identifier.templateID }
+
+    /// Formatted UI label combining the TID number and title (e.g. `"TID 1500 — Measurement Report"`).
+    public var formattedDisplayName: String {
+        "TID \(identifier.templateID) — \(displayName)"
+    }
+
+    public init(templateType: any SRTemplate.Type) {
+        self.identifier = templateType.identifier
+        self.displayName = templateType.displayName
+        self.templateDescription = templateType.templateDescription
+        self.rootValueType = templateType.rootValueType
+        self.isExtensible = templateType.isExtensible
+        self.isOrderSignificant = templateType.isOrderSignificant
+        self.isRoot = templateType.isRoot
+        self.parameters = templateType.parameters
+        self.rows = templateType.rows
+    }
+
+    public static func == (lhs: SRRegisteredTemplateDescriptor, rhs: SRRegisteredTemplateDescriptor) -> Bool {
+        lhs.identifier == rhs.identifier
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(identifier)
+    }
+
+    /// Default document title (`CodedConcept`) derived from row 1 of the template or standard Context Groups.
+    public var defaultDocumentTitle: CodedConcept {
+        if let firstRow = rows.first {
+            switch firstRow.conceptName {
+            case .exact(let concept), .definedTerm(let concept), .baselineCID(_, let concept):
+                return concept
+            case .fromContextGroup(let cid), .fromBaselineContextGroup(let cid):
+                if cid == 7021, let first = ContextGroup.measurementReportDocumentTitles.members.first {
+                    return first
+                }
+                if cid == 7000, let first = ContextGroup.diagnosticImagingReportDocumentTitles.members.first {
+                    return first
+                }
+                if cid == 7010, let first = ContextGroup.keyObjectSelectionDocumentTitles.members.first {
+                    return first
+                }
+                if let group = ContextGroupRegistry.shared.group(forCID: cid), let first = group.members.first {
+                    return first
+                }
+            case .oneOf(let concepts):
+                if let first = concepts.first { return first }
+            case .any, .parameter:
+                break
+            }
+        }
+        switch identifier.templateID {
+        case "1500":
+            return ContextGroup.measurementReportDocumentTitles.members.first
+                ?? CodedConcept(codeValue: "126000", scheme: .DCM, codeMeaning: "Imaging Measurement Report")
+        case "4000":
+            return CodedConcept(codeValue: "111036", scheme: .DCM, codeMeaning: "Mammography CAD Report")
+        case "4100":
+            return CodedConcept(codeValue: "112000", scheme: .DCM, codeMeaning: "Chest CAD Report")
+        default:
+            return ContextGroup.diagnosticImagingReportDocumentTitles.members.first
+                ?? CodedConcept(codeValue: "18748-4", scheme: .LOINC, codeMeaning: "Diagnostic Imaging Report")
+        }
+    }
+
+    /// Section / row heading concepts extracted from the template's rows (falling back to CID 7001 headings when empty).
+    public var sectionConcepts: [CodedConcept] {
+        var result: [CodedConcept] = []
+        var seen = Set<String>()
+        for row in rows {
+            if row.rowID == "1" && row.nestingLevel == 0 && row.valueType == .container {
+                continue
+            }
+            let extracted: CodedConcept?
+            switch row.conceptName {
+            case .exact(let c), .definedTerm(let c), .baselineCID(_, let c):
+                extracted = c
+            case .oneOf(let list):
+                extracted = list.first
+            case .fromContextGroup(let cid), .fromBaselineContextGroup(let cid):
+                extracted = ContextGroup.clinicalReportingGroups.first { $0.cid == cid }?.members.first
+                    ?? ContextGroupRegistry.shared.group(forCID: cid)?.members.first
+            case .any, .parameter:
+                extracted = nil
+            }
+            if let c = extracted, seen.insert("\(c.codingSchemeDesignator):\(c.codeValue)").inserted {
+                result.append(c)
+            }
+        }
+        if result.isEmpty {
+            return Array(ContextGroup.diagnosticImagingReportHeadings.members.prefix(4))
+        }
+        return result
+    }
+
+    /// Human-readable section names derived from `sectionConcepts`.
+    public var sectionNames: [String] {
+        sectionConcepts.map(\.codeMeaning)
+    }
+}
+
+// MARK: - DICOMCore SR Clinical & Terminology Catalogs
+
+/// Canonical catalog of clinical SR templates, section headings, document titles,
+/// Key Object Selection purposes, and quantitative measurement units provided by `DICOMCore`.
+public enum SRClinicalCatalog: Sendable {
+
+    /// Private coding scheme designator (PS3.16 Section 8: `"99"` prefix) for custom section headings
+    /// that PS3.16 CID 7001 has no LOINC code for.
+    public static let privateCodingScheme = "99DCMSTUDIO"
+
+    // MARK: - Common SR Concepts (PS3.16 Table D-1 / SCT / UCUM)
+
+    /// `(125007, DCM, "Measurement Group")` — TID 1501 row 1 container concept.
+    public static let measurementGroupConcept = DICOMCode.measurementGroup.concept
+    /// `(126010, DCM, "Imaging Measurements")` — TID 1500 row 6 container concept.
+    public static let imagingMeasurementsConcept = DICOMCode.imagingMeasurements.concept
+    /// `(112039, DCM, "Tracking Identifier")` — TID 1501 row 2 concept.
+    public static let trackingIdentifierConcept = CodedConcept(
+        codeValue: "112039", scheme: .DCM, codeMeaning: "Tracking Identifier"
+    )
+    /// `(112040, DCM, "Tracking Unique Identifier")` — TID 1501 row 3 concept.
+    public static let trackingUIDConcept = CodedConcept(
+        codeValue: "112040", scheme: .DCM, codeMeaning: "Tracking Unique Identifier"
+    )
+    /// `(121071, DCM, "Finding")`.
+    public static let findingConcept = DICOMCode.finding.concept
+    /// `(363698007, SCT, "Finding Site")` — TID 1501 row 6 concept.
+    public static let findingSiteConcept = CodedConcept(
+        codeValue: "363698007", scheme: .SCT, codeMeaning: "Finding Site"
+    )
+    /// `(121200, DCM, "Illustration of ROI")` — CID 7003 / TID 1501 row 9c concept.
+    public static let imageReferenceConcept =
+        ContextGroup.diagnosticImagingReportPurposesOfReference.members[0]
+    /// `(113000, DCM, "Of Interest")` — CID 7010 default Key Object Selection document title.
+    public static let defaultKeyObjectSelectionTitle =
+        ContextGroup.keyObjectSelectionDocumentTitles.members[0]
+    /// `(113012, DCM, "Key Object Description")` — TID 2010 row 7 concept.
+    public static let keyObjectDescriptionConcept = CodedConcept(
+        codeValue: "113012", scheme: .DCM, codeMeaning: "Key Object Description"
+    )
+    /// `(121008, DCM, "Person Observer Name")` — TID 1003 row 2 concept.
+    public static let personObserverNameConcept = DICOMCode.personObserverName.concept
+    /// `(121106, DCM, "Comment")`.
+    public static let commentConcept = CodedConcept(
+        codeValue: "121106", scheme: .DCM, codeMeaning: "Comment"
+    )
+    /// `(111030, DCM, "Image Region")`.
+    public static let imageRegionConcept = CodedConcept(
+        codeValue: "111030", scheme: .DCM, codeMeaning: "Image Region"
+    )
+    /// `(121112, DCM, "Source of Measurement")`.
+    public static let sourceOfMeasurementConcept = CodedConcept(
+        codeValue: "121112", scheme: .DCM, codeMeaning: "Source of Measurement"
+    )
+
+    // MARK: - UCUM Measurement Unit Concepts
+
+    /// `(mm, UCUM, "mm")`.
+    public static let ucumMillimeter = CodedConcept(
+        codeValue: "mm", scheme: .UCUM, codeMeaning: "mm"
+    )
+    /// `(cm, UCUM, "cm")`.
+    public static let ucumCentimeter = CodedConcept(
+        codeValue: "cm", scheme: .UCUM, codeMeaning: "cm"
+    )
+    /// `(mm2, UCUM, "square millimeter")` (CID 7461).
+    public static let ucumSquareMillimeter = CodedConcept(
+        codeValue: "mm2", scheme: .UCUM, codeMeaning: "square millimeter"
+    )
+    /// `(ml, UCUM, "milliliter")`.
+    public static let ucumMilliliter = CodedConcept(
+        codeValue: "ml", scheme: .UCUM, codeMeaning: "milliliter"
+    )
+    /// `([hnsf'U], UCUM, "Hounsfield unit")` (CID 83).
+    public static let ucumHounsfieldUnit = CodedConcept(
+        codeValue: "[hnsf'U]", scheme: .UCUM, codeMeaning: "Hounsfield unit"
+    )
+    /// `(1, UCUM, "no units")` (CID 7181).
+    public static let ucumNoUnits = CodedConcept(
+        codeValue: "1", scheme: .UCUM, codeMeaning: "no units"
+    )
+
+    /// Standard quantitative measurement unit descriptor combining UCUM unit and quantity concept.
+    public struct MeasurementUnitDescriptor: Sendable, Equatable, Hashable, Identifiable {
+        public let rawValue: String
+        public let displayName: String
+        public let ucumConcept: CodedConcept
+        public let quantityConcept: CodedConcept
+
+        public var id: String { rawValue }
+
+        public init(
+            rawValue: String,
+            displayName: String,
+            ucumConcept: CodedConcept,
+            quantityConcept: CodedConcept
+        ) {
+            self.rawValue = rawValue
+            self.displayName = displayName
+            self.ucumConcept = ucumConcept
+            self.quantityConcept = quantityConcept
+        }
+    }
+
+    /// Standard quantitative measurement units offered for SR authoring.
+    public static let measurementUnits: [MeasurementUnitDescriptor] = [
+        MeasurementUnitDescriptor(
+            rawValue: "mm",
+            displayName: "mm (Length)",
+            ucumConcept: ucumMillimeter,
+            quantityConcept: SNOMEDCode.length.concept
+        ),
+        MeasurementUnitDescriptor(
+            rawValue: "cm",
+            displayName: "cm (Length)",
+            ucumConcept: ucumCentimeter,
+            quantityConcept: SNOMEDCode.length.concept
+        ),
+        MeasurementUnitDescriptor(
+            rawValue: "mm2",
+            displayName: "mm² (Area)",
+            ucumConcept: ucumSquareMillimeter,
+            quantityConcept: SNOMEDCode.area.concept
+        ),
+        MeasurementUnitDescriptor(
+            rawValue: "ml",
+            displayName: "mL (Volume)",
+            ucumConcept: ucumMilliliter,
+            quantityConcept: SNOMEDCode.volume.concept
+        ),
+        MeasurementUnitDescriptor(
+            rawValue: "[hnsf'U]",
+            displayName: "HU (Attenuation)",
+            ucumConcept: ucumHounsfieldUnit,
+            quantityConcept: CodedConcept(codeValue: "112031", scheme: .DCM, codeMeaning: "Attenuation Coefficient")
+        ),
+    ]
+
+    /// Returns the quantity `CodedConcept` (Length, Area, Volume, or Attenuation Coefficient) for a UCUM unit code.
+    public static func quantityConcept(forUCUMCode codeValue: String) -> CodedConcept {
+        switch codeValue {
+        case "mm2", "cm2", "um2":
+            return SNOMEDCode.area.concept
+        case "mm3", "cm3", "dm3", "um3", "ml":
+            return SNOMEDCode.volume.concept
+        case "[hnsf'U]":
+            return CodedConcept(codeValue: "112031", scheme: .DCM, codeMeaning: "Attenuation Coefficient")
+        default:
+            return SNOMEDCode.length.concept
+        }
+    }
+
+    // MARK: - Section Headings (CID 7001 + Fallback)
+
+    /// Maps a section heading name to its official PS3.16 CID 7001 LOINC `CodedConcept` when defined,
+    /// or to a private `99DCMSTUDIO` `CodedConcept`.
+    public static func sectionHeadingConcept(for sectionName: String) -> CodedConcept {
+        let normalized = sectionName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        switch normalized {
+        case "findings":
+            return CodedConcept(codeValue: "59776-5", scheme: .LOINC, codeMeaning: "Findings")
+        case "impression", "impressions":
+            return CodedConcept(codeValue: "19005-8", scheme: .LOINC, codeMeaning: "Impressions")
+        case "recommendations", "recommendation":
+            return CodedConcept(codeValue: "18783-1", scheme: .LOINC, codeMeaning: "Recommendations")
+        case "history", "clinical history":
+            return CodedConcept(codeValue: "11329-0", scheme: .LOINC, codeMeaning: "History")
+        case "indication", "indications", "indications for procedure":
+            return CodedConcept(codeValue: "18785-6", scheme: .LOINC, codeMeaning: "Indications for Procedure")
+        case "summary":
+            return CodedConcept(codeValue: "55112-7", scheme: .LOINC, codeMeaning: "Summary")
+        case "conclusions", "conclusion":
+            return CodedConcept(codeValue: "55110-1", scheme: .LOINC, codeMeaning: "Conclusions")
+        case "addendum":
+            return CodedConcept(codeValue: "55107-7", scheme: .LOINC, codeMeaning: "Addendum")
+        case "complications":
+            return CodedConcept(codeValue: "55109-3", scheme: .LOINC, codeMeaning: "Complications")
+        case "key images":
+            return CodedConcept(codeValue: "55113-5", scheme: .LOINC, codeMeaning: "Key Images")
+        case "request":
+            return CodedConcept(codeValue: "55115-0", scheme: .LOINC, codeMeaning: "Request")
+        default:
+            if let match = ContextGroup.diagnosticImagingReportHeadings.members.first(where: {
+                $0.codeMeaning.lowercased() == normalized
+            }) {
+                return match
+            }
+            let code = sectionName.uppercased().replacingOccurrences(of: " ", with: "_")
+            return CodedConcept(
+                codeValue: code,
+                codingSchemeDesignator: privateCodingScheme,
+                codeMeaning: sectionName
+            )
+        }
+    }
+
+    // MARK: - Clinical Report Presets & All Registered PS3.16 Templates
+
+    /// Clinical report template descriptor defined in `DICOMCore`.
+    public struct ClinicalTemplatePreset: Sendable, Equatable, Hashable, Identifiable {
+        public let rawValue: String
+        public let displayName: String
+        public let titleConcept: CodedConcept
+        public let sections: [String]
+        public let templateIdentifier: TemplateIdentifier?
+
+        public var id: String { rawValue }
+
+        public init(
+            rawValue: String,
+            displayName: String,
+            titleConcept: CodedConcept,
+            sections: [String],
+            templateIdentifier: TemplateIdentifier? = nil
+        ) {
+            self.rawValue = rawValue
+            self.displayName = displayName
+            self.titleConcept = titleConcept
+            self.sections = sections
+            self.templateIdentifier = templateIdentifier
+        }
+    }
+
+    /// Standard clinical report section presets (TID 2000 / CID 7000 / CID 7001).
+    public static let clinicalTemplatePresets: [ClinicalTemplatePreset] = [
+        ClinicalTemplatePreset(
+            rawValue: "RADIOLOGY_REPORT",
+            displayName: "Radiology Report",
+            titleConcept: CodedConcept(codeValue: "11528-7", scheme: .LOINC, codeMeaning: "Radiology Report"),
+            sections: ["Findings", "Impression", "Recommendations"]
+        ),
+        ClinicalTemplatePreset(
+            rawValue: "PATHOLOGY_REPORT",
+            displayName: "Pathology Report",
+            titleConcept: CodedConcept(codeValue: "PATHOLOGY_REPORT", codingSchemeDesignator: privateCodingScheme, codeMeaning: "Pathology Report"),
+            sections: ["Gross Description", "Microscopic Description", "Diagnosis"]
+        ),
+        ClinicalTemplatePreset(
+            rawValue: "PROCEDURE_REPORT",
+            displayName: "Procedure Report",
+            titleConcept: CodedConcept(codeValue: "PROCEDURE_REPORT", codingSchemeDesignator: privateCodingScheme, codeMeaning: "Procedure Report"),
+            sections: ["Indication", "Technique", "Findings", "Impression"]
+        ),
+        ClinicalTemplatePreset(
+            rawValue: "CLINICAL_FINDINGS",
+            displayName: "Clinical Findings",
+            titleConcept: CodedConcept(codeValue: "CLINICAL_FINDINGS", codingSchemeDesignator: privateCodingScheme, codeMeaning: "Clinical Findings"),
+            sections: ["History", "Examination", "Assessment", "Plan"]
+        ),
+        ClinicalTemplatePreset(
+            rawValue: "DISCHARGE_SUMMARY",
+            displayName: "Discharge Summary",
+            titleConcept: CodedConcept(codeValue: "DISCHARGE_SUMMARY", codingSchemeDesignator: privateCodingScheme, codeMeaning: "Discharge Summary"),
+            sections: ["Admission Diagnosis", "Hospital Course", "Discharge Instructions"]
+        ),
+    ]
+
+    /// All registered PS3.16 TID template descriptors from `TemplateRegistry.shared` (all 73 TIDs).
+    public static var registeredTemplateDescriptors: [SRRegisteredTemplateDescriptor] {
+        TemplateRegistry.shared.allTemplateDescriptors
+    }
+
+    // MARK: - Key Object Selection Purposes (CID 7010)
+
+    /// Key Object Selection purpose descriptor backed by `ContextGroup.keyObjectSelectionDocumentTitles` (CID 7010).
+    public struct KeyObjectPurposeDescriptor: Sendable, Equatable, Hashable, Identifiable {
+        public let rawValue: String
+        public let displayName: String
+        public let titleConcept: CodedConcept
+
+        public var id: String { rawValue }
+
+        public init(rawValue: String, displayName: String, titleConcept: CodedConcept) {
+            self.rawValue = rawValue
+            self.displayName = displayName
+            self.titleConcept = titleConcept
+        }
+    }
+
+    /// Standard Key Object Selection purposes from PS3.16 CID 7010.
+    public static let keyObjectPurposes: [KeyObjectPurposeDescriptor] = [
+        KeyObjectPurposeDescriptor(
+            rawValue: "TEACHING",
+            displayName: "Teaching",
+            titleConcept: CodedConcept(codeValue: "113004", scheme: .DCM, codeMeaning: "For Teaching")
+        ),
+        KeyObjectPurposeDescriptor(
+            rawValue: "QUALITY_CONTROL",
+            displayName: "Quality Control",
+            titleConcept: CodedConcept(codeValue: "113010", scheme: .DCM, codeMeaning: "Quality Issue")
+        ),
+        KeyObjectPurposeDescriptor(
+            rawValue: "REFERRAL",
+            displayName: "Referral",
+            titleConcept: CodedConcept(codeValue: "113002", scheme: .DCM, codeMeaning: "For Referring Provider")
+        ),
+        KeyObjectPurposeDescriptor(
+            rawValue: "CONFERENCE",
+            displayName: "Conference",
+            titleConcept: CodedConcept(codeValue: "113005", scheme: .DCM, codeMeaning: "For Conference")
+        ),
+        KeyObjectPurposeDescriptor(
+            rawValue: "RESEARCH",
+            displayName: "Research",
+            titleConcept: CodedConcept(codeValue: "113009", scheme: .DCM, codeMeaning: "For Research")
+        ),
+        KeyObjectPurposeDescriptor(
+            rawValue: "DOCUMENTATION",
+            displayName: "Documentation",
+            titleConcept: CodedConcept(codeValue: "113000", scheme: .DCM, codeMeaning: "Of Interest")
+        ),
+    ]
+}
+
+// MARK: - DICOMCore SR Terminology Catalog
+
+/// Consolidated terminology catalog in `DICOMCore` providing SNOMED CT, LOINC, RadLex, UCUM,
+/// and DICOM Controlled Terminology entries, cross-terminology mappings, scheme display names,
+/// and UCUM conversions.
+public enum SRTerminologyCatalog: Sendable {
+
+    /// A categorized coded concept entry in `DICOMCore`.
+    public struct CatalogEntry: Sendable, Equatable, Hashable {
+        public let concept: CodedConcept
+        public let category: String
+
+        public init(code: String, scheme: String, meaning: String, category: String) {
+            self.concept = CodedConcept(
+                codeValue: code,
+                codingSchemeDesignator: scheme,
+                codeMeaning: meaning
+            )
+            self.category = category
+        }
+    }
+
+    /// Common SNOMED CT concepts used in radiology reporting (PS3.16 CID 4, CID 644, CID 6103, CID 6104, CID 7181, CID 7470).
+    public static let snomedCTEntries: [CatalogEntry] = [
+        CatalogEntry(code: "39607008", scheme: "SCT", meaning: "Lung", category: "Body Part"),
+        CatalogEntry(code: "14975008", scheme: "SCT", meaning: "Forearm", category: "Body Part"),
+        CatalogEntry(code: "69536005", scheme: "SCT", meaning: "Head", category: "Body Part"),
+        CatalogEntry(code: "10200004", scheme: "SCT", meaning: "Liver", category: "Body Part"),
+        CatalogEntry(code: "64033007", scheme: "SCT", meaning: "Kidney", category: "Body Part"),
+        CatalogEntry(code: "76752008", scheme: "SCT", meaning: "Breast", category: "Body Part"),
+        CatalogEntry(code: "816094009", scheme: "SCT", meaning: "Chest", category: "Body Part"),
+        CatalogEntry(code: "818981001", scheme: "SCT", meaning: "Abdomen", category: "Body Part"),
+        CatalogEntry(code: "12738006", scheme: "SCT", meaning: "Brain", category: "Body Part"),
+        CatalogEntry(code: "410668003", scheme: "SCT", meaning: "Length", category: "Measurement"),
+        CatalogEntry(code: "42798000", scheme: "SCT", meaning: "Area", category: "Measurement"),
+        CatalogEntry(code: "118565006", scheme: "SCT", meaning: "Volume", category: "Measurement"),
+        CatalogEntry(code: "364499001", scheme: "SCT", meaning: "Angle", category: "Measurement"),
+        CatalogEntry(code: "373098007", scheme: "SCT", meaning: "Mean", category: "Statistics"),
+        CatalogEntry(code: "386136009", scheme: "SCT", meaning: "Standard Deviation", category: "Statistics"),
+        CatalogEntry(code: "255605001", scheme: "SCT", meaning: "Minimum", category: "Statistics"),
+        CatalogEntry(code: "56851009", scheme: "SCT", meaning: "Maximum", category: "Statistics"),
+        CatalogEntry(code: "4147007", scheme: "SCT", meaning: "Mass", category: "Finding"),
+        CatalogEntry(code: "27925004", scheme: "SCT", meaning: "Nodule", category: "Finding"),
+        CatalogEntry(code: "44643006", scheme: "SCT", meaning: "Calcification", category: "Finding"),
+        CatalogEntry(code: "3723001", scheme: "SCT", meaning: "Arthritis", category: "Finding"),
+        CatalogEntry(code: "233604007", scheme: "SCT", meaning: "Pneumonia", category: "Finding"),
+        CatalogEntry(code: "13104003", scheme: "SCT", meaning: "Fracture", category: "Finding"),
+        CatalogEntry(code: "24700007", scheme: "SCT", meaning: "Multiple Sclerosis", category: "Finding"),
+        CatalogEntry(code: "363698007", scheme: "SCT", meaning: "Finding Site", category: "Qualifier"),
+        CatalogEntry(code: "370129005", scheme: "SCT", meaning: "Measurement Method", category: "Qualifier"),
+    ]
+
+    /// Common LOINC observation and report heading codes (PS3.16 CID 100, CID 6052, CID 7000, CID 7001).
+    public static let loincEntries: [CatalogEntry] = [
+        CatalogEntry(code: "18782-3", scheme: "LN", meaning: "Radiology Study Observation", category: "Observation"),
+        CatalogEntry(code: "59776-5", scheme: "LN", meaning: "Findings", category: "Heading"),
+        CatalogEntry(code: "19005-8", scheme: "LN", meaning: "Impressions", category: "Heading"),
+        CatalogEntry(code: "18834-2", scheme: "LN", meaning: "Previous Findings", category: "Heading"),
+        CatalogEntry(code: "11525-3", scheme: "LN", meaning: "Ultrasound Obstetric and Gyn Report", category: "Report"),
+        CatalogEntry(code: "36643-5", scheme: "LN", meaning: "CT Chest Findings", category: "Finding"),
+        CatalogEntry(code: "24604-1", scheme: "LN", meaning: "MR Brain Findings", category: "Finding"),
+        CatalogEntry(code: "36554-4", scheme: "LN", meaning: "CT Abdomen Findings", category: "Finding"),
+        CatalogEntry(code: "24566-2", scheme: "LN", meaning: "XR Knee Findings", category: "Finding"),
+        CatalogEntry(code: "44136-0", scheme: "LN", meaning: "PET Scan Report", category: "Report"),
+        CatalogEntry(code: "18748-4", scheme: "LN", meaning: "Diagnostic Imaging Report", category: "Report"),
+        CatalogEntry(code: "11528-7", scheme: "LN", meaning: "Radiology Report", category: "Report"),
+        CatalogEntry(code: "55111-9", scheme: "LN", meaning: "Current Procedure Descriptions", category: "Heading"),
+        CatalogEntry(code: "55115-0", scheme: "LN", meaning: "Request", category: "Heading"),
+        CatalogEntry(code: "59768-2", scheme: "LN", meaning: "Procedure Indications", category: "Indication"),
+        CatalogEntry(code: "18785-6", scheme: "LN", meaning: "Indications for Procedure", category: "Heading"),
+    ]
+
+    /// Common RadLex concepts.
+    public static let radlexEntries: [CatalogEntry] = [
+        CatalogEntry(code: "RID1301", scheme: "RADLEX", meaning: "Abnormality", category: "Finding"),
+        CatalogEntry(code: "RID5", scheme: "RADLEX", meaning: "Lesion", category: "Finding"),
+        CatalogEntry(code: "RID3874", scheme: "RADLEX", meaning: "Mass", category: "Finding"),
+        CatalogEntry(code: "RID3875", scheme: "RADLEX", meaning: "Nodule", category: "Finding"),
+        CatalogEntry(code: "RID34265", scheme: "RADLEX", meaning: "Consolidation", category: "Finding"),
+        CatalogEntry(code: "RID28490", scheme: "RADLEX", meaning: "Ground Glass Opacity", category: "Finding"),
+        CatalogEntry(code: "RID1362", scheme: "RADLEX", meaning: "Pleural Effusion", category: "Finding"),
+        CatalogEntry(code: "RID5302", scheme: "RADLEX", meaning: "Atelectasis", category: "Finding"),
+        CatalogEntry(code: "RID1247", scheme: "RADLEX", meaning: "CT Scan", category: "Modality"),
+        CatalogEntry(code: "RID10312", scheme: "RADLEX", meaning: "MRI", category: "Modality"),
+        CatalogEntry(code: "RID10345", scheme: "RADLEX", meaning: "Ultrasound", category: "Modality"),
+        CatalogEntry(code: "RID10311", scheme: "RADLEX", meaning: "Radiography", category: "Modality"),
+        CatalogEntry(code: "RID1243", scheme: "RADLEX", meaning: "PET", category: "Modality"),
+        CatalogEntry(code: "RID10334", scheme: "RADLEX", meaning: "Mammography", category: "Modality"),
+        CatalogEntry(code: "RID58", scheme: "RADLEX", meaning: "Right Lung", category: "Anatomy"),
+        CatalogEntry(code: "RID59", scheme: "RADLEX", meaning: "Left Lung", category: "Anatomy"),
+        CatalogEntry(code: "RID170", scheme: "RADLEX", meaning: "Right Kidney", category: "Anatomy"),
+        CatalogEntry(code: "RID171", scheme: "RADLEX", meaning: "Left Kidney", category: "Anatomy"),
+    ]
+
+    /// Common UCUM unit concepts (PS3.16 CID 83, CID 7063, CID 7181, CID 7460–7462).
+    public static let ucumEntries: [CatalogEntry] = [
+        CatalogEntry(code: "mm", scheme: "UCUM", meaning: "Millimeter", category: "Length"),
+        CatalogEntry(code: "cm", scheme: "UCUM", meaning: "Centimeter", category: "Length"),
+        CatalogEntry(code: "m", scheme: "UCUM", meaning: "m", category: "Length"),
+        CatalogEntry(code: "mm2", scheme: "UCUM", meaning: "Square Millimeter", category: "Area"),
+        CatalogEntry(code: "cm2", scheme: "UCUM", meaning: "Square Centimeter", category: "Area"),
+        CatalogEntry(code: "mm3", scheme: "UCUM", meaning: "Cubic Millimeter", category: "Volume"),
+        CatalogEntry(code: "cm3", scheme: "UCUM", meaning: "Cubic Centimeter", category: "Volume"),
+        CatalogEntry(code: "ml", scheme: "UCUM", meaning: "Milliliter", category: "Volume"),
+        CatalogEntry(code: "l", scheme: "UCUM", meaning: "Liter", category: "Volume"),
+        CatalogEntry(code: "deg", scheme: "UCUM", meaning: "Degree", category: "Angle"),
+        CatalogEntry(code: "rad", scheme: "UCUM", meaning: "Radian", category: "Angle"),
+        CatalogEntry(code: "g", scheme: "UCUM", meaning: "Gram", category: "Mass"),
+        CatalogEntry(code: "kg", scheme: "UCUM", meaning: "Kilogram", category: "Mass"),
+        CatalogEntry(code: "[hnsf'U]", scheme: "UCUM", meaning: "Hounsfield Unit", category: "Density"),
+        CatalogEntry(code: "s", scheme: "UCUM", meaning: "Second", category: "Time"),
+        CatalogEntry(code: "ms", scheme: "UCUM", meaning: "Millisecond", category: "Time"),
+        CatalogEntry(code: "1", scheme: "UCUM", meaning: "No Units", category: "Dimensionless"),
+        CatalogEntry(code: "%", scheme: "UCUM", meaning: "Percent", category: "Ratio"),
+    ]
+
+    /// Returns the PS3.16 Table 8-1 Coding Scheme Name for a coding scheme designator.
+    public static func schemeDisplayName(for designator: String) -> String {
+        switch designator {
+        case "SCT", "SRT": return "SNOMED CT"
+        case "LN": return "LOINC"
+        case "RADLEX": return "RadLex"
+        case "UCUM": return "UCUM"
+        case "DCM": return "DICOM Controlled Terminology"
+        default:
+            return CodingSchemeDesignator(rawValue: designator)?.displayName ?? designator
+        }
+    }
+
+    /// Returns cross-terminology equivalent concepts in `DICOMCore`.
+    public static func crossTerminologyMappings(for concept: CodedConcept) -> [CodedConcept] {
+        switch "\(concept.codingSchemeDesignator):\(concept.codeValue)" {
+        case "SCT:4147007":
+            return [CodedConcept(codeValue: "RID3874", scheme: .RADLEX, codeMeaning: "Mass")]
+        case "SCT:27925004":
+            return [CodedConcept(codeValue: "RID3875", scheme: .RADLEX, codeMeaning: "Nodule")]
+        case "SCT:44643006":
+            return [CodedConcept(codeValue: "RID35730", scheme: .RADLEX, codeMeaning: "Calcification")]
+        case "RADLEX:RID3874":
+            return [CodedConcept(codeValue: "4147007", scheme: .SCT, codeMeaning: "Mass")]
+        case "RADLEX:RID3875":
+            return [CodedConcept(codeValue: "27925004", scheme: .SCT, codeMeaning: "Nodule")]
+        default:
+            return []
+        }
+    }
+
+    /// Converts a numeric value between compatible UCUM units.
+    public static func convertUCUM(value: Double, fromUnit: String, toUnit: String) -> Double? {
+        guard let factor = ucumConversionFactors["\(fromUnit)->\(toUnit)"] else { return nil }
+        return value * factor
+    }
+
+    private static let ucumConversionFactors: [String: Double] = [
+        "mm->cm": 0.1,
+        "cm->mm": 10.0,
+        "mm->m": 0.001,
+        "m->mm": 1000.0,
+        "cm->m": 0.01,
+        "m->cm": 100.0,
+        "mm2->cm2": 0.01,
+        "cm2->mm2": 100.0,
+        "mm3->cm3": 0.001,
+        "cm3->mm3": 1000.0,
+        "ml->l": 0.001,
+        "l->ml": 1000.0,
+        "cm3->ml": 1.0,
+        "ml->cm3": 1.0,
+        "g->kg": 0.001,
+        "kg->g": 1000.0,
+        "s->ms": 1000.0,
+        "ms->s": 0.001,
+        "deg->rad": 0.017453292519943295,
+        "rad->deg": 57.29577951308232,
+    ]
 }

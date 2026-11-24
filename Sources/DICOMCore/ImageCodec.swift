@@ -648,9 +648,18 @@ public struct CodecRegistry: Sendable {
         
         // JPEG-LS codec (pure Swift implementation - encode and decode).
         // One decoder per syntax: the lossless UID refuses near-lossless scans.
+        // Enable legacy unclamped 13...16-bit MAXVAL recovery for real-world DICOM Lossless encoders
+        // (such as dcm4che-1.4.34 / JAI-ImageIO clib_jiio and DICOMKIT_0.5.0) that omitted
+        // ITU-T T.87 Table C.2 min(MAXVAL, 4095) clamping without emitting an LSE segment.
         let jpegLSCodec = JPEGLSCodec()
         for uid in JPEGLSCodec.supportedTransferSyntaxes {
-            decoderRegistry[uid] = JPEGLSCodec(decodingTransferSyntaxUID: uid)
+            let policy: JPEGLSCodec.MissingPresetPolicy = (uid == TransferSyntax.jpegLSLossless.uid)
+                ? .allowLegacyUnclampedRecovery
+                : .requireStandardDefaults
+            decoderRegistry[uid] = JPEGLSCodec(
+                decodingTransferSyntaxUID: uid,
+                missingPresetPolicy: policy
+            )
         }
         for uid in JPEGLSCodec.supportedEncodingTransferSyntaxes {
             encoderRegistry[uid] = jpegLSCodec

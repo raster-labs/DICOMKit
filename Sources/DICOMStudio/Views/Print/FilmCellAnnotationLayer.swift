@@ -75,6 +75,7 @@ struct FilmCellAnnotationLayer: View {
                     case .text:  textAnnotation(annotation)
                     case .arrow: arrowAnnotation(annotation)
                     case .annotation: combinedAnnotation(annotation)
+                    case .length: lengthAnnotation(annotation)
                     case .polyline, .circle, .ellipse, .point, .shutter:
                         lockedAnnotation(annotation)
                     }
@@ -250,6 +251,61 @@ struct FilmCellAnnotationLayer: View {
             }
         }
         .accessibilityLabel("Arrow annotation")
+    }
+
+    // MARK: - Length
+
+    @ViewBuilder
+    private func lengthAnnotation(_ annotation: PrintOverlayAnnotation) -> some View {
+        let isSelected = viewModel.selectedAnnotationID == annotation.id
+        let start = point(annotation.start)
+        let end = point(annotation.end)
+        let widths = ImageAnnotationBurner.shapeLineWidths(
+            scale: annotation.scale, imageHeight: Double(max(1, imageRect.height)))
+        let fontSize = max(Self.minimumPreviewFontSize,
+                           CGFloat(ImageAnnotationBurner.overlayFontSize(
+                            imageHeight: Double(imageRect.height),
+                            scale: annotation.scale)))
+        let tickHalf = CGFloat(max(widths.line * 2.5, Double(fontSize) * 0.35))
+        let rulerShape = LengthRulerShape(start: start, end: end, tickHalfLength: tickHalf)
+        let labelOriginNorm = PrintAnnotationLayout.lengthLabelOrigin(
+            for: annotation,
+            imageWidth: Double(max(1, imageRect.width)),
+            imageHeight: Double(max(1, imageRect.height)))
+        let labelPos = point(labelOriginNorm)
+
+        ZStack(alignment: .topLeading) {
+            rulerShape
+                .stroke(halo(annotation.color),
+                        style: StrokeStyle(lineWidth: CGFloat(widths.line + widths.halo),
+                                           lineCap: .round, lineJoin: .round))
+            rulerShape
+                .stroke(color(annotation.color),
+                        style: StrokeStyle(lineWidth: CGFloat(widths.line),
+                                           lineCap: .round, lineJoin: .round))
+                .contentShape(rulerShape.stroke(lineWidth: Self.grabWidth))
+                .gesture(moveGesture(annotation))
+                .onTapGesture { viewModel.selectAnnotation(annotation.id) }
+
+            if annotation.hasWords {
+                Text(annotation.text)
+                    .font(.custom(ImageAnnotationBurner.overlayFontFamily, size: fontSize))
+                    .foregroundStyle(color(annotation.color))
+                    .shadow(color: halo(annotation.color), radius: max(1, fontSize * 0.08))
+                    .padding(2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 2)
+                            .strokeBorder(isSelected ? Color.accentColor : .clear,
+                                          style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+                    )
+                    .rotationEffect(.degrees(orientation.textAngleDegrees), anchor: .topLeading)
+                    .scaleEffect(x: orientation.textIsMirrored ? -1 : 1, y: 1, anchor: .topLeading)
+                    .offset(x: labelPos.x, y: labelPos.y)
+                    .gesture(moveGesture(annotation))
+                    .onTapGesture { viewModel.selectAnnotation(annotation.id) }
+            }
+        }
+        .accessibilityLabel("Length measurement: \(annotation.text)")
     }
 
     // MARK: - Locked annotations and shapes

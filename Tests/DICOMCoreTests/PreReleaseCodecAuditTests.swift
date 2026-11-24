@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 @testable import DICOMCore
+import DICOMKit
 
 @Suite("Pre-Release Codec Placement, Buffer & Cancellation Audit")
 struct PreReleaseCodecAuditTests {
@@ -236,5 +237,93 @@ struct PreReleaseCodecAuditTests {
         let managed = try decoder.decodeManagedPixelFrame(inBuf, descriptor: descriptor, frameIndex: 0, budget: budget)
         #expect(managed.data.withUnsafeBytes { Data($0) } == pixels)
         #expect(budget.receipt.current.staging == 0)
+    }
+
+    @Test("CodecRegistry.shared JPEG-LS decoders recover legacy 16-bit unclamped-MAXVAL streams without LSE (e.g. dcm4che-1.4.34 / JAI clib_jiio)")
+    func codecRegistryRecoversLegacyUnclampedJPEGLSWithoutLSE() async throws {
+        let width = 32
+        let height = 32
+        var pixels = Data(capacity: width * height * 2)
+        for i in 0..<(width * height) {
+            let signedCT = Int16(truncatingIfNeeded: -1024 + ((i * 313 + 97) % 4500))
+            let word = UInt16(bitPattern: signedCT)
+            pixels.append(UInt8(word & 0xFF))
+            pixels.append(UInt8((word >> 8) & 0xFF))
+        }
+        let legacyStream = try await JPEGLSCodecStrictDecodingTests.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: width,
+            height: height,
+            bitsPerSample: 16
+        )
+        var paddedStream = legacyStream
+        if paddedStream.count % 2 == 1 {
+            paddedStream.append(0x00)
+        }
+        let descriptor = PixelDataDescriptor(
+            rows: height,
+            columns: width,
+            bitsAllocated: 16,
+            bitsStored: 16,
+            highBit: 15,
+            isSigned: true,
+            samplesPerPixel: 1,
+            photometricInterpretation: .monochrome2
+        )
+        let resolved = try #require(
+            CodecRegistry.shared.resolveDecoder(
+                for: TransferSyntax.jpegLSLossless.uid,
+                descriptor: descriptor
+            )
+        )
+        #expect((resolved.codec as? JPEGLSCodec)?.missingPresetPolicy == .allowLegacyUnclampedRecovery)
+        #expect((CodecRegistry.shared.codec(for: TransferSyntax.jpegLSNearLossless.uid) as? JPEGLSCodec)?.missingPresetPolicy == .requireStandardDefaults)
+        let decoded = try resolved.codec.decodePixelFrame(paddedStream, descriptor: descriptor, frameIndex: 0)
+        #expect(decoded.data == pixels)
+        #expect(decoded.diagnostics == [.legacyUnclampedPresetRecovered(encodedPrecision: 16)])
+
+        #expect(JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion("DICOMKIT_0.5.0"))
+        #expect(JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion("dcm4che-1.4.34"))
+        #expect(JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion("clib_jiio_1.1"))
+        #expect(!JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion("DICOMKIT_3.2.1"))
+        #expect(!JPEGLSCodec.isKnownLegacyUnclampedImplementationVersion(nil))
+
+        // End-to-end DICOMFile metadata-driven upgrade to .preferLegacyUnclampedParameters
+        // on the 1x3 [20, 15, 10] stream where standard thresholds silently decode [20, 15, 11].
+        let silentPixels = Data([20, 0, 15, 0, 10, 0])
+        var silentFragment = try await JPEGLSCodecStrictDecodingTests.makeLegacyUnclampedCodestream(
+            pixels: silentPixels,
+            width: 3,
+            height: 1,
+            bitsPerSample: 16
+        )
+        if silentFragment.count % 2 == 1 {
+            silentFragment.append(0x00)
+        }
+        for legacyVersion in ["DICOMKIT_0.5.0", "dcm4che-1.4.34"] {
+            var meta = DataSet()
+            meta.setString(TransferSyntax.jpegLSLossless.uid, for: .transferSyntaxUID, vr: .UI)
+            meta.setString(legacyVersion, for: .implementationVersionName, vr: .SH)
+            var ds = DataSet()
+            ds.setUInt16(1, for: .rows)
+            ds.setUInt16(3, for: .columns)
+            ds.setUInt16(16, for: .bitsAllocated)
+            ds.setUInt16(16, for: .bitsStored)
+            ds.setUInt16(15, for: .highBit)
+            ds.setUInt16(0, for: .pixelRepresentation)
+            ds.setUInt16(1, for: .samplesPerPixel)
+            ds.setString("MONOCHROME2", for: .photometricInterpretation, vr: .CS)
+            ds[.pixelData] = DataElement(
+                tag: .pixelData,
+                vr: .OB,
+                length: 0xFFFF_FFFF,
+                valueData: Data(),
+                encapsulatedFragments: [silentFragment],
+                encapsulatedOffsetTable: []
+            )
+            let dicomFile = DICOMFile(fileMetaInformation: meta, dataSet: ds)
+            let extracted = try dicomFile.tryPixelData()
+            #expect(extracted.data == silentPixels)
+        }
     }
 }

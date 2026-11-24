@@ -9453,7 +9453,7 @@ case "dicom-study":
             callingAE: callingAET, calledAE: calledAET,
             mode: modeLabel,
             method: isCMove ? "C-MOVE" : "C-GET",
-            isReview: isReviewOnly, moveDestination: moveDest,
+            isReview: isReviewOnly, moveDestination: isCMove ? moveDest : nil,
             output: rawOutputQR, timeout: Int(timeout),
             transferSyntax: transferSyntaxQR.isEmpty ? nil : transferSyntaxQR,
             filters: qrFilters))
@@ -9545,7 +9545,7 @@ case "dicom-study":
                         studies: studiesToRetrieve.map(QRStudyInfo.init(from:)),
                         host: host, port: port,
                         callingAE: callingAET, calledAE: calledAET,
-                        moveDestination: moveDest.isEmpty ? nil : moveDest,
+                        moveDestination: isCMove && !moveDest.isEmpty ? moveDest : nil,
                         method: isCMove ? .cMove : .cGet,
                         outputPath: rawOutputQR,
                         hierarchical: hierarchical)

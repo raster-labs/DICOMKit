@@ -46,6 +46,10 @@ struct ViewerAnnotationEditLayer: View {
     /// otherwise the committed text sits under the field being typed into.
     @Binding var editingTextID: UUID?
 
+    /// Whether a drawing/editing drag gesture is currently active, so the viewer's
+    /// `ToolCursor` switches to the active tool's dragging pointer icon on action.
+    @Binding var isToolDragging: Bool
+
     /// Anchor for the annotation being dragged, so a drag applies deltas.
     @State private var dragAnchor: CGSize = .zero
 
@@ -78,6 +82,8 @@ struct ViewerAnnotationEditLayer: View {
                         case .arrow: arrowAnnotation(annotation, mapping: mapping)
                         case .annotation:
                             combinedAnnotation(annotation, mapping: mapping)
+                        case .length:
+                            lengthAnnotation(annotation, mapping: mapping)
                         case .polyline, .circle, .ellipse, .point, .shutter:
                             lockedAnnotation(annotation, mapping: mapping)
                         }
@@ -140,7 +146,7 @@ struct ViewerAnnotationEditLayer: View {
         Color.clear
             .contentShape(Rectangle())
             .onTapGesture { location in
-                if let point = mapping.pointOnPicture(at: location) {
+                if tool == .annotation, let point = mapping.pointOnPicture(at: location) {
                     viewModel.addDrawnAnnotation(at: point)
                 } else {
                     viewModel.selectDrawnAnnotation(nil)
@@ -152,32 +158,47 @@ struct ViewerAnnotationEditLayer: View {
     private func annotationDrawGesture(_ mapping: ViewerAnnotationMapping) -> some Gesture {
         DragGesture(minimumDistance: 2, coordinateSpace: .named(Self.space))
             .onChanged { value in
+                isToolDragging = true
                 // The press names the anchor, which must be on the picture —
                 // an arrow rooted in the letterbox has no pixels to be burned
                 // into. The label merely clamps, so the drag can sweep past
                 // the edge and stay legal.
                 guard let anchor = mapping.pointOnPicture(at: value.startLocation)
                 else { return }
-                let label = mapping.clampedPoint(at: value.location)
-                if let draftAnnotationID {
-                    viewModel.moveDrawnArrowEnd(draftAnnotationID, isHead: false, to: label)
+                let current = mapping.clampedPoint(at: value.location)
+                if tool == .length {
+                    if let draftAnnotationID {
+                        viewModel.moveDrawnLengthEnd(draftAnnotationID, isEnd: true, to: current)
+                    } else {
+                        draftAnnotationID = viewModel.addDrawnLengthAnnotation(from: anchor, to: current)
+                    }
                 } else {
-                    draftAnnotationID = viewModel.addDrawnAnnotation(at: label, anchor: anchor)
+                    if let draftAnnotationID {
+                        viewModel.moveDrawnArrowEnd(draftAnnotationID, isHead: false, to: current)
+                    } else {
+                        draftAnnotationID = viewModel.addDrawnAnnotation(at: current, anchor: anchor)
+                    }
                 }
             }
-            .onEnded { _ in finishDraft() }
+            .onEnded { _ in
+                isToolDragging = false
+                finishDraft()
+            }
     }
 
     /// A drag too short to pull the label clear collapses back to the press
-    /// point — the same annotation a plain click would have placed there. The
-    /// draft flag is dropped either way, which is what lets the inline editor
-    /// open on the freshly drawn, still-empty annotation.
+    /// point — the same annotation a plain click would have placed there. For
+    /// a length ruler, a drag too short to measure anything is discarded.
     private func finishDraft() {
         defer { draftAnnotationID = nil }
         guard let draftAnnotationID,
               let drawn = annotations.first(where: { $0.id == draftAnnotationID }),
               !drawn.hasArrow else { return }
-        viewModel.moveDrawnArrowEnd(draftAnnotationID, isHead: false, to: drawn.end)
+        if drawn.kind == .length {
+            viewModel.removeDrawnAnnotation(draftAnnotationID)
+        } else {
+            viewModel.moveDrawnArrowEnd(draftAnnotationID, isHead: false, to: drawn.end)
+        }
     }
 
     // MARK: - Text
@@ -344,6 +365,98 @@ struct ViewerAnnotationEditLayer: View {
             }
         }
         .accessibilityLabel("Arrow annotation")
+    }
+
+    // MARK: - Length
+
+    @ViewBuilder
+    private func lengthAnnotation(
+        _ annotation: PrintOverlayAnnotation, mapping: ViewerAnnotationMapping
+    ) -> some View {
+        let isSelected = selectedAnnotationID == annotation.id
+        let start = mapping.viewPoint(annotation.start)
+        let end = mapping.viewPoint(annotation.end)
+        let line = AnnotationLineShape(start: start, end: end)
+        let labelOriginNorm = PrintAnnotationLayout.lengthLabelOrigin(
+            for: annotation,
+            imageWidth: Double(viewModel.imageColumns),
+            imageHeight: Double(viewModel.imageRows))
+        let labelAnchor = mapping.viewPoint(labelOriginNorm)
+        let fontSize = max(Self.minimumPreviewFontSize,
+                           CGFloat(ImageAnnotationBurner.overlayFontSize(
+                            imageHeight: Double(viewModel.imageRows),
+                            scale: annotation.scale) * mapping.displayScale))
+        let labelOverlay = PrintOverlayAnnotation(
+            id: annotation.id,
+            kind: .text,
+            start: labelOriginNorm,
+            text: annotation.text,
+            scale: annotation.scale,
+            color: annotation.color)
+        let labelQuad = AnnotationQuadShape(
+            corners: mapping.textQuadCorners(
+                for: labelOverlay, imageRows: viewModel.imageRows,
+                imageColumns: viewModel.imageColumns))
+
+        ZStack(alignment: .topLeading) {
+            if !contentIsOnGPU {
+                let imageHeight = Double(viewModel.imageRows) * mapping.displayScale
+                let widths = ImageAnnotationBurner.shapeLineWidths(
+                    scale: annotation.scale, imageHeight: max(1, imageHeight))
+                let tickHalf = CGFloat(max(widths.line * 2.5, Double(fontSize) * 0.35))
+                let rulerShape = LengthRulerShape(start: start, end: end, tickHalfLength: tickHalf)
+                rulerShape
+                    .stroke(halo(annotation.color),
+                            style: StrokeStyle(lineWidth: CGFloat(widths.line + widths.halo),
+                                               lineCap: .round, lineJoin: .round))
+                    .allowsHitTesting(false)
+                rulerShape
+                    .stroke(color(annotation.color),
+                            style: StrokeStyle(lineWidth: CGFloat(widths.line),
+                                               lineCap: .round, lineJoin: .round))
+                    .allowsHitTesting(false)
+
+                if annotation.hasWords {
+                    Text(annotation.text)
+                        .font(.custom(ImageAnnotationBurner.overlayFontFamily,
+                                      size: fontSize))
+                        .foregroundStyle(color(annotation.color))
+                        .shadow(color: halo(annotation.color),
+                                radius: max(1, fontSize * 0.08))
+                        .offset(x: labelAnchor.x, y: labelAnchor.y)
+                        .allowsHitTesting(false)
+                }
+            }
+
+            // Grab area along the ruler segment
+            line
+                .stroke(.clear, lineWidth: 1)
+                .contentShape(line.stroke(lineWidth: Self.grabWidth))
+                .gesture(moveGesture(annotation, mapping: mapping))
+                .onTapGesture { viewModel.selectDrawnAnnotation(annotation.id) }
+
+            // Selection box and grab area around the measurement label
+            if annotation.hasWords {
+                labelQuad
+                    .stroke(isSelected ? Color.accentColor : .clear,
+                            style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+                    .contentShape(labelQuad)
+                    .gesture(moveGesture(annotation, mapping: mapping))
+                    .onTapGesture { viewModel.selectDrawnAnnotation(annotation.id) }
+            }
+
+            if isSelected {
+                handle(at: start, mapping: mapping) { newPoint in
+                    viewModel.moveDrawnLengthEnd(annotation.id, isEnd: false,
+                                                 to: newPoint)
+                }
+                handle(at: end, mapping: mapping) { newPoint in
+                    viewModel.moveDrawnLengthEnd(annotation.id, isEnd: true,
+                                                 to: newPoint)
+                }
+            }
+        }
+        .accessibilityLabel("Length measurement: \(annotation.text)")
     }
 
     // MARK: - Locked annotations and shapes
@@ -532,6 +645,7 @@ struct ViewerAnnotationEditLayer: View {
             .gesture(
                 DragGesture(minimumDistance: 1, coordinateSpace: .named(Self.space))
                     .onChanged { value in
+                        isToolDragging = true
                         // The direction from the anchor to the pointer, taken
                         // in view space and mapped into the image's — the same
                         // inverse the move gesture uses, so the label follows
@@ -541,6 +655,9 @@ struct ViewerAnnotationEditLayer: View {
                         let direction = mapping.normalizedDelta(reach)
                         viewModel.orbitDrawnAnnotationLabel(
                             annotation.id, towards: direction)
+                    }
+                    .onEnded { _ in
+                        isToolDragging = false
                     }
             )
             .accessibilityHidden(true)
@@ -567,7 +684,11 @@ struct ViewerAnnotationEditLayer: View {
             .gesture(
                 DragGesture(minimumDistance: 1, coordinateSpace: .named(Self.space))
                     .onChanged { value in
+                        isToolDragging = true
                         move(mapping.clampedPoint(at: value.location))
+                    }
+                    .onEnded { _ in
+                        isToolDragging = false
                     }
             )
             .accessibilityHidden(true)
@@ -583,6 +704,7 @@ struct ViewerAnnotationEditLayer: View {
     ) -> some Gesture {
         DragGesture(minimumDistance: 1, coordinateSpace: .named(Self.space))
             .onChanged { value in
+                isToolDragging = true
                 if selectedAnnotationID != annotation.id {
                     viewModel.selectDrawnAnnotation(annotation.id)
                 }
@@ -592,7 +714,10 @@ struct ViewerAnnotationEditLayer: View {
                 let delta = mapping.normalizedDelta(CGSize(width: dx, height: dy))
                 viewModel.moveDrawnAnnotation(annotation.id, dx: delta.dx, dy: delta.dy)
             }
-            .onEnded { _ in dragAnchor = .zero }
+            .onEnded { _ in
+                isToolDragging = false
+                dragAnchor = .zero
+            }
     }
 
     // MARK: - Colours
@@ -762,6 +887,37 @@ struct AnnotationLineShape: Shape {
         var path = Path()
         path.move(to: start)
         path.addLine(to: end)
+        return path
+    }
+}
+
+/// A linear measurement ruler: the segment between `start` and `end` plus
+/// perpendicular tick marks at both ends.
+@available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+struct LengthRulerShape: Shape {
+    let start: CGPoint
+    let end: CGPoint
+    let tickHalfLength: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let dx = end.x - start.x
+        let dy = end.y - start.y
+        let len = (dx * dx + dy * dy).squareRoot()
+        guard len > 0 else { return path }
+
+        let nx = -dy / len * tickHalfLength
+        let ny = dx / len * tickHalfLength
+
+        path.move(to: start)
+        path.addLine(to: end)
+
+        path.move(to: CGPoint(x: start.x - nx, y: start.y - ny))
+        path.addLine(to: CGPoint(x: start.x + nx, y: start.y + ny))
+
+        path.move(to: CGPoint(x: end.x - nx, y: end.y - ny))
+        path.addLine(to: CGPoint(x: end.x + nx, y: end.y + ny))
+
         return path
     }
 }

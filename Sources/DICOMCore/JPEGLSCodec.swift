@@ -145,10 +145,20 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         /// Use the JPEG-LS standard defaults; entropy failure is final (the default).
         case requireStandardDefaults
         /// Explicit compatibility mode for independently identified legacy encoders.
-        /// A failed 13...16-bit decode may be retried with unclamped legacy thresholds.
+        /// A failed 13...16-bit lossless decode without an LSE segment may be retried
+        /// with unclamped legacy thresholds.
         /// Do not enable for strict admission of untrusted streams: successful recovery
         /// does not establish that these were the source's intended coding parameters.
         case allowLegacyUnclampedRecovery
+        /// Deterministic compatibility mode for streams independently identified (for
+        /// example, via DICOM File Meta Information Implementation Version Name) as
+        /// originating from a legacy encoder that omitted ITU-T T.87 Table C.2
+        /// `min(MAXVAL, 4095)` clamping without emitting an LSE segment.
+        /// Eligible 13...16-bit lossless streams without an LSE segment are decoded
+        /// directly with unclamped legacy thresholds first (falling back to standard
+        /// defaults only if legacy decoding fails), preventing silent pixel corruption
+        /// when standard thresholds happen to reach EOI without a bitstream error.
+        case preferLegacyUnclampedParameters
     }
 
     /// Header-derived interpretation shared by indexing and sample decoding.
@@ -185,7 +195,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
     private let syntaxRestriction: SyntaxRestriction
     private let decodingLimits: PixelDecodeLimits
     private let precisionPolicy: PrecisionPolicy
-    private let missingPresetPolicy: MissingPresetPolicy
+    public let missingPresetPolicy: MissingPresetPolicy
     public let decodeBackend: CodecBackend?
     public let maximumWorkers: Int?
     public let restartIntervalLines: Int
@@ -288,6 +298,34 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             maximumWorkers: maximumWorkers,
             restartIntervalLines: restartIntervalLines
         )
+    }
+
+    public func withMissingPresetPolicy(_ missingPresetPolicy: MissingPresetPolicy) -> JPEGLSCodec {
+        JPEGLSCodec(
+            syntaxRestriction: syntaxRestriction,
+            decodingLimits: decodingLimits,
+            precisionPolicy: precisionPolicy,
+            missingPresetPolicy: missingPresetPolicy,
+            decodeBackend: decodeBackend,
+            maximumWorkers: maximumWorkers,
+            restartIntervalLines: restartIntervalLines
+        )
+    }
+
+    /// Checks whether a DICOM File Meta Information `(0002,0013) Implementation Version Name`
+    /// identifies a legacy encoder known to have omitted ITU-T T.87 Table C.2 `min(MAXVAL, 4095)`
+    /// clamping on 13...16-bit lossless JPEG-LS streams without emitting an `LSE` segment
+    /// (such as `DICOMKIT_0.5.0` or `dcm4che-1.4.x` / JAI-ImageIO `clib_jiio`).
+    public static func isKnownLegacyUnclampedImplementationVersion(_ versionName: String?) -> Bool {
+        guard let raw = versionName?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !raw.isEmpty else {
+            return false
+        }
+        let upper = raw.uppercased()
+        return upper == "DICOMKIT_0.5.0"
+            || upper.hasPrefix("DCM4CHE-1.4")
+            || upper.contains("CLIB_JIIO")
+            || upper.contains("JAI_IMAGEIO")
     }
 
     /// Checks whether the requested `CodecBackend` is natively supported (`SwiftJLS` executes on CPU SIMD or scalar CPU, never Metal GPU).
@@ -637,9 +675,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         }
     }
 
-    /// Inspects `bytes` up to the first `SOS` (`0xFFDA`) marker and returns a synthesized `LSE`
-    /// insertion plan **only** when `SOF55` precision is in `13...16` (`MAXVAL > 4095`) and no
-    /// explicit `LSE` (`0xFFF8`, `Id = 1`) preset segment already precedes `SOS`.
+    /// Inspects `bytes` across the full JPEG-LS codestream up to `EOI` (`0xFFD9`) and returns a
+    /// synthesized `LSE` insertion plan **only** when `SOF55` precision is in `13...16` (`MAXVAL > 4095`),
+    /// no explicit `LSE` (`0xFFF8`, `Id = 1, 2, 3`) preset or mapping-table segment is present,
+    /// no `APP8` (`0xFFE8`) `mrfx` color transform is active, and every `SOS` (`0xFFDA`) scan is
+    /// strictly lossless (`NEAR == 0`, no point transform `Ah/Al == 0`, no mapping table `Tdi == 0`).
     ///
     /// If the input ends with a single DICOM PS3.5 Section 8.2 / Annex A.4 even-length `0x00`
     /// pad byte after an odd-length `FF D9` codestream, `effectiveSourceCount` excludes that pad
@@ -669,6 +709,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         cursor += 1
 
         var frameBits: Int?
+        var firstSOSOffset: Int?
         while cursor < effectiveSourceCount {
             let markerStart = cursor
             guard bytes[cursor] == 0xFF else { return nil }
@@ -680,40 +721,17 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             cursor += 1
 
             if marker == 0xD9 {
-                return nil
-            }
-            guard effectiveSourceCount - cursor >= 2 else { return nil }
-            let length = word(cursor)
-            guard length >= 2, length <= effectiveSourceCount - cursor else { return nil }
-            let payload = cursor + 2
-            let end = cursor + length
-
-            switch marker {
-            case 0xF7:
-                guard frameBits == nil, length >= 8 else { return nil }
-                frameBits = Int(bytes[payload])
-
-            case 0xF8:
-                guard length >= 3 else { return nil }
-                if bytes[payload] == 0x01 {
-                    // Stream already declares explicit LSE preset coding parameters; never override.
+                guard let bits = frameBits,
+                      (13...16).contains(bits),
+                      let sosOffset = firstSOSOffset,
+                      cursor == effectiveSourceCount else {
                     return nil
                 }
-
-            case 0xDA:
-                guard let bits = frameBits, (13...16).contains(bits), length >= 6 else {
-                    return nil
-                }
-                let ns = Int(bytes[payload])
-                guard (1...4).contains(ns), length == 6 + 2 * ns else { return nil }
-                let near = Int(bytes[payload + 1 + 2 * ns])
                 let maxVal = (1 << bits) - 1
-                guard near >= 0, near <= min(255, maxVal / 2) else { return nil }
-
                 let factor = (maxVal + 128) / 256
-                let t1 = min(max(factor * (3 - 2) + 2 + 3 * near, near + 1), maxVal)
-                let t2 = min(max(factor * (7 - 3) + 3 + 5 * near, t1), maxVal)
-                let t3 = min(max(factor * (21 - 4) + 4 + 7 * near, t2), maxVal)
+                let t1 = min(max(factor * (3 - 2) + 2, 1), maxVal)
+                let t2 = min(max(factor * (7 - 3) + 3, t1), maxVal)
+                let t3 = min(max(factor * (21 - 4) + 4, t2), maxVal)
                 let reset = 64
 
                 let lse: (
@@ -729,10 +747,80 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
                     UInt8((reset >> 8) & 0xFF), UInt8(reset & 0xFF)
                 )
                 return LegacyUnclampedJPEGLSPresetPlan(
-                    sosOffset: markerStart,
+                    sosOffset: sosOffset,
                     effectiveSourceCount: effectiveSourceCount,
                     lseSegment: lse
                 )
+            }
+            guard effectiveSourceCount - cursor >= 2 else { return nil }
+            let length = word(cursor)
+            guard length >= 2, length <= effectiveSourceCount - cursor else { return nil }
+            let payload = cursor + 2
+            let end = cursor + length
+
+            switch marker {
+            case 0xF7:
+                guard frameBits == nil, firstSOSOffset == nil, length >= 8 else { return nil }
+                let bits = Int(bytes[payload])
+                guard (13...16).contains(bits) else { return nil }
+                frameBits = bits
+
+            case 0xF8:
+                guard length >= 3 else { return nil }
+                let id = bytes[payload]
+                if id == 0x01 || id == 0x02 || id == 0x03 {
+                    // Never override explicit LSE preset coding parameters or mapping tables.
+                    return nil
+                }
+
+            case 0xE8:
+                if length == 7,
+                   bytes[payload] == 109, bytes[payload + 1] == 114,
+                   bytes[payload + 2] == 102, bytes[payload + 3] == 120,
+                   bytes[payload + 4] != 0 {
+                    return nil
+                }
+
+            case 0xDA:
+                guard let bits = frameBits, (13...16).contains(bits), length >= 6 else {
+                    return nil
+                }
+                let ns = Int(bytes[payload])
+                guard (1...4).contains(ns), length == 6 + 2 * ns else { return nil }
+                for i in 0..<ns {
+                    if bytes[payload + 2 + 2 * i] != 0 { return nil }
+                }
+                let near = Int(bytes[payload + 1 + 2 * ns])
+                let ahal = bytes[payload + 3 + 2 * ns]
+                guard near == 0, ahal == 0 else { return nil }
+                if firstSOSOffset == nil {
+                    firstSOSOffset = markerStart
+                }
+
+                var scanCursor = end
+                while scanCursor + 1 < effectiveSourceCount {
+                    if bytes[scanCursor] == 0xFF {
+                        let next = bytes[scanCursor + 1]
+                        if next < 0x80 {
+                            scanCursor += 2
+                            continue
+                        }
+                        var markerPos = scanCursor
+                        while markerPos < effectiveSourceCount && bytes[markerPos] == 0xFF {
+                            markerPos += 1
+                        }
+                        guard markerPos < effectiveSourceCount else { return nil }
+                        let scanMarker = bytes[markerPos]
+                        if (0xD0...0xD7).contains(scanMarker) {
+                            scanCursor = markerPos + 1
+                            continue
+                        }
+                        break
+                    }
+                    scanCursor += 1
+                }
+                cursor = scanCursor
+                continue
 
             default:
                 break
@@ -1269,6 +1357,7 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
 
             let info: FrameInfo
             let decodedPayload: Data
+            var usedLegacyUnclampedPreset = false
             do {
                 let staging: DICOMByteBuffer
                 switch DICOMByteBuffer.admit(count: stagingBytes, budget: budget, resource: .staging) {
@@ -1325,100 +1414,172 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
                 let losslessExpected = (syntaxRestriction == .lossless) || !summary.hasNearLosslessScan
                 let expectedByteCount = info.expectedByteCount
                 let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
-                let decodeOutcome = Self.runManagedSynchronous(
-                    domain: 0x0100,
-                    cancellation: cancellation
-                ) {
-                    try Self.decodeToDICOMBytes(
-                        data: data,
-                        decoder: decoder,
-                        inspected: inspected,
-                        descriptor: targetDescriptor,
-                        expectedByteCount: expectedByteCount,
-                        limits: limits,
-                        executionPolicy: executionPolicy,
-                        requireExactFidelity: losslessExpected
-                    )
-                }
-                switch decodeOutcome {
-                case .success(let payload):
-                    staging.keepAlive()
-                    decodedPayload = payload
-                case .failure(let failure):
-                    guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
-                          failure.code != .cancelled,
-                          failure.code != .limitExceeded,
-                          cancellation.failure == nil,
-                          !Task.isCancelled,
-                          (13...16).contains(summary.bitsPerSample),
-                          let patchedData = Self.makeLegacyUnclampedJPEGLSCodestream(from: data) else {
-                        staging.keepAlive()
-                        return .failure(failure)
-                    }
-                    let extraStaging: DICOMByteBuffer
-                    switch DICOMByteBuffer.admit(
-                        count: Self.legacyLSESegmentByteCount,
-                        budget: budget,
-                        resource: .staging
+
+                var preferredLegacyPayload: Data?
+                if missingPresetPolicy == .preferLegacyUnclampedParameters,
+                   cancellation.failure == nil,
+                   !Task.isCancelled,
+                   (13...16).contains(summary.bitsPerSample),
+                   summary.recoveryFeaturesAllowed,
+                   let patchedData = Self.makeLegacyUnclampedJPEGLSCodestream(from: data),
+                   case .success(let extraStaging) = DICOMByteBuffer.admit(
+                       count: Self.legacyLSESegmentByteCount,
+                       budget: budget,
+                       resource: .staging
+                   ) {
+                    if let prefLimits = try? makeSwiftJLSResourceLimits(
+                        extraDecodedMinimum: wideComponentBytes,
+                        extraEncodedBytes: Self.legacyLSESegmentByteCount
+                    ),
+                    let prefInspected = try? decoder.inspect(
+                        patchedData,
+                        options: .init(
+                            resourceLimits: prefLimits,
+                            executionPolicy: executionPolicy,
+                            copyPolicy: .requireSharedStorage,
+                            metadataPolicy: .discardAncillary
+                        )
                     ) {
-                    case .success(let value):
-                        extraStaging = value
-                    case .failure:
-                        staging.keepAlive()
-                        return .failure(failure)
-                    }
-                    let fallbackLimits: SwiftJLS.ResourceLimits
-                    let fallbackInspected: SwiftJLS.ImageInfo
-                    do {
-                        fallbackLimits = try makeSwiftJLSResourceLimits(
-                            extraDecodedMinimum: wideComponentBytes,
-                            extraEncodedBytes: Self.legacyLSESegmentByteCount
-                        )
-                        fallbackInspected = try decoder.inspect(
-                            patchedData,
-                            options: .init(
-                                resourceLimits: fallbackLimits,
+                        let prefOutcome = Self.runManagedSynchronous(
+                            domain: 0x0100,
+                            cancellation: cancellation
+                        ) {
+                            try Self.decodeToDICOMBytes(
+                                data: patchedData,
+                                decoder: decoder,
+                                inspected: prefInspected,
+                                descriptor: targetDescriptor,
+                                expectedByteCount: expectedByteCount,
+                                limits: prefLimits,
                                 executionPolicy: executionPolicy,
-                                copyPolicy: .requireSharedStorage,
-                                metadataPolicy: .discardAncillary
+                                requireExactFidelity: losslessExpected
                             )
-                        )
-                    } catch {
+                        }
                         extraStaging.keepAlive()
-                        staging.keepAlive()
-                        return .failure(failure)
+                        switch prefOutcome {
+                        case .success(let recoveredPayload):
+                            preferredLegacyPayload = recoveredPayload
+                            usedLegacyUnclampedPreset = true
+                        case .failure(let prefFailure):
+                            if prefFailure.code == .cancelled {
+                                staging.keepAlive()
+                                return .failure(prefFailure)
+                            }
+                            if let cancelFailure = cancellation.failure {
+                                staging.keepAlive()
+                                return .failure(cancelFailure)
+                            }
+                            if Task.isCancelled {
+                                staging.keepAlive()
+                                return .failure(DICOMManagedFailure(.cancelled))
+                            }
+                        }
+                    } else {
+                        extraStaging.keepAlive()
                     }
-                    let fallbackOutcome = Self.runManagedSynchronous(
+                }
+
+                if let preferredLegacyPayload {
+                    staging.keepAlive()
+                    decodedPayload = preferredLegacyPayload
+                } else {
+                    let decodeOutcome = Self.runManagedSynchronous(
                         domain: 0x0100,
                         cancellation: cancellation
                     ) {
                         try Self.decodeToDICOMBytes(
-                            data: patchedData,
+                            data: data,
                             decoder: decoder,
-                            inspected: fallbackInspected,
+                            inspected: inspected,
                             descriptor: targetDescriptor,
                             expectedByteCount: expectedByteCount,
-                            limits: fallbackLimits,
+                            limits: limits,
                             executionPolicy: executionPolicy,
                             requireExactFidelity: losslessExpected
                         )
                     }
-                    extraStaging.keepAlive()
-                    staging.keepAlive()
-                    switch fallbackOutcome {
-                    case .success(let recoveredPayload):
-                        decodedPayload = recoveredPayload
-                    case .failure(let fallbackFailure):
-                        if fallbackFailure.code == .cancelled {
-                            return .failure(fallbackFailure)
+                    switch decodeOutcome {
+                    case .success(let payload):
+                        staging.keepAlive()
+                        decodedPayload = payload
+                    case .failure(let failure):
+                        guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                              failure.code != .cancelled,
+                              failure.code != .limitExceeded,
+                              cancellation.failure == nil,
+                              !Task.isCancelled,
+                              (13...16).contains(summary.bitsPerSample),
+                              summary.recoveryFeaturesAllowed,
+                              let patchedData = Self.makeLegacyUnclampedJPEGLSCodestream(from: data) else {
+                            staging.keepAlive()
+                            return .failure(failure)
                         }
-                        if let cancelFailure = cancellation.failure {
-                            return .failure(cancelFailure)
+                        let extraStaging: DICOMByteBuffer
+                        switch DICOMByteBuffer.admit(
+                            count: Self.legacyLSESegmentByteCount,
+                            budget: budget,
+                            resource: .staging
+                        ) {
+                        case .success(let value):
+                            extraStaging = value
+                        case .failure:
+                            staging.keepAlive()
+                            return .failure(failure)
                         }
-                        if Task.isCancelled {
-                            return .failure(DICOMManagedFailure(.cancelled))
+                        let fallbackLimits: SwiftJLS.ResourceLimits
+                        let fallbackInspected: SwiftJLS.ImageInfo
+                        do {
+                            fallbackLimits = try makeSwiftJLSResourceLimits(
+                                extraDecodedMinimum: wideComponentBytes,
+                                extraEncodedBytes: Self.legacyLSESegmentByteCount
+                            )
+                            fallbackInspected = try decoder.inspect(
+                                patchedData,
+                                options: .init(
+                                    resourceLimits: fallbackLimits,
+                                    executionPolicy: executionPolicy,
+                                    copyPolicy: .requireSharedStorage,
+                                    metadataPolicy: .discardAncillary
+                                )
+                            )
+                        } catch {
+                            extraStaging.keepAlive()
+                            staging.keepAlive()
+                            return .failure(failure)
                         }
-                        return .failure(failure)
+                        let fallbackOutcome = Self.runManagedSynchronous(
+                            domain: 0x0100,
+                            cancellation: cancellation
+                        ) {
+                            try Self.decodeToDICOMBytes(
+                                data: patchedData,
+                                decoder: decoder,
+                                inspected: fallbackInspected,
+                                descriptor: targetDescriptor,
+                                expectedByteCount: expectedByteCount,
+                                limits: fallbackLimits,
+                                executionPolicy: executionPolicy,
+                                requireExactFidelity: losslessExpected
+                            )
+                        }
+                        extraStaging.keepAlive()
+                        staging.keepAlive()
+                        switch fallbackOutcome {
+                        case .success(let recoveredPayload):
+                            decodedPayload = recoveredPayload
+                            usedLegacyUnclampedPreset = true
+                        case .failure(let fallbackFailure):
+                            if fallbackFailure.code == .cancelled {
+                                return .failure(fallbackFailure)
+                            }
+                            if let cancelFailure = cancellation.failure {
+                                return .failure(cancelFailure)
+                            }
+                            if Task.isCancelled {
+                                return .failure(DICOMManagedFailure(.cancelled))
+                            }
+                            return .failure(failure)
+                        }
                     }
                 }
             }
@@ -1440,9 +1601,14 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             }
             bytes.keepAlive()
             if let failure = cancellation.failure { return .failure(failure) }
+            let outputDiagnostic = info.diagnostic ?? (
+                usedLegacyUnclampedPreset
+                    ? .legacyUnclampedPresetRecovered(encodedPrecision: info.descriptor.bitsStored)
+                    : nil
+            )
             return .success(ManagedDecodedPixelFrame(
                 data: bytes, descriptor: info.descriptor,
-                sourceFrameIndex: frameIndex, diagnostic: info.diagnostic
+                sourceFrameIndex: frameIndex, diagnostic: outputDiagnostic
             ))
         }
     }
@@ -1527,12 +1693,13 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         case .success(let value): header = value
         case .failure(let failure): workspace.keepAlive(); return .failure(Self.managedFailure(failure))
         }
+        let recoveryFeaturesAllowed = header.near == 0 && header.pointTransform == 0
+            && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == 0
         let info: FrameInfo
         switch managedFrameInfoOutcome(encodedByteCount: originalEncodedCount, descriptor: descriptor,
             frameIndex: frameIndex, precisionPolicy: precisionPolicy, width: header.width, height: header.height,
             componentCount: 1, precision: header.bitsPerSample, hasNearLosslessScan: header.near > 0,
-            recoveryFeaturesAllowed: header.near == 0 && header.pointTransform == 0
-                && header.mappingTableID == 0 && !header.hasMappingTables && header.colorTransformation == 0) {
+            recoveryFeaturesAllowed: recoveryFeaturesAllowed) {
         case .success(let value): info = value
         case .failure(let failure): workspace.keepAlive(); return .failure(failure)
         }
@@ -1543,73 +1710,124 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         }
         let samples = bytes.unsafeMutableBytes.bindMemory(to: UInt16.self)
         samples.initialize(repeating: 0)
-        let decodeResult = decoder.decode(
-            encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
-        )
-        let decoded: QualifiedMonochromeDecoder.MonochromeInfo
-        switch decodeResult {
-        case .success(let value):
-            workspace.keepAlive()
-            decoded = value
-        case .failure(let failure):
-            if failure.code == .cancelled {
-                workspace.keepAlive()
-                return .failure(DICOMManagedFailure(.cancelled))
-            }
-            if let cancelFailure = cancellation.failure {
-                workspace.keepAlive()
-                return .failure(cancelFailure)
-            }
-            if Task.isCancelled {
-                workspace.keepAlive()
-                return .failure(DICOMManagedFailure(.cancelled))
-            }
-            guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
-                  (13...16).contains(header.bitsPerSample),
-                  let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded),
-                  let patchedCount = plan.patchedByteCount else {
-                workspace.keepAlive()
-                return .failure(Self.managedFailure(failure))
-            }
-            let patchedEncoded: DICOMByteBuffer
-            switch DICOMByteBuffer.admit(count: patchedCount, budget: budget, resource: .staging) {
-            case .success(let value):
-                patchedEncoded = value
-            case .failure:
-                workspace.keepAlive()
-                return .failure(Self.managedFailure(failure))
-            }
+        var usedLegacyUnclampedPreset = false
+        var preferredDecoded: QualifiedMonochromeDecoder.MonochromeInfo?
+        if missingPresetPolicy == .preferLegacyUnclampedParameters,
+           (13...16).contains(header.bitsPerSample),
+           recoveryFeaturesAllowed,
+           let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded),
+           let patchedCount = plan.patchedByteCount,
+           case .success(let patchedEncoded) = DICOMByteBuffer.admit(count: patchedCount, budget: budget, resource: .staging) {
             plan.writePatchedCodestream(from: encoded, into: patchedEncoded.unsafeMutableBytes)
-            samples.update(repeating: 0)
-            let fallbackDecoder = QualifiedMonochromeDecoder(
+            let prefDecoder = QualifiedMonochromeDecoder(
                 profile: .jlswift0101,
                 limits: makeQualifiedMonochromeLimits(
                     maximumDecodedBytes: decodingLimits.maximumDecodedBytes,
                     extraEncodedBytes: Self.legacyLSESegmentByteCount
                 )
             )
-            let fallbackResult = fallbackDecoder.decode(
+            let prefResult = prefDecoder.decode(
                 UnsafeRawBufferPointer(patchedEncoded.unsafeMutableBytes),
                 into: samples,
                 workspace: workspace.unsafeMutableBytes,
                 cancellation: codecCancellation
             )
             patchedEncoded.keepAlive()
-            workspace.keepAlive()
-            switch fallbackResult {
+            switch prefResult {
             case .success(let recovered):
-                decoded = recovered
-            case .failure(let fallbackFailure):
-                if fallbackFailure.code == .cancelled {
+                preferredDecoded = recovered
+                usedLegacyUnclampedPreset = true
+            case .failure(let prefFailure):
+                if prefFailure.code == .cancelled {
+                    workspace.keepAlive()
                     return .failure(DICOMManagedFailure(.cancelled))
                 }
                 if let cancelFailure = cancellation.failure {
+                    workspace.keepAlive()
                     return .failure(cancelFailure)
                 }
                 if Task.isCancelled {
+                    workspace.keepAlive()
                     return .failure(DICOMManagedFailure(.cancelled))
                 }
-                return .failure(Self.managedFailure(failure))
+                samples.update(repeating: 0)
+            }
+        }
+
+        let decoded: QualifiedMonochromeDecoder.MonochromeInfo
+        if let preferredDecoded {
+            workspace.keepAlive()
+            decoded = preferredDecoded
+        } else {
+            let decodeResult = decoder.decode(
+                encoded, into: samples, workspace: workspace.unsafeMutableBytes, cancellation: codecCancellation
+            )
+            switch decodeResult {
+            case .success(let value):
+                workspace.keepAlive()
+                decoded = value
+            case .failure(let failure):
+                if failure.code == .cancelled {
+                    workspace.keepAlive()
+                    return .failure(DICOMManagedFailure(.cancelled))
+                }
+                if let cancelFailure = cancellation.failure {
+                    workspace.keepAlive()
+                    return .failure(cancelFailure)
+                }
+                if Task.isCancelled {
+                    workspace.keepAlive()
+                    return .failure(DICOMManagedFailure(.cancelled))
+                }
+                guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                      (13...16).contains(header.bitsPerSample),
+                      recoveryFeaturesAllowed,
+                      let plan = Self.makeLegacyUnclampedJPEGLSPresetPlan(encoded),
+                      let patchedCount = plan.patchedByteCount else {
+                    workspace.keepAlive()
+                    return .failure(Self.managedFailure(failure))
+                }
+                let patchedEncoded: DICOMByteBuffer
+                switch DICOMByteBuffer.admit(count: patchedCount, budget: budget, resource: .staging) {
+                case .success(let value):
+                    patchedEncoded = value
+                case .failure:
+                    workspace.keepAlive()
+                    return .failure(Self.managedFailure(failure))
+                }
+                plan.writePatchedCodestream(from: encoded, into: patchedEncoded.unsafeMutableBytes)
+                samples.update(repeating: 0)
+                let fallbackDecoder = QualifiedMonochromeDecoder(
+                    profile: .jlswift0101,
+                    limits: makeQualifiedMonochromeLimits(
+                        maximumDecodedBytes: decodingLimits.maximumDecodedBytes,
+                        extraEncodedBytes: Self.legacyLSESegmentByteCount
+                    )
+                )
+                let fallbackResult = fallbackDecoder.decode(
+                    UnsafeRawBufferPointer(patchedEncoded.unsafeMutableBytes),
+                    into: samples,
+                    workspace: workspace.unsafeMutableBytes,
+                    cancellation: codecCancellation
+                )
+                patchedEncoded.keepAlive()
+                workspace.keepAlive()
+                switch fallbackResult {
+                case .success(let recovered):
+                    decoded = recovered
+                    usedLegacyUnclampedPreset = true
+                case .failure(let fallbackFailure):
+                    if fallbackFailure.code == .cancelled {
+                        return .failure(DICOMManagedFailure(.cancelled))
+                    }
+                    if let cancelFailure = cancellation.failure {
+                        return .failure(cancelFailure)
+                    }
+                    if Task.isCancelled {
+                        return .failure(DICOMManagedFailure(.cancelled))
+                    }
+                    return .failure(Self.managedFailure(failure))
+                }
             }
         }
         guard decoded == header else { return .failure(DICOMManagedFailure(.codecResultMismatch)) }
@@ -1618,8 +1836,13 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
             samples[index] = samples[index].littleEndian
         }
         if let failure = cancellation.failure { return .failure(failure) }
+        let outputDiagnostic = info.diagnostic ?? (
+            usedLegacyUnclampedPreset
+                ? .legacyUnclampedPresetRecovered(encodedPrecision: header.bitsPerSample)
+                : nil
+        )
         return .success(ManagedDecodedPixelFrame(data: bytes, descriptor: info.descriptor,
-            sourceFrameIndex: frameIndex, diagnostic: info.diagnostic))
+            sourceFrameIndex: frameIndex, diagnostic: outputDiagnostic))
     }
 
     private func decodeManagedMonochrome8Core(
@@ -1719,9 +1942,11 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         executionPolicy: SwiftJLS.ExecutionPolicy,
         losslessExpected: Bool
     ) throws -> Data? {
-        guard missingPresetPolicy == .allowLegacyUnclampedRecovery,
+        guard (missingPresetPolicy == .allowLegacyUnclampedRecovery
+                || missingPresetPolicy == .preferLegacyUnclampedParameters),
               !Task.isCancelled,
               (13...16).contains(summary.bitsPerSample),
+              summary.recoveryFeaturesAllowed,
               let patchedData = Self.makeLegacyUnclampedJPEGLSCodestream(from: originalData) else {
             return nil
         }
@@ -1776,79 +2001,105 @@ public struct JPEGLSCodec: ImageCodec, ImageEncoder, DecodeBackendConfigurableCo
         let executionPolicy = Self.resolveExecutionPolicy(for: decodeBackend)
 
         let bytes: Data
-        do {
-            try Task.checkCancellation()
-            bytes = try Self.decodeToDICOMBytes(
-                data: data,
-                decoder: decoder,
-                inspected: inspected,
-                descriptor: targetDescriptor,
-                expectedByteCount: expectedByteCount,
-                limits: limits,
-                executionPolicy: executionPolicy,
-                requireExactFidelity: losslessExpected
-            )
-        } catch let error as CancellationError {
-            throw error
-        } catch let error as DICOMError {
-            if case .limitExceeded = error {
+        var usedLegacyUnclampedPreset = false
+        if missingPresetPolicy == .preferLegacyUnclampedParameters,
+           let preferred = try attemptLegacyUnclampedDecode(
+               originalData: data,
+               summary: summary,
+               decoder: decoder,
+               targetDescriptor: targetDescriptor,
+               wideComponentBytes: wideComponentBytes,
+               expectedByteCount: expectedByteCount,
+               executionPolicy: executionPolicy,
+               losslessExpected: losslessExpected
+           ) {
+            bytes = preferred
+            usedLegacyUnclampedPreset = true
+        } else {
+            do {
+                try Task.checkCancellation()
+                bytes = try Self.decodeToDICOMBytes(
+                    data: data,
+                    decoder: decoder,
+                    inspected: inspected,
+                    descriptor: targetDescriptor,
+                    expectedByteCount: expectedByteCount,
+                    limits: limits,
+                    executionPolicy: executionPolicy,
+                    requireExactFidelity: losslessExpected
+                )
+            } catch let error as CancellationError {
                 throw error
-            }
-            if let recovered = try attemptLegacyUnclampedDecode(
-                originalData: data,
-                summary: summary,
-                decoder: decoder,
-                targetDescriptor: targetDescriptor,
-                wideComponentBytes: wideComponentBytes,
-                expectedByteCount: expectedByteCount,
-                executionPolicy: executionPolicy,
-                losslessExpected: losslessExpected
-            ) {
-                bytes = recovered
-            } else {
-                throw error
-            }
-        } catch let error as SwiftJLS.CodecError {
-            if error.category == .resourceLimitExceeded {
-                throw DICOMError.limitExceeded("JPEG-LS decode exceeded resource limits: \(error.message)")
-            }
-            if let recovered = try attemptLegacyUnclampedDecode(
-                originalData: data,
-                summary: summary,
-                decoder: decoder,
-                targetDescriptor: targetDescriptor,
-                wideComponentBytes: wideComponentBytes,
-                expectedByteCount: expectedByteCount,
-                executionPolicy: executionPolicy,
-                losslessExpected: losslessExpected
-            ) {
-                bytes = recovered
-            } else {
-                throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error.message)")
-            }
-        } catch {
-            if let recovered = try attemptLegacyUnclampedDecode(
-                originalData: data,
-                summary: summary,
-                decoder: decoder,
-                targetDescriptor: targetDescriptor,
-                wideComponentBytes: wideComponentBytes,
-                expectedByteCount: expectedByteCount,
-                executionPolicy: executionPolicy,
-                losslessExpected: losslessExpected
-            ) {
-                bytes = recovered
-            } else {
-                throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
+            } catch let error as DICOMError {
+                if case .limitExceeded = error {
+                    throw error
+                }
+                if missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                   let recovered = try attemptLegacyUnclampedDecode(
+                       originalData: data,
+                       summary: summary,
+                       decoder: decoder,
+                       targetDescriptor: targetDescriptor,
+                       wideComponentBytes: wideComponentBytes,
+                       expectedByteCount: expectedByteCount,
+                       executionPolicy: executionPolicy,
+                       losslessExpected: losslessExpected
+                   ) {
+                    bytes = recovered
+                    usedLegacyUnclampedPreset = true
+                } else {
+                    throw error
+                }
+            } catch let error as SwiftJLS.CodecError {
+                if error.category == .resourceLimitExceeded {
+                    throw DICOMError.limitExceeded("JPEG-LS decode exceeded resource limits: \(error.message)")
+                }
+                if missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                   let recovered = try attemptLegacyUnclampedDecode(
+                       originalData: data,
+                       summary: summary,
+                       decoder: decoder,
+                       targetDescriptor: targetDescriptor,
+                       wideComponentBytes: wideComponentBytes,
+                       expectedByteCount: expectedByteCount,
+                       executionPolicy: executionPolicy,
+                       losslessExpected: losslessExpected
+                   ) {
+                    bytes = recovered
+                    usedLegacyUnclampedPreset = true
+                } else {
+                    throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error.message)")
+                }
+            } catch {
+                if missingPresetPolicy == .allowLegacyUnclampedRecovery,
+                   let recovered = try attemptLegacyUnclampedDecode(
+                       originalData: data,
+                       summary: summary,
+                       decoder: decoder,
+                       targetDescriptor: targetDescriptor,
+                       wideComponentBytes: wideComponentBytes,
+                       expectedByteCount: expectedByteCount,
+                       executionPolicy: executionPolicy,
+                       losslessExpected: losslessExpected
+                   ) {
+                    bytes = recovered
+                    usedLegacyUnclampedPreset = true
+                } else {
+                    throw DICOMError.parsingFailed("JPEG-LS decode failed: \(error)")
+                }
             }
         }
 
         guard bytes.count == info.expectedByteCount else {
             throw DICOMError.parsingFailed("JPEG-LS output length mismatch")
         }
+        var diagnostics = info.diagnostics
+        if usedLegacyUnclampedPreset {
+            diagnostics.append(.legacyUnclampedPresetRecovered(encodedPrecision: summary.bitsPerSample))
+        }
         return DecodedPixelFrame(
             data: bytes, descriptor: info.descriptor,
-            sourceFrameIndex: info.sourceFrameIndex, diagnostics: info.diagnostics
+            sourceFrameIndex: info.sourceFrameIndex, diagnostics: diagnostics
         )
     }
 

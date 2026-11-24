@@ -214,6 +214,8 @@ public enum ImageAnnotationBurner {
                 case .arrow: drawArrow(overlay, in: canvas, orientation: orientation)
                 case .annotation:
                     drawCombined(overlay, in: canvas, orientation: orientation)
+                case .length:
+                    drawLength(overlay, in: canvas, orientation: orientation)
                 case .polyline, .circle, .ellipse, .point:
                     drawShape(overlay, in: canvas, orientation: orientation)
                 case .shutter:
@@ -288,6 +290,9 @@ public enum ImageAnnotationBurner {
                 case .annotation:
                     drawCombined(overlay, in: canvas,
                                  orientation: orientation, uprightOnly: true)
+                case .length:
+                    drawLength(overlay, in: canvas,
+                               orientation: orientation, uprightOnly: true)
                 // Shapes and shutters sit in image space like arrows do: the
                 // shader turns them with the picture, so they are left unmapped.
                 case .polyline, .circle, .ellipse, .point:
@@ -862,6 +867,62 @@ public enum ImageAnnotationBurner {
         drawArrow(arrow, in: canvas, orientation: uprightOnly ? nil : orientation)
     }
 
+    /// A linear distance measurement: a ruler line between `start` and `end`
+    /// with perpendicular end ticks and the distance label beside the midpoint.
+    private static func drawLength(
+        _ overlay: PrintOverlayAnnotation,
+        in canvas: Canvas,
+        orientation: PrintOverlayOrientation? = nil,
+        uprightOnly: Bool = false
+    ) {
+        let lineOrientation = uprightOnly ? nil : orientation
+        let p1 = pixelPoint(overlay.start, in: canvas, orientation: lineOrientation)
+        let p2 = pixelPoint(overlay.end, in: canvas, orientation: lineOrientation)
+        let dx = p2.x - p1.x
+        let dy = p2.y - p1.y
+        let length = (dx * dx + dy * dy).squareRoot()
+        guard length > 0 else { return }
+
+        let widths = shapeLineWidths(scale: overlay.scale, imageHeight: Double(canvas.height))
+        let tickHalf = max(widths.line * 2.5,
+                           overlayFontSize(imageHeight: Double(canvas.height), scale: overlay.scale) * 0.35)
+        let nx = -dy / length * tickHalf
+        let ny = dx / length * tickHalf
+
+        canvas.context.saveGState()
+        canvas.context.setLineCap(.round)
+        canvas.context.setLineJoin(.round)
+
+        for (extra, color) in [(widths.halo, canvas.halo(for: overlay.color)),
+                               (0.0, canvas.color(for: overlay.color))] {
+            canvas.context.setStrokeColor(color)
+            canvas.context.setLineWidth(widths.line + extra)
+
+            canvas.context.beginPath()
+            // Main line segment
+            canvas.context.move(to: p1)
+            canvas.context.addLine(to: p2)
+            // Start tick
+            canvas.context.move(to: CGPoint(x: p1.x - nx, y: p1.y - ny))
+            canvas.context.addLine(to: CGPoint(x: p1.x + nx, y: p1.y + ny))
+            // End tick
+            canvas.context.move(to: CGPoint(x: p2.x - nx, y: p2.y - ny))
+            canvas.context.addLine(to: CGPoint(x: p2.x + nx, y: p2.y + ny))
+            canvas.context.strokePath()
+        }
+        canvas.context.restoreGState()
+
+        if overlay.hasWords {
+            var labelOverlay = overlay
+            labelOverlay.start = PrintAnnotationLayout.lengthLabelOrigin(
+                for: overlay,
+                imageWidth: Double(canvas.width),
+                imageHeight: Double(canvas.height))
+            drawText(labelOverlay, in: canvas,
+                     orientation: orientation, uprightOnly: uprightOnly)
+        }
+    }
+
     /// A straight arrow from tail to head, with a filled head.
     ///
     /// Drawn with a halo underneath for the same reason the text is: an arrow that
@@ -1028,7 +1089,7 @@ public enum ImageAnnotationBurner {
                 path.closeSubpath()
             }
 
-        case .text, .arrow, .annotation:
+        case .text, .arrow, .annotation, .length:
             return nil
         }
         return path

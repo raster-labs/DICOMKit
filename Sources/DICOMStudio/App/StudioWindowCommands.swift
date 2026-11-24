@@ -43,6 +43,11 @@ public struct StudioWindowCommands: Commands {
             }
             .keyboardShortcut("p", modifiers: [.command, .shift])
 
+            Button("Structured Reports") {
+                openWindow(id: StudioWindowID.structuredReports)
+            }
+            .keyboardShortcut("r", modifiers: [.command, .shift])
+
             Divider()
         }
     }

@@ -257,6 +257,56 @@ struct NetworkToolWorkshopCLIParityTests {
         }
     }
 
+    // MARK: - dicom-retrieve / dicom-qr (C-MOVE vs C-GET field gating)
+
+    @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
+    @Test("dicom-retrieve and dicom-qr update visible parameters and command preview when switching between c-move and c-get")
+    func testRetrieveAndQRMethodDependentVisibility() throws {
+        for tool in ["dicom-retrieve", "dicom-qr"] {
+            let moveDest = try #require(defs(tool).first { $0.id == "move-dest" }, "\(tool) missing move-dest")
+            #expect(moveDest.visibleWhen?.parameterId == "method")
+            #expect(moveDest.visibleWhen?.values == ["c-move"])
+
+            for id in ["output", "hierarchical"] {
+                let def = try #require(defs(tool).first { $0.id == id }, "\(tool) missing \(id)")
+                #expect(def.visibleWhen?.parameterId == "method")
+                #expect(def.visibleWhen?.values == ["c-get"])
+            }
+
+            let vm = CLIWorkshopViewModel()
+            vm.selectTool(id: tool)
+            vm.updateParameterValue(parameterID: "host", value: "127.0.0.1")
+            vm.updateParameterValue(parameterID: "move-dest", value: "STORE_SCP")
+            vm.updateParameterValue(parameterID: "output", value: "/tmp/retrieved")
+            vm.updateParameterValue(parameterID: "hierarchical", value: "true")
+
+            // Default is c-move: move-dest is visible; C-GET output fields are hidden.
+            let cMoveIDs = Set((vm.visibleParameters() + vm.advancedParameters()).map(\.id))
+            #expect(cMoveIDs.contains("move-dest"))
+            #expect(!cMoveIDs.contains("output"))
+            #expect(!cMoveIDs.contains("hierarchical"))
+            if tool == "dicom-qr" {
+                #expect(!cMoveIDs.contains("validate"))
+            }
+            #expect(vm.commandPreview.contains("--move-dest STORE_SCP"))
+            #expect(!vm.commandPreview.contains("--output"))
+            #expect(!vm.commandPreview.contains("--hierarchical"))
+
+            // Switching to c-get hides move-dest and shows output / hierarchical (and validate for dicom-qr).
+            vm.updateParameterValue(parameterID: "method", value: "c-get")
+            let cGetIDs = Set((vm.visibleParameters() + vm.advancedParameters()).map(\.id))
+            #expect(!cGetIDs.contains("move-dest"))
+            #expect(cGetIDs.contains("output"))
+            #expect(cGetIDs.contains("hierarchical"))
+            if tool == "dicom-qr" {
+                #expect(cGetIDs.contains("validate"))
+            }
+            #expect(!vm.commandPreview.contains("--move-dest"))
+            #expect(vm.commandPreview.contains("--output /tmp/retrieved"))
+            #expect(vm.commandPreview.contains("--hierarchical"))
+        }
+    }
+
     // MARK: - Spec hygiene
 
     @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)

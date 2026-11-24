@@ -1558,16 +1558,27 @@ public struct PresentationStateStore: Sendable {
             seriesNumber: targetSeriesNumber
         )
 
-        let studyUID = document.studyInstanceUID ?? UIDGenerator.generateStudyInstanceUID().value
+        let studyUID = document.studyInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+            ?? UIDGenerator.generateStudyInstanceUID().value
+        let fallbackDS = siblingStudyDataSet(in: destination, studyInstanceUID: document.studyInstanceUID)
+        let resolvedStudyUID = document.studyInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+            ?? fallbackDS?.string(for: .studyInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+            ?? studyUID
+
         let preparedDoc = SRDocument(
             sopClassUID: document.sopClassUID,
             sopInstanceUID: document.sopInstanceUID,
-            patientID: document.patientID,
-            patientName: document.patientName,
-            studyInstanceUID: studyUID,
-            studyDate: document.studyDate,
-            studyTime: document.studyTime,
-            accessionNumber: document.accessionNumber,
+            patientID: document.patientID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .patientID)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            patientName: document.patientName?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .patientName)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            studyInstanceUID: resolvedStudyUID,
+            studyDate: document.studyDate?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .studyDate)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            studyTime: document.studyTime?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .studyTime)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            accessionNumber: document.accessionNumber?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .accessionNumber)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
             seriesInstanceUID: targetSeriesUID,
             seriesNumber: String(targetSeriesNumber),
             modality: targetModality,
@@ -1580,12 +1591,18 @@ public struct PresentationStateStore: Sendable {
             verifyingObservers: document.verifyingObservers,
             documentTitle: document.documentTitle ?? document.rootContent.conceptName,
             rootContent: document.rootContent,
-            patientBirthDate: document.patientBirthDate,
-            patientSex: document.patientSex,
-            referringPhysicianName: document.referringPhysicianName,
-            studyID: document.studyID,
-            manufacturer: document.manufacturer,
-            studyDescription: document.studyDescription,
+            patientBirthDate: document.patientBirthDate?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .patientBirthDate)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            patientSex: document.patientSex?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .patientSex)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            referringPhysicianName: document.referringPhysicianName?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .referringPhysicianName)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            studyID: document.studyID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .studyID)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            manufacturer: document.manufacturer?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .manufacturer)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
+            studyDescription: document.studyDescription?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+                ?? fallbackDS?.string(for: .studyDescription)?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish,
             seriesDescription: document.seriesDescription ?? defaultSeriesDesc,
             evidenceReferences: document.evidenceReferences,
             predecessorDocuments: document.predecessorDocuments
@@ -1744,6 +1761,59 @@ public struct PresentationStateStore: Sendable {
         return maxNum + 1
     }
 
+    /// Finds an existing DICOM dataset in `destination` (or sibling series folders of the same study)
+    /// that carries non-empty patient/study demographics so published SR/KO instances never lose
+    /// `PatientID (0010,0020)` or study header tags required by PACS servers.
+    private static func siblingStudyDataSet(in destination: URL, studyInstanceUID: String?) -> DataSet? {
+        let fm = FileManager.default
+        let expectedStudyUID = studyInstanceUID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyOnPublish
+
+        var candidateDirs: [URL] = [destination]
+        let parent = destination.deletingLastPathComponent()
+        if parent.path != destination.path,
+           let siblings = try? fm.contentsOfDirectory(
+               at: parent,
+               includingPropertiesForKeys: [.isDirectoryKey],
+               options: [.skipsHiddenFiles]
+           ) {
+            for url in siblings where url.standardizedFileURL != destination.standardizedFileURL {
+                var isDir: ObjCBool = false
+                if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                    candidateDirs.append(url)
+                }
+            }
+            candidateDirs.append(parent)
+        }
+
+        var fallbackMatch: DataSet?
+        for dir in candidateDirs {
+            guard let urls = try? fm.contentsOfDirectory(
+                at: dir,
+                includingPropertiesForKeys: nil,
+                options: [.skipsHiddenFiles]
+            ) else { continue }
+            for url in urls where url.pathExtension.lowercased() == "dcm" {
+                guard let file = try? DICOMFile.read(from: url, options: .metadataOnly) else { continue }
+                let ds = file.dataSet
+                if let expectedStudyUID {
+                    let fileStudyUID = ds.string(for: .studyInstanceUID)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if fileStudyUID != expectedStudyUID {
+                        continue
+                    }
+                }
+                let pid = ds.string(for: .patientID)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let mod = ds.string(for: .modality)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !pid.isEmpty && mod != "SR" && mod != "KO" && mod != "PR" {
+                    return ds
+                }
+                if !pid.isEmpty && fallbackMatch == nil {
+                    fallbackMatch = ds
+                }
+            }
+        }
+        return fallbackMatch
+    }
+
     /// Publishes a saved view into a destination folder along with companion DICOM Structured Report
     /// files (`TID 1500 Measurement Report` and/or `TID 2010 Key Object Selection`) referencing the
     /// published Presentation States per PS3.3 Table C.18.4-1.
@@ -1835,5 +1905,11 @@ public struct PresentationStateStore: Sendable {
         }
 
         return (published, mrURLs, kosURLs)
+    }
+}
+
+private extension String {
+    var nilIfEmptyOnPublish: String? {
+        isEmpty ? nil : self
     }
 }

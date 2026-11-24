@@ -49,21 +49,29 @@ final class JPEGLSNegativeRegressionTests: XCTestCase {
     func testDefaultRejectsUndeclaredLegacyPresets() async throws {
         for (bits, components) in [(13, 1), (14, 1), (15, 1), (16, 1), (16, 3)] {
             let (data, _, descriptor) = try await synthetic(bits: bits, components: components)
-            let codec = JPEGLSCodec(decodingSyntax: .lossless)
-            XCTAssertThrowsError(try codec.decodeFrame(data, descriptor: descriptor, frameIndex: 0))
-            XCTAssertThrowsError(try codec.decodePixelFrame(data, descriptor: descriptor, frameIndex: 0))
-            try assertManagedRejects(data, descriptor: descriptor, codec: codec)
+            for codec in [
+                JPEGLSCodec(),
+                JPEGLSCodec(decodingTransferSyntaxUID: TransferSyntax.jpegLSLossless.uid),
+                JPEGLSCodec(decodingSyntax: .lossless)
+            ] {
+                XCTAssertEqual(codec.missingPresetPolicy, .requireStandardDefaults)
+                XCTAssertThrowsError(try codec.decodeFrame(data, descriptor: descriptor, frameIndex: 0))
+                XCTAssertThrowsError(try codec.decodePixelFrame(data, descriptor: descriptor, frameIndex: 0))
+                try assertManagedRejects(data, descriptor: descriptor, codec: codec)
+            }
         }
     }
 
     private func assertManagedMatches(_ data: Data, pixels: Data, descriptor: PixelDataDescriptor,
-                                      codec: JPEGLSCodec) throws {
+                                      codec: JPEGLSCodec,
+                                      expectedDiagnostic: PixelDecodeDiagnostic? = nil) throws {
         let budget = try DICOMAllocationBudget()
         let baseline = budget.receipt.currentTotal
         let input = try DICOMByteBuffer(count: data.count, budget: budget, resource: .encoded)
         data.withUnsafeBytes { input.unsafeMutableBytes.copyMemory(from: $0) }
         let frame = try codec.decodeManagedPixelFrame(input, descriptor: descriptor, frameIndex: 0, budget: budget)
         XCTAssertEqual(frame.data.withUnsafeBytes { Data($0) }, pixels)
+        XCTAssertEqual(frame.diagnostic, expectedDiagnostic)
         XCTAssertEqual(budget.receipt.current.staging, 0)
         destroy(frame)
         destroy(input)
@@ -75,14 +83,28 @@ final class JPEGLSNegativeRegressionTests: XCTestCase {
             let (raw, pixels, descriptor) = try await synthetic(bits: bits, components: components)
             var variants = [raw]
             if raw.count % 2 == 1 { variants.append(raw + Data([0])) }
+            let expectedDiag = PixelDecodeDiagnostic.legacyUnclampedPresetRecovered(encodedPrecision: bits)
             for data in variants {
-                let codec = JPEGLSCodec(decodingSyntax: .lossless,
-                    missingPresetPolicy: .allowLegacyUnclampedRecovery)
-                let stringCodec = JPEGLSCodec(decodingTransferSyntaxUID: TransferSyntax.jpegLSLossless.uid,
-                    missingPresetPolicy: .allowLegacyUnclampedRecovery)
-                XCTAssertEqual(try codec.decodePixelFrame(data, descriptor: descriptor, frameIndex: 0).data, pixels)
-                XCTAssertEqual(try stringCodec.decodeFrame(data, descriptor: descriptor, frameIndex: 0), pixels)
-                try assertManagedMatches(data, pixels: pixels, descriptor: descriptor, codec: codec)
+                for policy in [
+                    JPEGLSCodec.MissingPresetPolicy.allowLegacyUnclampedRecovery,
+                    .preferLegacyUnclampedParameters
+                ] {
+                    let codec = JPEGLSCodec(decodingSyntax: .lossless,
+                        missingPresetPolicy: policy)
+                    let stringCodec = JPEGLSCodec(decodingTransferSyntaxUID: TransferSyntax.jpegLSLossless.uid,
+                        missingPresetPolicy: policy)
+                    let pixelFrame = try codec.decodePixelFrame(data, descriptor: descriptor, frameIndex: 0)
+                    XCTAssertEqual(pixelFrame.data, pixels)
+                    XCTAssertEqual(pixelFrame.diagnostics, [expectedDiag])
+                    XCTAssertEqual(try stringCodec.decodeFrame(data, descriptor: descriptor, frameIndex: 0), pixels)
+                    try assertManagedMatches(
+                        data,
+                        pixels: pixels,
+                        descriptor: descriptor,
+                        codec: codec,
+                        expectedDiagnostic: expectedDiag
+                    )
+                }
             }
         }
     }
@@ -91,10 +113,41 @@ final class JPEGLSNegativeRegressionTests: XCTestCase {
         for components in [1, 3] {
             let (_, pixels, descriptor) = try await synthetic(bits: 16, components: components)
             let data = try JPEGLSCodec().encodeFrame(pixels, descriptor: descriptor, frameIndex: 0, configuration: .lossless)
-            for policy in [JPEGLSCodec.MissingPresetPolicy.requireStandardDefaults, .allowLegacyUnclampedRecovery] {
+            for policy in [
+                JPEGLSCodec.MissingPresetPolicy.requireStandardDefaults,
+                .allowLegacyUnclampedRecovery,
+                .preferLegacyUnclampedParameters
+            ] {
                 let codec = JPEGLSCodec(decodingSyntax: .lossless, missingPresetPolicy: policy)
-                XCTAssertEqual(try codec.decodeFrame(data, descriptor: descriptor, frameIndex: 0), pixels)
+                let decodedFrame = try codec.decodePixelFrame(data, descriptor: descriptor, frameIndex: 0)
+                XCTAssertEqual(decodedFrame.data, pixels)
+                if policy != .preferLegacyUnclampedParameters {
+                    XCTAssertTrue(decodedFrame.diagnostics.isEmpty)
+                }
                 try assertManagedMatches(data, pixels: pixels, descriptor: descriptor, codec: codec)
+            }
+        }
+    }
+
+    func testNearLosslessStreamNeverRecoveredWithLosslessLegacyThresholds() async throws {
+        let (_, pixels, descriptor) = try await synthetic(bits: 16, components: 1)
+        let nearLegacy = try await JPEGLSCodecStrictDecodingTests.makeLegacyUnclampedCodestream(
+            pixels: pixels,
+            width: descriptor.columns,
+            height: descriptor.rows,
+            bitsPerSample: 16,
+            samplesPerPixel: 1,
+            near: 2
+        )
+        for syntax in [JPEGLSCodec.DecodingSyntax.nearLossless, .any] {
+            for policy in [
+                JPEGLSCodec.MissingPresetPolicy.requireStandardDefaults,
+                .allowLegacyUnclampedRecovery,
+                .preferLegacyUnclampedParameters
+            ] {
+                let codec = JPEGLSCodec(decodingSyntax: syntax, missingPresetPolicy: policy)
+                XCTAssertThrowsError(try codec.decodeFrame(nearLegacy, descriptor: descriptor, frameIndex: 0))
+                try assertManagedRejects(nearLegacy, descriptor: descriptor, codec: codec)
             }
         }
     }
